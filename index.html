@@ -122,7 +122,7 @@
                             </div>
                             <div class="card-body">
                                 <div class="card-name">Novac</div>
-                                <div class="card-desc">Popust • PDV • Kredit • Valuta</div>
+                                <div class="card-desc">Popust • PDV • Kredit • Kursna lista</div>
                             </div>
                         </div>
 
@@ -240,7 +240,7 @@
                             </div>
                             <div class="card-body">
                                 <div class="card-name">Muzika</div>
-                                <div class="card-desc">Akordi • Lestvice • Kapo</div>
+                                <div class="card-desc">Akordi • Lestvice • Štimer</div>
                             </div>
                         </div>
 
@@ -711,7 +711,6 @@
             </div>
         </div>
     </div>
-
     <!-- ================= BICIKL ================= -->
     <div id="bike-screen" class="screen" data-accent="bike">
         <div class="top-bar">
@@ -1019,7 +1018,6 @@
             </div>
         </div>
 
-        <!-- NOVI TAB: PROCENAT U NOVCU -->
         <div id="money-procenat-tab" class="sub-tab-content">
             <div class="converter-box">
                 <label class="pct-label">1) Dodaj / oduzmi procenat</label>
@@ -2291,7 +2289,6 @@
             </div>
         </div>
 
-        <!-- NOVI TAB: PROCENAT U MERAMA -->
         <div id="measures-procenat-tab" class="sub-tab-content">
             <div class="converter-box">
                 <label class="pct-label">1) Dodaj / oduzmi procenat</label>
@@ -4910,11 +4907,75 @@
         </div>
         <div class="tabs-label">🎵 Alati</div>
         <div class="tabs">
+            <button class="tab" data-fav-key="music:stimer" onclick="switchSubTab('music', 'stimer', event)"><span class="tab-star" onclick="toggleFavorite(event, 'music:stimer', 'tab')">☆</span>🎸 Štimer</button>
             <button class="tab" data-fav-key="music:tempo" onclick="switchSubTab('music', 'tempo', event)"><span class="tab-star" onclick="toggleFavorite(event, 'music:tempo', 'tab')">☆</span>⏱️ Tempo/Delay</button>
             <button class="tab" data-fav-key="music:intervali" onclick="switchSubTab('music', 'intervali', event)"><span class="tab-star" onclick="toggleFavorite(event, 'music:intervali', 'tab')">☆</span>🎚️ Intervali</button>
             <button class="tab" data-fav-key="music:metronom" onclick="switchSubTab('music', 'metronom', event)"><span class="tab-star" onclick="toggleFavorite(event, 'music:metronom', 'tab')">☆</span>🥁 Metronom</button>
             <button class="tab" data-fav-key="music:frekvencije" onclick="switchSubTab('music', 'frekvencije', event)"><span class="tab-star" onclick="toggleFavorite(event, 'music:frekvencije', 'tab')">☆</span>🎛️ Frekvencije</button>
             <button class="tab" data-fav-key="music:detektor" onclick="switchSubTab('music', 'detektor', event)"><span class="tab-star" onclick="toggleFavorite(event, 'music:detektor', 'tab')">☆</span>🎵 Detektor tona</button>
+        </div>
+
+        <!-- ŠTIMER -->
+        <div id="music-stimer-tab" class="sub-tab-content">
+            <div class="converter-box">
+                <p class="section-desc">Izaberi instrument i klikni na žicu da čuješ referentni ton. Za auto-štimovanje, uključi mikrofon.</p>
+
+                <div class="input-field">
+                    <label>Instrument</label>
+                    <select id="tuner-instrument" class="custom-input" onchange="renderTunerStrings()">
+                        <option value="guitar-standard">🎸 Gitara — standard (E A D G B E)</option>
+                        <option value="guitar-dropd">🎸 Gitara — drop D (D A D G B E)</option>
+                        <option value="guitar-halfdown">🎸 Gitara — half-step down (Eb)</option>
+                        <option value="bass-4">🎸 Bas gitara — 4 žice (E A D G)</option>
+                        <option value="bass-5">🎸 Bas gitara — 5 žica (B E A D G)</option>
+                        <option value="ukulele-soprano">🎶 Ukulele — sopran (G C E A)</option>
+                        <option value="ukulele-baritone">🎶 Ukulele — bariton (D G B E)</option>
+                        <option value="mandolin">🎻 Mandolina (G D A E × 2)</option>
+                        <option value="violin">🎻 Violina (G D A E)</option>
+                        <option value="cello">🎻 Violončelo (C G D A)</option>
+                        <option value="banjo">🪕 Banjo — 5 žica (G D G B D)</option>
+                        <option value="kontrabas">🎻 Kontrabas (E A D G)</option>
+                    </select>
+                </div>
+
+                <div class="input-field">
+                    <label>Referentna frekvencija (A4)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="tuner-a4" class="custom-input" value="440" step="0.1" inputmode="decimal">
+                        <span class="unit">Hz</span>
+                    </div>
+                </div>
+
+                <div id="tuner-strings" class="tuner-strings"></div>
+
+                <div id="tuner-status" class="tuner-status" style="display:none;">
+                    <div class="tuner-note" id="tuner-note-display">—</div>
+                    <div class="tuner-freq" id="tuner-freq-display">— Hz</div>
+                </div>
+
+                <button class="copy-btn" id="tuner-stop-btn" style="display:none; width:100%; margin-top:10px;" onclick="stopTunerTone()">
+                    ⏹ Zaustavi ton
+                </button>
+            </div>
+
+            <div class="converter-box" style="margin-top: 16px;">
+                <div class="section-desc" style="margin-bottom: 10px;">🎤 Auto-štimovanje mikrofonom</div>
+                <p class="section-desc" style="font-size: 0.75rem;">Radi 100% offline. Dozvoli pristup mikrofonu kad te browser pita.</p>
+
+                <button class="calc-btn-main" id="tuner-mic-btn" onclick="toggleTunerMic()">
+                    🎤 Uključi mikrofon
+                </button>
+
+                <div id="tuner-mic-result" class="tuner-mic-result" style="display:none;">
+                    <div class="tuner-detected-note" id="tuner-detected-note">—</div>
+                    <div class="tuner-detected-freq" id="tuner-detected-freq">— Hz</div>
+                    <div class="tuner-cents-bar">
+                        <div class="tuner-cents-center"></div>
+                        <div class="tuner-cents-marker" id="tuner-cents-marker" style="left:50%;"></div>
+                    </div>
+                    <div class="tuner-cents-label" id="tuner-cents-label">—</div>
+                </div>
+            </div>
         </div>
 
         <div id="music-transpozicija-tab" class="sub-tab-content active">
