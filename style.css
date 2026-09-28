@@ -2848,3 +2848,47 @@ select.custom-input {
         backface-visibility: hidden;
     }
 }
+/* === HITNI FIX — procenat inputi === */
+#money-procenat-tab .pct-row,
+#measures-procenat-tab .pct-row {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+    align-items: stretch !important;
+}
+
+#money-procenat-tab .pct-row .pct-input,
+#measures-procenat-tab .pct-row .pct-input {
+    display: block !important;
+    flex: 1 1 0 !important;
+    min-width: 60px !important;
+    width: auto !important;
+    background: var(--bg-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 12px !important;
+    color: var(--text-main) !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    padding: 12px 14px !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+}
+
+#money-procenat-tab .pct-row .pct-select,
+#measures-procenat-tab .pct-row .pct-select {
+    display: block !important;
+    flex: 0 0 auto !important;
+    min-width: 110px !important;
+    width: auto !important;
+    background: var(--bg-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 12px !important;
+    color: var(--text-main) !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    padding: 12px 10px !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+    cursor: pointer !important;
+}
