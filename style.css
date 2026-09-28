@@ -47,12 +47,6 @@ body {
     overflow-x: hidden;
 }
 
-body:has(#home-screen.active) {
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-}
-
 .app-container {
     width: 100%;
     max-width: 480px;
@@ -118,7 +112,7 @@ body:has(#home-screen.active) {
 .screen[data-accent="music"]     { --category-accent: #a855f7; }
 
 /* ============================================================
-   STICKY HEADER (home screen)
+   HEADER
    ============================================================ */
 .header {
     margin-bottom: 22px;
@@ -214,31 +208,23 @@ body:has(#home-screen.active) {
     letter-spacing: 0.1px;
 }
 
-/* Sticky header za home-screen — verzija 2 */
-#home-screen {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-}
-
+/* STICKY HEADER — samo za home ekran, BEZ overflow: hidden */
 #home-screen .header {
-    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 200;
     background: var(--bg-color);
     padding: 12px 0 6px;
     margin-bottom: 8px;
-    z-index: 100;
-    position: relative;
 }
 
 #home-screen .search-wrap {
-    flex-shrink: 0;
+    position: sticky;
+    top: 62px;
+    z-index: 199;
     background: var(--bg-color);
-    padding: 0 0 8px;
+    padding: 0 0 10px;
     margin-bottom: 8px;
-    z-index: 100;
-    position: relative;
 }
 
 #home-screen .search-wrap::after {
@@ -247,25 +233,9 @@ body:has(#home-screen.active) {
     left: 0;
     right: 0;
     bottom: 0;
-    height: 1px;
-    background: linear-gradient(to bottom, var(--border-color), transparent);
+    height: 10px;
+    background: linear-gradient(to bottom, var(--bg-color) 40%, transparent);
     pointer-events: none;
-}
-
-/* Skrolujući deo home ekrana */
-#home-normal-content {
-    flex: 1 1 auto;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 20px;
-}
-
-/* Quick search results — skroluju sa sadržajem */
-#quick-search-results {
-    flex-shrink: 0;
-    background: var(--bg-color);
-    padding: 0 0 8px;
 }
 
 /* ============================================================
@@ -2758,13 +2728,6 @@ select.custom-input {
     .pump-icon { font-size: 1.4rem; min-width: 42px; padding: 7px; }
     .loan-conv-row { padding: 10px 12px; font-size: 0.85rem; }
     .loan-conv-row .lc-value { font-size: 0.88rem; }
-    #home-screen .header,
-    #home-screen .search-wrap {
-        margin-left: -14px;
-        margin-right: -14px;
-        padding-left: 14px;
-        padding-right: 14px;
-    }
 }
 
 /* ============================================================
@@ -2847,48 +2810,4 @@ select.custom-input {
         -webkit-backface-visibility: hidden;
         backface-visibility: hidden;
     }
-}
-/* === HITNI FIX — procenat inputi === */
-#money-procenat-tab .pct-row,
-#measures-procenat-tab .pct-row {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    gap: 8px !important;
-    width: 100% !important;
-    align-items: stretch !important;
-}
-
-#money-procenat-tab .pct-row .pct-input,
-#measures-procenat-tab .pct-row .pct-input {
-    display: block !important;
-    flex: 1 1 0 !important;
-    min-width: 60px !important;
-    width: auto !important;
-    background: var(--bg-color) !important;
-    border: 1px solid var(--border-color) !important;
-    border-radius: 12px !important;
-    color: var(--text-main) !important;
-    font-size: 1rem !important;
-    font-weight: 600 !important;
-    padding: 12px 14px !important;
-    outline: none !important;
-    box-sizing: border-box !important;
-}
-
-#money-procenat-tab .pct-row .pct-select,
-#measures-procenat-tab .pct-row .pct-select {
-    display: block !important;
-    flex: 0 0 auto !important;
-    min-width: 110px !important;
-    width: auto !important;
-    background: var(--bg-color) !important;
-    border: 1px solid var(--border-color) !important;
-    border-radius: 12px !important;
-    color: var(--text-main) !important;
-    font-size: 0.9rem !important;
-    font-weight: 600 !important;
-    padding: 12px 10px !important;
-    outline: none !important;
-    box-sizing: border-box !important;
-    cursor: pointer !important;
 }
