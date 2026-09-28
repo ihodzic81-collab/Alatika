@@ -113,7 +113,7 @@ body {
 .screen[data-accent="music"]     { --category-accent: #a855f7; }
 
 /* ============================================================
-   HEADER
+   STICKY HEADER (home screen)
    ============================================================ */
 .header {
     margin-bottom: 22px;
@@ -207,6 +207,41 @@ body {
     font-size: 0.8rem;
     margin-top: 6px;
     letter-spacing: 0.1px;
+}
+
+/* Sticky header za home-screen */
+#home-screen .header,
+#home-screen .search-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg-color);
+    padding-top: 12px;
+    padding-bottom: 8px;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+#home-screen .header {
+    padding-bottom: 6px;
+    margin-bottom: 12px;
+}
+#home-screen .search-wrap {
+    top: 62px;
+    margin-bottom: 12px;
+    padding-top: 8px;
+}
+#home-screen .header::after,
+#home-screen .search-wrap::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: linear-gradient(to bottom, var(--border-color), transparent);
+    pointer-events: none;
 }
 
 /* ============================================================
@@ -547,27 +582,18 @@ body {
     margin-bottom: 14px;
     margin-left: 30px;
     flex-shrink: 0;
-    /* REALISTIČNA 3D PLASTIKA — dvostruka unutrašnja senka + highlight + drop shadow */
     box-shadow:
-        /* gornji highlight — svetlo se lomi na vrhu */
         inset 0 2px 1px rgba(255, 255, 255, 0.55),
-        /* donja unutrašnja senka — dubina */
         inset 0 -3px 5px rgba(0, 0, 0, 0.35),
-        /* tanki svetli rub sa leve strane */
         inset 1px 0 0 rgba(255, 255, 255, 0.25),
-        /* tanki tamni rub sa desne strane */
         inset -1px 0 0 rgba(0, 0, 0, 0.15),
-        /* duboka spoljna senka — ikona lebdi iznad površine */
         0 6px 14px color-mix(in srgb, var(--card-accent, var(--accent-color)) 55%, transparent),
-        /* bliža, oštrija senka ispod ikone */
         0 3px 6px rgba(0, 0, 0, 0.35),
-        /* kontura oko ikone */
         0 0 0 1px color-mix(in srgb, var(--card-accent, var(--accent-color)) 30%, transparent);
     transition: box-shadow 0.25s ease, transform 0.25s ease;
     position: relative;
 }
 
-/* Refleksija svetla na gornjoj ivici ikone */
 .card-icon::before {
     content: '';
     position: absolute;
@@ -702,17 +728,17 @@ body {
 }
 
 .tab-drop-placeholder {
-    border-radius: 12px;
+    border-radius: 10px;
     background: color-mix(in srgb, var(--accent-color) 8%, transparent);
     border: 2px dashed color-mix(in srgb, var(--accent-color) 45%, transparent);
-    min-height: 48px;
-    min-width: 80px;
+    min-height: 40px;
+    min-width: 70px;
     pointer-events: none;
     animation: placeholderPulse 1.4s ease-in-out infinite;
 }
 
 /* ============================================================
-   HINT O PREVLAČENJU (drag-tip na home + drag-hint u karticama)
+   HINT O PREVLAČENJU
    ============================================================ */
 .drag-tip {
     display: flex;
@@ -742,19 +768,18 @@ body {
     flex-shrink: 0;
 }
 
-/* Hint u karticama sa tabovima */
 .drag-hint {
     display: flex;
     align-items: center;
     gap: 6px;
-    margin: 0 4px 12px;
-    padding: 9px 14px;
-    font-size: 0.75rem;
+    margin: 0 4px 8px;
+    padding: 7px 12px;
+    font-size: 0.7rem;
     font-weight: 600;
     color: #7a5d00;
     background: linear-gradient(135deg, #fff8e1, #ffecb3);
     border: 1px solid #ffe082;
-    border-radius: 12px;
+    border-radius: 10px;
     box-shadow: 0 2px 6px rgba(255, 193, 7, 0.25);
     opacity: 0;
     transform: translateY(-4px);
@@ -831,7 +856,7 @@ body {
 .date-triple input[type="hidden"] { display: none; }
 
 /* ============================================================
-   PROCENAT — novi tabovi u Mere i Novac
+   PROCENAT
    ============================================================ */
 .pct-label {
     display: block;
@@ -902,7 +927,7 @@ body {
 .pct-formula.show { display: block; }
 
 /* ============================================================
-   ISTORIJA — nova struktura
+   ISTORIJA
    ============================================================ */
 .history-search-wrap {
     margin-bottom: 12px;
@@ -1031,7 +1056,6 @@ body {
 }
 .delete-item-btn:active { transform: scale(1.2); }
 
-/* Skrivena statistika */
 .stats-toggle-wrap {
     margin-top: 24px;
     padding-top: 16px;
@@ -1082,7 +1106,7 @@ body {
 }
 
 /* ============================================================
-   MOJA RAČUNANJA — bogata sekcija na home
+   MOJA RAČUNANJA
    ============================================================ */
 .history-section {
     margin-top: 12px;
@@ -1294,18 +1318,18 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
-    padding-bottom: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
     border-bottom: 1px solid var(--border-color);
 }
 .back-btn {
     background: var(--card-active);
     border: 1px solid var(--border-color);
     color: var(--text-main);
-    width: 38px;
-    height: 38px;
-    border-radius: 12px;
-    font-size: 1.2rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    font-size: 1.15rem;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -1315,11 +1339,11 @@ body {
 }
 .back-btn:hover { background: var(--border-color); }
 .back-btn:active { transform: scale(0.92); }
-.top-bar h2 { font-size: 1.25rem; font-weight: 700; }
+.top-bar h2 { font-size: 1.2rem; font-weight: 700; }
 .dots { color: var(--text-secondary); letter-spacing: 2px; }
 
 /* ============================================================
-   HISTORY SCREEN — stare akcije
+   HISTORY SCREEN
    ============================================================ */
 .history-actions {
     display: flex;
@@ -1360,31 +1384,32 @@ body {
 
 .section-desc {
     color: var(--text-secondary);
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     margin-bottom: 4px;
+    line-height: 1.4;
 }
 
 /* ============================================================
-   FORM BOX
+   FORM BOX — COMPACT
    ============================================================ */
 .form-container, .converter-box {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 20px;
+    border-radius: 18px;
+    padding: 16px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    margin-bottom: 20px;
+    gap: 12px;
+    margin-bottom: 14px;
 }
 .input-field {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 5px;
 }
 .input-field label {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     color: var(--text-secondary);
     font-weight: 600;
 }
@@ -1393,8 +1418,8 @@ body {
     align-items: center;
     background: var(--bg-color);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 0 14px;
+    border-radius: 11px;
+    padding: 0 12px;
     transition: border-color 0.2s ease, box-shadow 0.2s;
 }
 .input-wrapper:focus-within {
@@ -1407,20 +1432,21 @@ body {
     border: none;
     outline: none;
     color: var(--text-main);
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 600;
-    padding: 12px 0;
+    padding: 11px 0;
 }
 select.custom-input {
     background: var(--bg-color);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 12px 14px;
+    border-radius: 11px;
+    padding: 11px 12px;
+    font-size: 0.95rem;
 }
 .unit {
     color: var(--text-secondary);
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     margin-left: 8px;
 }
 .custom-select-unit {
@@ -1434,13 +1460,13 @@ select.custom-input {
 }
 
 /* ============================================================
-   KREDIT — konverzija valuta box
+   KREDIT — konverzija valuta
    ============================================================ */
 #loan-conversion-box {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 20px;
+    border-radius: 18px;
+    padding: 16px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
 }
 #loan-conversion-list {
@@ -1494,7 +1520,7 @@ select.custom-input {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     color: var(--text-secondary);
     font-weight: 700;
     text-transform: uppercase;
@@ -1585,10 +1611,10 @@ select.custom-input {
     color: #052e16;
     font-weight: 800;
     font-size: 1rem;
-    padding: 14px;
-    border-radius: 14px;
+    padding: 13px;
+    border-radius: 13px;
     cursor: pointer;
-    margin-top: 8px;
+    margin-top: 4px;
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.4),
         inset 0 -2px 0 rgba(0, 0, 0, 0.15),
@@ -1618,10 +1644,10 @@ select.custom-input {
     background: linear-gradient(135deg, #052e16, #022c22);
     border: 1px solid #059669;
     border-radius: 16px;
-    padding: 16px;
+    padding: 14px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 @keyframes flashGreen {
@@ -1636,31 +1662,33 @@ select.custom-input {
     gap: 12px;
 }
 .pump-icon {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     background: rgba(0, 230, 118, 0.15);
     padding: 8px;
     border-radius: 12px;
     flex-shrink: 0;
-    min-width: 48px;
+    min-width: 46px;
     text-align: center;
 }
 .res-label {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: #a7f3d0;
     text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.3px;
 }
 .result-card-green h2 {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     color: #ffffff;
     font-weight: 800;
 }
 .result-card-green h2 small {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     color: #34d399;
 }
 .result-card-green .res-text {
     color: #ffffff;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 700;
     line-height: 1.4;
 }
@@ -1670,14 +1698,14 @@ select.custom-input {
     width: 100%;
     flex-wrap: wrap;
 }
-.res-actions .copy-btn { flex: 1; text-align: center; min-width: 90px; }
+.res-actions .copy-btn { flex: 1; text-align: center; min-width: 80px; }
 .copy-btn {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: #ffffff;
     padding: 8px 10px;
     border-radius: 10px;
-    font-size: 0.75rem;
+    font-size: 0.74rem;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.1s;
@@ -1693,51 +1721,54 @@ select.custom-input {
    ============================================================ */
 .stats-row {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 .stat-item {
     flex: 1;
     background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 10px;
+    border-radius: 11px;
+    padding: 9px 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
     text-align: center;
 }
-.stat-label { font-size: 0.7rem; color: var(--text-secondary); }
-.stat-item strong { font-size: 0.9rem; color: var(--text-main); }
+.stat-label { font-size: 0.68rem; color: var(--text-secondary); }
+.stat-item strong { font-size: 0.85rem; color: var(--text-main); }
 
 /* ============================================================
-   TABS
+   TABS — COMPACT, 3 PER ROW on mobile
    ============================================================ */
 .tabs {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 20px;
+    gap: 6px;
+    margin-bottom: 12px;
     width: 100%;
 }
 .tabs .tab {
-    flex: 1 1 30%;
-    min-width: 90px;
+    flex: 1 1 calc(33.333% - 4px);
+    min-width: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 12px 8px;
+    padding: 9px 4px 8px;
     background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: 10px;
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 12px;
+    font-weight: 600;
     text-align: center;
     transition: all 0.2s ease;
     position: relative;
+    line-height: 1.2;
+    word-break: break-word;
+    hyphens: auto;
 }
 .tabs .tab:hover {
     background: var(--card-active);
@@ -1752,10 +1783,10 @@ select.custom-input {
 
 .tab-star {
     position: absolute;
-    top: 4px;
-    left: 4px;
-    width: 20px;
-    height: 20px;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
     background: transparent;
     border: none;
     color: var(--text-secondary);
@@ -1764,14 +1795,14 @@ select.custom-input {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
+    border-radius: 5px;
     transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
     line-height: 1;
     padding: 0;
-    opacity: 0.4;
+    opacity: 0.35;
     z-index: 2;
 }
-.tab-star::before { content: '☆'; font-size: 0.88rem; }
+.tab-star::before { content: '☆'; font-size: 0.78rem; }
 .tab-star:hover,
 .tab-star:focus {
     background: rgba(255, 255, 255, 0.1);
@@ -1786,14 +1817,14 @@ select.custom-input {
 .tab-star.active::before { content: '★'; }
 
 .tabs-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--text-secondary);
     text-transform: uppercase;
     font-weight: 700;
     letter-spacing: 0.5px;
-    margin-bottom: 8px;
-    margin-top: 4px;
-    padding-left: 4px;
+    margin-bottom: 6px;
+    margin-top: 2px;
+    padding-left: 2px;
 }
 .sub-tab-content { display: none; }
 .sub-tab-content.active { display: block; }
@@ -1804,7 +1835,7 @@ select.custom-input {
 .swap-icon-container {
     display: flex;
     justify-content: center;
-    margin: -4px 0;
+    margin: -2px 0;
 }
 .swap-btn {
     background: var(--card-active);
@@ -1819,7 +1850,6 @@ select.custom-input {
 }
 .swap-btn:hover { opacity: 0.8; }
 .swap-btn:active { transform: rotate(180deg); }
-
 /* ============================================================
    GEAR TABLE
    ============================================================ */
@@ -2011,7 +2041,7 @@ select.custom-input {
 }
 
 .fx-list-box {
-    margin-top: 16px;
+    margin-top: 14px;
     max-height: 420px;
     overflow: hidden;
     padding-bottom: 12px;
@@ -2603,7 +2633,7 @@ select.custom-input {
    FUEL HISTORY
    ============================================================ */
 .fuel-history-box {
-    padding: 16px;
+    padding: 14px;
 }
 .fuel-history-summary {
     display: flex;
@@ -2620,7 +2650,7 @@ select.custom-input {
 }
 
 /* ============================================================
-   RESPONSIVE
+   RESPONSIVE — Mobile (max 400px) — 3 tabs in row
    ============================================================ */
 @media (max-width: 400px) {
     body { padding: 14px; }
@@ -2652,16 +2682,23 @@ select.custom-input {
     .search-input { font-size: 0.92rem; padding: 14px 0; min-height: 48px; }
     .group-title { font-size: 0.68rem; }
     .section-title { font-size: 0.72rem; }
-    .tabs { gap: 6px; }
-    .tabs .tab { font-size: 11.5px; padding: 11px 4px 8px; min-width: 82px; }
-    .tab-star {
-        top: 3px;
-        left: 3px;
-        width: 18px;
-        height: 18px;
+    .tabs { gap: 5px; margin-bottom: 10px; }
+    .tabs .tab {
+        font-size: 11px;
+        padding: 8px 3px 7px;
+        flex: 1 1 calc(33.333% - 4px);
+        border-radius: 9px;
     }
-    .tab-star::before { font-size: 0.78rem; }
-    .stat-label { font-size: 0.65rem; }
+    .tab-star {
+        top: 1px;
+        left: 1px;
+        width: 15px;
+        height: 15px;
+    }
+    .tab-star::before { font-size: 0.72rem; }
+    .tabs-label { font-size: 0.66rem; margin-bottom: 5px; }
+    .stat-label { font-size: 0.63rem; }
+    .stat-item strong { font-size: 0.78rem; }
     .opening-item { grid-template-columns: 1fr 55px 55px 28px; gap: 4px; padding: 6px; }
     .opening-item input { font-size: 0.78rem; }
     .bar-row-label { flex: 0 0 80px; font-size: 0.72rem; }
@@ -2685,9 +2722,97 @@ select.custom-input {
     .lista-item-price { font-size: 0.8rem; }
     .lista-total-value { font-size: 0.95rem; }
     .hqs-value { font-size: 0.95rem; }
-    .pct-row { flex-wrap: wrap; }
-    .pct-row .pct-input { flex: 1 1 calc(50% - 4px); }
-    .pct-row .pct-select { flex: 1 1 100% !important; min-width: 0; }
+    .pct-row { flex-wrap: nowrap; }
+    .pct-row .pct-input { flex: 1 1 0; min-width: 0; font-size: 0.9rem; padding: 10px 10px; }
+    .pct-row .pct-select { flex: 0 0 auto; min-width: 72px; font-size: 0.78rem; padding: 10px 6px; }
+    .converter-box { padding: 14px; gap: 10px; border-radius: 16px; }
+    .custom-input { font-size: 1rem; padding: 10px 0; }
+    select.custom-input { font-size: 0.9rem; padding: 10px 12px; }
+    .calc-btn-main { font-size: 0.95rem; padding: 12px; }
+    .result-card-green { padding: 12px; }
+    .result-card-green h2 { font-size: 1.35rem; }
+    .pump-icon { font-size: 1.4rem; min-width: 42px; padding: 7px; }
+    .loan-conv-row { padding: 10px 12px; font-size: 0.85rem; }
+    .loan-conv-row .lc-value { font-size: 0.88rem; }
+    #home-screen .header,
+    #home-screen .search-wrap {
+        margin-left: -14px;
+        margin-right: -14px;
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+}
+
+/* ============================================================
+   RESPONSIVE — Larger phones (400-480px)
+   ============================================================ */
+@media (min-width: 401px) and (max-width: 480px) {
+    .tabs .tab {
+        flex: 1 1 calc(33.333% - 4px);
+        font-size: 12px;
+    }
+}
+
+/* ============================================================
+   RESPONSIVE — Tablets (481-768px) — 4 tabs in row
+   ============================================================ */
+@media (min-width: 481px) and (max-width: 768px) {
+    body { padding: 24px; }
+    .app-container { max-width: 640px; }
+    .tabs .tab {
+        flex: 1 1 calc(25% - 6px);
+        font-size: 13px;
+        padding: 10px 6px;
+    }
+    .tabs-label { font-size: 0.75rem; }
+    .grid-menu { grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    .card { min-height: 130px; padding: 18px 16px 16px; }
+    .card-name { font-size: 1rem; }
+    .card-desc { font-size: 0.76rem; }
+    .card-icon { width: 50px; height: 50px; }
+    .card-icon svg { width: 25px; height: 25px; }
+    .converter-box { padding: 20px; gap: 14px; }
+    .custom-input { font-size: 1.1rem; padding: 12px 0; }
+    .tabs-label { font-size: 0.76rem; }
+    .group-title { font-size: 0.78rem; }
+    .section-title { font-size: 0.85rem; }
+    .stat-label { font-size: 0.72rem; }
+    .stat-item strong { font-size: 0.92rem; }
+    .tabs { gap: 8px; margin-bottom: 14px; }
+}
+
+/* ============================================================
+   RESPONSIVE — Desktop (769px+) — 4 tabs in row, larger UI
+   ============================================================ */
+@media (min-width: 769px) {
+    body { padding: 32px; }
+    .app-container { max-width: 720px; }
+    .grid-menu { grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .card { min-height: 140px; padding: 20px 18px 18px; }
+    .card-name { font-size: 1.05rem; }
+    .card-desc { font-size: 0.8rem; }
+    .card-icon { width: 54px; height: 54px; border-radius: 16px; }
+    .card-icon svg { width: 27px; height: 27px; }
+    .tabs .tab {
+        flex: 1 1 calc(25% - 6px);
+        font-size: 14px;
+        padding: 11px 8px;
+        border-radius: 11px;
+    }
+    .tabs { gap: 8px; margin-bottom: 16px; }
+    .tabs-label { font-size: 0.78rem; margin-bottom: 8px; }
+    .converter-box { padding: 22px; gap: 16px; border-radius: 22px; }
+    .custom-input { font-size: 1.15rem; padding: 13px 0; }
+    select.custom-input { font-size: 1rem; padding: 13px 14px; }
+    .calc-btn-main { font-size: 1.05rem; padding: 15px; }
+    .result-card-green { padding: 20px; }
+    .result-card-green h2 { font-size: 1.7rem; }
+    .group-title { font-size: 0.82rem; }
+    .section-title { font-size: 0.88rem; }
+    .stat-label { font-size: 0.74rem; }
+    .stat-item strong { font-size: 0.95rem; }
+    .top-bar h2 { font-size: 1.35rem; }
+    .subtitle { font-size: 0.85rem; }
 }
 
 /* ============================================================
@@ -2698,118 +2823,4 @@ select.custom-input {
         -webkit-backface-visibility: hidden;
         backface-visibility: hidden;
     }
-}/* ===== FIX: PROCENAT TABOVI ===== */
-.pct-label {
-    display: block;
-    font-size: 0.85rem;
-    font-weight: 800;
-    color: var(--text-main);
-    margin-bottom: 10px;
-}
-
-.pct-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 12px;
-    width: 100%;
-}
-
-.pct-row .pct-input {
-    flex: 1 1 0;
-    min-width: 80px;
-    background: var(--bg-color);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    color: var(--text-main);
-    font-size: 1rem;
-    font-weight: 600;
-    padding: 12px 14px;
-    outline: none;
-    box-sizing: border-box;
-}
-
-.pct-row .pct-select {
-    flex: 0 0 auto;
-    min-width: 110px;
-    background: var(--bg-color);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    color: var(--text-main);
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 12px 10px;
-    outline: none;
-    box-sizing: border-box;
-    cursor: pointer;
-}
-
-.pct-row .pct-input:focus,
-.pct-row .pct-select:focus {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.15);
-}
-
-.pct-formula {
-    display: none;
-    margin-top: 10px;
-    padding: 9px 12px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: #34d399;
-    background: rgba(52, 211, 153, 0.08);
-    border-left: 3px solid #34d399;
-    border-radius: 6px;
-    line-height: 1.5;
-    word-break: break-word;
-}
-
-.pct-formula.show {
-    display: block;
-}
-
-/* ===== FIX: kredit konverzija ===== */
-#loan-conversion-box {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 20px;
-}
-
-#loan-conversion-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.loan-conv-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    background: var(--bg-color);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 0.9rem;
-}
-
-.loan-conv-row .lc-label {
-    color: var(--text-secondary);
-    font-weight: 600;
-    font-size: 0.82rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.loan-conv-row .lc-value {
-    color: var(--accent-color);
-    font-weight: 800;
-    font-size: 0.95rem;
-}
-
-.loan-conv-row .lc-flag {
-    font-size: 1.15rem;
-    line-height: 1;
 }
