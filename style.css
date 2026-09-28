@@ -2781,4 +2781,21 @@ select.custom-input {
         -webkit-backface-visibility: hidden;
         backface-visibility: hidden;
     }
+}/* HITNI FIX - samo aktivan ekran se vidi */
+#home-screen:not(.active),
+#money-screen:not(.active),
+#auto-screen:not(.active),
+#bike-screen:not(.active),
+#history-screen:not(.active),
+#settings-screen:not(.active),
+#health-screen:not(.active),
+#time-screen:not(.active),
+#measures-screen:not(.active),
+#home-calc-screen:not(.active),
+#kitchen-screen:not(.active),
+#shopping-screen:not(.active),
+#power-screen:not(.active),
+#work-screen:not(.active),
+#music-screen:not(.active) {
+    display: none !important;
 }
