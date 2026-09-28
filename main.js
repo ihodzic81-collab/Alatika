@@ -8,12 +8,10 @@ function el(id) {
     return document.getElementById(id);
 }
 
-// BUG FIX: locale-independent broj — prihvata i "," i "."
 function parseNum(val) {
     if (val === null || val === undefined) return null;
     const s = String(val).trim().replace(/\s/g, '');
     if (s === '') return null;
-    // Ako ima i tačku i zarez — tačka je hiljade, zarez je decimala
     if (s.includes('.') && s.includes(',')) {
         const lastDot = s.lastIndexOf('.');
         const lastComma = s.lastIndexOf(',');
@@ -26,7 +24,6 @@ function parseNum(val) {
         const n = parseFloat(normalized);
         return isNaN(n) ? null : n;
     }
-    // Samo zarez — decimala
     if (s.includes(',')) {
         const n = parseFloat(s.replace(',', '.'));
         return isNaN(n) ? null : n;
@@ -46,7 +43,6 @@ function hide(id) {
     if (elem) elem.style.display = 'none';
 }
 
-// BUG FIX: locale-safe formatiranje (koristi 'sr-RS' eksplicitno)
 function fmt(n, maxDecimals = 6) {
     if (typeof n !== 'number' || isNaN(n)) return '0';
     const rounded = Number(n.toPrecision(10));
@@ -175,7 +171,7 @@ const TOOLS = [
     { id: 'pdv', name: 'PDV', category: 'Novac', icon: '📊', description: 'Dodaj ili izvuci PDV', screen: 'money-screen', tab: 'money-pdv-tab', keywords: ['pdv', 'porez'] },
     { id: 'money-pct', name: 'Procenat (Novac)', category: 'Novac', icon: '%', description: 'Dodaj/oduzmi %, koliko % je deo', screen: 'money-screen', tab: 'money-procenat-tab', keywords: ['procenat', 'posto', 'pdv', 'popust'] },
     { id: 'loan', name: 'Kredit', category: 'Novac', icon: '💳', description: 'Mesečna rata kredita', screen: 'money-screen', tab: 'money-kredit-tab', keywords: ['kredit', 'rata'] },
-    { id: 'currency', name: 'Valuta', category: 'Novac', icon: '💱', description: 'Kursna lista i konverzija', screen: 'money-screen', tab: 'money-valuta-tab', keywords: ['valuta', 'kurs', 'eur', 'usd', 'exchange'] },
+    { id: 'currency', name: 'Kursna lista', category: 'Novac', icon: '💱', description: 'Kursna lista i konverzija', screen: 'money-screen', tab: 'money-valuta-tab', keywords: ['valuta', 'kurs', 'kursna', 'lista', 'eur', 'usd', 'exchange'] },
     { id: 'bmi', name: 'BMI', category: 'Zdravlje', icon: '⚖️', description: 'Indeks telesne mase', screen: 'health-screen', tab: 'health-bmi-tab', keywords: ['bmi', 'tezina'] },
     { id: 'bmr', name: 'BMR Kalorije', category: 'Zdravlje', icon: '🔥', description: 'Bazalni metabolizam', screen: 'health-screen', tab: 'health-kalorije-tab', keywords: ['bmr', 'kalorije'] },
     { id: 'run', name: 'Trčanje tempo', category: 'Fitness', icon: '🏃', description: 'Tempo i brzina trčanja', screen: 'health-screen', tab: 'health-trcanje-tab', keywords: ['trcanje', 'tempo'] },
@@ -724,7 +720,6 @@ function getDateGroup(timestamp) {
     if (diffDays < 7) return { key: 'week', title: '📅 Ove nedelje' };
     return { key: 'older', title: '📅 Starije' };
 }
-
 function renderHistory() {
     try {
         const list = loadHistory();
@@ -949,7 +944,7 @@ async function shareResult(btn) {
     } catch (e) { console.error('shareResult error:', e); }
 }
 
-// ================= FAVORITES (zvezdice) =================
+// ================= FAVORITES =================
 
 const CARD_META = {
     'auto-screen':       { icon: '🚗', title: 'AUTO' },
@@ -1114,7 +1109,7 @@ function trackCardUse(screenId) {
     } catch (e) { console.error('trackCardUse error:', e); }
 }
 
-// ================= ALATIKA — MOJA RAČUNANJA =================
+// ================= MOJA RAČUNANJA (preview) =================
 
 function renderHistoryPreview() {
     try {
@@ -1188,7 +1183,7 @@ function renderHistoryPreview() {
     } catch (e) { console.error('renderHistoryPreview error:', e); }
 }
 
-// ================= DRAG & DROP ZA TABOVE =================
+// ================= DRAG & DROP — TABOVI =================
 
 let tabDragEl = null;
 let tabDragStartX = 0;
@@ -1211,7 +1206,6 @@ function setupTabDrag() {
 
 function onTabPointerDown(e) {
     const tab = e.currentTarget;
-
     if (e.target.closest('.tab-star')) return;
 
     tabDragStartX = e.clientX;
@@ -1231,7 +1225,7 @@ function onTabPointerDown(e) {
         startTabDrag(tab, e);
         vibrate([60, 20, 60]);
         playTick(0, 1000, 0.08, 0.04);
-    }, 500);
+    }, 450);
 
     const clearPress = () => {
         clearTimeout(tabLongPressTimer);
@@ -1396,6 +1390,8 @@ function getAllGrids() {
 
 function onCardPointerDown(e) {
     const card = e.currentTarget;
+    if (e.target.closest('.card-star')) return;
+
     dragStartClientX = e.clientX;
     dragStartClientY = e.clientY;
     clearTimeout(longPressTimer);
@@ -1413,7 +1409,7 @@ function onCardPointerDown(e) {
         startCardDrag(card, e);
         vibrate([60, 20, 60]);
         playTick(0, 1000, 0.08, 0.04);
-    }, 500);
+    }, 450);
 
     const clearPress = () => {
         clearTimeout(longPressTimer);
@@ -1627,7 +1623,6 @@ function dismissDragTip() {
     if (tip) tip.style.display = 'none';
 }
 
-// Novi: hint u karticama sa tabovima (svaki hint ima svoj hint-id)
 function maybeShowDragHint() {
     const hints = document.querySelectorAll('.drag-hint');
     hints.forEach(hint => {
@@ -1637,7 +1632,6 @@ function maybeShowDragHint() {
             if (localStorage.getItem('cx_seen_hint_' + hintId)) return;
         } catch (e) { return; }
         hint.style.display = 'flex';
-        // Auto-sakrij posle 8 sekundi i zapamti
         setTimeout(() => {
             if (hint.style.display !== 'none') {
                 hint.style.display = 'none';
@@ -1677,7 +1671,6 @@ function openScreen(screenId, direction = 'right') {
             try { applyTabOrder(); } catch (e) {}
             try { setupTabDrag(); } catch (e) {}
         }
-        // Prikaži hint za tabove samo prvi put po ekranu
         try { maybeShowDragHint(); } catch (e) {}
     } catch (e) { console.error('openScreen error:', e); }
 }
@@ -1808,7 +1801,7 @@ function fallbackCopy(text, done) {
     document.body.removeChild(ta);
 }
 
-// ================= PROCENAT — nove funkcije =================
+// ================= PROCENAT — funkcije =================
 
 function percentAddSub(base, pct, op) {
     if (base === null || pct === null) return null;
@@ -2431,7 +2424,6 @@ function calculatePDV() {
 let currentAmortData = null;
 let amortShowAll = false;
 
-// Kursevi za konverziju (RSD baza)
 const LOAN_RATES = {
     RSD: 1,
     EUR: 117.20,
@@ -2452,10 +2444,8 @@ function onCreditCurrencyChange() {
     const cur = curEl.value;
     const unit = el('loan-amount-unit');
     if (unit) unit.innerText = cur;
-    // Ako je korisnik izabrao istu valutu kao glavnu, ukloni iz extra
     const extraEl = el('credit-extra');
     if (extraEl && extraEl.value === cur) extraEl.value = '';
-    // Auto-popuni amount placeholder
     const amountEl = el('loan-amount');
     if (amountEl) {
         if (cur === 'RSD') amountEl.placeholder = '1000000';
@@ -2491,7 +2481,6 @@ function calculateLoan() {
     const w = el('loan-amort-wrap');
     if (w) w.style.display = 'block';
 
-    // Konverzija u druge valute
     renderLoanConversions(amount, monthly, totalReturn, currency);
 }
 
@@ -2503,26 +2492,23 @@ function renderLoanConversions(amount, monthly, totalReturn, currency) {
     const extraEl = el('credit-extra');
     const extraCur = extraEl ? extraEl.value : '';
 
-    // Odredi koje valute prikazati: uvek valuta kredita + RSD (ako nije RSD) + extra
     const currenciesToShow = new Set();
     currenciesToShow.add(currency);
     if (currency !== 'RSD') currenciesToShow.add('RSD');
     if (extraCur && extraCur !== currency) currenciesToShow.add(extraCur);
 
-    // Ako je kredit u RSD, dodaj EUR i CHF kao referencu
     if (currency === 'RSD' && !extraCur) {
         currenciesToShow.add('EUR');
         currenciesToShow.add('CHF');
     }
 
-    // Konvertuj: prvo u RSD, pa u ciljnu valutu
     const amountInRsd = amount * LOAN_RATES[currency];
     const monthlyInRsd = monthly * LOAN_RATES[currency];
     const totalInRsd = totalReturn * LOAN_RATES[currency];
 
     list.innerHTML = '';
     currenciesToShow.forEach(cur => {
-        if (cur === currency) return; // ne prikazuj istu valutu
+        if (cur === currency) return;
         const rate = LOAN_RATES[cur];
         if (!rate) return;
         const amt = amountInRsd / rate;
@@ -3041,7 +3027,6 @@ function calculate1RM() {
     show('rm1-stats-row');
 }
 
-// BUG FIX: preimenovano u calculateWorkoutVolume (bilo calculateVolume — konflikt sa Mere → Zapremina)
 function calculateWorkoutVolume() {
     const weight = num('vol-weight');
     const reps = num('vol-reps');
@@ -3227,7 +3212,6 @@ function calculatePres()   { convertMeasure('pres', PRES_FACTORS, PRES_LABELS); 
 function calculateSpeed()  { convertMeasure('speed', SPEED_FACTORS, SPEED_LABELS); }
 function calculateData()   { convertMeasure('data', DATA_FACTORS, DATA_LABELS); }
 
-// BUG FIX: preimenovano u calculateVolumeConversion (bilo calculateVolume — konflikt sa Fitness → Volumen)
 function calculateVolumeConversion() {
     convertMeasure('volume', VOLUME_FACTORS, VOLUME_LABELS);
 }
@@ -3291,7 +3275,6 @@ const CUP_ML = {
     standard: 200, velika: 250, mala: 150, solja: 150, solja_caj: 250
 };
 
-// BUG FIX: preimenovano u calculateCupConversion (bilo calculateCup — jasnije)
 function calculateCupConversion() {
     const typeEl = el('cup-type');
     if (!typeEl) return;
@@ -5267,7 +5250,7 @@ function calculateDetectNote() {
     show('detect-stats-row');
 }
 
-// ================= FX DUGMAD (sound / haptic u headeru) =================
+// ================= FX DUGMAD =================
 
 function makeFxButton(key, title) {
     const btn = document.createElement('button');
@@ -5304,7 +5287,9 @@ function setupFxButtons() {
     const row = document.querySelector('.header-actions');
     const themeBtn = el('theme-toggle');
     if (!row || !themeBtn) return;
+    if (row.querySelector('.fx-btn-wrap')) return;
     const wrap = document.createElement('div');
+    wrap.className = 'fx-btn-wrap';
     wrap.style.display = 'flex';
     wrap.style.alignItems = 'center';
     wrap.style.gap = '2px';
@@ -5417,7 +5402,6 @@ function initApp() {
     try { setupRipple(); } catch (e) {}
     try { updateSettingsUI(); } catch (e) {}
 
-    // BUG FIX: setupTabDrag se poziva i pri initApp() (ne samo pri openScreen('home-screen'))
     try { setupTabDrag(); } catch (e) { console.error('setupTabDrag:', e); }
     try { applyTabOrder(); } catch (e) {}
 
