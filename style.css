@@ -44,7 +44,6 @@ body {
     padding: 20px;
     min-height: 100vh;
     transition: background-color 0.3s ease, color 0.3s ease;
-    overflow-x: hidden;
 }
 
 .app-container {
@@ -209,34 +208,6 @@ body {
 }
 
 /* STICKY HEADER — samo za home ekran, BEZ overflow: hidden */
-#home-screen .header {
-    position: sticky;
-    top: 0;
-    z-index: 200;
-    background: var(--bg-color);
-    padding: 12px 0 6px;
-    margin-bottom: 8px;
-}
-
-#home-screen .search-wrap {
-    position: sticky;
-    top: 62px;
-    z-index: 199;
-    background: var(--bg-color);
-    padding: 0 0 10px;
-    margin-bottom: 8px;
-}
-
-#home-screen .search-wrap::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 10px;
-    background: linear-gradient(to bottom, var(--bg-color) 40%, transparent);
-    pointer-events: none;
-}
 
 /* ============================================================
    SEARCH
