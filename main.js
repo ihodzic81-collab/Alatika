@@ -1,5 +1,5 @@
 // ============================================================
-// ALATIKA — main.js
+// ALATIKA — main.js (kompletan, jedan fajl)
 // ============================================================
 
 // ================= POMOĆNE FUNKCIJE =================
@@ -160,7 +160,7 @@ function setupRipple() {
     }, { passive: true });
 }
 
-// ================= REGISTAR ALATA =================
+// ================= REGISTAR ALATA (TOOLS) =================
 
 const TOOLS = [
     { id: 'fuel', name: 'Potrošnja goriva', category: 'Auto', icon: '⛽', description: 'Potrošnja i trošak goriva', screen: 'auto-screen', tab: 'auto-potrosnja-tab', keywords: ['gorivo', 'benzin', 'dizel', 'potrosnja'] },
@@ -230,6 +230,7 @@ const TOOLS = [
     { id: 'overtime', name: 'Prekovremeno', category: 'Posao', icon: '📊', description: 'Zarada za prekovremeno', screen: 'work-screen', tab: 'work-prekovremeno-tab', keywords: ['prekovremeno', 'sati'] },
     { id: 'travel-costs', name: 'Putni troškovi', category: 'Posao', icon: '🚗', description: 'Dnevnice, gorivo, smeštaj', screen: 'work-screen', tab: 'work-putni-tab', keywords: ['putni', 'dnevnica', 'smeštaj'] },
     { id: 'bonuses', name: 'Bonusi', category: 'Posao', icon: '🎁', description: '13. plata, regres, topli obrok', screen: 'work-screen', tab: 'work-bonusi-tab', keywords: ['bonus', 'regres', '13 plata'] },
+    { id: 'tuner', name: 'Štimer', category: 'Muzika', icon: '🎸', description: 'Štimovanje 12 instrumenata', screen: 'music-screen', tab: 'music-stimer-tab', keywords: ['stimer', 'stimovanje', 'gitara', 'tuner', 'mikrofon'] },
     { id: 'transpose', name: 'Transpozicija akorda', category: 'Muzika', icon: '🎼', description: 'Prebaci akorde u drugi ton', screen: 'music-screen', tab: 'music-transpozicija-tab', keywords: ['transpozicija', 'akordi', 'ton'] },
     { id: 'scale', name: 'Tonske lestvice', category: 'Muzika', icon: '🎹', description: 'Note u lestvici', screen: 'music-screen', tab: 'music-lestvice-tab', keywords: ['lestvica', 'skala', 'dur', 'mol'] },
     { id: 'chord', name: 'Akordi', category: 'Muzika', icon: '🎸', description: 'Tonovi u akordu', screen: 'music-screen', tab: 'music-akordi-tab', keywords: ['akord', 'dur', 'mol', 'septakord'] },
@@ -629,6 +630,74 @@ function setupDateTriples() {
     });
 }
 
+// ================= PAMĆENJE UNOSA (AUTO-SAVE) =================
+
+const INPUT_STORAGE_KEY = 'cx_inputs_v1';
+let inputCache = {};
+
+function loadInputCache() {
+    try {
+        const raw = localStorage.getItem(INPUT_STORAGE_KEY);
+        inputCache = raw ? JSON.parse(raw) : {};
+    } catch (e) { inputCache = {}; }
+}
+
+function saveInputCache() {
+    try { localStorage.setItem(INPUT_STORAGE_KEY, JSON.stringify(inputCache)); } catch (e) {}
+}
+
+function persistInput(elInput) {
+    if (!elInput || !elInput.id) return;
+    if (elInput.type === 'file' || elInput.type === 'password') return;
+    let val;
+    if (elInput.type === 'checkbox' || elInput.type === 'radio') {
+        val = elInput.checked;
+    } else {
+        val = elInput.value;
+    }
+    inputCache[elInput.id] = val;
+    saveInputCache();
+}
+
+function restoreInputsFor(root = document) {
+    const inputs = root.querySelectorAll('input, select, textarea');
+    inputs.forEach(elInput => {
+        if (!elInput.id) return;
+        if (elInput.type === 'hidden') return;
+        if (inputCache[elInput.id] === undefined) return;
+        const val = inputCache[elInput.id];
+        if (elInput.type === 'checkbox' || elInput.type === 'radio') {
+            elInput.checked = !!val;
+        } else {
+            elInput.value = val;
+        }
+    });
+
+    // Posebno za date-triple hidden input
+    root.querySelectorAll('.date-triple').forEach(wrap => {
+        const hidden = wrap.querySelector('input[type="hidden"]');
+        if (hidden && hidden.id && inputCache[hidden.id]) {
+            setTripleDate(hidden.id, inputCache[hidden.id]);
+        }
+    });
+}
+
+function setupInputPersistence() {
+    document.addEventListener('input', e => {
+        const target = e.target;
+        if (!target || !target.id) return;
+        if (target.closest('.date-triple')) return;
+        persistInput(target);
+    }, true);
+
+    document.addEventListener('change', e => {
+        const target = e.target;
+        if (!target || !target.id) return;
+        if (target.closest('.date-triple')) return;
+        persistInput(target);
+    }, true);
+}
+
 // ================= ISTORIJA + STATISTIKE =================
 
 function loadHistory() {
@@ -720,6 +789,7 @@ function getDateGroup(timestamp) {
     if (diffDays < 7) return { key: 'week', title: '📅 Ove nedelje' };
     return { key: 'older', title: '📅 Starije' };
 }
+
 function renderHistory() {
     try {
         const list = loadHistory();
@@ -1181,9 +1251,7 @@ function renderHistoryPreview() {
             </div>
         `;
     } catch (e) { console.error('renderHistoryPreview error:', e); }
-}
-
-// ================= DRAG & DROP — TABOVI =================
+}// ================= DRAG & DROP — TABOVI =================
 
 let tabDragEl = null;
 let tabDragStartX = 0;
@@ -1648,7 +1716,10 @@ function dismissDragHint(hintId) {
     });
 }
 
-// ================= NAVIGACIJA =================
+// ================= NAVIGACIJA + ANDROID BACK (KRITIČNO) =================
+
+let currentScreenId = 'home-screen';
+let navDirection = 'right';
 
 function openScreen(screenId, direction = 'right') {
     try {
@@ -1665,14 +1736,65 @@ function openScreen(screenId, direction = 'right') {
             target.classList.add(direction === 'left' ? 'enter-left' : 'enter-right');
         }
         window.scrollTo(0, 0);
+
+        const prevScreenId = currentScreenId;
+        currentScreenId = screenId;
+        navDirection = direction;
+
         trackCardUse(screenId);
+
+        // Pamćenje unosa — restore za novi ekran
+        try { restoreInputsFor(target); } catch (e) {}
+
         if (screenId === 'home-screen') {
             try { renderHistoryPreview(); } catch (e) {}
             try { applyTabOrder(); } catch (e) {}
             try { setupTabDrag(); } catch (e) {}
         }
+
+        // Auto akcije po ekranu
+        onScreenOpened(screenId);
+
+        // Push state za back dugme — samo kad nije back navigacija
+        if (direction !== 'left' && prevScreenId !== screenId) {
+            try {
+                history.pushState({ screen: screenId }, '', '');
+            } catch (e) {}
+        }
+
         try { maybeShowDragHint(); } catch (e) {}
     } catch (e) { console.error('openScreen error:', e); }
+}
+
+function onScreenOpened(screenId) {
+    // Auto-osvežavanje kursne liste kad uđeš u Novac → Kursna lista
+    if (screenId === 'money-screen') {
+        const valutaTab = document.querySelector('#money-valuta-tab.active');
+        if (valutaTab) {
+            // Auto-refresh samo ako je stariji od 6h
+            const lastUpdate = getFxLastUpdate();
+            const ageH = lastUpdate ? (Date.now() - lastUpdate) / 3600000 : 999;
+            if (ageH > 6) {
+                refreshExchangeRates().catch(() => {});
+            }
+        }
+        // Restore valuta tab active state
+        try {
+            const activeTab = document.querySelector('#money-screen .tab.active');
+            if (activeTab && activeTab.dataset.favKey === 'money:valuta') {
+                const lastUpdate = getFxLastUpdate();
+                const ageH = lastUpdate ? (Date.now() - lastUpdate) / 3600000 : 999;
+                if (ageH > 6) refreshExchangeRates().catch(() => {});
+            }
+        } catch (e) {}
+    }
+    if (screenId === 'history-screen') {
+        renderHistory();
+        renderUsageStats();
+    }
+    if (screenId === 'music-screen') {
+        try { renderTunerStrings(); } catch (e) {}
+    }
 }
 
 function goHome() {
@@ -1681,20 +1803,92 @@ function goHome() {
         searchInput.value = '';
         handleQuickSearch();
     }
-    openScreen('home-screen', 'left');
+    if (currentScreenId === 'home-screen') return;
+    // Idi kroz history da bi back ostao sinhronizovan
+    if (history.state && history.state.screen && history.state.screen !== 'home-screen') {
+        history.back();
+    } else {
+        openScreen('home-screen', 'left');
+    }
 }
+
+function setupBackButton() {
+    // Inicijalni state
+    try {
+        history.replaceState({ screen: 'home-screen', home: true }, '', '');
+    } catch (e) {}
+
+    window.addEventListener('popstate', (e) => {
+        const state = e.state;
+
+        // Ako je home state
+        if (state && state.home) {
+            if (currentScreenId !== 'home-screen') {
+                openScreen('home-screen', 'left');
+                // Re-push home da bi sledeći back ponovo uhvatio
+                try { history.pushState({ screen: 'home-screen', home: true }, '', ''); } catch (err) {}
+            }
+            return;
+        }
+
+        // Ako ima screen u state
+        if (state && state.screen) {
+            const target = el(state.screen);
+            if (target) {
+                openScreen(state.screen, 'left');
+                return;
+            }
+        }
+
+        // Fallback: home
+        if (currentScreenId !== 'home-screen') {
+            openScreen('home-screen', 'left');
+            try { history.pushState({ screen: 'home-screen', home: true }, '', ''); } catch (err) {}
+        }
+    });
+}
+
+// ================= SUB-TABOVI =================
 
 function switchSubTab(category, tabName, event) {
     try {
-        const screen = event.target.closest('.screen');
+        if (event) {
+            const star = event.target.closest && event.target.closest('.tab-star');
+            if (star) return;
+        }
+
+        const screen = event && event.target ? event.target.closest('.screen') : null;
         if (!screen) return;
+
         screen.querySelectorAll('.sub-tab-content').forEach(c => c.classList.remove('active'));
         screen.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
         const target = el(`${category}-${tabName}-tab`);
-        if (target) target.classList.add('active');
-        let btn = event.target;
-        if (btn.tagName !== 'BUTTON') btn = btn.closest('.tab');
+        if (target) {
+            target.classList.add('active');
+            // Pamćenje — restore unosa u tabu
+            try { restoreInputsFor(target); } catch (e) {}
+        }
+
+        let btn = event && event.target;
+        if (btn && btn.tagName !== 'BUTTON') btn = btn.closest('.tab');
         if (btn) btn.classList.add('active');
+
+        // Specijalne akcije po tabu
+        if (category === 'money' && tabName === 'valuta') {
+            const lastUpdate = getFxLastUpdate();
+            const ageH = lastUpdate ? (Date.now() - lastUpdate) / 3600000 : 999;
+            if (ageH > 6) {
+                refreshExchangeRates().catch(() => {});
+            } else {
+                populateCurrencySelects();
+                renderFxList();
+                updateFxUpdatedLabel();
+            }
+        }
+        if (category === 'music' && tabName === 'stimer') {
+            try { renderTunerStrings(); } catch (e) {}
+        }
     } catch (e) { console.error('switchSubTab error:', e); }
 }
 
@@ -1845,8 +2039,6 @@ function setFormula(id, text) {
     }
 }
 
-// --- Mere → Procenat ---
-
 function calculatePercent1() {
     const base = num('pct-base');
     const pct = num('pct-val');
@@ -1896,8 +2088,6 @@ function calculatePercent3() {
     setFormula('pct3-formula', res.formula);
     show('pct3-result-box');
 }
-
-// --- Novac → Procenat ---
 
 function calculateMoneyPercent1() {
     const base = num('np-base');
@@ -2367,17 +2557,19 @@ function calculateGearTable() {
     const wrap = el('gear-table-wrap');
     if (wrap) wrap.style.display = 'block';
     const combos = fronts.length * rears.length;
+    const gs = el('gear-skeleton-box');
+    const gr = el('gear-table-real');
     if (combos > 24 && !reduceMotion) {
-        const gr = el('gear-table-real'); if (gr) gr.style.display = 'none';
-        const gs = el('gear-skeleton-box'); if (gs) gs.style.display = 'block';
+        if (gr) gr.style.display = 'none';
+        if (gs) gs.style.display = 'block';
         setTimeout(() => {
             if (gs) gs.style.display = 'none';
             if (gr) gr.style.display = 'block';
             vibrate(15);
         }, 350);
     } else {
-        const gs = el('gear-skeleton-box'); if (gs) gs.style.display = 'none';
-        const gr = el('gear-table-real'); if (gr) gr.style.display = 'block';
+        if (gs) gs.style.display = 'none';
+        if (gr) gr.style.display = 'block';
         vibrate(15);
     }
 }
@@ -2417,9 +2609,7 @@ function calculatePDV() {
     const px = el('stat-pdv-tax'); if (px) px.innerText = money(tax) + ' RSD';
     show('pdv-result-box');
     show('pdv-stats-row');
-}
-
-// ================= KREDIT — sa valutom =================
+}// ================= KREDIT — sa valutom =================
 
 let currentAmortData = null;
 let amortShowAll = false;
@@ -2530,11 +2720,8 @@ function renderLoanConversions(amount, monthly, totalReturn, currency) {
         list.appendChild(row);
     });
 
-    if (list.children.length > 0) {
-        box.style.display = 'block';
-    } else {
-        box.style.display = 'none';
-    }
+    if (list.children.length > 0) box.style.display = 'block';
+    else box.style.display = 'none';
 }
 
 function buildAmortPlan(principal, rateMonth, monthly, months) {
@@ -2670,7 +2857,7 @@ function calculateTip() {
     show('tip-stats-row');
 }
 
-// ================= VALUTA =================
+// ================= VALUTA — LIVE KURSNA LISTA (Frankfurter API) =================
 
 const CURRENCIES = [
     { code: 'RSD', name: 'Srpski dinar',       flag: '🇷🇸', rate: 1 },
@@ -2705,9 +2892,20 @@ const CURRENCIES = [
     { code: 'AED', name: 'Dirham UAE',          flag: '🇦🇪', rate: 29.55 }
 ];
 
+const FX_STORAGE_KEY = 'cx_fx_rates_v2';
+const FX_CACHE_HOURS = 6;
+
+function getFxLastUpdate() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(FX_STORAGE_KEY));
+        if (raw && raw.updated) return raw.updated;
+    } catch (e) {}
+    return null;
+}
+
 function loadFxRates() {
     try {
-        const raw = JSON.parse(localStorage.getItem('cx_fx_rates_v1'));
+        const raw = JSON.parse(localStorage.getItem(FX_STORAGE_KEY));
         if (raw && raw.rates && typeof raw.rates === 'object') {
             CURRENCIES.forEach(c => {
                 if (typeof raw.rates[c.code] === 'number' && raw.rates[c.code] > 0) {
@@ -2724,7 +2922,7 @@ function saveFxRates() {
     try {
         const rates = {};
         CURRENCIES.forEach(c => { rates[c.code] = c.rate; });
-        localStorage.setItem('cx_fx_rates_v1', JSON.stringify({
+        localStorage.setItem(FX_STORAGE_KEY, JSON.stringify({
             rates,
             updated: Date.now()
         }));
@@ -2735,17 +2933,97 @@ function formatFxUpdated(ts) {
     if (!ts) return 'ručno uneto';
     const d = new Date(ts);
     const now = new Date();
-    const diffH = Math.round((now - d) / 3600000);
-    if (diffH < 1) return 'osveženo upravo sad';
+    const diffMin = Math.round((now - d) / 60000);
+    if (diffMin < 1) return 'osveženo upravo sad';
+    if (diffMin < 60) return `osveženo pre ${diffMin} min`;
+    const diffH = Math.round(diffMin / 60);
     if (diffH < 24) return `osveženo pre ${diffH}h`;
     const days = Math.floor(diffH / 24);
     return `osveženo pre ${days} d.`;
+}
+
+/**
+ * Frankfurter API — besplatno, bez ključa, bez CORS problema.
+ * Vraća kurseve bazirane na ECB (Evropska centralna banka).
+ * Endpoint: https://api.frankfurter.app/latest?from=EUR&to=RSD,USD,...
+ *
+ * NAPOMENA: Frankfurter ne podržava RSD direktno.
+ * Zato dobavljamo sve kurseve baza EUR, a RSD izračunamo iz HUF-a (Mađarska forinta je podržana)
+ * ili koristimo fiksni RSD kurs kao fallback.
+ *
+ * Strategija:
+ *   1) Pokušamo Frankfurter sa bazom EUR za sve valute koje podržava.
+ *   2) RSD i valute koje Frankfurter ne podržava ostaju na ručnim vrednostima.
+ */
+async function fetchFrankfurterRates() {
+    const supported = CURRENCIES
+        .map(c => c.code)
+        .filter(code => code !== 'RSD');
+
+    const url = `https://api.frankfurter.app/latest?from=EUR&to=${supported.join(',')}`;
+
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (!data || !data.rates) throw new Error('Neispravan odgovor');
+
+    return data.rates; // { USD: 1.08, GBP: 0.85, ... }
+}
+
+async function refreshExchangeRates(silent = false) {
+    const btn = document.querySelector('.fx-refresh-btn');
+    if (btn) btn.classList.add('spinning');
+    setTimeout(() => { if (btn) btn.classList.remove('spinning'); }, 700);
+
+    if (!silent) {
+        showToast('Osvežavam kurseve...', 'info', 1500);
+    }
+
+    try {
+        const rates = await fetchFrankfurterRates();
+
+        // Uzimamo trenutni RSD kurs (EUR → RSD) iz lokalnog keša kao referencu
+        const currentEur = CURRENCIES.find(c => c.code === 'EUR');
+        const eurToRsd = currentEur ? currentEur.rate : 117.20;
+
+        CURRENCIES.forEach(c => {
+            if (c.code === 'RSD') { c.rate = 1; return; }
+            if (c.code === 'EUR') { c.rate = eurToRsd; return; }
+
+            const eurToCur = rates[c.code];
+            if (typeof eurToCur === 'number' && eurToCur > 0) {
+                // 1 EUR = eurToCur X  →  1 X = eurToRsd / eurToCur RSD
+                c.rate = Number((eurToRsd / eurToCur).toFixed(4));
+            }
+        });
+
+        saveFxRates();
+        populateCurrencySelects();
+        renderFxList();
+        updateFxUpdatedLabel();
+        calculateCurrency();
+
+        if (!silent) {
+            showToast('Kursevi osveženi (ECB)', 'success', 2000);
+            vibrate(20);
+            playTick(0, 1400, 0.08, 0.03);
+        }
+    } catch (e) {
+        console.warn('Frankfurter greška:', e);
+        if (!silent) {
+            showToast('Nema interneta — koristim keširane kurseve', 'warning', 2500);
+        }
+    }
 }
 
 function populateCurrencySelects() {
     const fromSel = el('fx-from');
     const toSel = el('fx-to');
     if (!fromSel || !toSel) return;
+
+    // Sačuvaj trenutne izbore
+    const prevFrom = fromSel.value || 'RSD';
+    const prevTo = toSel.value || 'EUR';
 
     fromSel.innerHTML = '';
     toSel.innerHTML = '';
@@ -2762,8 +3040,10 @@ function populateCurrencySelects() {
         toSel.appendChild(opt2);
     });
 
-    fromSel.value = 'RSD';
-    toSel.value = 'EUR';
+    fromSel.value = prevFrom;
+    toSel.value = prevTo;
+    if (!fromSel.value) fromSel.value = 'RSD';
+    if (!toSel.value) toSel.value = 'EUR';
 }
 
 function renderFxList() {
@@ -2803,50 +3083,10 @@ function highlightFxSelected() {
     });
 }
 
-function refreshExchangeRates() {
-    const btn = document.querySelector('.fx-refresh-btn');
-    if (btn) btn.classList.add('spinning');
-    setTimeout(() => { if (btn) btn.classList.remove('spinning'); }, 700);
-
-    const current = CURRENCIES.find(c => c.code === 'EUR');
-    const oldRate = current ? current.rate : 117.20;
-    const answer = prompt(
-        'Unesi novi kurs za 1 EUR u RSD.\nOstale valute će se srazmerno prilagoditi.',
-        oldRate
-    );
-
-    if (answer === null) return;
-
-    const newRate = parseFloat(String(answer).replace(',', '.'));
-    if (!newRate || isNaN(newRate) || newRate <= 0) {
-        showToast('Neispravan kurs.', 'error');
-        return;
-    }
-
-    const factor = newRate / oldRate;
-    CURRENCIES.forEach(c => {
-        if (c.code === 'RSD') { c.rate = 1; return; }
-        c.rate = Number((c.rate * factor).toFixed(4));
-    });
-
-    saveFxRates();
-    renderFxList();
-    calculateCurrency();
-    updateFxUpdatedLabel();
-
-    showToast(`Kurs osvežen: 1 EUR = ${newRate.toFixed(2)} RSD`, 'success', 2200);
-    vibrate(20);
-    playTick(0, 1400, 0.08, 0.03);
-}
-
 function updateFxUpdatedLabel() {
     const label = el('fx-updated-label');
     if (!label) return;
-    let ts = null;
-    try {
-        const raw = JSON.parse(localStorage.getItem('cx_fx_rates_v1'));
-        if (raw && raw.updated) ts = raw.updated;
-    } catch (e) {}
+    const ts = getFxLastUpdate();
     label.textContent = formatFxUpdated(ts);
 }
 
@@ -2880,8 +3120,7 @@ function calculateCurrency() {
     const info = el('fx-rate-info');
     if (info) {
         if (fromCur && toCur) {
-            const oneFromInRsd = fromCur.rate;
-            const oneFromInTo = oneFromInRsd / toCur.rate;
+            const oneFromInTo = fromCur.rate / toCur.rate;
             info.innerHTML = `1 ${fromCode} = <strong>${fmt(oneFromInTo, 4)}</strong> ${toCode}`;
         }
     }
@@ -5112,6 +5351,8 @@ function calculateInterval() {
     show('int-stats-row');
 }
 
+// ================= METRONOM =================
+
 let metronomeState = {
     running: false,
     intervalId: null,
@@ -5250,7 +5491,408 @@ function calculateDetectNote() {
     show('detect-stats-row');
 }
 
-// ================= FX DUGMAD =================
+// ================= ŠTIMER (TUNER) =================
+
+const TUNER_INSTRUMENTS = {
+    'guitar-standard': {
+        name: 'Gitara — standard',
+        strings: [
+            { note: 'E', octave: 2, freq: 82.41 },
+            { note: 'A', octave: 2, freq: 110.00 },
+            { note: 'D', octave: 3, freq: 146.83 },
+            { note: 'G', octave: 3, freq: 196.00 },
+            { note: 'B', octave: 3, freq: 246.94 },
+            { note: 'E', octave: 4, freq: 329.63 }
+        ]
+    },
+    'guitar-dropd': {
+        name: 'Gitara — drop D',
+        strings: [
+            { note: 'D', octave: 2, freq: 73.42 },
+            { note: 'A', octave: 2, freq: 110.00 },
+            { note: 'D', octave: 3, freq: 146.83 },
+            { note: 'G', octave: 3, freq: 196.00 },
+            { note: 'B', octave: 3, freq: 246.94 },
+            { note: 'E', octave: 4, freq: 329.63 }
+        ]
+    },
+    'guitar-halfdown': {
+        name: 'Gitara — half-step down',
+        strings: [
+            { note: 'Eb', octave: 2, freq: 77.78 },
+            { note: 'Ab', octave: 2, freq: 103.83 },
+            { note: 'Db', octave: 3, freq: 138.59 },
+            { note: 'Gb', octave: 3, freq: 185.00 },
+            { note: 'Bb', octave: 3, freq: 233.08 },
+            { note: 'Eb', octave: 4, freq: 311.13 }
+        ]
+    },
+    'bass-4': {
+        name: 'Bas gitara — 4 žice',
+        strings: [
+            { note: 'E', octave: 1, freq: 41.20 },
+            { note: 'A', octave: 1, freq: 55.00 },
+            { note: 'D', octave: 2, freq: 73.42 },
+            { note: 'G', octave: 2, freq: 98.00 }
+        ]
+    },
+    'bass-5': {
+        name: 'Bas gitara — 5 žica',
+        strings: [
+            { note: 'B', octave: 0, freq: 30.87 },
+            { note: 'E', octave: 1, freq: 41.20 },
+            { note: 'A', octave: 1, freq: 55.00 },
+            { note: 'D', octave: 2, freq: 73.42 },
+            { note: 'G', octave: 2, freq: 98.00 }
+        ]
+    },
+    'ukulele-soprano': {
+        name: 'Ukulele — sopran',
+        strings: [
+            { note: 'G', octave: 4, freq: 392.00 },
+            { note: 'C', octave: 4, freq: 261.63 },
+            { note: 'E', octave: 4, freq: 329.63 },
+            { note: 'A', octave: 4, freq: 440.00 }
+        ]
+    },
+    'ukulele-baritone': {
+        name: 'Ukulele — bariton',
+        strings: [
+            { note: 'D', octave: 3, freq: 146.83 },
+            { note: 'G', octave: 3, freq: 196.00 },
+            { note: 'B', octave: 3, freq: 246.94 },
+            { note: 'E', octave: 4, freq: 329.63 }
+        ]
+    },
+    'mandolin': {
+        name: 'Mandolina',
+        strings: [
+            { note: 'G', octave: 3, freq: 196.00 },
+            { note: 'D', octave: 4, freq: 293.66 },
+            { note: 'A', octave: 4, freq: 440.00 },
+            { note: 'E', octave: 5, freq: 659.25 },
+            { note: 'G', octave: 3, freq: 196.00 },
+            { note: 'D', octave: 4, freq: 293.66 },
+            { note: 'A', octave: 4, freq: 440.00 },
+            { note: 'E', octave: 5, freq: 659.25 }
+        ]
+    },
+    'violin': {
+        name: 'Violina',
+        strings: [
+            { note: 'G', octave: 3, freq: 196.00 },
+            { note: 'D', octave: 4, freq: 293.66 },
+            { note: 'A', octave: 4, freq: 440.00 },
+            { note: 'E', octave: 5, freq: 659.25 }
+        ]
+    },
+    'cello': {
+        name: 'Violončelo',
+        strings: [
+            { note: 'C', octave: 2, freq: 65.41 },
+            { note: 'G', octave: 2, freq: 98.00 },
+            { note: 'D', octave: 3, freq: 146.83 },
+            { note: 'A', octave: 3, freq: 220.00 }
+        ]
+    },
+    'banjo': {
+        name: 'Banjo — 5 žica',
+        strings: [
+            { note: 'G', octave: 4, freq: 392.00 },
+            { note: 'D', octave: 3, freq: 146.83 },
+            { note: 'G', octave: 3, freq: 196.00 },
+            { note: 'B', octave: 3, freq: 246.94 },
+            { note: 'D', octave: 4, freq: 293.66 }
+        ]
+    },
+    'kontrabas': {
+        name: 'Kontrabas',
+        strings: [
+            { note: 'E', octave: 1, freq: 41.20 },
+            { note: 'A', octave: 1, freq: 55.00 },
+            { note: 'D', octave: 2, freq: 73.42 },
+            { note: 'G', octave: 2, freq: 98.00 }
+        ]
+    }
+};
+
+let tunerOscillator = null;
+let tunerGain = null;
+let micStream = null;
+let micAnalyser = null;
+let micSource = null;
+let micRunning = false;
+let micRafId = null;
+
+function getA4() {
+    const a4El = el('tuner-a4');
+    const v = a4El ? parseNum(a4El.value) : 440;
+    return (v && v > 0) ? v : 440;
+}
+
+function renderTunerStrings() {
+    const sel = el('tuner-instrument');
+    if (!sel) return;
+    const inst = TUNER_INSTRUMENTS[sel.value];
+    const wrap = el('tuner-strings');
+    if (!wrap || !inst) return;
+
+    const a4 = getA4();
+    const ratio = a4 / 440;
+    wrap.innerHTML = '';
+
+    inst.strings.forEach((s, i) => {
+        const freq = s.freq * ratio;
+        const btn = document.createElement('button');
+        btn.className = 'tuner-string-btn';
+        btn.type = 'button';
+        btn.innerHTML = `
+            <span class="ts-num">${i + 1}. žica</span>
+            <span class="ts-note">${s.note}${s.octave}</span>
+            <span class="ts-freq">${freq.toFixed(2)} Hz</span>
+        `;
+        btn.addEventListener('click', () => playTunerTone(freq, btn));
+        wrap.appendChild(btn);
+    });
+}
+
+function playTunerTone(freq, btn) {
+    try {
+        if (!audioCtx) audioCtx = getAudio();
+        if (!audioCtx) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        stopTunerTone();
+
+        tunerOscillator = audioCtx.createOscillator();
+        tunerGain = audioCtx.createGain();
+
+        tunerOscillator.type = 'sine';
+        tunerOscillator.frequency.value = freq;
+
+        tunerGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+        tunerGain.gain.exponentialRampToValueAtTime(0.25, audioCtx.currentTime + 0.05);
+
+        tunerOscillator.connect(tunerGain);
+        tunerGain.connect(audioCtx.destination);
+
+        tunerOscillator.start();
+
+        const status = el('tuner-status');
+        if (status) {
+            status.style.display = 'block';
+            const noteDisplay = el('tuner-note-display');
+            if (noteDisplay) noteDisplay.textContent = btn.querySelector('.ts-note').textContent;
+            const freqDisplay = el('tuner-freq-display');
+            if (freqDisplay) freqDisplay.textContent = freq.toFixed(2) + ' Hz';
+        }
+        const stopBtn = el('tuner-stop-btn');
+        if (stopBtn) stopBtn.style.display = 'block';
+
+        document.querySelectorAll('.tuner-string-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        vibrate(10);
+    } catch (e) {
+        showToast('Greška pri reprodukciji tona', 'error');
+    }
+}
+
+function stopTunerTone() {
+    if (tunerOscillator) {
+        try {
+            tunerGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.05);
+            tunerOscillator.stop(audioCtx.currentTime + 0.1);
+        } catch (e) {}
+        tunerOscillator = null;
+        tunerGain = null;
+    }
+    const stopBtn = el('tuner-stop-btn');
+    if (stopBtn) stopBtn.style.display = 'none';
+    document.querySelectorAll('.tuner-string-btn').forEach(b => b.classList.remove('active'));
+}
+
+/* --- Mikrofon + auto-detekcija --- */
+
+async function toggleTunerMic() {
+    const btn = el('tuner-mic-btn');
+    if (micRunning) {
+        stopTunerMic();
+        if (btn) btn.textContent = '🎤 Uključi mikrofon';
+        return;
+    }
+
+    try {
+        if (!audioCtx) audioCtx = getAudio();
+        if (!audioCtx) throw new Error('AudioContext nije dostupan');
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+        micStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+                echoCancellation: false,
+                noiseSuppression: false,
+                autoGainControl: false
+            }
+        });
+
+        micSource = audioCtx.createMediaStreamSource(micStream);
+        micAnalyser = audioCtx.createAnalyser();
+        micAnalyser.fftSize = 4096;
+        micAnalyser.smoothingTimeConstant = 0.6;
+        micSource.connect(micAnalyser);
+
+        micRunning = true;
+        if (btn) btn.textContent = '⏹ Zaustavi mikrofon';
+
+        const resultEl = el('tuner-mic-result');
+        if (resultEl) resultEl.style.display = 'block';
+
+        micLoop();
+
+        vibrate(20);
+        playTick(0, 1400, 0.08, 0.03);
+    } catch (e) {
+        console.error('Mic error:', e);
+        showToast('Mikrofon nije dozvoljen ili nedostupan', 'error', 2500);
+    }
+}
+
+function stopTunerMic() {
+    micRunning = false;
+    if (micRafId) {
+        cancelAnimationFrame(micRafId);
+        micRafId = null;
+    }
+    if (micStream) {
+        micStream.getTracks().forEach(t => t.stop());
+        micStream = null;
+    }
+    micSource = null;
+    micAnalyser = null;
+    const resultEl = el('tuner-mic-result');
+    if (resultEl) resultEl.style.display = 'none';
+}
+
+function micLoop() {
+    if (!micRunning || !micAnalyser) return;
+
+    const buffer = new Float32Array(micAnalyser.fftSize);
+    micAnalyser.getFloatTimeDomainData(buffer);
+
+    const freq = autoCorrelate(buffer, audioCtx.sampleRate);
+
+    if (freq > 0) {
+        updateTunerDisplay(freq);
+    } else {
+        // Blago resetovanje
+        const detectedNote = el('tuner-detected-note');
+        if (detectedNote) detectedNote.textContent = '—';
+        const detectedFreq = el('tuner-detected-freq');
+        if (detectedFreq) detectedFreq.textContent = '— Hz';
+    }
+
+    micRafId = requestAnimationFrame(micLoop);
+}
+
+/**
+ * Autokorelacija — klasičan algoritam za detekciju osnovne frekvencije.
+ * Radi dobro za monofone instrumente (gitara, violina, itd.).
+ */
+function autoCorrelate(buffer, sampleRate) {
+    const SIZE = buffer.length;
+    let rms = 0;
+    for (let i = 0; i < SIZE; i++) {
+        rms += buffer[i] * buffer[i];
+    }
+    rms = Math.sqrt(rms / SIZE);
+    if (rms < 0.01) return -1; // previše tiho
+
+    // Trim tišinu sa početka/kraja
+    let r1 = 0, r2 = SIZE - 1;
+    const thres = 0.2;
+    for (let i = 0; i < SIZE / 2; i++) {
+        if (Math.abs(buffer[i]) < thres) { r1 = i; break; }
+    }
+    for (let i = 1; i < SIZE / 2; i++) {
+        if (Math.abs(buffer[SIZE - i]) < thres) { r2 = SIZE - i; break; }
+    }
+
+    const buf = buffer.slice(r1, r2);
+    const newSize = buf.length;
+
+    const c = new Array(newSize).fill(0);
+    for (let i = 0; i < newSize; i++) {
+        for (let j = 0; j < newSize - i; j++) {
+            c[i] += buf[j] * buf[j + i];
+        }
+    }
+
+    // Pronađi prvi "dip" pa maksimum posle njega
+    let d = 0;
+    while (c[d] > c[d + 1]) d++;
+    let maxval = -1, maxpos = -1;
+    for (let i = d; i < newSize; i++) {
+        if (c[i] > maxval) {
+            maxval = c[i];
+            maxpos = i;
+        }
+    }
+
+    let T0 = maxpos;
+
+    // Parabolična interpolacija za precizniju frekvenciju
+    const x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1];
+    const a = (x1 + x3 - 2 * x2) / 2;
+    const b = (x3 - x1) / 2;
+    if (a) T0 = T0 - b / (2 * a);
+
+    return sampleRate / T0;
+}
+
+function updateTunerDisplay(freq) {
+    const midiNoteExact = 69 + 12 * Math.log2(freq / 440);
+    const midiNote = Math.round(midiNoteExact);
+    const octave = Math.floor(midiNote / 12) - 1;
+    const semi = ((midiNote % 12) + 12) % 12;
+    const noteName = NOTES_SHARP[semi];
+
+    const exactFreq = 440 * Math.pow(2, (midiNote - 69) / 12);
+    const cents = Math.round(1200 * Math.log2(freq / exactFreq));
+
+    const detectedNote = el('tuner-detected-note');
+    if (detectedNote) detectedNote.textContent = noteName + octave;
+
+    const detectedFreq = el('tuner-detected-freq');
+    if (detectedFreq) detectedFreq.textContent = freq.toFixed(2) + ' Hz';
+
+    // Pomeri marker na cents skali (-50 do +50)
+    const marker = el('tuner-cents-marker');
+    if (marker) {
+        const clamped = Math.max(-50, Math.min(50, cents));
+        const percent = 50 + (clamped / 50) * 45; // 5% do 95%
+        marker.style.left = percent + '%';
+
+        // Boja prema tačnosti
+        if (Math.abs(cents) < 5) {
+            marker.style.background = '#34d399';
+        } else if (Math.abs(cents) < 15) {
+            marker.style.background = '#f59e0b';
+        } else {
+            marker.style.background = '#ef4444';
+        }
+    }
+
+    const centsLabel = el('tuner-cents-label');
+    if (centsLabel) {
+        const sign = cents > 0 ? '+' : '';
+        centsLabel.textContent = sign + cents + ' centi';
+        centsLabel.classList.remove('ok', 'close', 'far');
+        if (Math.abs(cents) < 5) centsLabel.classList.add('ok');
+        else if (Math.abs(cents) < 15) centsLabel.classList.add('close');
+        else centsLabel.classList.add('far');
+    }
+}
+
+// ================= FX DUGMAD (zvuk, vibracija) =================
 
 function makeFxButton(key, title) {
     const btn = document.createElement('button');
@@ -5302,7 +5944,7 @@ function setupFxButtons() {
 // ================= GLOBALNI LISTENERI =================
 
 document.addEventListener('click', function (e) {
-    const target = e.target.closest('.card, .tab, .calc-btn-main, .back-btn, .swap-btn, .copy-btn, .icon-btn, .settings-toggle-btn, .favorite-chip, .qsr-item, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn');
+    const target = e.target.closest('.card, .tab, .calc-btn-main, .back-btn, .swap-btn, .copy-btn, .icon-btn, .settings-toggle-btn, .favorite-chip, .qsr-item, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .tuner-string-btn');
     if (!target) return;
     playTick(0, 1500, 0.07, 0.02);
 
@@ -5345,12 +5987,16 @@ document.addEventListener('change', function (e) {
         const w = el('promo-second-wrap');
         if (w) w.style.display = e.target.value === 'second' ? 'flex' : 'none';
     }
+    if (e.target.id === 'tuner-instrument') {
+        renderTunerStrings();
+    }
 });
 
 // ================= POKRETANJE =================
 
 function initApp() {
     try {
+        // Tema
         const savedTheme = localStorage.getItem('cx_theme');
         if (savedTheme === 'light') {
             document.documentElement.setAttribute('data-theme', 'light');
@@ -5362,13 +6008,16 @@ function initApp() {
             if (tt) tt.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
         }
 
+        // Cene goriva
         const savedPrice = localStorage.getItem('cx_fuel_price');
         const p1 = el('price'); if (savedPrice && p1) p1.value = savedPrice;
         const p2 = el('road-price'); if (savedPrice && p2) p2.value = savedPrice;
 
+        // Valuta
         const savedCurrency = localStorage.getItem('cx_default_currency');
         const ac = el('auto-currency'); if (savedCurrency && ac) ac.value = savedCurrency;
 
+        // Profil auta
         const profile = loadAutoProfile();
         const apm = el('auto-profile-model');
         const app = el('auto-profile-plate');
@@ -5378,6 +6027,7 @@ function initApp() {
         if (profile.tehDate) setTripleDate('auto-profile-teh-date', profile.tehDate);
     } catch (e) { console.error('init load error:', e); }
 
+    // Današnji datum u prazna date-triple polja
     const today = new Date();
     const iso = today.getFullYear() + '-' +
         String(today.getMonth() + 1).padStart(2, '0') + '-' +
@@ -5405,6 +6055,7 @@ function initApp() {
     try { setupTabDrag(); } catch (e) { console.error('setupTabDrag:', e); }
     try { applyTabOrder(); } catch (e) {}
 
+    // Kursna lista — učitaj iz keša, pa ako je staro, osveži
     try {
         loadFxRates();
         populateCurrencySelects();
@@ -5421,8 +6072,23 @@ function initApp() {
 
     try { renderHistoryPreview(); } catch (e) { console.error('init history preview error:', e); }
 
-    try { document.title = 'Alatika — Mali alat za velika računanja'; } catch (e) {}
+    // PAMĆENJE UNOSA — učitaj keš i postavi listenere
+    try {
+        loadInputCache();
+        // Restore za trenutno aktivni ekran (home je default, ali restore sve)
+        restoreInputsFor(document);
+        setupInputPersistence();
+    } catch (e) { console.error('init inputs error:', e); }
 
+    // Štimer — renderuj žice za default instrument
+    try { renderTunerStrings(); } catch (e) {}
+
+    // ANDROID BACK
+    try { setupBackButton(); } catch (e) { console.error('setupBackButton:', e); }
+
+    document.title = 'Alatika — Mali alat za velika računanja';
+
+    // Splash screen
     setTimeout(() => {
         const splash = el('splash-screen');
         if (splash) {
