@@ -2799,3 +2799,126 @@ select.custom-input {
 #music-screen:not(.active) {
     display: none !important;
 }
+
+/* ============================================================
+   HITNI FIX — sticky header + procenat
+   ============================================================ */
+
+/* Sticky header — samo za home ekran */
+#home-screen.active .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg-color);
+    padding: 12px 0 8px;
+    margin-bottom: 8px;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+#home-screen.active .search-wrap {
+    position: sticky;
+    top: 62px;
+    z-index: 99;
+    background: var(--bg-color);
+    padding: 8px 0 12px;
+    margin-bottom: 8px;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+#home-screen.active .header::after,
+#home-screen.active .search-wrap::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(to bottom, var(--border-color), transparent);
+    pointer-events: none;
+}
+
+/* Na malim ekranima manje margine */
+@media (max-width: 400px) {
+    #home-screen.active .header {
+        margin-left: -14px;
+        margin-right: -14px;
+        padding-left: 14px;
+        padding-right: 14px;
+        padding-top: 10px;
+        padding-bottom: 6px;
+    }
+    #home-screen.active .search-wrap {
+        margin-left: -14px;
+        margin-right: -14px;
+        padding-left: 14px;
+        padding-right: 14px;
+        top: 56px;
+        padding-top: 6px;
+        padding-bottom: 10px;
+    }
+}
+
+/* PROCENAT — osiguraj da inputi imaju širinu */
+#money-procenat-tab .pct-row,
+#measures-procenat-tab .pct-row {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+    align-items: stretch !important;
+}
+
+#money-procenat-tab .pct-row .pct-input,
+#measures-procenat-tab .pct-row .pct-input {
+    display: block !important;
+    flex: 1 1 0 !important;
+    min-width: 60px !important;
+    width: auto !important;
+    background: var(--bg-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 12px !important;
+    color: var(--text-main) !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    padding: 12px 14px !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+}
+
+#money-procenat-tab .pct-row .pct-select,
+#measures-procenat-tab .pct-row .pct-select {
+    display: block !important;
+    flex: 0 0 auto !important;
+    min-width: 110px !important;
+    width: auto !important;
+    background: var(--bg-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 12px !important;
+    color: var(--text-main) !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    padding: 12px 10px !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+    cursor: pointer !important;
+}
+
+@media (max-width: 400px) {
+    #money-procenat-tab .pct-row .pct-select,
+    #measures-procenat-tab .pct-row .pct-select {
+        min-width: 72px !important;
+        font-size: 0.78rem !important;
+        padding: 10px 6px !important;
+    }
+    #money-procenat-tab .pct-row .pct-input,
+    #measures-procenat-tab .pct-row .pct-input {
+        font-size: 0.9rem !important;
+        padding: 10px 10px !important;
+    }
+}
