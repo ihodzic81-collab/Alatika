@@ -5,7 +5,9 @@
     --accent-color: #00e676;
     --text-main: #ffffff;
     --text-secondary: #8e8e93;
-    --border-color: rgba(255, 255, 255, 0.08);
+    --border-color: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.18);
+    --input-glow: rgba(255, 255, 255, 0.04);
     --glass-bg: rgba(255, 255, 255, 0.06);
     --glass-border: rgba(255, 255, 255, 0.12);
     --glass-highlight: rgba(255, 255, 255, 0.28);
@@ -21,6 +23,8 @@
     --text-main: #18181b;
     --text-secondary: #71717a;
     --border-color: rgba(0, 0, 0, 0.08);
+    --border-strong: rgba(0, 0, 0, 0.14);
+    --input-glow: rgba(0, 0, 0, 0.02);
     --glass-bg: rgba(255, 255, 255, 0.7);
     --glass-border: rgba(255, 255, 255, 0.9);
     --glass-highlight: rgba(255, 255, 255, 1);
@@ -44,6 +48,7 @@ body {
     padding: 20px;
     min-height: 100vh;
     transition: background-color 0.3s ease, color 0.3s ease;
+    overflow-x: hidden;
 }
 
 .app-container {
@@ -83,8 +88,8 @@ body {
     to   { transform: scale(1); opacity: 1; }
 }
 
-.screen { display: none; }
-.screen.active { display: block; }
+.screen { display: none !important; }
+.screen.active { display: block !important; }
 
 @keyframes slideInRight {
     from { opacity: 0; transform: translateX(28px); }
@@ -207,7 +212,44 @@ body {
     letter-spacing: 0.1px;
 }
 
-/* STICKY HEADER — samo za home ekran, BEZ overflow: hidden */
+/* STICKY HEADER — samo za home ekran */
+#home-screen.active .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg-color);
+    padding: 12px 0 8px;
+    margin-bottom: 8px;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+#home-screen.active .search-wrap {
+    position: sticky;
+    top: 62px;
+    z-index: 99;
+    background: var(--bg-color);
+    padding: 8px 0 12px;
+    margin-bottom: 8px;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+#home-screen.active .header::after,
+#home-screen.active .search-wrap::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(to bottom, var(--border-color), transparent);
+    pointer-events: none;
+}
 
 /* ============================================================
    SEARCH
@@ -218,14 +260,15 @@ body {
     align-items: center;
     gap: 10px;
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 16px;
     padding: 0 16px;
+    box-shadow: inset 0 1px 0 var(--input-glow);
     transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 .search-box:focus-within {
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.12), inset 0 1px 0 var(--input-glow);
 }
 .search-icon {
     font-size: 1rem;
@@ -292,7 +335,7 @@ body {
     align-items: center;
     gap: 8px;
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 14px;
     padding: 11px 14px;
     color: var(--text-main);
@@ -301,6 +344,7 @@ body {
     cursor: pointer;
     transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
     max-width: 100%;
+    box-shadow: inset 0 1px 0 var(--input-glow);
 }
 .favorite-chip:active { transform: scale(0.96); background: var(--card-active); }
 .favorite-chip .fav-icon { font-size: 1.05rem; flex-shrink: 0; }
@@ -333,7 +377,7 @@ body {
 
 .favorites-empty {
     background: var(--card-bg);
-    border: 1px dashed var(--border-color);
+    border: 1px dashed var(--border-strong);
     border-radius: 14px;
     padding: 16px 18px;
     font-size: 0.8rem;
@@ -374,7 +418,7 @@ body {
    ============================================================ */
 .card {
     background: var(--card-bg) !important;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 18px;
     padding: 16px 14px 14px;
     min-height: 118px;
@@ -526,9 +570,7 @@ body {
 }
 .card-star.active::before { content: '★'; }
 
-/* ============================================================
-   IKONICA KARTICE — REALISTIČNA 3D PLASTIKA
-   ============================================================ */
+/* IKONICA KARTICE — REALISTIČNA 3D PLASTIKA */
 .card-icon {
     width: 46px;
     height: 46px;
@@ -633,9 +675,7 @@ body {
     -webkit-box-orient: vertical;
 }
 
-/* ============================================================
-   DRAG & DROP ZA KARTICE
-   ============================================================ */
+/* DRAG & DROP KARTICE */
 .home-groups.dragging-active .grid-menu {
     min-height: 80px;
     transition: background 0.2s ease, box-shadow 0.2s ease, padding 0.2s ease, margin 0.2s ease;
@@ -674,9 +714,7 @@ body {
     50%      { opacity: 1; }
 }
 
-/* ============================================================
-   DRAG & DROP ZA TABOVE
-   ============================================================ */
+/* DRAG & DROP TABOVI */
 .tab.dragging-tab {
     opacity: 0.5;
     transform: scale(0.95);
@@ -702,9 +740,7 @@ body {
     animation: placeholderPulse 1.4s ease-in-out infinite;
 }
 
-/* ============================================================
-   HINT O PREVLAČENJU
-   ============================================================ */
+/* HINT O PREVLAČENJU */
 .drag-tip {
     display: flex;
     align-items: center;
@@ -763,23 +799,22 @@ body {
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ============================================================
-   TROJNI DATUM
-   ============================================================ */
+/* TROJNI DATUM */
 .date-triple {
     display: flex;
     align-items: center;
     gap: 4px;
     background: var(--bg-color);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 12px;
     padding: 0 12px;
     width: 100%;
+    box-shadow: inset 0 1px 0 var(--input-glow);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .date-triple:focus-within {
     border-color: var(--category-accent, var(--accent-color));
-    box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.08);
+    box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.12), inset 0 1px 0 var(--input-glow);
 }
 .date-part {
     background: transparent;
@@ -820,9 +855,7 @@ body {
 }
 .date-triple input[type="hidden"] { display: none; }
 
-/* ============================================================
-   PROCENAT
-   ============================================================ */
+/* PROCENAT */
 .pct-label {
     display: block;
     font-size: 0.85rem;
@@ -841,13 +874,14 @@ body {
     flex: 1 1 0;
     min-width: 0;
     background: var(--bg-color);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 12px;
     color: var(--text-main);
     font-size: 1rem;
     font-weight: 600;
     padding: 12px 14px;
     outline: none;
+    box-shadow: inset 0 1px 0 var(--input-glow);
     transition: border-color 0.18s ease, box-shadow 0.18s ease;
     -moz-appearance: textfield;
     appearance: textfield;
@@ -866,7 +900,7 @@ body {
 .pct-row .pct-input:focus,
 .pct-row .pct-select:focus {
     border-color: var(--category-accent, var(--accent-color));
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--category-accent, var(--accent-color)) 15%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--category-accent, var(--accent-color)) 15%, transparent), inset 0 1px 0 var(--input-glow);
 }
 .pct-select {
     flex: 0 0 auto !important;
@@ -891,22 +925,21 @@ body {
 }
 .pct-formula.show { display: block; }
 
-/* ============================================================
-   ISTORIJA
-   ============================================================ */
+/* ISTORIJA */
 .history-search-wrap {
     margin-bottom: 12px;
 }
 .history-search {
     width: 100%;
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 12px;
     padding: 12px 14px;
     color: var(--text-main);
     font-size: 0.9rem;
     font-weight: 500;
     outline: none;
+    box-shadow: inset 0 1px 0 var(--input-glow);
     transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 .history-search::placeholder {
@@ -915,7 +948,7 @@ body {
 }
 .history-search:focus {
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.12), inset 0 1px 0 var(--input-glow);
 }
 
 .history-meta {
@@ -939,7 +972,7 @@ body {
 }
 .copy-btn-mini {
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     color: var(--text-main);
     padding: 7px 11px;
     border-radius: 10px;
@@ -982,7 +1015,7 @@ body {
 }
 .history-item {
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     padding: 12px;
     border-radius: 12px;
     display: flex;
@@ -990,6 +1023,7 @@ body {
     align-items: center;
     gap: 12px;
     animation: fadeInUp 0.3s ease;
+    box-shadow: inset 0 1px 0 var(--input-glow);
 }
 .history-category {
     font-size: 0.7rem;
@@ -1029,7 +1063,7 @@ body {
 .stats-toggle-btn {
     width: 100%;
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     color: var(--text-secondary);
     padding: 12px 14px;
     border-radius: 12px;
@@ -1056,7 +1090,7 @@ body {
     margin-top: 12px;
     padding: 16px;
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 16px;
     animation: fadeInUp 0.25s ease;
 }
@@ -1070,9 +1104,7 @@ body {
     opacity: 0.7;
 }
 
-/* ============================================================
-   MOJA RAČUNANJA
-   ============================================================ */
+/* MOJA RAČUNANJA */
 .history-section {
     margin-top: 12px;
 }
@@ -1095,7 +1127,7 @@ body {
 
 .history-preview {
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 16px;
     padding: 14px 16px;
     margin-bottom: 10px;
@@ -1104,6 +1136,7 @@ body {
     isolation: isolate;
     cursor: pointer;
     transition: border-color 0.15s ease, transform 0.12s ease;
+    box-shadow: inset 0 1px 0 var(--input-glow);
 }
 .history-preview::before {
     content: '';
@@ -1196,7 +1229,7 @@ body {
 }
 .hqs-item {
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 12px;
     padding: 10px 8px;
     display: flex;
@@ -1204,6 +1237,7 @@ body {
     align-items: center;
     gap: 3px;
     text-align: center;
+    box-shadow: inset 0 1px 0 var(--input-glow);
 }
 .hqs-value {
     font-size: 1.05rem;
@@ -1220,9 +1254,7 @@ body {
     text-transform: uppercase;
 }
 
-/* ============================================================
-   QUICK SEARCH
-   ============================================================ */
+/* QUICK SEARCH */
 .quick-search-results {
     display: none;
     flex-direction: column;
@@ -1234,12 +1266,13 @@ body {
     align-items: center;
     gap: 14px;
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 14px;
     padding: 13px 15px;
     cursor: pointer;
     transition: transform 0.12s ease, border-color 0.15s ease;
     animation: fadeInUp 0.3s ease;
+    box-shadow: inset 0 1px 0 var(--input-glow);
 }
 .qsr-item:active {
     transform: scale(0.985);
@@ -1276,9 +1309,7 @@ body {
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ============================================================
-   TOP BAR
-   ============================================================ */
+/* TOP BAR */
 .top-bar {
     display: flex;
     align-items: center;
@@ -1289,7 +1320,7 @@ body {
 }
 .back-btn {
     background: var(--card-active);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     color: var(--text-main);
     width: 36px;
     height: 36px;
@@ -1307,9 +1338,7 @@ body {
 .top-bar h2 { font-size: 1.2rem; font-weight: 700; }
 .dots { color: var(--text-secondary); letter-spacing: 2px; }
 
-/* ============================================================
-   HISTORY SCREEN
-   ============================================================ */
+/* HISTORY SCREEN */
 .history-actions {
     display: flex;
     gap: 8px;
@@ -1318,9 +1347,7 @@ body {
 .history-actions .copy-btn { flex: 1; text-align: center; }
 .history-danger-btn { color: #ef4444 !important; }
 
-/* ============================================================
-   SETTINGS
-   ============================================================ */
+/* SETTINGS */
 .settings-row {
     display: flex;
     align-items: center;
@@ -1334,7 +1361,7 @@ body {
 .settings-sub { font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; }
 .settings-toggle-btn {
     background: var(--card-active);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     color: var(--text-main);
     padding: 8px 14px;
     border-radius: 10px;
@@ -1354,12 +1381,10 @@ body {
     line-height: 1.4;
 }
 
-/* ============================================================
-   FORM BOX — COMPACT
-   ============================================================ */
+/* FORM BOX — COMPACT */
 .form-container, .converter-box {
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 18px;
     padding: 16px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
@@ -1382,14 +1407,15 @@ body {
     display: flex;
     align-items: center;
     background: var(--bg-color);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 11px;
     padding: 0 12px;
+    box-shadow: inset 0 1px 0 var(--input-glow);
     transition: border-color 0.2s ease, box-shadow 0.2s;
 }
 .input-wrapper:focus-within {
     border-color: var(--category-accent, var(--accent-color));
-    box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.08);
+    box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.12), inset 0 1px 0 var(--input-glow);
 }
 .custom-input {
     width: 100%;
@@ -1403,10 +1429,11 @@ body {
 }
 select.custom-input {
     background: var(--bg-color);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 11px;
     padding: 11px 12px;
     font-size: 0.95rem;
+    box-shadow: inset 0 1px 0 var(--input-glow);
 }
 .unit {
     color: var(--text-secondary);
@@ -1416,7 +1443,7 @@ select.custom-input {
 }
 .custom-select-unit {
     background: var(--card-active);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     color: var(--text-main);
     border-radius: 10px;
     padding: 8px 10px;
@@ -1424,12 +1451,10 @@ select.custom-input {
     outline: none;
 }
 
-/* ============================================================
-   KREDIT — konverzija valuta
-   ============================================================ */
+/* KREDIT — konverzija */
 #loan-conversion-box {
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 18px;
     padding: 16px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
@@ -1445,10 +1470,11 @@ select.custom-input {
     align-items: center;
     gap: 12px;
     background: var(--bg-color);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 12px;
     padding: 12px 14px;
     font-size: 0.9rem;
+    box-shadow: inset 0 1px 0 var(--input-glow);
 }
 .loan-conv-row .lc-label {
     color: var(--text-secondary);
@@ -1469,12 +1495,10 @@ select.custom-input {
     line-height: 1;
 }
 
-/* ============================================================
-   OPENINGS
-   ============================================================ */
+/* OPENINGS */
 .openings-section {
     background: var(--bg-color);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 14px;
     padding: 12px;
     display: flex;
@@ -1493,7 +1517,7 @@ select.custom-input {
 }
 .openings-add-btn {
     background: var(--card-active);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     color: var(--category-accent, var(--accent-color));
     padding: 6px 12px;
     border-radius: 10px;
@@ -1518,7 +1542,7 @@ select.custom-input {
     gap: 6px;
     align-items: center;
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 10px;
     padding: 8px;
     animation: fadeInUp 0.25s ease;
@@ -1567,9 +1591,7 @@ select.custom-input {
     font-style: italic;
 }
 
-/* ============================================================
-   CALC BUTTON — Glass 3D
-   ============================================================ */
+/* CALC BUTTON */
 .calc-btn-main {
     background: linear-gradient(135deg, #00e676, #00ab55);
     border: none;
@@ -1602,9 +1624,7 @@ select.custom-input {
         0 3px 8px rgba(0, 230, 118, 0.25);
 }
 
-/* ============================================================
-   RESULT CARD
-   ============================================================ */
+/* RESULT CARD */
 .result-card-green {
     background: linear-gradient(135deg, #052e16, #022c22);
     border: 1px solid #059669;
@@ -1681,9 +1701,7 @@ select.custom-input {
 .copy-btn:hover { background: rgba(255, 255, 255, 0.2); }
 .copy-btn:active { transform: scale(0.95); }
 
-/* ============================================================
-   STATS
-   ============================================================ */
+/* STATS */
 .stats-row {
     display: flex;
     gap: 8px;
@@ -1691,7 +1709,7 @@ select.custom-input {
 .stat-item {
     flex: 1;
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 11px;
     padding: 9px 8px;
     display: flex;
@@ -1699,13 +1717,12 @@ select.custom-input {
     align-items: center;
     gap: 3px;
     text-align: center;
+    box-shadow: inset 0 1px 0 var(--input-glow);
 }
 .stat-label { font-size: 0.68rem; color: var(--text-secondary); }
 .stat-item strong { font-size: 0.85rem; color: var(--text-main); }
 
-/* ============================================================
-   TABS — COMPACT, 3 PER ROW on mobile
-   ============================================================ */
+/* TABS — COMPACT, 3 PER ROW on mobile */
 .tabs {
     display: flex;
     flex-wrap: wrap;
@@ -1722,7 +1739,7 @@ select.custom-input {
     justify-content: center;
     padding: 9px 4px 8px;
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 10px;
     color: var(--text-secondary);
     cursor: pointer;
@@ -1734,6 +1751,7 @@ select.custom-input {
     line-height: 1.2;
     word-break: break-word;
     hyphens: auto;
+    box-shadow: inset 0 1px 0 var(--input-glow);
 }
 .tabs .tab:hover {
     background: var(--card-active);
@@ -1743,7 +1761,7 @@ select.custom-input {
     background: var(--card-active);
     border-color: var(--category-accent, var(--accent-color));
     color: var(--category-accent, var(--accent-color));
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 var(--input-glow);
 }
 
 .tab-star {
@@ -1794,9 +1812,7 @@ select.custom-input {
 .sub-tab-content { display: none; }
 .sub-tab-content.active { display: block; }
 
-/* ============================================================
-   SWAP
-   ============================================================ */
+/* SWAP */
 .swap-icon-container {
     display: flex;
     justify-content: center;
@@ -1804,7 +1820,7 @@ select.custom-input {
 }
 .swap-btn {
     background: var(--card-active);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     color: var(--category-accent, var(--accent-color));
     padding: 6px 16px;
     border-radius: 20px;
@@ -1815,6 +1831,149 @@ select.custom-input {
 }
 .swap-btn:hover { opacity: 0.8; }
 .swap-btn:active { transform: rotate(180deg); }
+
+/* ============================================================
+   ŠTIMER
+   ============================================================ */
+.tuner-instrument-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.tuner-strings {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 10px;
+    margin: 16px 0;
+}
+.tuner-string-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 14px 10px;
+    background: var(--card-bg);
+    border: 2px solid var(--border-strong);
+    border-radius: 14px;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    box-shadow: inset 0 1px 0 var(--input-glow);
+}
+.tuner-string-btn:hover {
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+}
+.tuner-string-btn:active {
+    transform: scale(0.96);
+}
+.tuner-string-btn.active {
+    background: linear-gradient(145deg, color-mix(in srgb, var(--accent-color) 25%, var(--card-bg)), var(--card-bg));
+    border-color: var(--accent-color);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--accent-color) 40%, transparent);
+}
+.ts-note {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--accent-color);
+    line-height: 1;
+}
+.ts-freq {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+}
+.ts-num {
+    font-size: 0.62rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+.tuner-status {
+    text-align: center;
+    padding: 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    margin-top: 14px;
+    box-shadow: inset 0 1px 0 var(--input-glow);
+}
+.tuner-note {
+    font-size: 2.4rem;
+    font-weight: 900;
+    color: var(--accent-color);
+    line-height: 1;
+    letter-spacing: -1px;
+}
+.tuner-freq {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    font-variant-numeric: tabular-nums;
+}
+.tuner-mic-result {
+    margin-top: 14px;
+    padding: 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    box-shadow: inset 0 1px 0 var(--input-glow);
+}
+.tuner-detected-note {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--accent-color);
+    text-align: center;
+    line-height: 1;
+}
+.tuner-detected-freq {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+}
+.tuner-cents-bar {
+    position: relative;
+    height: 24px;
+    margin: 14px 0 8px;
+    background: var(--bg-color);
+    border-radius: 12px;
+    border: 1px solid var(--border-strong);
+    overflow: hidden;
+}
+.tuner-cents-center {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border-strong);
+    transform: translateX(-50%);
+}
+.tuner-cents-marker {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    width: 18px;
+    border-radius: 9px;
+    background: var(--accent-color);
+    transform: translateX(-50%);
+    transition: left 0.15s ease, background 0.15s ease;
+    box-shadow: 0 0 8px var(--accent-color);
+}
+.tuner-cents-label {
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+.tuner-cents-label.ok { color: #34d399; }
+.tuner-cents-label.close { color: #f59e0b; }
+.tuner-cents-label.far { color: #ef4444; }
 /* ============================================================
    GEAR TABLE
    ============================================================ */
@@ -1858,9 +2017,7 @@ select.custom-input {
     100% { background-position: 0 0; }
 }
 
-/* ============================================================
-   HR ZONES
-   ============================================================ */
+/* HR ZONES */
 .hr-zones {
     display: flex;
     flex-direction: column;
@@ -1872,18 +2029,17 @@ select.custom-input {
     justify-content: space-between;
     align-items: center;
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 12px;
     padding: 10px 14px;
     font-size: 0.85rem;
     animation: fadeInUp 0.3s ease;
+    box-shadow: inset 0 1px 0 var(--input-glow);
 }
 .hr-zone-name { color: var(--text-secondary); }
 .hr-zone-item strong { color: var(--text-main); }
 
-/* ============================================================
-   POWER DEVICES
-   ============================================================ */
+/* POWER DEVICES */
 #power-devices-list {
     display: flex;
     flex-direction: column;
@@ -1894,11 +2050,12 @@ select.custom-input {
     justify-content: space-between;
     align-items: center;
     background: var(--bg-color);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 12px;
     padding: 10px 14px;
     gap: 10px;
     animation: fadeInUp 0.3s ease;
+    box-shadow: inset 0 1px 0 var(--input-glow);
 }
 .power-device-info { flex: 1; min-width: 0; }
 .power-device-name {
@@ -1923,9 +2080,7 @@ select.custom-input {
 }
 .power-device-remove:active { transform: scale(1.2); }
 
-/* ============================================================
-   VALUTA — Kursna lista
-   ============================================================ */
+/* VALUTA — Kursna lista */
 .fx-head {
     display: flex;
     justify-content: space-between;
@@ -1935,7 +2090,7 @@ select.custom-input {
 }
 .fx-refresh-btn {
     background: var(--card-active);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     color: var(--accent-color);
     width: 36px;
     height: 36px;
@@ -1968,7 +2123,7 @@ select.custom-input {
 }
 .fx-swap-btn {
     background: var(--card-active);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     color: var(--accent-color);
     width: 40px;
     height: 40px;
@@ -1993,7 +2148,7 @@ select.custom-input {
     padding: 8px 12px;
     background: var(--card-bg);
     border-radius: 10px;
-    border: 1px dashed var(--border-color);
+    border: 1px dashed var(--border-strong);
     min-height: 38px;
     display: flex;
     align-items: center;
@@ -2079,9 +2234,7 @@ select.custom-input {
     margin-left: 2px;
 }
 
-/* ============================================================
-   KUPOVINA — Lista za kupovinu
-   ============================================================ */
+/* KUPOVINA — Lista */
 .lista-head {
     display: flex;
     justify-content: space-between;
@@ -2092,7 +2245,7 @@ select.custom-input {
 }
 .lista-clear-btn {
     background: transparent;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     color: var(--text-secondary);
     padding: 6px 10px;
     border-radius: 8px;
@@ -2130,10 +2283,11 @@ select.custom-input {
     gap: 10px;
     padding: 10px 10px;
     background: var(--bg-color);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 12px;
     animation: fadeInUp 0.25s ease;
     transition: opacity 0.2s ease;
+    box-shadow: inset 0 1px 0 var(--input-glow);
 }
 .lista-item.bought {
     opacity: 0.5;
@@ -2145,7 +2299,7 @@ select.custom-input {
     width: 24px;
     height: 24px;
     background: transparent;
-    border: 2px solid var(--border-color);
+    border: 2px solid var(--border-strong);
     border-radius: 8px;
     cursor: pointer;
     display: flex;
@@ -2238,12 +2392,10 @@ select.custom-input {
     color: var(--accent-color);
 }
 
-/* ============================================================
-   COMPARE GROUPS
-   ============================================================ */
+/* COMPARE GROUPS */
 .compare-group {
     background: var(--bg-color);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 14px;
     padding: 14px;
     display: flex;
@@ -2259,12 +2411,10 @@ select.custom-input {
     margin-bottom: 4px;
 }
 
-/* ============================================================
-   CHARTS
-   ============================================================ */
+/* CHARTS */
 .chart-container {
     background: var(--bg-color);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 14px;
     padding: 14px;
     margin-top: 12px;
@@ -2368,14 +2518,12 @@ select.custom-input {
     display: block;
 }
 
-/* ============================================================
-   AMORTIZACIJA
-   ============================================================ */
+/* AMORTIZACIJA */
 .amort-scroll {
     max-height: 300px;
     overflow-y: auto;
     border-radius: 10px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     margin-top: 12px;
 }
 .amort-scroll::-webkit-scrollbar { width: 6px; }
@@ -2426,9 +2574,7 @@ select.custom-input {
     box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
 }
 
-/* ============================================================
-   TOAST
-   ============================================================ */
+/* TOAST */
 .toast-container {
     position: fixed;
     top: 20px;
@@ -2448,7 +2594,7 @@ select.custom-input {
     align-items: center;
     gap: 12px;
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-left: 4px solid var(--accent-color);
     color: var(--text-main);
     padding: 14px 16px;
@@ -2512,9 +2658,7 @@ select.custom-input {
     to   { width: 0%; }
 }
 
-/* ============================================================
-   CONFIRM MODAL
-   ============================================================ */
+/* CONFIRM MODAL */
 .confirm-modal {
     position: fixed;
     inset: 0;
@@ -2533,7 +2677,7 @@ select.custom-input {
 .confirm-modal.show { opacity: 1; pointer-events: auto; }
 .confirm-box {
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     border-radius: 20px;
     padding: 24px 20px 20px;
     max-width: 380px;
@@ -2565,7 +2709,7 @@ select.custom-input {
     font-weight: 700;
     font-size: 0.9rem;
     cursor: pointer;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-strong);
     background: var(--card-active);
     color: var(--text-main);
     transition: transform 0.1s, opacity 0.2s;
@@ -2579,9 +2723,7 @@ select.custom-input {
 }
 .confirm-ok:hover { opacity: 0.9; }
 
-/* ============================================================
-   RIPPLE
-   ============================================================ */
+/* RIPPLE */
 .ripple {
     position: absolute;
     border-radius: 50%;
@@ -2594,9 +2736,7 @@ select.custom-input {
     to { transform: scale(4); opacity: 0; }
 }
 
-/* ============================================================
-   FUEL HISTORY
-   ============================================================ */
+/* FUEL HISTORY */
 .fuel-history-box {
     padding: 14px;
 }
@@ -2614,9 +2754,7 @@ select.custom-input {
     font-weight: 800;
 }
 
-/* ============================================================
-   RESPONSIVE — Mobile (max 400px) — 3 tabs in row
-   ============================================================ */
+/* RESPONSIVE — Mobile (max 400px) — 3 tabs in row */
 @media (max-width: 400px) {
     body { padding: 14px; }
     .grid-menu { gap: 10px; }
@@ -2699,11 +2837,14 @@ select.custom-input {
     .pump-icon { font-size: 1.4rem; min-width: 42px; padding: 7px; }
     .loan-conv-row { padding: 10px 12px; font-size: 0.85rem; }
     .loan-conv-row .lc-value { font-size: 0.88rem; }
+    .tuner-strings { grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 8px; }
+    .ts-note { font-size: 1.15rem; }
+    .ts-freq { font-size: 0.65rem; }
+    .tuner-note { font-size: 2rem; }
+    .tuner-detected-note { font-size: 1.7rem; }
 }
 
-/* ============================================================
-   RESPONSIVE — Larger phones (400-480px)
-   ============================================================ */
+/* RESPONSIVE — Larger phones (400-480px) */
 @media (min-width: 401px) and (max-width: 480px) {
     .tabs .tab {
         flex: 1 1 calc(33.333% - 4px);
@@ -2711,9 +2852,7 @@ select.custom-input {
     }
 }
 
-/* ============================================================
-   RESPONSIVE — Tablets (481-768px) — 4 tabs in row
-   ============================================================ */
+/* RESPONSIVE — Tablets (481-768px) — 4 tabs in row */
 @media (min-width: 481px) and (max-width: 768px) {
     body { padding: 24px; }
     .app-container { max-width: 640px; }
@@ -2739,9 +2878,7 @@ select.custom-input {
     .tabs { gap: 8px; margin-bottom: 14px; }
 }
 
-/* ============================================================
-   RESPONSIVE — Desktop (769px+) — 4 tabs in row, larger UI
-   ============================================================ */
+/* RESPONSIVE — Desktop (769px+) — 4 tabs in row, larger UI */
 @media (min-width: 769px) {
     body { padding: 32px; }
     .app-container { max-width: 720px; }
@@ -2773,152 +2910,10 @@ select.custom-input {
     .subtitle { font-size: 0.85rem; }
 }
 
-/* ============================================================
-   WebKit specifičnosti
-   ============================================================ */
+/* WebKit specifičnosti */
 @supports (-webkit-touch-callout: none) {
     .card {
         -webkit-backface-visibility: hidden;
         backface-visibility: hidden;
-    }
-}/* HITNI FIX - samo aktivan ekran se vidi */
-#home-screen:not(.active),
-#money-screen:not(.active),
-#auto-screen:not(.active),
-#bike-screen:not(.active),
-#history-screen:not(.active),
-#settings-screen:not(.active),
-#health-screen:not(.active),
-#time-screen:not(.active),
-#measures-screen:not(.active),
-#home-calc-screen:not(.active),
-#kitchen-screen:not(.active),
-#shopping-screen:not(.active),
-#power-screen:not(.active),
-#work-screen:not(.active),
-#music-screen:not(.active) {
-    display: none !important;
-}
-
-/* ============================================================
-   HITNI FIX — sticky header + procenat
-   ============================================================ */
-
-/* Sticky header — samo za home ekran */
-#home-screen.active .header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: var(--bg-color);
-    padding: 12px 0 8px;
-    margin-bottom: 8px;
-    margin-left: -20px;
-    margin-right: -20px;
-    padding-left: 20px;
-    padding-right: 20px;
-}
-
-#home-screen.active .search-wrap {
-    position: sticky;
-    top: 62px;
-    z-index: 99;
-    background: var(--bg-color);
-    padding: 8px 0 12px;
-    margin-bottom: 8px;
-    margin-left: -20px;
-    margin-right: -20px;
-    padding-left: 20px;
-    padding-right: 20px;
-}
-
-#home-screen.active .header::after,
-#home-screen.active .search-wrap::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 1px;
-    background: linear-gradient(to bottom, var(--border-color), transparent);
-    pointer-events: none;
-}
-
-/* Na malim ekranima manje margine */
-@media (max-width: 400px) {
-    #home-screen.active .header {
-        margin-left: -14px;
-        margin-right: -14px;
-        padding-left: 14px;
-        padding-right: 14px;
-        padding-top: 10px;
-        padding-bottom: 6px;
-    }
-    #home-screen.active .search-wrap {
-        margin-left: -14px;
-        margin-right: -14px;
-        padding-left: 14px;
-        padding-right: 14px;
-        top: 56px;
-        padding-top: 6px;
-        padding-bottom: 10px;
-    }
-}
-
-/* PROCENAT — osiguraj da inputi imaju širinu */
-#money-procenat-tab .pct-row,
-#measures-procenat-tab .pct-row {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    gap: 8px !important;
-    width: 100% !important;
-    align-items: stretch !important;
-}
-
-#money-procenat-tab .pct-row .pct-input,
-#measures-procenat-tab .pct-row .pct-input {
-    display: block !important;
-    flex: 1 1 0 !important;
-    min-width: 60px !important;
-    width: auto !important;
-    background: var(--bg-color) !important;
-    border: 1px solid var(--border-color) !important;
-    border-radius: 12px !important;
-    color: var(--text-main) !important;
-    font-size: 1rem !important;
-    font-weight: 600 !important;
-    padding: 12px 14px !important;
-    outline: none !important;
-    box-sizing: border-box !important;
-}
-
-#money-procenat-tab .pct-row .pct-select,
-#measures-procenat-tab .pct-row .pct-select {
-    display: block !important;
-    flex: 0 0 auto !important;
-    min-width: 110px !important;
-    width: auto !important;
-    background: var(--bg-color) !important;
-    border: 1px solid var(--border-color) !important;
-    border-radius: 12px !important;
-    color: var(--text-main) !important;
-    font-size: 0.9rem !important;
-    font-weight: 600 !important;
-    padding: 12px 10px !important;
-    outline: none !important;
-    box-sizing: border-box !important;
-    cursor: pointer !important;
-}
-
-@media (max-width: 400px) {
-    #money-procenat-tab .pct-row .pct-select,
-    #measures-procenat-tab .pct-row .pct-select {
-        min-width: 72px !important;
-        font-size: 0.78rem !important;
-        padding: 10px 6px !important;
-    }
-    #money-procenat-tab .pct-row .pct-input,
-    #measures-procenat-tab .pct-row .pct-input {
-        font-size: 0.9rem !important;
-        padding: 10px 10px !important;
     }
 }
