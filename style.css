@@ -44,12 +44,18 @@ body {
     padding: 20px;
     min-height: 100vh;
     transition: background-color 0.3s ease, color 0.3s ease;
+    overflow-x: hidden;
+}
+
+body:has(#home-screen.active) {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
 }
 
 .app-container {
     width: 100%;
     max-width: 480px;
-    overflow-x: clip;
 }
 
 /* ================= SPLASH ================= */
@@ -208,39 +214,58 @@ body {
     letter-spacing: 0.1px;
 }
 
-/* Sticky header za home-screen */
-#home-screen .header,
-#home-screen .search-wrap {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: var(--bg-color);
-    padding-top: 12px;
-    padding-bottom: 8px;
-    margin-left: -20px;
-    margin-right: -20px;
-    padding-left: 20px;
-    padding-right: 20px;
+/* Sticky header za home-screen — verzija 2 */
+#home-screen {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
 }
+
 #home-screen .header {
-    padding-bottom: 6px;
-    margin-bottom: 12px;
+    flex-shrink: 0;
+    background: var(--bg-color);
+    padding: 12px 0 6px;
+    margin-bottom: 8px;
+    z-index: 100;
+    position: relative;
 }
+
 #home-screen .search-wrap {
-    top: 62px;
-    margin-bottom: 12px;
-    padding-top: 8px;
+    flex-shrink: 0;
+    background: var(--bg-color);
+    padding: 0 0 8px;
+    margin-bottom: 8px;
+    z-index: 100;
+    position: relative;
 }
-#home-screen .header::after,
+
 #home-screen .search-wrap::after {
     content: '';
     position: absolute;
     left: 0;
     right: 0;
-    bottom: -1px;
+    bottom: 0;
     height: 1px;
     background: linear-gradient(to bottom, var(--border-color), transparent);
     pointer-events: none;
+}
+
+/* Skrolujući deo home ekrana */
+#home-normal-content {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 20px;
+}
+
+/* Quick search results — skroluju sa sadržajem */
+#quick-search-results {
+    flex-shrink: 0;
+    background: var(--bg-color);
+    padding: 0 0 8px;
 }
 
 /* ============================================================
