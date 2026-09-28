@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
 <div id="splash-screen" class="splash-screen">
     <div class="splash-logo">
         <span class="cx-logo">A</span>
@@ -50,7 +51,7 @@
                        placeholder="Šta želiš da izračunaš?"
                        oninput="handleQuickSearch()">
             </div>
-            <p class="search-hint">npr. potrošnja goriva, PDV, BMI</p>
+            <p class="search-hint">npr. Kursna lista, Cene, Potrošnja, PDV</p>
         </div>
 
         <div id="quick-search-results" class="quick-search-results"></div>
@@ -143,7 +144,7 @@
                 </section>
 
                 <section class="group" data-group="home">
-                    <h3 class="group-title">Kuća i svakodnevni život</h3>
+                    <h3 class="group-title">Praktični alati</h3>
                     <div class="grid-menu">
 
                         <div class="card" data-screen="home-calc-screen" data-accent="home-calc" onclick="openScreen('home-calc-screen')">
@@ -392,12 +393,16 @@
         <div class="drag-hint" data-hint-id="auto-tabs" style="display:none;">
             💡 Dugo pritisni tab pa ga prevuci
         </div>
+        <div class="tabs-label">🚗 Vozilo</div>
         <div class="tabs">
             <button class="tab" data-fav-key="auto:mojauto" onclick="switchSubTab('auto', 'mojauto', event)"><span class="tab-star" onclick="toggleFavorite(event, 'auto:mojauto', 'tab')">☆</span>Moj auto</button>
-            <button class="tab active" data-fav-key="auto:potrosnja" onclick="switchSubTab('auto', 'potrosnja', event)"><span class="tab-star" onclick="toggleFavorite(event, 'auto:potrosnja', 'tab')">☆</span>Potrošnja</button>
             <button class="tab" data-fav-key="auto:servis" onclick="switchSubTab('auto', 'servis', event)"><span class="tab-star" onclick="toggleFavorite(event, 'auto:servis', 'tab')">☆</span>Servis</button>
             <button class="tab" data-fav-key="auto:troskovi" onclick="switchSubTab('auto', 'troskovi', event)"><span class="tab-star" onclick="toggleFavorite(event, 'auto:troskovi', 'tab')">☆</span>Godišnji trošak</button>
             <button class="tab" data-fav-key="auto:pokm" onclick="switchSubTab('auto', 'pokm', event)"><span class="tab-star" onclick="toggleFavorite(event, 'auto:pokm', 'tab')">☆</span>Po kilometru</button>
+        </div>
+        <div class="tabs-label">⛽ Putovanje</div>
+        <div class="tabs">
+            <button class="tab active" data-fav-key="auto:potrosnja" onclick="switchSubTab('auto', 'potrosnja', event)"><span class="tab-star" onclick="toggleFavorite(event, 'auto:potrosnja', 'tab')">☆</span>Potrošnja</button>
             <button class="tab" data-fav-key="auto:planer" onclick="switchSubTab('auto', 'planer', event)"><span class="tab-star" onclick="toggleFavorite(event, 'auto:planer', 'tab')">☆</span>🧳 Planer puta</button>
             <button class="tab" data-fav-key="auto:trosakputa" onclick="switchSubTab('auto', 'trosakputa', event)"><span class="tab-star" onclick="toggleFavorite(event, 'auto:trosakputa', 'tab')">☆</span>💰 Trošak puta</button>
         </div>
@@ -717,10 +722,14 @@
         <div class="drag-hint" data-hint-id="bike-tabs" style="display:none;">
             💡 Dugo pritisni tab pa ga prevuci
         </div>
+        <div class="tabs-label">🚴 Bicikl</div>
         <div class="tabs">
             <button class="tab active" data-fav-key="bike:brzina" onclick="switchSubTab('bike', 'brzina', event)"><span class="tab-star" onclick="toggleFavorite(event, 'bike:brzina', 'tab')">☆</span>Brzina</button>
             <button class="tab" data-fav-key="bike:pritisak" onclick="switchSubTab('bike', 'pritisak', event)"><span class="tab-star" onclick="toggleFavorite(event, 'bike:pritisak', 'tab')">☆</span>Pritisak</button>
             <button class="tab" data-fav-key="bike:rama" onclick="switchSubTab('bike', 'rama', event)"><span class="tab-star" onclick="toggleFavorite(event, 'bike:rama', 'tab')">☆</span>Veličina rama</button>
+        </div>
+        <div class="tabs-label">💪 Trening</div>
+        <div class="tabs">
             <button class="tab" data-fav-key="bike:kalorije" onclick="switchSubTab('bike', 'kalorije', event)"><span class="tab-star" onclick="toggleFavorite(event, 'bike:kalorije', 'tab')">☆</span>Kalorije</button>
             <button class="tab" data-fav-key="bike:tabela" onclick="switchSubTab('bike', 'tabela', event)"><span class="tab-star" onclick="toggleFavorite(event, 'bike:tabela', 'tab')">☆</span>Tabela prenosa</button>
         </div>
@@ -926,14 +935,18 @@
         <div class="drag-hint" data-hint-id="money-tabs" style="display:none;">
             💡 Dugo pritisni tab pa ga prevuci
         </div>
+        <div class="tabs-label">💰 Osnovno</div>
         <div class="tabs">
             <button class="tab active" data-fav-key="money:popust" onclick="switchSubTab('money', 'popust', event)"><span class="tab-star" onclick="toggleFavorite(event, 'money:popust', 'tab')">☆</span>Popust</button>
             <button class="tab" data-fav-key="money:pdv" onclick="switchSubTab('money', 'pdv', event)"><span class="tab-star" onclick="toggleFavorite(event, 'money:pdv', 'tab')">☆</span>PDV</button>
             <button class="tab" data-fav-key="money:procenat" onclick="switchSubTab('money', 'procenat', event)"><span class="tab-star" onclick="toggleFavorite(event, 'money:procenat', 'tab')">☆</span>% Procenat</button>
-            <button class="tab" data-fav-key="money:kredit" onclick="switchSubTab('money', 'kredit', event)"><span class="tab-star" onclick="toggleFavorite(event, 'money:kredit', 'tab')">☆</span>Kredit</button>
-            <button class="tab" data-fav-key="money:valuta" onclick="switchSubTab('money', 'valuta', event)"><span class="tab-star" onclick="toggleFavorite(event, 'money:valuta', 'tab')">☆</span>Valuta</button>
-            <button class="tab" data-fav-key="money:podela" onclick="switchSubTab('money', 'podela', event)"><span class="tab-star" onclick="toggleFavorite(event, 'money:podela', 'tab')">☆</span>Podela računa</button>
             <button class="tab" data-fav-key="money:napojnica" onclick="switchSubTab('money', 'napojnica', event)"><span class="tab-star" onclick="toggleFavorite(event, 'money:napojnica', 'tab')">☆</span>Napojnica</button>
+        </div>
+        <div class="tabs-label">🏦 Finansije</div>
+        <div class="tabs">
+            <button class="tab" data-fav-key="money:kredit" onclick="switchSubTab('money', 'kredit', event)"><span class="tab-star" onclick="toggleFavorite(event, 'money:kredit', 'tab')">☆</span>Kredit</button>
+            <button class="tab" data-fav-key="money:valuta" onclick="switchSubTab('money', 'valuta', event)"><span class="tab-star" onclick="toggleFavorite(event, 'money:valuta', 'tab')">☆</span>Kursna lista</button>
+            <button class="tab" data-fav-key="money:podela" onclick="switchSubTab('money', 'podela', event)"><span class="tab-star" onclick="toggleFavorite(event, 'money:podela', 'tab')">☆</span>Podela računa</button>
         </div>
 
         <div id="money-popust-tab" class="sub-tab-content active">
@@ -1185,8 +1198,8 @@
                 </div>
                 <div class="res-actions">
                     <button class="copy-btn" onclick="copyResult('res-fx-val', 'res-fx-unit', event)">Kopiraj</button>
-                    <button class="copy-btn" data-category="NOVAC" data-label="Valuta" onclick="saveHistory(this)">💾 Sačuvaj</button>
-                    <button class="copy-btn" data-category="NOVAC" data-label="Valuta" onclick="shareResult(this)">↗ Podeli</button>
+                    <button class="copy-btn" data-category="NOVAC" data-label="Kursna lista" onclick="saveHistory(this)">💾 Sačuvaj</button>
+                    <button class="copy-btn" data-category="NOVAC" data-label="Kursna lista" onclick="shareResult(this)">↗ Podeli</button>
                 </div>
             </div>
 
@@ -1889,15 +1902,22 @@
         <div class="drag-hint" data-hint-id="measures-tabs" style="display:none;">
             💡 Dugo pritisni tab pa ga prevuci
         </div>
+        <div class="tabs-label">📏 Osnovno</div>
         <div class="tabs">
             <button class="tab active" data-fav-key="measures:duzina" onclick="switchSubTab('measures', 'duzina', event)"><span class="tab-star" onclick="toggleFavorite(event, 'measures:duzina', 'tab')">☆</span>Dužina</button>
             <button class="tab" data-fav-key="measures:tezina" onclick="switchSubTab('measures', 'tezina', event)"><span class="tab-star" onclick="toggleFavorite(event, 'measures:tezina', 'tab')">☆</span>Težina</button>
             <button class="tab" data-fav-key="measures:povrsina" onclick="switchSubTab('measures', 'povrsina', event)"><span class="tab-star" onclick="toggleFavorite(event, 'measures:povrsina', 'tab')">☆</span>Površina</button>
             <button class="tab" data-fav-key="measures:zapremina" onclick="switchSubTab('measures', 'zapremina', event)"><span class="tab-star" onclick="toggleFavorite(event, 'measures:zapremina', 'tab')">☆</span>Zapremina</button>
+        </div>
+        <div class="tabs-label">⚡ Specijalno</div>
+        <div class="tabs">
             <button class="tab" data-fav-key="measures:pritisak" onclick="switchSubTab('measures', 'pritisak', event)"><span class="tab-star" onclick="toggleFavorite(event, 'measures:pritisak', 'tab')">☆</span>Pritisak</button>
             <button class="tab" data-fav-key="measures:temp" onclick="switchSubTab('measures', 'temp', event)"><span class="tab-star" onclick="toggleFavorite(event, 'measures:temp', 'tab')">☆</span>Temp</button>
             <button class="tab" data-fav-key="measures:brzina" onclick="switchSubTab('measures', 'brzina', event)"><span class="tab-star" onclick="toggleFavorite(event, 'measures:brzina', 'tab')">☆</span>Brzina</button>
             <button class="tab" data-fav-key="measures:podaci" onclick="switchSubTab('measures', 'podaci', event)"><span class="tab-star" onclick="toggleFavorite(event, 'measures:podaci', 'tab')">☆</span>Podaci</button>
+        </div>
+        <div class="tabs-label">% Procenat</div>
+        <div class="tabs">
             <button class="tab" data-fav-key="measures:procenat" onclick="switchSubTab('measures', 'procenat', event)"><span class="tab-star" onclick="toggleFavorite(event, 'measures:procenat', 'tab')">☆</span>% Procenat</button>
         </div>
 
@@ -2361,22 +2381,32 @@
         <div class="drag-hint" data-hint-id="homecalc-tabs-1" style="display:none;">
             💡 Dugo pritisni tab pa ga prevuci
         </div>
+        <div class="tabs-label">🧱 Materijal</div>
         <div class="tabs">
             <button class="tab active" data-fav-key="homecalc:povrsina" onclick="switchSubTab('homecalc', 'povrsina', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:povrsina', 'tab')">☆</span>Površina</button>
+            <button class="tab" data-fav-key="homecalc:blokovi" onclick="switchSubTab('homecalc', 'blokovi', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:blokovi', 'tab')">☆</span>Blokovi</button>
+            <button class="tab" data-fav-key="homecalc:table" onclick="switchSubTab('homecalc', 'table', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:table', 'tab')">☆</span>Table</button>
+            <button class="tab" data-fav-key="homecalc:crep" onclick="switchSubTab('homecalc', 'crep', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:crep', 'tab')">☆</span>Crep</button>
+            <button class="tab" data-fav-key="homecalc:beton" onclick="switchSubTab('homecalc', 'beton', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:beton', 'tab')">☆</span>Beton</button>
+            <button class="tab" data-fav-key="homecalc:temelj" onclick="switchSubTab('homecalc', 'temelj', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:temelj', 'tab')">☆</span>Temelj</button>
+        </div>
+        <div class="tabs-label">🎨 Završni radovi</div>
+        <div class="tabs">
             <button class="tab" data-fav-key="homecalc:farbanje" onclick="switchSubTab('homecalc', 'farbanje', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:farbanje', 'tab')">☆</span>Farbanje</button>
             <button class="tab" data-fav-key="homecalc:plocice" onclick="switchSubTab('homecalc', 'plocice', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:plocice', 'tab')">☆</span>Pločice</button>
             <button class="tab" data-fav-key="homecalc:laminat" onclick="switchSubTab('homecalc', 'laminat', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:laminat', 'tab')">☆</span>Laminat</button>
-            <button class="tab" data-fav-key="homecalc:beton" onclick="switchSubTab('homecalc', 'beton', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:beton', 'tab')">☆</span>Beton</button>
-            <button class="tab" data-fav-key="homecalc:blokovi" onclick="switchSubTab('homecalc', 'blokovi', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:blokovi', 'tab')">☆</span>🧱 Blokovi</button>
-            <button class="tab" data-fav-key="homecalc:table" onclick="switchSubTab('homecalc', 'table', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:table', 'tab')">☆</span>🪵 Table</button>
-            <button class="tab" data-fav-key="homecalc:crep" onclick="switchSubTab('homecalc', 'crep', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:crep', 'tab')">☆</span>🏠 Crep</button>
-            <button class="tab" data-fav-key="homecalc:malter" onclick="switchSubTab('homecalc', 'malter', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:malter', 'tab')">☆</span>🧪 Malter</button>
-            <button class="tab" data-fav-key="homecalc:gips" onclick="switchSubTab('homecalc', 'gips', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:gips', 'tab')">☆</span>🎨 Gips</button>
-            <button class="tab" data-fav-key="homecalc:temelj" onclick="switchSubTab('homecalc', 'temelj', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:temelj', 'tab')">☆</span>🏗️ Temelj</button>
-            <button class="tab" data-fav-key="homecalc:hidro" onclick="switchSubTab('homecalc', 'hidro', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:hidro', 'tab')">☆</span>💧 Hidroizolacija</button>
-            <button class="tab" data-fav-key="homecalc:elektro" onclick="switchSubTab('homecalc', 'elektro', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:elektro', 'tab')">☆</span>🔌 Elektro</button>
-            <button class="tab" data-fav-key="homecalc:stolarija" onclick="switchSubTab('homecalc', 'stolarija', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:stolarija', 'tab')">☆</span>🚪 Stolarija</button>
-            <button class="tab" data-fav-key="homecalc:univerzalno" onclick="switchSubTab('homecalc', 'univerzalno', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:univerzalno', 'tab')">☆</span>🎯 Univerzalno</button>
+            <button class="tab" data-fav-key="homecalc:gips" onclick="switchSubTab('homecalc', 'gips', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:gips', 'tab')">☆</span>Gips</button>
+            <button class="tab" data-fav-key="homecalc:malter" onclick="switchSubTab('homecalc', 'malter', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:malter', 'tab')">☆</span>Malter</button>
+        </div>
+        <div class="tabs-label">⚡ Instalacije</div>
+        <div class="tabs">
+            <button class="tab" data-fav-key="homecalc:hidro" onclick="switchSubTab('homecalc', 'hidro', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:hidro', 'tab')">☆</span>Hidroizolacija</button>
+            <button class="tab" data-fav-key="homecalc:elektro" onclick="switchSubTab('homecalc', 'elektro', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:elektro', 'tab')">☆</span>Elektro</button>
+            <button class="tab" data-fav-key="homecalc:stolarija" onclick="switchSubTab('homecalc', 'stolarija', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:stolarija', 'tab')">☆</span>Stolarija</button>
+        </div>
+        <div class="tabs-label">🎯 Ostalo</div>
+        <div class="tabs">
+            <button class="tab" data-fav-key="homecalc:univerzalno" onclick="switchSubTab('homecalc', 'univerzalno', event)"><span class="tab-star" onclick="toggleFavorite(event, 'homecalc:univerzalno', 'tab')">☆</span>Univerzalno</button>
         </div>
 
         <div id="homecalc-povrsina-tab" class="sub-tab-content active">
@@ -3069,13 +3099,17 @@
         <div class="drag-hint" data-hint-id="kitchen-tabs" style="display:none;">
             💡 Dugo pritisni tab pa ga prevuci
         </div>
+        <div class="tabs-label">🍽️ Mere</div>
         <div class="tabs">
-            <button class="tab active" data-fav-key="kitchen:kasike" onclick="switchSubTab('kitchen', 'kasike', event)"><span class="tab-star" onclick="toggleFavorite(event, 'kitchen:kasike', 'tab')">☆</span>🥄 Kašike</button>
-            <button class="tab" data-fav-key="kitchen:case" onclick="switchSubTab('kitchen', 'case', event)"><span class="tab-star" onclick="toggleFavorite(event, 'kitchen:case', 'tab')">☆</span>🥛 Čaše</button>
-            <button class="tab" data-fav-key="kitchen:ostalo" onclick="switchSubTab('kitchen', 'ostalo', event)"><span class="tab-star" onclick="toggleFavorite(event, 'kitchen:ostalo', 'tab')">☆</span>🧂 Ostalo</button>
-            <button class="tab" data-fav-key="kitchen:pecenje" onclick="switchSubTab('kitchen', 'pecenje', event)"><span class="tab-star" onclick="toggleFavorite(event, 'kitchen:pecenje', 'tab')">☆</span>🌡️ Pečenje</button>
-            <button class="tab" data-fav-key="kitchen:porcije" onclick="switchSubTab('kitchen', 'porcije', event)"><span class="tab-star" onclick="toggleFavorite(event, 'kitchen:porcije', 'tab')">☆</span>🍽️ Porcije</button>
-            <button class="tab" data-fav-key="kitchen:kafa" onclick="switchSubTab('kitchen', 'kafa', event)"><span class="tab-star" onclick="toggleFavorite(event, 'kitchen:kafa', 'tab')">☆</span>☕ Kafa/Čaj</button>
+            <button class="tab active" data-fav-key="kitchen:kasike" onclick="switchSubTab('kitchen', 'kasike', event)"><span class="tab-star" onclick="toggleFavorite(event, 'kitchen:kasike', 'tab')">☆</span>Kašike</button>
+            <button class="tab" data-fav-key="kitchen:case" onclick="switchSubTab('kitchen', 'case', event)"><span class="tab-star" onclick="toggleFavorite(event, 'kitchen:case', 'tab')">☆</span>Čaše</button>
+            <button class="tab" data-fav-key="kitchen:ostalo" onclick="switchSubTab('kitchen', 'ostalo', event)"><span class="tab-star" onclick="toggleFavorite(event, 'kitchen:ostalo', 'tab')">☆</span>Ostalo</button>
+        </div>
+        <div class="tabs-label">🌡️ Priprema</div>
+        <div class="tabs">
+            <button class="tab" data-fav-key="kitchen:pecenje" onclick="switchSubTab('kitchen', 'pecenje', event)"><span class="tab-star" onclick="toggleFavorite(event, 'kitchen:pecenje', 'tab')">☆</span>Pečenje</button>
+            <button class="tab" data-fav-key="kitchen:porcije" onclick="switchSubTab('kitchen', 'porcije', event)"><span class="tab-star" onclick="toggleFavorite(event, 'kitchen:porcije', 'tab')">☆</span>Porcije</button>
+            <button class="tab" data-fav-key="kitchen:kafa" onclick="switchSubTab('kitchen', 'kafa', event)"><span class="tab-star" onclick="toggleFavorite(event, 'kitchen:kafa', 'tab')">☆</span>Kafa/Čaj</button>
         </div>
 
         <div id="kitchen-kasike-tab" class="sub-tab-content active">
@@ -4518,15 +4552,19 @@
         <div class="drag-hint" data-hint-id="work-tabs" style="display:none;">
             💡 Dugo pritisni tab pa ga prevuci
         </div>
+        <div class="tabs-label">⏰ Vreme i plata</div>
         <div class="tabs">
-            <button class="tab active" data-fav-key="work:vreme" onclick="switchSubTab('work', 'vreme', event)"><span class="tab-star" onclick="toggleFavorite(event, 'work:vreme', 'tab')">☆</span>⏰ Radno vreme</button>
-            <button class="tab" data-fav-key="work:satnica" onclick="switchSubTab('work', 'satnica', event)"><span class="tab-star" onclick="toggleFavorite(event, 'work:satnica', 'tab')">☆</span>💰 Satnica</button>
-            <button class="tab" data-fav-key="work:plata" onclick="switchSubTab('work', 'plata', event)"><span class="tab-star" onclick="toggleFavorite(event, 'work:plata', 'tab')">☆</span>💵 Plata</button>
-            <button class="tab" data-fav-key="work:odmor" onclick="switchSubTab('work', 'odmor', event)"><span class="tab-star" onclick="toggleFavorite(event, 'work:odmor', 'tab')">☆</span>📅 Godišnji odmor</button>
-            <button class="tab" data-fav-key="work:nocni" onclick="switchSubTab('work', 'nocni', event)"><span class="tab-star" onclick="toggleFavorite(event, 'work:nocni', 'tab')">☆</span>🌙 Noćni rad</button>
-            <button class="tab" data-fav-key="work:prekovremeno" onclick="switchSubTab('work', 'prekovremeno', event)"><span class="tab-star" onclick="toggleFavorite(event, 'work:prekovremeno', 'tab')">☆</span>📊 Prekovremeno</button>
-            <button class="tab" data-fav-key="work:putni" onclick="switchSubTab('work', 'putni', event)"><span class="tab-star" onclick="toggleFavorite(event, 'work:putni', 'tab')">☆</span>🚗 Putni troškovi</button>
-            <button class="tab" data-fav-key="work:bonusi" onclick="switchSubTab('work', 'bonusi', event)"><span class="tab-star" onclick="toggleFavorite(event, 'work:bonusi', 'tab')">☆</span>🎁 Bonusi</button>
+            <button class="tab active" data-fav-key="work:vreme" onclick="switchSubTab('work', 'vreme', event)"><span class="tab-star" onclick="toggleFavorite(event, 'work:vreme', 'tab')">☆</span>Radno vreme</button>
+            <button class="tab" data-fav-key="work:satnica" onclick="switchSubTab('work', 'satnica', event)"><span class="tab-star" onclick="toggleFavorite(event, 'work:satnica', 'tab')">☆</span>Satnica</button>
+            <button class="tab" data-fav-key="work:plata" onclick="switchSubTab('work', 'plata', event)"><span class="tab-star" onclick="toggleFavorite(event, 'work:plata', 'tab')">☆</span>Plata</button>
+            <button class="tab" data-fav-key="work:prekovremeno" onclick="switchSubTab('work', 'prekovremeno', event)"><span class="tab-star" onclick="toggleFavorite(event, 'work:prekovremeno', 'tab')">☆</span>Prekovremeno</button>
+        </div>
+        <div class="tabs-label">🌙 Dodaci</div>
+        <div class="tabs">
+            <button class="tab" data-fav-key="work:odmor" onclick="switchSubTab('work', 'odmor', event)"><span class="tab-star" onclick="toggleFavorite(event, 'work:odmor', 'tab')">☆</span>Godišnji odmor</button>
+            <button class="tab" data-fav-key="work:nocni" onclick="switchSubTab('work', 'nocni', event)"><span class="tab-star" onclick="toggleFavorite(event, 'work:nocni', 'tab')">☆</span>Noćni rad</button>
+            <button class="tab" data-fav-key="work:putni" onclick="switchSubTab('work', 'putni', event)"><span class="tab-star" onclick="toggleFavorite(event, 'work:putni', 'tab')">☆</span>Putni troškovi</button>
+            <button class="tab" data-fav-key="work:bonusi" onclick="switchSubTab('work', 'bonusi', event)"><span class="tab-star" onclick="toggleFavorite(event, 'work:bonusi', 'tab')">☆</span>Bonusi</button>
         </div>
 
         <div id="work-vreme-tab" class="sub-tab-content active">
@@ -4863,11 +4901,15 @@
         <div class="drag-hint" data-hint-id="music-tabs" style="display:none;">
             💡 Dugo pritisni tab pa ga prevuci
         </div>
+        <div class="tabs-label">🎸 Instrumenti</div>
         <div class="tabs">
             <button class="tab active" data-fav-key="music:transpozicija" onclick="switchSubTab('music', 'transpozicija', event)"><span class="tab-star" onclick="toggleFavorite(event, 'music:transpozicija', 'tab')">☆</span>🎼 Transpozicija</button>
             <button class="tab" data-fav-key="music:lestvice" onclick="switchSubTab('music', 'lestvice', event)"><span class="tab-star" onclick="toggleFavorite(event, 'music:lestvice', 'tab')">☆</span>🎹 Lestvice</button>
             <button class="tab" data-fav-key="music:akordi" onclick="switchSubTab('music', 'akordi', event)"><span class="tab-star" onclick="toggleFavorite(event, 'music:akordi', 'tab')">☆</span>🎸 Akordi</button>
             <button class="tab" data-fav-key="music:kapo" onclick="switchSubTab('music', 'kapo', event)"><span class="tab-star" onclick="toggleFavorite(event, 'music:kapo', 'tab')">☆</span>🎤 Kapo</button>
+        </div>
+        <div class="tabs-label">🎵 Alati</div>
+        <div class="tabs">
             <button class="tab" data-fav-key="music:tempo" onclick="switchSubTab('music', 'tempo', event)"><span class="tab-star" onclick="toggleFavorite(event, 'music:tempo', 'tab')">☆</span>⏱️ Tempo/Delay</button>
             <button class="tab" data-fav-key="music:intervali" onclick="switchSubTab('music', 'intervali', event)"><span class="tab-star" onclick="toggleFavorite(event, 'music:intervali', 'tab')">☆</span>🎚️ Intervali</button>
             <button class="tab" data-fav-key="music:metronom" onclick="switchSubTab('music', 'metronom', event)"><span class="tab-star" onclick="toggleFavorite(event, 'music:metronom', 'tab')">☆</span>🥁 Metronom</button>
