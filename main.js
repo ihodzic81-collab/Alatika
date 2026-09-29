@@ -2742,6 +2742,263 @@ function renderAutoMojAuto() {
     `;
 }
 
+// ====================== KUPOVINA ======================
+
+function renderShopUnit() {
+    return `
+        <div class="converter-box">
+            ${sectionDesc('Izračunaj cenu po kilogramu, litru, komadu.')}
+            ${inputField('Ukupna cena', 'unit-price', 'RSD', 'step="0.01" placeholder="npr. 250"')}
+            ${inputField('Količina', 'unit-qty', '', 'step="0.01" placeholder="npr. 2"')}
+            ${selectField('Jedinica', 'unit-type', [
+                { value: 'kg', text: 'Kilogram (cena/kg)' },
+                { value: 'g100', text: 'Grami (cena/100g)' },
+                { value: 'L', text: 'Litar (cena/L)' },
+                { value: 'ml100', text: 'Mililitri (cena/100ml)' },
+                { value: 'kom', text: 'Komad (cena/kom)' },
+                { value: 'm', text: 'Metar (cena/m)' }
+            ])}
+            ${calcButton('Izračunaj Cenu', 'calculateUnitPrice()')}
+        </div>
+        <div id="unit-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left">
+                <div class="pump-icon">${icon('barcode')}</div>
+                <div>
+                    <div class="res-label">Cena po jedinici</div>
+                    <h2><span id="res-unit-price">0</span> <small id="res-unit-label">RSD/kg</small></h2>
+                </div>
+            </div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-unit-price', 'res-unit-label', event)">Kopiraj</button>
+                <button class="copy-btn" data-category="KUPOVINA" data-label="Cena po jedinici" onclick="saveHistory(this)">Sačuvaj</button>
+                <button class="copy-btn" data-category="KUPOVINA" data-label="Cena po jedinici" onclick="shareResult(this)">Podeli</button>
+            </div>
+        </div>
+    `;
+}
+function renderShopCompare() {
+    return `
+        <div class="converter-box">
+            ${sectionDesc('Uporedi dva proizvoda i vidi koji je jeftiniji po jedinici.')}
+            <div class="compare-group">
+                <div class="compare-title">Proizvod A</div>
+                ${inputField('Cena', 'cmp-a-price', 'RSD', 'step="0.01" placeholder="npr. 250"')}
+                <div class="input-field">
+                    <label>Količina</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="cmp-a-qty" class="custom-input" placeholder="npr. 1" step="0.01" inputmode="decimal">
+                        <select id="cmp-a-unit" class="custom-select-unit">
+                            <option value="kg">kg</option>
+                            <option value="g">g</option>
+                            <option value="L">L</option>
+                            <option value="ml">ml</option>
+                            <option value="kom">kom</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="compare-group">
+                <div class="compare-title">Proizvod B</div>
+                ${inputField('Cena', 'cmp-b-price', 'RSD', 'step="0.01" placeholder="npr. 320"')}
+                <div class="input-field">
+                    <label>Količina</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="cmp-b-qty" class="custom-input" placeholder="npr. 1.5" step="0.01" inputmode="decimal">
+                        <select id="cmp-b-unit" class="custom-select-unit">
+                            <option value="kg">kg</option>
+                            <option value="g">g</option>
+                            <option value="L">L</option>
+                            <option value="ml">ml</option>
+                            <option value="kom">kom</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            ${calcButton('Uporedi', 'calculateCompare()')}
+        </div>
+        ${resultCardText('compare-result-box', 'scale', 'Rezultat poređenja', 'res-cmp-winner', 'KUPOVINA', 'Poređenje')}
+        ${statsRow('compare-stats-row', [['Cena A', 'stat-cmp-a', '0'], ['Cena B', 'stat-cmp-b', '0'], ['Razlika', 'stat-cmp-diff', '0%']])}
+    `;
+}
+function renderShopPromo() {
+    return `
+        <div class="converter-box">
+            ${sectionDesc('Izračunaj stvarnu cenu po komadu u akcijama.')}
+            ${selectField('Tip akcije', 'promo-type', [
+                { value: '2plus1', text: '2+1 gratis (platiš 2, dobiješ 3)' },
+                { value: '3plus1', text: '3+1 gratis (platiš 3, dobiješ 4)' },
+                { value: 'second', text: 'Druga po povoljnijoj ceni' }
+            ])}
+            ${inputField('Cena po komadu', 'promo-price', 'RSD', 'step="0.01" placeholder="npr. 200"')}
+            <div class="input-field" id="promo-second-wrap" style="display:none;">
+                <label>Popust na drugu jedinicu</label>
+                <div class="input-wrapper">
+                    <input type="number" id="promo-second-pct" class="custom-input" value="50" inputmode="decimal">
+                    <span class="unit">%</span>
+                </div>
+            </div>
+            ${calcButton('Izračunaj Akciju', 'calculatePromo()')}
+        </div>
+        ${resultCard('promo-result-box', 'gift', 'Stvarna cena po komadu', 'res-promo-unit', 'RSD', 'KUPOVINA', 'Akcija')}
+        ${statsRow('promo-stats-row', [['Ukupno platiš', 'stat-promo-total', '0 RSD'], ['Dobiješ komada', 'stat-promo-qty', '0'], ['Ušteda', 'stat-promo-save', '0 RSD']])}
+    `;
+}
+function renderShopLista() {
+    return `
+        <div class="converter-box">
+            ${sectionDesc('Dodaj stavke, čekiraj kupljeno, prati ukupan trošak.')}
+            ${inputFieldText('Naziv stavke', 'lista-name', 'npr. Mleko')}
+            ${inputFieldText('Količina (opciono)', 'lista-qty', 'npr. 2 L')}
+            ${inputField('Procena cene (opciono)', 'lista-price', 'RSD', 'step="0.01" placeholder="npr. 150"')}
+            ${calcButton('Dodaj stavku', 'addShoppingItem()')}
+        </div>
+        <div class="converter-box" id="lista-box" style="display:none;">
+            <div class="lista-head">
+                <div class="section-desc" style="margin-bottom:0;" id="lista-progress">0 / 0 kupljeno</div>
+                <button class="lista-clear-btn" onclick="clearBoughtItems()">Obriši kupljeno</button>
+            </div>
+            <div id="lista-items"></div>
+            <div class="lista-total">
+                <div class="lista-total-left">
+                    <div class="lista-total-label">Ukupno</div>
+                    <div class="lista-total-value" id="lista-total">0,00 RSD</div>
+                </div>
+                <div class="lista-total-right">
+                    <div class="lista-total-label">Ostalo</div>
+                    <div class="lista-total-value" id="lista-remaining">0,00 RSD</div>
+                </div>
+            </div>
+            <button class="copy-btn history-danger-btn" style="margin-top:10px; width:100%;" onclick="clearShoppingList()">Obriši celu listu</button>
+        </div>
+    `;
+}
+function renderShopBudzet() {
+    return `
+        <div class="converter-box">
+            ${sectionDesc('Koliko smeš dnevno da trošiš da ostaneš u budžetu.')}
+            ${inputField('Ukupan budžet', 'budzet-total', 'RSD', 'step="0.01" placeholder="npr. 30000"')}
+            ${selectField('Period', 'budzet-period', [
+                { value: '7', text: 'Nedelja dana (7)' },
+                { value: '14', text: 'Dve nedelje (14)' },
+                { value: '30', text: 'Mesec dana (30)' }
+            ], '30')}
+            ${inputField('Već potrošeno (opciono)', 'budzet-spent', 'RSD', 'step="0.01" placeholder="npr. 5000"')}
+            ${calcButton('Izračunaj Budžet', 'calculateBudget()')}
+        </div>
+        ${resultCard('budzet-result-box', 'calendarSm', 'Dnevni limit', 'res-budzet-daily', 'RSD/dan', 'KUPOVINA', 'Budžet')}
+        ${statsRow('budzet-stats-row', [['Preostalo', 'stat-budzet-left', '0 RSD'], ['Do kraja perioda', 'stat-budzet-days', '0 dana'], ['Dnevno do kraja', 'stat-budzet-recalc', '0 RSD']])}
+    `;
+}
+function renderShopRate() {
+    return `
+        <div class="converter-box">
+            ${sectionDesc('Da li se više isplati platiti kešom uz popust ili na rate?')}
+            ${inputField('Redovna cena (na rate)', 'rate-cena', 'RSD', 'step="0.01" placeholder="npr. 60000"')}
+            ${inputField('Broj rata', 'rate-br', 'mes', 'value="12"')}
+            ${inputField('Cena kešom (sa popustom)', 'rate-kes', 'RSD', 'step="0.01" placeholder="npr. 54000"')}
+            ${inputField('Godišnja inflacija (opciono)', 'rate-infl', '%', 'value="0" step="0.1"')}
+            ${calcButton('Uporedi Rate i Keš', 'calculateRates()')}
+        </div>
+        ${resultCardText('rate-result-box', 'creditCard', 'Isplativije', 'res-rate-winner', 'KUPOVINA', 'Rate vs keš')}
+        ${statsRow('rate-stats-row', [['Mesečna rata', 'stat-rate-monthly', '0 RSD'], ['Ukupno na rate', 'stat-rate-total', '0 RSD'], ['Ušteda kešom', 'stat-rate-saving', '0 RSD']])}
+    `;
+}
+function renderShopKartice() {
+    return `
+        <div class="converter-box">
+            ${sectionDesc('Koliko te realno košta plaćanje karticom sa odloženim plaćanjem.')}
+            ${inputField('Cena', 'kart-cena', 'RSD', 'step="0.01" placeholder="npr. 25000"')}
+            ${inputField('Popust za keš', 'kart-popust', '%', 'placeholder="npr. 10"')}
+            ${inputField('Naknada za odloženo (opciono)', 'kart-naknada', '%', 'placeholder="npr. 2"')}
+            ${calcButton('Izračunaj', 'calculateCardVsCash()')}
+        </div>
+        ${resultCardText('kart-result-box', 'banknote', 'Isplativije', 'res-kart-winner', 'KUPOVINA', 'Kartica vs keš')}
+        ${statsRow('kart-stats-row', [['Keš', 'stat-kart-kes', '0 RSD'], ['Kartica', 'stat-kart-kart', '0 RSD'], ['Razlika', 'stat-kart-diff', '0 RSD']])}
+    `;
+}
+function renderShopLitar() {
+    return `
+        <div class="converter-box">
+            ${sectionDesc('Za tečnosti — sokovi, mleko, deterdžent, ulje.')}
+            ${inputField('Cena pakovanja', 'litar-cena', 'RSD', 'step="0.01" placeholder="npr. 150"')}
+            <div class="input-field">
+                <label>Zapremina pakovanja</label>
+                <div class="input-wrapper">
+                    <input type="number" id="litar-qty" class="custom-input" placeholder="npr. 1.5" step="0.01" inputmode="decimal">
+                    <select id="litar-unit" class="custom-select-unit">
+                        <option value="L">L</option>
+                        <option value="ml">ml</option>
+                        <option value="dl">dL</option>
+                    </select>
+                </div>
+            </div>
+            ${calcButton('Izračunaj Cenu po Litru', 'calculatePerLiter()')}
+        </div>
+        ${resultCard('litar-result-box', 'droplets', 'Cena po litru', 'res-litar-val', 'RSD/L', 'KUPOVINA', 'Cena po litru')}
+        ${statsRow('litar-stats-row', [['Cena po dL', 'stat-litar-dl', '0 RSD'], ['Cena po 100 ml', 'stat-litar-ml100', '0 RSD']])}
+    `;
+}
+function renderShopOsoba() {
+    return `
+        <div class="converter-box">
+            ${sectionDesc('Podeli trošak kupovine na članove domaćinstva.')}
+            ${inputField('Ukupan trošak', 'osoba-total', 'RSD', 'step="0.01" placeholder="npr. 15000"')}
+            ${inputField('Broj osoba', 'osoba-br', '', 'value="1" min="1"')}
+            ${inputField('Broj dana', 'osoba-dana', 'dana', 'value="7" min="1"')}
+            ${calcButton('Izračunaj po Osobi', 'calculatePerPerson()')}
+        </div>
+        ${resultCard('osoba-result-box', 'users', 'Trošak po osobi', 'res-osoba-val', 'RSD', 'KUPOVINA', 'Po osobi')}
+        ${statsRow('osoba-stats-row', [['Po osobi dnevno', 'stat-osoba-dan', '0 RSD'], ['Ukupno dnevno', 'stat-osoba-ukupno', '0 RSD']])}
+    `;
+}
+function renderShopIsplati() {
+    return `
+        <div class="converter-box">
+            ${sectionDesc('Da li se isplati ići u udaljenu prodavnicu po jeftinijoj robi?')}
+            ${inputField('Ušteda po artiklu', 'isplati-usteda', 'RSD', 'step="0.01" placeholder="npr. 50"')}
+            ${inputField('Broj artikala', 'isplati-br', '', 'value="1" min="1"')}
+            ${inputField('Distanca u jednom smeru', 'isplati-dist', 'km', 'step="0.1" placeholder="npr. 10"')}
+            ${inputField('Potrošnja auta', 'isplati-potrosnja', 'L/100km', 'value="7" step="0.1"')}
+            ${inputField('Cena goriva', 'isplati-gorivo', 'RSD/L', 'value="180" step="0.1"')}
+            ${calcButton('Izračunaj', 'calculateWorthTrip()')}
+        </div>
+        ${resultCardText('isplati-result-box', 'target', 'Rezultat', 'res-isplati-verdict', 'KUPOVINA', 'Isplati li se')}
+        ${statsRow('isplati-stats-row', [['Ušteda', 'stat-isplati-usteda', '0 RSD'], ['Trošak puta', 'stat-isplati-trosak', '0 RSD'], ['Neto', 'stat-isplati-neto', '0 RSD']])}
+    `;
+}
+function renderShopRacuni() {
+    return `
+        <div class="converter-box">
+            ${sectionDesc('Uporedi dva računa iz prodavnice.')}
+            <div class="compare-group">
+                <div class="compare-title">Račun A</div>
+                ${inputField('Ukupan iznos', 'rac-a-total', 'RSD', 'step="0.01" placeholder="npr. 4500"')}
+                ${inputField('Broj artikala', 'rac-a-items', '', 'placeholder="npr. 12"')}
+            </div>
+            <div class="compare-group">
+                <div class="compare-title">Račun B</div>
+                ${inputField('Ukupan iznos', 'rac-b-total', 'RSD', 'step="0.01" placeholder="npr. 5200"')}
+                ${inputField('Broj artikala', 'rac-b-items', '', 'placeholder="npr. 15"')}
+            </div>
+            ${calcButton('Uporedi Račune', 'calculateReceipts()')}
+        </div>
+        ${resultCardText('racuni-result-box', 'receipt', 'Isplativije', 'res-rac-winner', 'KUPOVINA', 'Poređenje računa')}
+        ${statsRow('racuni-stats-row', [['Prosek A', 'stat-rac-a', '0 RSD'], ['Prosek B', 'stat-rac-b', '0 RSD'], ['Razlika', 'stat-rac-diff', '0 %']])}
+    `;
+}
+function renderShopRasipanje() {
+    return `
+        <div class="converter-box">
+            ${sectionDesc('Koliko te realno košta jedan obrok / porcija iz namirnice.')}
+            ${inputField('Cena namirnice / pakovanja', 'rasip-cena', 'RSD', 'step="0.01" placeholder="npr. 500"')}
+            ${inputField('Broj obroka / porcija', 'rasip-porcija', '', 'step="0.1" min="1" placeholder="npr. 4"')}
+            ${inputField('Procenat bacanja (opciono)', 'rasip-bacanje', '%', 'placeholder="npr. 10"')}
+            ${calcButton('Izračunaj', 'calculateMealCost()')}
+        </div>
+        ${resultCard('rasip-result-box', 'packageSm', 'Cena po obroku', 'res-rasip-val', 'RSD', 'KUPOVINA', 'Cena po obroku')}
+        ${statsRow('rasip-stats-row', [['Bez bacanja', 'stat-rasip-base', '0 RSD'], ['Trošak bacanja', 'stat-rasip-waste', '0 RSD']])}
+    `;
+}
 // ====================== BICIKL ======================
 
 function renderBikeBrzina() {
