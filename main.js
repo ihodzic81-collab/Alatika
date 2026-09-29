@@ -630,7 +630,7 @@ function setupDateTriples() {
     });
 }
 
-// ================= PAMĆENJE UNOSA (AUTO-SAVE) =================
+// ================= PAMĆENJE UNOSA =================
 
 const INPUT_STORAGE_KEY = 'cx_inputs_v1';
 let inputCache = {};
@@ -1766,7 +1766,7 @@ function openScreen(screenId, direction = 'right') {
 
 function onScreenOpened(screenId) {
     if (screenId === 'money-screen') {
-        // Nema više auto-refresh-a — samo ručno preko ↻ dugmeta
+        // Kursna lista se ne osvežava automatski — samo ručno preko ↻
     }
     if (screenId === 'history-screen') {
         renderHistory();
@@ -1852,7 +1852,6 @@ function switchSubTab(category, tabName, event) {
         if (btn) btn.classList.add('active');
 
         if (category === 'money' && tabName === 'valuta') {
-            // Samo osveži iz keša, ne pozivaj API
             loadFxRates();
             populateCurrencySelects();
             renderFxList();
@@ -2834,10 +2833,10 @@ function calculateTip() {
 
 // ================= VALUTA — KURSNA LISTA =================
 //
-// STRATEGIJA (bez problema sa CORS-om i "nema interneta"):
-// 1) Primarni izvor: exchangerate.host (radi bez API ključa, podržava RSD)
-// 2) Fallback: frankfurter.app (ECB kursevi, bez RSD — koristi fiksni RSD)
-// 3) Ako nijedan ne radi: keširani kursevi iz localStorage
+// IZVORI (redom):
+// 1) open.er-api.com — besplatan, CORS OK, podržava RSD, bez API ključa
+// 2) frankfurter.app — ECB, fallback, ne podržava RSD (koristi se fiksni)
+// 3) localStorage keš — ako oba padnu
 
 const CURRENCIES = [
     { code: 'RSD', name: 'Srpski dinar',       flag: '🇷🇸', rate: 1 },
@@ -2922,22 +2921,26 @@ function formatFxUpdated(ts) {
 }
 
 /**
- * Primarni izvor: exchangerate.host
- * Podržava RSD, besplatan, ne zahteva API ključ, dozvoljava CORS.
- * Endpoint: https://api.exchangerate.host/latest?base=RSD
+ * PRIMARNI IZVOR: open.er-api.com
+ * Besplatan, bez API ključa, CORS dozvoljen, podržava RSD.
+ * Endpoint: https://open.er-api.com/v6/latest/RSD
+ * Vraća: { result: "success", rates: { EUR: 0.00854, USD: 0.00922, ... } }
+ * Znači: 1 RSD = rate X strane valute.
  */
-async function fetchFromExchangeRateHost() {
-    const url = 'https://api.exchangerate.host/latest?base=RSD';
+async function fetchFromErApi() {
+    const url = 'https://open.er-api.com/v6/latest/RSD';
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    if (!data || !data.rates) throw new Error('Neispravan odgovor');
-    return data.rates; // { EUR: 0.00854, USD: 0.00922, ... } — 1 RSD = X strane valute
+    if (!data || data.result !== 'success' || !data.rates) {
+        throw new Error('Neispravan odgovor');
+    }
+    return data.rates;
 }
 
 /**
- * Sekundarni izvor: frankfurter.app
- * ECB kursevi, ne podržava RSD. Koristimo EUR→X pa izračunamo RSD preko fiksnog kursa.
+ * SEKUNDARNI IZVOR: frankfurter.app (ECB)
+ * Ne podržava RSD. Koristi EUR bazu, RSD se izračuna iz fiksnog kursa.
  */
 async function fetchFromFrankfurter() {
     const supported = CURRENCIES
@@ -2949,7 +2952,7 @@ async function fetchFromFrankfurter() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     if (!data || !data.rates) throw new Error('Neispravan odgovor');
-    return data.rates; // { USD: 1.08, GBP: 0.85, ... } — 1 EUR = X strane valute
+    return data.rates;
 }
 
 async function refreshExchangeRates(silent = false) {
@@ -2960,47 +2963,45 @@ async function refreshExchangeRates(silent = false) {
     if (!silent) showToast('Osvežavam kurseve...', 'info', 1500);
 
     let success = false;
+    let usedSource = '';
 
-    // Pokušaj 1: exchangerate.host (podržava RSD direktno)
+    // Pokušaj 1: open.er-api.com
     try {
-        const rates = await fetchFromExchangeRateHost();
+        const rates = await fetchFromErApi();
         CURRENCIES.forEach(c => {
             if (c.code === 'RSD') { c.rate = 1; return; }
             const rate = rates[c.code];
             if (typeof rate === 'number' && rate > 0) {
-                // 1 RSD = rate X  →  1 X = 1/rate RSD
                 c.rate = Number((1 / rate).toFixed(4));
             }
         });
         success = true;
-        console.log('Kursevi učitani sa exchangerate.host');
+        usedSource = 'open.er-api.com';
+        console.log('✓ Kursevi učitani sa open.er-api.com');
     } catch (e) {
-        console.warn('exchangerate.host greška:', e);
+        console.warn('✗ open.er-api.com greška:', e.message);
     }
 
-    // Pokušaj 2: frankfurter.app (fallback)
+    // Pokušaj 2: frankfurter.app
     if (!success) {
         try {
             const rates = await fetchFromFrankfurter();
-
-            // Koristimo trenutni RSD kurs iz keša ili fiksni
             const currentEur = CURRENCIES.find(c => c.code === 'EUR');
             const eurToRsd = currentEur ? currentEur.rate : 117.20;
 
             CURRENCIES.forEach(c => {
                 if (c.code === 'RSD') { c.rate = 1; return; }
                 if (c.code === 'EUR') { c.rate = eurToRsd; return; }
-
                 const eurToCur = rates[c.code];
                 if (typeof eurToCur === 'number' && eurToCur > 0) {
-                    // 1 EUR = eurToCur X  →  1 X = eurToRsd / eurToCur RSD
                     c.rate = Number((eurToRsd / eurToCur).toFixed(4));
                 }
             });
             success = true;
-            console.log('Kursevi učitani sa frankfurter.app');
+            usedSource = 'frankfurter.app';
+            console.log('✓ Kursevi učitani sa frankfurter.app');
         } catch (e) {
-            console.warn('frankfurter.app greška:', e);
+            console.warn('✗ frankfurter.app greška:', e.message);
         }
     }
 
@@ -3012,12 +3013,11 @@ async function refreshExchangeRates(silent = false) {
         calculateCurrency();
 
         if (!silent) {
-            showToast('Kursevi osveženi ✓', 'success', 2000);
+            showToast('Kursevi osveženi ✓ (' + usedSource + ')', 'success', 2000);
             vibrate(20);
             playTick(0, 1400, 0.08, 0.03);
         }
     } else {
-        // Oba izvora pala — koristi keš
         loadFxRates();
         populateCurrencySelects();
         renderFxList();
@@ -3027,9 +3027,9 @@ async function refreshExchangeRates(silent = false) {
         if (!silent) {
             const hasCache = !!getFxLastUpdate();
             if (hasCache) {
-                showToast('Nema interneta — koristim keširane kurseve', 'warning', 2500);
+                showToast('Koristim keširane kurseve (' + formatFxUpdated(getFxLastUpdate()) + ')', 'warning', 2800);
             } else {
-                showToast('Nema interneta — koristim podrazumevane kurseve', 'warning', 2500);
+                showToast('Nema interneta — koristim podrazumevane kurseve', 'warning', 2800);
             }
         }
     }
@@ -5678,7 +5678,7 @@ function renderTunerStrings() {
     });
 }
 
-// ✨ IZMENA: toggle — klik na aktivnu žicu zaustavlja ton
+// ✨ TOGGLE — klik na aktivnu žicu zaustavlja ton
 function playTunerTone(freq, btn) {
     try {
         const isActive = btn && btn.classList.contains('active');
@@ -5741,8 +5741,6 @@ function stopTunerTone() {
     if (stopBtn) stopBtn.style.display = 'none';
     document.querySelectorAll('.tuner-string-btn').forEach(b => b.classList.remove('active'));
 }
-
-/* Mikrofon + auto-detekcija */
 
 async function toggleTunerMic() {
     const btn = el('tuner-mic-btn');
