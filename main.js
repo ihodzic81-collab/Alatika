@@ -1,13 +1,9 @@
 // ============================================================
-// ALATIKA — main.js (novi redizajn)
-// Neutralna moderna paleta + modali + bez drag&drop
+// ALATIKA — main.js (finalna verzija sa svim izmenama)
 // ============================================================
 
-// ================= POMOĆNE FUNKCIJE =================
-
-function el(id) {
-    return document.getElementById(id);
-}
+// ================= POMOĆNE =================
+function el(id) { return document.getElementById(id); }
 
 function parseNum(val) {
     if (val === null || val === undefined) return null;
@@ -17,11 +13,8 @@ function parseNum(val) {
         const lastDot = s.lastIndexOf('.');
         const lastComma = s.lastIndexOf(',');
         let normalized;
-        if (lastComma > lastDot) {
-            normalized = s.replace(/\./g, '').replace(',', '.');
-        } else {
-            normalized = s.replace(/,/g, '');
-        }
+        if (lastComma > lastDot) normalized = s.replace(/\./g, '').replace(',', '.');
+        else normalized = s.replace(/,/g, '');
         const n = parseFloat(normalized);
         return isNaN(n) ? null : n;
     }
@@ -32,52 +25,32 @@ function parseNum(val) {
     const n = parseFloat(s);
     return isNaN(n) ? null : n;
 }
-
-function num(id) {
-    const elem = el(id);
-    if (!elem) return null;
-    return parseNum(elem.value);
-}
-
-function hide(id) {
-    const elem = el(id);
-    if (elem) elem.style.display = 'none';
-}
-
+function num(id) { const elem = el(id); if (!elem) return null; return parseNum(elem.value); }
+function hide(id) { const elem = el(id); if (elem) elem.style.display = 'none'; }
 function fmt(n, maxDecimals = 6) {
     if (typeof n !== 'number' || isNaN(n)) return '0';
     const rounded = Number(n.toPrecision(10));
     return rounded.toLocaleString('sr-RS', { maximumFractionDigits: maxDecimals });
 }
-
 function money(n) {
     if (typeof n !== 'number' || isNaN(n)) return '0,00';
     return n.toLocaleString('sr-RS', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
-
 function cardText(card) {
     const clone = card.cloneNode(true);
     clone.querySelectorAll('button').forEach(b => b.remove());
     return clone.innerText.replace(/\n\s*\n/g, '\n').trim();
 }
-
 function escapeHtml(s) {
-    return String(s)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-// ================= ICONS (Lucide SVG) =================
-
+// ================= ICONS =================
 const ICONS = {
     car: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>',
     bike: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6h4"/><path d="M5.5 17.5 10 8h4l4.5 9.5"/></svg>',
     wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>',
     ruler: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 8.7 15.3 2.7a1 1 0 0 0-1.4 0L2.7 13.9a1 1 0 0 0 0 1.4l6 6a1 1 0 0 0 1.4 0L21.3 10a1 1 0 0 0 0-1.4Z"/><path d="m7.5 10.5 2 2"/><path d="m10.5 7.5 2 2"/><path d="m13.5 4.5 2 2"/><path d="m4.5 13.5 2 2"/></svg>',
-    heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>',
     heartPulse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg>',
     clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
     hammer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 12-8.5 8.5a2.12 2.12 0 1 1-3-3L12 9"/><path d="M17.64 15 22 10.64"/><path d="m20.91 11.7-1.25-1.25c-.6-.6-.93-1.4-.93-2.25v-.86L16.01 4.6a5.56 5.56 0 0 0-3.94-1.64H9l.92.82A6.18 6.18 0 0 1 12 8.4v1.56l2 2h2.47l2.26 1.91"/></svg>',
@@ -86,31 +59,22 @@ const ICONS = {
     zap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>',
     briefcase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>',
     music: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
-
-    // Auto / Putovanje
-    fuel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="15" y1="22" y2="22"/><line x1="4" x2="14" y1="9" y2="9"/><path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"/><path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/></svg>',
+    fuel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="15" y1="22" y2="22"/><line x1="4" x2="14" y1="9" y2="9"/><path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"/><path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2 2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/></svg>',
     route: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>',
     coins: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>',
     wrench: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
     calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>',
     calculator: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>',
-
-    // Bicikl
     gauge: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>',
     wind: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>',
-    rulerIcon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 8.7 15.3 2.7a1 1 0 0 0-1.4 0L2.7 13.9a1 1 0 0 0 0 1.4l6 6a1 1 0 0 0 1.4 0L21.3 10a1 1 0 0 0 0-1.4Z"/></svg>',
     flame: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
     settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>',
-
-    // Novac
     tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>',
     percent: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" x2="5" y1="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>',
     creditCard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>',
     exchange: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>',
     receipt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>',
     handshake: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>',
-
-    // Mere
     scale: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>',
     box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>',
     droplets: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></svg>',
@@ -118,21 +82,14 @@ const ICONS = {
     speedometer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>',
     database: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>',
     activity: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
-
-    // Zdravlje / Fitness
     target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
     run: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
     dumbbell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg>',
-    muscle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/></svg>',
     cake: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/><path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/></svg>',
-
-    // Vreme
     hourglass: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg>',
     calendarDays: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>',
     calendarPlus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M12 14v4"/><path d="M10 16h4"/></svg>',
     briefcaseSm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>',
-
-    // Građevina
     square: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>',
     bricks: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="1"/><path d="M12 6v12"/><path d="M2 12h20"/></svg>',
     board: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>',
@@ -146,8 +103,6 @@ const ICONS = {
     droplet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>',
     plug: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg>',
     door: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4h3a2 2 0 0 1 2 2v14"/><path d="M2 20h3"/><path d="M13 20h9"/><path d="M10 12v.01"/><path d="M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.562Z"/></svg>',
-
-    // Struja
     plug2: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg>',
     battery: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="10" x="2" y="7" rx="2"/><line x1="22" x2="22" y1="11" y2="13"/></svg>',
     trending: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
@@ -157,23 +112,17 @@ const ICONS = {
     lightbulb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>',
     thermometer2: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></svg>',
     flashlight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6c0 2-2 2-2 4v10a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V10c0-2-2-2-2-4V2h12z"/><line x1="6" x2="18" y1="6" y2="6"/><line x1="12" x2="12" y1="12" y2="12"/></svg>',
-
-    // Posao
     timer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>',
     dollarSign: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
     banknote: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>',
     moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>',
     clipboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>',
     gift: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>',
-
-    // Kuhinja
     spoon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-2-3-2-8 2-12 2-12 2 7 2 12-2 8-2 8z"/></svg>',
     glassWater: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 22H8.8a2 2 0 0 1-2-1.79l-1.78-14A2 2 0 0 1 7 4h10a2 2 0 0 1 1.98 2.21l-1.79 14A2 2 0 0 1 15.2 22Z"/><path d="M6 10h12"/></svg>',
     utensils: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>',
     coffee: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg>',
     oven: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="18" x="2" y="3" rx="2"/><path d="M2 11h20"/><path d="M8 11v.01"/><path d="M16 11v.01"/><path d="M6 7h2"/><path d="M12 7h2"/><path d="M18 7h2"/></svg>',
-
-    // Kupovina
     barcode: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5v14"/><path d="M8 5v14"/><path d="M12 5v14"/><path d="M17 5v14"/><path d="M21 5v14"/></svg>',
     split: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M21 3 13 11"/><path d="M3 3 11 11"/><path d="M21 21 13 13"/><path d="M3 21 11 13"/></svg>',
     plusCircle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>',
@@ -181,8 +130,6 @@ const ICONS = {
     calendarSm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>',
     users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
     packageSm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>',
-
-    // Muzika
     guitar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11.9 12.1 4.514-4.514"/><path d="M20.1 2.3a1 1 0 0 0-1.4 0l-1.114 1.114A2 2 0 0 0 17 4.828v1.344a2 2 0 0 1-.586 1.414A2 2 0 0 1 17.828 7h1.344a2 2 0 0 0 1.414-.586L21.7 5.3a1 1 0 0 0 0-1.4z"/><path d="m6 16 2 2"/><path d="M8.23 9.85A3 3 0 0 1 11 8a5 5 0 0 1 5 5 3 3 0 0 1-1.85 2.77l-.92.38A2 2 0 0 0 12 18a4 4 0 0 1-4 4 6 6 0 0 1-6-6 4 4 0 0 1 4-4 2 2 0 0 0 1.85-1.23z"/></svg>',
     musicNote: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="18" r="4"/><path d="M12 18V2l7 4"/></svg>',
     mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19v3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><rect x="9" y="2" width="6" height="13" rx="3"/></svg>',
@@ -197,7 +144,6 @@ const ICONS = {
     trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>',
     copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
     share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>',
-    save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>',
     edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
     arrowRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>',
     arrowLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
@@ -209,15 +155,12 @@ const ICONS = {
 
 function icon(name) {
     return ICONS[name] || ICONS.info;
-}// ================= CATEGORIES =================
-// Struktura: kategorija → tabovi → render funkcija
-// Svaki tab ima: id, name, icon, render (funkcija koja vraća HTML)
+}
 
+// ================= CATEGORIES =================
 const CATEGORIES = {
     auto: {
-        name: 'Auto',
-        icon: 'car',
-        accent: '#f43f5e',
+        name: 'Auto', icon: 'car', accent: '#f43f5e',
         tabs: [
             { id: 'potrosnja', name: 'Potrošnja', icon: 'fuel', render: renderAutoPotrosnja },
             { id: 'planer', name: 'Planer puta', icon: 'route', render: renderAutoPlaner },
@@ -229,9 +172,7 @@ const CATEGORIES = {
         ]
     },
     bike: {
-        name: 'Bicikl',
-        icon: 'bike',
-        accent: '#06b6d4',
+        name: 'Bicikl', icon: 'bike', accent: '#06b6d4',
         tabs: [
             { id: 'brzina', name: 'Brzina', icon: 'gauge', render: renderBikeBrzina },
             { id: 'pritisak', name: 'Pritisak guma', icon: 'wind', render: renderBikePritisak },
@@ -241,9 +182,7 @@ const CATEGORIES = {
         ]
     },
     money: {
-        name: 'Novac',
-        icon: 'wallet',
-        accent: '#10b981',
+        name: 'Novac', icon: 'wallet', accent: '#10b981',
         tabs: [
             { id: 'popust', name: 'Popust', icon: 'tag', render: renderMoneyPopust },
             { id: 'pdv', name: 'PDV', icon: 'percent', render: renderMoneyPDV },
@@ -255,9 +194,7 @@ const CATEGORIES = {
         ]
     },
     measures: {
-        name: 'Mere',
-        icon: 'ruler',
-        accent: '#8b5cf6',
+        name: 'Mere', icon: 'ruler', accent: '#8b5cf6',
         tabs: [
             { id: 'duzina', name: 'Dužina', icon: 'ruler', render: renderMeasuresDuzina },
             { id: 'tezina', name: 'Težina', icon: 'scale', render: renderMeasuresTezina },
@@ -271,9 +208,7 @@ const CATEGORIES = {
         ]
     },
     health: {
-        name: 'Zdravlje',
-        icon: 'heartPulse',
-        accent: '#ec4899',
+        name: 'Zdravlje', icon: 'heartPulse', accent: '#ec4899',
         tabs: [
             { id: 'bmi', name: 'BMI', icon: 'scale', render: renderHealthBMI },
             { id: 'tezina', name: 'Idealna težina', icon: 'target', render: renderHealthIdealna },
@@ -286,9 +221,7 @@ const CATEGORIES = {
         ]
     },
     time: {
-        name: 'Vreme',
-        icon: 'clock',
-        accent: '#f59e0b',
+        name: 'Vreme', icon: 'clock', accent: '#f59e0b',
         tabs: [
             { id: 'konverter', name: 'Konverter vremena', icon: 'hourglass', render: renderTimeKonverter },
             { id: 'razlika', name: 'Razlika datuma', icon: 'calendarDays', render: renderTimeRazlika },
@@ -299,9 +232,7 @@ const CATEGORIES = {
         ]
     },
     homecalc: {
-        name: 'Građevina',
-        icon: 'hammer',
-        accent: '#ea580c',
+        name: 'Građevina', icon: 'hammer', accent: '#ea580c',
         tabs: [
             { id: 'povrsina', name: 'Površina', icon: 'square', render: renderHomePovrsina },
             { id: 'blokovi', name: 'Blokovi', icon: 'bricks', render: renderHomeBlokovi },
@@ -321,9 +252,7 @@ const CATEGORIES = {
         ]
     },
     shopping: {
-        name: 'Kupovina',
-        icon: 'cart',
-        accent: '#14b8a6',
+        name: 'Kupovina', icon: 'cart', accent: '#14b8a6',
         tabs: [
             { id: 'unit', name: 'Cena po jedinici', icon: 'barcode', render: renderShopUnit },
             { id: 'compare', name: 'Poređenje', icon: 'scale', render: renderShopCompare },
@@ -340,9 +269,7 @@ const CATEGORIES = {
         ]
     },
     kitchen: {
-        name: 'Kuhinja',
-        icon: 'chef',
-        accent: '#84cc16',
+        name: 'Kuhinja', icon: 'chef', accent: '#84cc16',
         tabs: [
             { id: 'kasike', name: 'Kašike', icon: 'spoon', render: renderKitchenKasike },
             { id: 'case', name: 'Čaše', icon: 'glassWater', render: renderKitchenCase },
@@ -353,9 +280,7 @@ const CATEGORIES = {
         ]
     },
     power: {
-        name: 'Struja',
-        icon: 'zap',
-        accent: '#eab308',
+        name: 'Struja', icon: 'zap', accent: '#eab308',
         tabs: [
             { id: 'uredjaj', name: 'Uređaj', icon: 'zap', render: renderPowerUredjaj },
             { id: 'vise', name: 'Više uređaja', icon: 'plug2', render: renderPowerVise },
@@ -372,9 +297,7 @@ const CATEGORIES = {
         ]
     },
     work: {
-        name: 'Posao',
-        icon: 'briefcase',
-        accent: '#3b82f6',
+        name: 'Posao', icon: 'briefcase', accent: '#3b82f6',
         tabs: [
             { id: 'vreme', name: 'Radno vreme', icon: 'timer', render: renderWorkVreme },
             { id: 'satnica', name: 'Satnica', icon: 'dollarSign', render: renderWorkSatnica },
@@ -387,9 +310,7 @@ const CATEGORIES = {
         ]
     },
     music: {
-        name: 'Muzika',
-        icon: 'music',
-        accent: '#a855f7',
+        name: 'Muzika', icon: 'music', accent: '#a855f7',
         tabs: [
             { id: 'stimer', name: 'Štimer', icon: 'guitar', render: renderMusicStimer },
             { id: 'transpozicija', name: 'Transpozicija', icon: 'musicNote', render: renderMusicTranspozicija },
@@ -403,9 +324,7 @@ const CATEGORIES = {
             { id: 'detektor', name: 'Detektor tona', icon: 'musicNote', render: renderMusicDetektor }
         ]
     }
-};
-
-// ================= NAVIGACIJA — MODALI =================
+};// ================= NAVIGACIJA — MODALI =================
 
 let activeCategory = null;
 let activeTab = null;
@@ -429,14 +348,34 @@ function openCategory(categoryId) {
 
     tabBar.innerHTML = '';
     cat.tabs.forEach(tab => {
+        const key = `${categoryId}:${tab.id}`;
+        const isFav = isFavorite(key);
+
         const btn = document.createElement('button');
         btn.className = 'tab-btn';
         btn.style.setProperty('--qt-accent', cat.accent);
         btn.innerHTML = `
             <span class="tab-btn-icon">${icon(tab.icon)}</span>
             <span class="tab-btn-label">${escapeHtml(tab.name)}</span>
+            <span class="tab-btn-star ${isFav ? 'active' : ''}" data-fav-key="${key}">
+                ${isFav ? icon('starFill') : icon('star')}
+            </span>
         `;
-        btn.onclick = () => openCalc(categoryId, tab.id);
+        btn.onclick = (e) => {
+            if (e.target.closest('.tab-btn-star')) return;
+            openCalc(categoryId, tab.id);
+        };
+        btn.querySelector('.tab-btn-star').onclick = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            toggleFavorite(null, key);
+            const star = e.currentTarget;
+            const active = isFavorite(key);
+            star.classList.toggle('active', active);
+            star.innerHTML = active ? icon('starFill') : icon('star');
+            renderFavorites();
+            renderAllTools();
+        };
         tabBar.appendChild(btn);
     });
 
@@ -444,6 +383,12 @@ function openCategory(categoryId) {
     document.body.classList.add('modal-open');
     vibrate(15);
     playTick(0, 1400, 0.06, 0.02);
+
+    try { history.pushState({ modal: 'category', category: categoryId }, '', ''); } catch (e) {}
+}
+
+function openCategoryBack(categoryId) {
+    openCategory(categoryId);
 }
 
 function openCalc(categoryId, tabId) {
@@ -467,21 +412,18 @@ function openCalc(categoryId, tabId) {
 
     body.innerHTML = tab.render();
 
-    // Sakrij prethodni category modal ako postoji
     const catModal = el('category-modal');
     if (catModal) catModal.classList.remove('show');
 
     modal.classList.add('show');
     document.body.classList.add('modal-open');
 
-    // Postavi sve inpute i pokreni restore iz keša
     try { restoreInputsFor(body); } catch (e) {}
     try { setupDateTriplesIn(body); } catch (e) {}
 
     vibrate(20);
     playTick(0, 1500, 0.08, 0.03);
 
-    // Posebni init za neke tabove
     if (tabId === 'valuta') {
         setTimeout(() => {
             loadFxRates();
@@ -491,87 +433,41 @@ function openCalc(categoryId, tabId) {
             calculateCurrency();
         }, 50);
     }
-    if (tabId === 'lista') {
-        setTimeout(() => { renderShoppingList(); }, 50);
-    }
-    if (tabId === 'stimer') {
-        setTimeout(() => { renderTunerStrings(); }, 50);
-    }
-    if (tabId === 'vise') {
-        setTimeout(() => {
-            renderPowerDevices();
-            updatePowerTotal();
-        }, 50);
-    }
-    if (tabId === 'mojauto') {
-        setTimeout(() => { updateAutoStatus(); }, 50);
-    }
+    if (tabId === 'lista') setTimeout(() => { renderShoppingList(); }, 50);
+    if (tabId === 'stimer') setTimeout(() => { renderTunerStrings(); }, 50);
+    if (tabId === 'vise') setTimeout(() => { renderPowerDevices(); updatePowerTotal(); }, 50);
+    if (tabId === 'mojauto') setTimeout(() => { updateAutoStatus(); }, 50);
+
+    try { history.pushState({ modal: 'calc', category: categoryId, tab: tabId }, '', ''); } catch (e) {}
 }
 
 function closeModal(modalId) {
     const modal = el(modalId);
     if (!modal) return;
-    modal.classList.remove('show');
 
-    // Ako zatvaramo calc modal, vrati category modal ako postoji aktivna kategorija
     if (modalId === 'calc-modal' && activeCategory) {
+        const catId = activeCategory;
+        modal.classList.remove('show');
+        activeTab = null;
         setTimeout(() => {
             const catModal = el('category-modal');
             if (catModal && !catModal.classList.contains('show')) {
-                openCategoryBack(activeCategory);
+                openCategoryBack(catId);
             }
         }, 180);
-        activeTab = null;
+        vibrate(10);
         return;
     }
 
-    // Ako zatvaramo category modal, potpuno zatvori
-    if (modalId === 'category-modal') {
-        activeCategory = null;
-    }
+    modal.classList.remove('show');
+    if (modalId === 'category-modal') activeCategory = null;
 
-    // Proveri da li je još neki modal otvoren
     setTimeout(() => {
         const anyOpen = document.querySelector('.modal.show');
         if (!anyOpen) document.body.classList.remove('modal-open');
     }, 220);
 
     vibrate(10);
-}
-
-function openCategoryBack(categoryId) {
-    // Isto kao openCategory ali bez animacije ponovnog otvaranja
-    const cat = CATEGORIES[categoryId];
-    if (!cat) return;
-    activeCategory = categoryId;
-
-    const modal = el('category-modal');
-    const iconBox = el('category-icon');
-    const titleBox = el('category-title');
-    const tabBar = el('category-tab-bar');
-
-    if (!modal || !iconBox || !titleBox || !tabBar) return;
-
-    modal.style.setProperty('--qt-accent', cat.accent);
-    iconBox.style.setProperty('--qt-accent', cat.accent);
-    iconBox.innerHTML = icon(cat.icon);
-    titleBox.textContent = cat.name;
-
-    tabBar.innerHTML = '';
-    cat.tabs.forEach(tab => {
-        const btn = document.createElement('button');
-        btn.className = 'tab-btn';
-        btn.style.setProperty('--qt-accent', cat.accent);
-        btn.innerHTML = `
-            <span class="tab-btn-icon">${icon(tab.icon)}</span>
-            <span class="tab-btn-label">${escapeHtml(tab.name)}</span>
-        `;
-        btn.onclick = () => openCalc(categoryId, tab.id);
-        tabBar.appendChild(btn);
-    });
-
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
 }
 
 function closeModalOnBackdrop(e, modalId) {
@@ -597,7 +493,6 @@ function getQuickTools() {
     try {
         const raw = JSON.parse(localStorage.getItem(QUICK_TOOLS_KEY));
         if (Array.isArray(raw) && raw.length === MAX_QUICK_TOOLS) {
-            // Proveri da li svi ID-jevi postoje
             const valid = raw.filter(id => CATEGORIES[id]);
             if (valid.length === MAX_QUICK_TOOLS) return valid;
         }
@@ -656,6 +551,8 @@ function openQuickToolsEditor() {
     document.body.classList.add('modal-open');
     vibrate(15);
     playTick(0, 1400, 0.06, 0.02);
+
+    try { history.pushState({ modal: 'editor' }, '', ''); } catch (e) {}
 }
 
 function toggleEditorSelection(item) {
@@ -688,7 +585,7 @@ function saveQuickTools() {
     showToast('Brzi alati sačuvani', 'success');
 }
 
-// ================= SVI ALATI GRID =================
+// ================= SVI ALATI =================
 
 function renderAllTools() {
     const grid = el('all-tools-grid');
@@ -696,6 +593,9 @@ function renderAllTools() {
 
     grid.innerHTML = '';
     Object.entries(CATEGORIES).forEach(([id, cat]) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'all-tool-wrap';
+
         const btn = document.createElement('button');
         btn.className = 'all-tool';
         btn.style.setProperty('--qt-accent', cat.accent);
@@ -704,9 +604,29 @@ function renderAllTools() {
             <span class="all-tool-label">${escapeHtml(cat.name)}</span>
         `;
         btn.onclick = () => openCategory(id);
-        grid.appendChild(btn);
+
+        const firstTabKey = `${id}:${cat.tabs[0].id}`;
+        const isFav = isFavorite(firstTabKey);
+        const star = document.createElement('button');
+        star.className = 'all-tool-star' + (isFav ? ' active' : '');
+        star.title = isFav ? 'Ukloni iz Mojih alata' : 'Dodaj u Moje alate';
+        star.innerHTML = isFav ? icon('starFill') : icon('star');
+        star.onclick = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            toggleFavorite(null, firstTabKey);
+            renderAllTools();
+            renderQuickTools();
+            renderFavorites();
+        };
+
+        wrapper.appendChild(btn);
+        wrapper.appendChild(star);
+        grid.appendChild(wrapper);
     });
-}// ================= FAVORITI =================
+}
+
+// ================= FAVORITI =================
 
 const FAV_KEY = 'cx_favorites_v4';
 
@@ -722,7 +642,6 @@ function saveFavorites(list) {
     try { localStorage.setItem(FAV_KEY, JSON.stringify(list)); } catch (e) {}
 }
 
-// Favorite key format: "categoryId:tabId"
 function isFavorite(key) {
     return loadFavorites().indexOf(key) !== -1;
 }
@@ -747,15 +666,17 @@ function toggleFavorite(event, key) {
     }
     saveFavorites(list);
     renderFavorites();
-    updateFavStarInCalc(key);
+    refreshCategoryStars();
 }
 
-function updateFavStarInCalc(key) {
-    const star = document.querySelector('.calc-fav-star');
-    if (!star) return;
-    const active = isFavorite(key);
-    star.classList.toggle('active', active);
-    star.innerHTML = active ? icon('starFill') : icon('star');
+function refreshCategoryStars() {
+    document.querySelectorAll('.tab-btn-star').forEach(star => {
+        const key = star.dataset.favKey;
+        if (!key) return;
+        const active = isFavorite(key);
+        star.classList.toggle('active', active);
+        star.innerHTML = active ? icon('starFill') : icon('star');
+    });
 }
 
 function renderFavorites() {
@@ -799,6 +720,7 @@ function renderFavorites() {
         chip.querySelector('.fav-remove').addEventListener('click', (e) => {
             e.stopPropagation();
             toggleFavorite(e, key);
+            renderAllTools();
         });
         chip.addEventListener('click', () => {
             openCalc(catId, tabId);
@@ -817,7 +739,6 @@ function normalizeText(str) {
     return str.toLowerCase().replace(/đ/g, 'dj').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
-// Flat lista svih tabova za pretragu
 const FLAT_TOOLS = [];
 Object.entries(CATEGORIES).forEach(([catId, cat]) => {
     cat.tabs.forEach(tab => {
@@ -917,11 +838,9 @@ function handleQuickSearch() {
 function loadHistory() {
     try { return JSON.parse(localStorage.getItem('cx_history')) || []; } catch (e) { return []; }
 }
-
 function saveHistoryList(list) {
     try { localStorage.setItem('cx_history', JSON.stringify(list)); } catch (e) {}
 }
-
 function saveHistory(btn) {
     try {
         const category = btn.dataset.category;
@@ -935,10 +854,8 @@ function saveHistory(btn) {
         btn.innerHTML = icon('check') + ' Sačuvano';
         showToast(`${label} sačuvano`, 'success', 2000);
         setTimeout(() => { btn.innerHTML = old; }, 1200);
-        try { renderHistoryPreview(); } catch (e) {}
     } catch (e) { console.error('saveHistory error:', e); }
 }
-
 function deleteHistoryItem(idx) {
     try {
         const list = loadHistory();
@@ -946,9 +863,8 @@ function deleteHistoryItem(idx) {
         saveHistoryList(list);
         renderHistory();
         showToast('Obrisano', 'info', 1500);
-    } catch (e) { console.error('deleteHistoryItem error:', e); }
+    } catch (e) {}
 }
-
 async function clearHistory() {
     const ok = await showConfirm('Obrisati sva sačuvana računanja?', 'Brisanje istorije');
     if (!ok) return;
@@ -956,52 +872,38 @@ async function clearHistory() {
     renderHistory();
     showToast('Istorija obrisana', 'success');
 }
-
 async function exportHistory() {
     try {
         const list = loadHistory();
-        if (!list.length) {
-            showToast('Nema sačuvanih računanja.', 'info');
-            return;
-        }
+        if (!list.length) { showToast('Nema sačuvanih računanja.', 'info'); return; }
         const lines = list.map(item => {
             const d = new Date(item.date);
             const dateStr = d.toLocaleDateString('sr-RS') + ' ' + d.toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' });
             return `${item.category} – ${item.label}\n${item.text}\n${dateStr}\n`;
         });
         const fullText = 'MOJA RAČUNANJA — Alatika\n\n' + lines.join('\n');
-
         if (navigator.share) {
             try { await navigator.share({ text: fullText }); showToast('Podeljeno', 'success'); } catch (e) {}
             return;
         }
         const ta = document.createElement('textarea');
-        ta.value = fullText;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
+        ta.value = fullText; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
         try { document.execCommand('copy'); showToast('Kopirano', 'success'); }
         catch (e) { showToast('Kopiranje nije uspelo.', 'error'); }
         document.body.removeChild(ta);
-    } catch (e) { console.error('exportHistory error:', e); }
+    } catch (e) {}
 }
-
 function getDateGroup(timestamp) {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    const todayMs = now.getTime();
-    const dayMs = 86400000;
-    const t = new Date(timestamp);
-    t.setHours(0, 0, 0, 0);
+    const now = new Date(); now.setHours(0, 0, 0, 0);
+    const todayMs = now.getTime(), dayMs = 86400000;
+    const t = new Date(timestamp); t.setHours(0, 0, 0, 0);
     const diffDays = Math.round((todayMs - t.getTime()) / dayMs);
-
     if (diffDays === 0) return { key: 'today', title: 'Danas' };
     if (diffDays === 1) return { key: 'yesterday', title: 'Juče' };
     if (diffDays < 7) return { key: 'week', title: 'Ove nedelje' };
     return { key: 'older', title: 'Starije' };
 }
-
 function renderHistory() {
     try {
         const list = loadHistory();
@@ -1010,11 +912,8 @@ function renderHistory() {
         const noResults = el('history-no-results');
         const countEl = el('history-count');
         const searchInput = el('history-search');
-
         if (!container) return;
-
         const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-
         let filtered = list;
         if (query) {
             filtered = list.filter(item => {
@@ -1024,140 +923,89 @@ function renderHistory() {
                 return cat.includes(query) || lbl.includes(query) || txt.includes(query);
             });
         }
-
-        if (countEl) {
-            countEl.textContent = query
-                ? `Pronađeno: ${filtered.length} / ${list.length}`
-                : `Ukupno: ${list.length}`;
-        }
-
+        if (countEl) countEl.textContent = query ? `Pronađeno: ${filtered.length} / ${list.length}` : `Ukupno: ${list.length}`;
         container.innerHTML = '';
-
         if (!list.length) {
             if (empty) empty.style.display = 'block';
             if (noResults) noResults.style.display = 'none';
-            renderUsageStats();
-            return;
+            renderUsageStats(); return;
         }
-
         if (!filtered.length) {
             if (empty) empty.style.display = 'none';
             if (noResults) noResults.style.display = 'block';
-            renderUsageStats();
-            return;
+            renderUsageStats(); return;
         }
-
         if (empty) empty.style.display = 'none';
         if (noResults) noResults.style.display = 'none';
-
         const groups = { today: [], yesterday: [], week: [], older: [] };
-        filtered.forEach(item => {
-            const g = getDateGroup(item.date);
-            groups[g.key].push(item);
-        });
-
+        filtered.forEach(item => { groups[getDateGroup(item.date).key].push(item); });
         const groupOrder = [
-            { key: 'today', title: 'Danas' },
-            { key: 'yesterday', title: 'Juče' },
-            { key: 'week', title: 'Ove nedelje' },
-            { key: 'older', title: 'Starije' }
+            { key: 'today', title: 'Danas' }, { key: 'yesterday', title: 'Juče' },
+            { key: 'week', title: 'Ove nedelje' }, { key: 'older', title: 'Starije' }
         ];
-
         const originalIndexMap = new Map();
         list.forEach((item, idx) => originalIndexMap.set(item, idx));
-
         groupOrder.forEach(group => {
             const items = groups[group.key];
             if (!items.length) return;
-
             const groupDiv = document.createElement('div');
             groupDiv.className = 'history-group';
-
             const title = document.createElement('div');
             title.className = 'history-group-title';
             title.textContent = group.title;
             groupDiv.appendChild(title);
-
             items.forEach(item => {
                 const realIdx = originalIndexMap.get(item);
                 const row = document.createElement('div');
                 row.className = 'history-item';
-
                 const left = document.createElement('div');
                 const cat = document.createElement('div');
                 cat.className = 'history-category';
                 cat.textContent = item.category + ' • ' + item.label;
-
                 const res = document.createElement('div');
                 res.className = 'history-result';
                 res.textContent = item.text;
-
                 const d = new Date(item.date);
                 const dateEl = document.createElement('div');
                 dateEl.className = 'history-date';
                 dateEl.textContent = d.toLocaleDateString('sr-RS') + ' ' + d.toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' });
-
-                left.appendChild(cat);
-                left.appendChild(res);
-                left.appendChild(dateEl);
-
+                left.appendChild(cat); left.appendChild(res); left.appendChild(dateEl);
                 const del = document.createElement('button');
                 del.className = 'delete-item-btn';
                 del.innerHTML = icon('trash');
                 del.onclick = () => deleteHistoryItem(realIdx);
-
-                row.appendChild(left);
-                row.appendChild(del);
+                row.appendChild(left); row.appendChild(del);
                 groupDiv.appendChild(row);
             });
-
             container.appendChild(groupDiv);
         });
-
         renderUsageStats();
-    } catch (e) { console.error('renderHistory error:', e); }
+    } catch (e) {}
 }
-
 function renderUsageStats() {
     try {
         const box = el('usage-stats-box');
         if (!box) return;
-
         let counts = {};
         try { counts = JSON.parse(localStorage.getItem('cx_category_clicks')) || {}; } catch (e) {}
-
         const entries = Object.keys(counts)
             .filter(id => CATEGORIES[id] && counts[id] > 0)
             .map(id => ({ id, count: counts[id], cat: CATEGORIES[id] }))
             .sort((a, b) => b.count - a.count)
             .slice(0, 10);
-
         if (!entries.length) {
-            box.innerHTML = '<div class="chart-empty"><span class="chart-empty-icon">📊</span>Još nema statistika. Otvaraj alate da bi se pojavile ovde.</div>';
-            return;
+            box.innerHTML = '<div class="chart-empty"><span class="chart-empty-icon">📊</span>Još nema statistika.</div>'; return;
         }
-
         const maxCount = Math.max(...entries.map(e => e.count), 1);
-
         let html = '<div class="bar-chart-h">';
         entries.forEach((entry, idx) => {
             const width = (entry.count / maxCount * 100);
-            const color = entry.cat.accent;
-            html += `
-                <div class="bar-row" style="animation-delay:${idx * 0.05}s;">
-                    <div class="bar-row-label">${escapeHtml(entry.cat.name)}</div>
-                    <div class="bar-row-track">
-                        <div class="bar-row-fill" style="width:${width}%; --bar-color:${color};"></div>
-                    </div>
-                    <div class="bar-row-value">${entry.count}×</div>
-                </div>
-            `;
+            html += `<div class="bar-row" style="animation-delay:${idx * 0.05}s;"><div class="bar-row-label">${escapeHtml(entry.cat.name)}</div><div class="bar-row-track"><div class="bar-row-fill" style="width:${width}%; --bar-color:${entry.cat.accent};"></div></div><div class="bar-row-value">${entry.count}×</div></div>`;
         });
         html += '</div>';
         box.innerHTML = html;
-    } catch (e) { console.error('renderUsageStats error:', e); }
+    } catch (e) {}
 }
-
 function toggleStatsPanel() {
     const panel = el('stats-panel');
     const btn = el('stats-toggle-btn');
@@ -1174,12 +1022,10 @@ function toggleStatsPanel() {
         renderUsageStats();
     }
 }
-
 function openHistoryScreen() {
     renderHistory();
     openScreen('history-screen');
 }
-
 function trackCategoryUse(categoryId) {
     if (!CATEGORIES[categoryId]) return;
     try {
@@ -1202,36 +1048,25 @@ function openScreen(screenId, direction = 'right') {
         const target = el(screenId);
         if (!target) return;
         target.classList.add('active');
-        if (!reduceMotion) {
-            target.classList.add(direction === 'left' ? 'enter-left' : 'enter-right');
-        }
+        if (!reduceMotion) target.classList.add(direction === 'left' ? 'enter-left' : 'enter-right');
         window.scrollTo(0, 0);
         currentScreenId = screenId;
-
         try { restoreInputsFor(target); } catch (e) {}
-
         if (screenId === 'home-screen') {
             try { renderFavorites(); } catch (e) {}
             try { renderQuickTools(); } catch (e) {}
             try { renderAllTools(); } catch (e) {}
         }
-        if (screenId === 'history-screen') {
-            renderHistory();
-            renderUsageStats();
-        }
-
+        if (screenId === 'history-screen') { renderHistory(); renderUsageStats(); }
         if (direction !== 'left' && screenId !== 'home-screen') {
             try { history.pushState({ screen: screenId }, '', ''); } catch (e) {}
         }
-    } catch (e) { console.error('openScreen error:', e); }
+    } catch (e) {}
 }
 
 function goHome() {
     const searchInput = el('home-search');
-    if (searchInput) {
-        searchInput.value = '';
-        handleQuickSearch();
-    }
+    if (searchInput) { searchInput.value = ''; handleQuickSearch(); }
     closeAllModals();
     if (currentScreenId === 'home-screen') return;
     if (history.state && history.state.screen && history.state.screen !== 'home-screen') {
@@ -1242,25 +1077,47 @@ function goHome() {
 }
 
 function setupBackButton() {
-    try {
-        history.replaceState({ screen: 'home-screen', home: true }, '', '');
-    } catch (e) {}
+    try { history.replaceState({ screen: 'home-screen', home: true }, '', ''); } catch (e) {}
 
     window.addEventListener('popstate', (e) => {
-        const state = e.state;
+        const calcModal = el('calc-modal');
+        const catModal = el('category-modal');
+        const editorModal = el('editor-modal');
 
-        // Ako je otvoren modal, zatvori ga prvo
-        const openModal = document.querySelector('.modal.show');
-        if (openModal) {
-            if (openModal.id === 'calc-modal' && activeCategory) {
-                closeModal('calc-modal');
+        if (calcModal && calcModal.classList.contains('show')) {
+            calcModal.classList.remove('show');
+            if (activeCategory) {
+                setTimeout(() => openCategoryBack(activeCategory), 100);
             } else {
-                closeModal(openModal.id);
+                activeTab = null;
+                setTimeout(() => {
+                    const anyOpen = document.querySelector('.modal.show');
+                    if (!anyOpen) document.body.classList.remove('modal-open');
+                }, 220);
             }
-            try { history.pushState({ screen: currentScreenId }, '', ''); } catch (err) {}
             return;
         }
 
+        if (catModal && catModal.classList.contains('show')) {
+            catModal.classList.remove('show');
+            activeCategory = null;
+            setTimeout(() => {
+                const anyOpen = document.querySelector('.modal.show');
+                if (!anyOpen) document.body.classList.remove('modal-open');
+            }, 220);
+            return;
+        }
+
+        if (editorModal && editorModal.classList.contains('show')) {
+            editorModal.classList.remove('show');
+            setTimeout(() => {
+                const anyOpen = document.querySelector('.modal.show');
+                if (!anyOpen) document.body.classList.remove('modal-open');
+            }, 220);
+            return;
+        }
+
+        const state = e.state;
         if (state && state.home) {
             if (currentScreenId !== 'home-screen') {
                 openScreen('home-screen', 'left');
@@ -1268,35 +1125,26 @@ function setupBackButton() {
             }
             return;
         }
-
         if (state && state.screen) {
             const target = el(state.screen);
-            if (target) {
-                openScreen(state.screen, 'left');
-                return;
-            }
+            if (target) { openScreen(state.screen, 'left'); return; }
         }
-
         if (currentScreenId !== 'home-screen') {
             openScreen('home-screen', 'left');
             try { history.pushState({ screen: 'home-screen', home: true }, '', ''); } catch (err) {}
         }
     });
-}
-
-// ================= TOAST =================
+}// ================= TOAST =================
 
 function showToast(message, type = 'info', duration = 3000) {
     const container = el('toast-container');
     if (!container) return;
-
     const icons = {
         success: icon('check'),
         error: icon('x'),
         info: icon('info'),
         warning: icon('alert')
     };
-
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.innerHTML = `
@@ -1306,10 +1154,7 @@ function showToast(message, type = 'info', duration = 3000) {
         <div class="toast-progress" style="animation-duration: ${duration}ms;"></div>
     `;
     container.appendChild(toast);
-
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => toast.classList.add('show'));
-    });
+    requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
 
     let dismissed = false;
     const dismiss = () => {
@@ -1319,12 +1164,7 @@ function showToast(message, type = 'info', duration = 3000) {
         toast.classList.add('hide');
         setTimeout(() => { if (toast.parentNode) toast.remove(); }, 400);
     };
-
-    toast.querySelector('.toast-close').addEventListener('click', () => {
-        clearTimeout(timer);
-        dismiss();
-    });
-
+    toast.querySelector('.toast-close').addEventListener('click', () => { clearTimeout(timer); dismiss(); });
     const timer = setTimeout(dismiss, duration);
     if (type === 'error') vibrate(30);
     else if (type === 'success') vibrate(15);
@@ -1350,10 +1190,7 @@ function showConfirm(message, title = 'Potvrda') {
 function closeConfirm(result) {
     const modalEl = el('confirm-modal');
     if (modalEl) modalEl.classList.remove('show');
-    if (confirmResolver) {
-        confirmResolver(result);
-        confirmResolver = null;
-    }
+    if (confirmResolver) { confirmResolver(result); confirmResolver = null; }
     vibrate(10);
 }
 
@@ -1365,9 +1202,7 @@ try {
     if (saved) settings = Object.assign(settings, saved);
 } catch (e) {}
 
-function saveSettings() {
-    try { localStorage.setItem('cx_fx', JSON.stringify(settings)); } catch (e) {}
-}
+function saveSettings() { try { localStorage.setItem('cx_fx', JSON.stringify(settings)); } catch (e) {} }
 
 const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1427,9 +1262,7 @@ function playTick(delaySec = 0, freq = 1500, vol = 0.07, dur = 0.02) {
 
 function vibrate(pattern) {
     if (!settings.haptic) return;
-    if (navigator.vibrate) {
-        try { navigator.vibrate(pattern); } catch (e) {}
-    }
+    if (navigator.vibrate) { try { navigator.vibrate(pattern); } catch (e) {} }
 }
 
 const PULSE_MS = 25;
@@ -1441,8 +1274,7 @@ function rollFeedback(duration) {
     for (let k = 1; k <= TICK_COUNT; k++) {
         let t = duration * (1 - Math.pow(1 - k / TICK_COUNT, 1 / 3));
         if (t - last < 38) t = last + 38;
-        times.push(t);
-        last = t;
+        times.push(t); last = t;
     }
     const pattern = [PULSE_MS];
     for (let i = 1; i < times.length; i++) {
@@ -1458,22 +1290,18 @@ function rollFeedback(duration) {
     });
 }
 
-// Broj roll animacija
 const ROLL_RE = /[-−]?\d[\d.]*(?:,\d+)?/g;
 
 function parseSr(token) {
     return parseFloat(token.replace('−', '-').replace(/\./g, '').replace(',', '.'));
 }
-
 function decimalsOf(token) {
     const i = token.indexOf(',');
     return i < 0 ? 0 : token.length - i - 1;
 }
-
 function fmtSr(value, decimals) {
     return value.toLocaleString('sr-RS', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
-
 function rollElement(node, live) {
     const finalHTML = node.innerHTML;
     const tokens = finalHTML.match(ROLL_RE);
@@ -1484,10 +1312,8 @@ function rollElement(node, live) {
     let starts = targets.map(() => 0);
     if (live && node._cur && node._cur.length === targets.length) starts = node._cur.slice();
     if (starts.every((s, i) => s === targets[i])) { node._cur = targets; return; }
-
     const duration = live ? 250 : (node.tagName === 'STRONG' ? 700 : 850);
     const t0 = performance.now();
-
     function frame(now) {
         const p = Math.min(1, (now - t0) / duration);
         const eased = 1 - Math.pow(1 - p, 3);
@@ -1508,7 +1334,6 @@ function rollElement(node, live) {
     }
     node._raf = requestAnimationFrame(frame);
 }
-
 function show(id, live = false) {
     const box = el(id);
     if (!box) return;
@@ -1539,23 +1364,19 @@ function createRipple(e) {
     const size = Math.max(rect.width, rect.height);
     const x = (e.clientX || (rect.left + rect.width / 2)) - rect.left - size / 2;
     const y = (e.clientY || (rect.top + rect.height / 2)) - rect.top - size / 2;
-
     const ripple = document.createElement('span');
     ripple.className = 'ripple';
     ripple.style.width = ripple.style.height = size + 'px';
     ripple.style.left = x + 'px';
     ripple.style.top = y + 'px';
-
-    if (getComputedStyle(target).position === 'static') {
-        target.style.position = 'relative';
-    }
+    if (getComputedStyle(target).position === 'static') target.style.position = 'relative';
     target.style.overflow = 'hidden';
     target.appendChild(ripple);
     setTimeout(() => { if (ripple.parentNode) ripple.remove(); }, 600);
 }
 
 function setupRipple() {
-    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn';
+    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn, .all-tool-star, .tab-btn-star';
     document.addEventListener('pointerdown', (e) => {
         const t = e.target.closest(selector);
         if (t) createRipple({ currentTarget: t, clientX: e.clientX, clientY: e.clientY });
@@ -1603,10 +1424,8 @@ function toggleTheme() {
         const root = document.documentElement;
         const isLight = root.getAttribute('data-theme') === 'light';
         const themeBtn = el('theme-toggle');
-
         const svgMoon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
         const svgSun = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
-
         if (isLight) {
             root.removeAttribute('data-theme');
             if (themeBtn) themeBtn.innerHTML = svgMoon;
@@ -1648,19 +1467,14 @@ function copyResult(elementId, unit = '', evt = null) {
         };
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
-        } else {
-            fallbackCopy(text, done);
-        }
-    } catch (e) { console.error('copyResult error:', e); }
+        } else fallbackCopy(text, done);
+    } catch (e) {}
 }
 
 function fallbackCopy(text, done) {
     const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
     try { document.execCommand('copy'); done(); }
     catch (e) { showToast('Kopiranje nije uspelo.', 'error'); }
     document.body.removeChild(ta);
@@ -1673,21 +1487,17 @@ async function shareResult(btn) {
         const card = btn.closest('.result-card-green');
         const text = card ? cardText(card) : '';
         const shareText = `${category} – ${label}\n${text}\n\n(Izračunato u Alatika)`;
-
         if (navigator.share) {
             try { await navigator.share({ text: shareText }); showToast('Podeljeno', 'success'); } catch (e) {}
             return;
         }
         const ta = document.createElement('textarea');
-        ta.value = shareText;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
+        ta.value = shareText; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
         try { document.execCommand('copy'); showToast('Kopirano', 'success'); }
         catch (e) { showToast('Kopiranje nije uspelo.', 'error'); }
         document.body.removeChild(ta);
-    } catch (e) { console.error('shareResult error:', e); }
+    } catch (e) {}
 }
 
 // ================= DATUM (trojni unos) =================
@@ -1698,7 +1508,6 @@ function isoToParts(iso) {
     if (parts.length !== 3 || parts.some(isNaN)) return null;
     return { y: parts[0], m: parts[1], d: parts[2] };
 }
-
 function partsToIso(d, m, y) {
     if (!d || !m || !y) return '';
     if (y < 1900 || y > 2100) return '';
@@ -1708,7 +1517,6 @@ function partsToIso(d, m, y) {
     if (test.getFullYear() !== y || test.getMonth() !== m - 1 || test.getDate() !== d) return '';
     return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 }
-
 function setTripleDate(dateId, iso) {
     const wrap = document.querySelector(`.date-triple[data-date-id="${dateId}"]`);
     if (!wrap) return;
@@ -1717,7 +1525,6 @@ function setTripleDate(dateId, iso) {
     const monthIn = wrap.querySelector('.date-month');
     const yearIn = wrap.querySelector('.date-year');
     const hidden = wrap.querySelector('input[type="hidden"]');
-
     if (!parts) {
         if (dayIn) dayIn.value = '';
         if (monthIn) monthIn.value = '';
@@ -1730,7 +1537,6 @@ function setTripleDate(dateId, iso) {
     if (yearIn) yearIn.value = parts.y;
     if (hidden) hidden.value = iso;
 }
-
 function getTripleDate(dateId) {
     const wrap = document.querySelector(`.date-triple[data-date-id="${dateId}"]`);
     if (!wrap) return '';
@@ -1738,31 +1544,22 @@ function getTripleDate(dateId) {
     const monthIn = wrap.querySelector('.date-month');
     const yearIn = wrap.querySelector('.date-year');
     const hidden = wrap.querySelector('input[type="hidden"]');
-
     const d = dayIn ? parseInt(dayIn.value) : NaN;
     const m = monthIn ? parseInt(monthIn.value) : NaN;
     let y = yearIn ? parseInt(yearIn.value) : NaN;
-
-    if (!isNaN(y) && y >= 0 && y < 100) {
-        y = (y > 50 ? 1900 : 2000) + y;
-        if (yearIn) yearIn.value = y;
-    }
-
+    if (!isNaN(y) && y >= 0 && y < 100) { y = (y > 50 ? 1900 : 2000) + y; if (yearIn) yearIn.value = y; }
     const iso = partsToIso(d, m, y);
     if (hidden) hidden.value = iso;
     return iso;
 }
-
 function setupDateTriplesIn(root) {
     root.querySelectorAll('.date-triple').forEach(wrap => {
         if (wrap.dataset.setup === '1') return;
         wrap.dataset.setup = '1';
-
         const dayIn = wrap.querySelector('.date-day');
         const monthIn = wrap.querySelector('.date-month');
         const yearIn = wrap.querySelector('.date-year');
         const hidden = wrap.querySelector('input[type="hidden"]');
-
         function updateHidden() {
             if (!hidden) return;
             const d = parseInt(dayIn ? dayIn.value : '');
@@ -1771,38 +1568,26 @@ function setupDateTriplesIn(root) {
             if (!isNaN(y) && y >= 0 && y < 100) y = (y > 50 ? 1900 : 2000) + y;
             hidden.value = partsToIso(d, m, y);
         }
-
-        if (dayIn) {
-            dayIn.addEventListener('input', () => {
-                let v = dayIn.value.replace(/\D/g, '');
-                if (v.length > 2) v = v.slice(0, 2);
-                if (v !== dayIn.value) dayIn.value = v;
-                if (v.length === 2 || parseInt(v) > 3) {
-                    if (monthIn) monthIn.focus();
-                }
-                updateHidden();
-            });
-        }
-        if (monthIn) {
-            monthIn.addEventListener('input', () => {
-                let v = monthIn.value.replace(/\D/g, '');
-                if (v.length > 2) v = v.slice(0, 2);
-                if (v !== monthIn.value) monthIn.value = v;
-                if (v.length === 2 || parseInt(v) > 1) {
-                    if (yearIn) yearIn.focus();
-                }
-                updateHidden();
-            });
-        }
-        if (yearIn) {
-            yearIn.addEventListener('input', () => {
-                let v = yearIn.value.replace(/\D/g, '');
-                if (v.length > 4) v = v.slice(0, 4);
-                if (v !== yearIn.value) yearIn.value = v;
-                updateHidden();
-            });
-        }
-
+        if (dayIn) dayIn.addEventListener('input', () => {
+            let v = dayIn.value.replace(/\D/g, '');
+            if (v.length > 2) v = v.slice(0, 2);
+            if (v !== dayIn.value) dayIn.value = v;
+            if (v.length === 2 || parseInt(v) > 3) { if (monthIn) monthIn.focus(); }
+            updateHidden();
+        });
+        if (monthIn) monthIn.addEventListener('input', () => {
+            let v = monthIn.value.replace(/\D/g, '');
+            if (v.length > 2) v = v.slice(0, 2);
+            if (v !== monthIn.value) monthIn.value = v;
+            if (v.length === 2 || parseInt(v) > 1) { if (yearIn) yearIn.focus(); }
+            updateHidden();
+        });
+        if (yearIn) yearIn.addEventListener('input', () => {
+            let v = yearIn.value.replace(/\D/g, '');
+            if (v.length > 4) v = v.slice(0, 4);
+            if (v !== yearIn.value) yearIn.value = v;
+            updateHidden();
+        });
         [monthIn, yearIn].forEach((inp, idx) => {
             if (!inp) return;
             inp.addEventListener('keydown', (e) => {
@@ -1826,21 +1611,16 @@ function loadInputCache() {
         inputCache = raw ? JSON.parse(raw) : {};
     } catch (e) { inputCache = {}; }
 }
-
 function saveInputCache() {
     try { localStorage.setItem(INPUT_STORAGE_KEY, JSON.stringify(inputCache)); } catch (e) {}
 }
-
 function persistInput(elInput) {
     if (!elInput || !elInput.id) return;
     if (elInput.type === 'file' || elInput.type === 'password') return;
-    let val = (elInput.type === 'checkbox' || elInput.type === 'radio')
-        ? elInput.checked
-        : elInput.value;
+    let val = (elInput.type === 'checkbox' || elInput.type === 'radio') ? elInput.checked : elInput.value;
     inputCache[elInput.id] = val;
     saveInputCache();
 }
-
 function restoreInputsFor(root = document) {
     const inputs = root.querySelectorAll('input, select, textarea');
     inputs.forEach(elInput => {
@@ -1848,21 +1628,14 @@ function restoreInputsFor(root = document) {
         if (elInput.type === 'hidden') return;
         if (inputCache[elInput.id] === undefined) return;
         const val = inputCache[elInput.id];
-        if (elInput.type === 'checkbox' || elInput.type === 'radio') {
-            elInput.checked = !!val;
-        } else {
-            elInput.value = val;
-        }
+        if (elInput.type === 'checkbox' || elInput.type === 'radio') elInput.checked = !!val;
+        else elInput.value = val;
     });
-
     root.querySelectorAll('.date-triple').forEach(wrap => {
         const hidden = wrap.querySelector('input[type="hidden"]');
-        if (hidden && hidden.id && inputCache[hidden.id]) {
-            setTripleDate(hidden.id, inputCache[hidden.id]);
-        }
+        if (hidden && hidden.id && inputCache[hidden.id]) setTripleDate(hidden.id, inputCache[hidden.id]);
     });
 }
-
 function setupInputPersistence() {
     document.addEventListener('input', e => {
         const target = e.target;
@@ -1870,18 +1643,93 @@ function setupInputPersistence() {
         if (target.closest('.date-triple')) return;
         persistInput(target);
     }, true);
-
     document.addEventListener('change', e => {
         const target = e.target;
         if (!target || !target.id) return;
         if (target.closest('.date-triple')) return;
         persistInput(target);
     }, true);
+}
+
+// ================= PROCENAT POMOĆNE =================
+
+function percentAddSub(base, pct, op) {
+    if (base === null || pct === null) return null;
+    const factor = op === 'add' ? 1 + pct / 100 : 1 - pct / 100;
+    const result = base * factor;
+    const sign = op === 'add' ? '+' : '−';
+    return { result, formula: `${fmt(base)} ${sign} ${fmt(pct)}% = ${fmt(base)} × ${fmt(factor, 4)} = ${fmt(result)}` };
+}
+function percentXofY(x, y) {
+    if (x === null || y === null || y === 0) return null;
+    const p = (x / y) * 100;
+    return { result: p, formula: `${fmt(x)} ÷ ${fmt(y)} × 100 = ${fmt(p)}%` };
+}
+function percentChange(from, to) {
+    if (from === null || to === null || from === 0) return null;
+    const p = ((to - from) / Math.abs(from)) * 100;
+    const sign = p >= 0 ? '+' : '';
+    return { result: p, formula: `(${fmt(to)} − ${fmt(from)}) ÷ ${fmt(Math.abs(from))} × 100 = ${sign}${fmt(p)}%` };
+}
+function setFormula(id, text) {
+    const e = el(id);
+    if (!e) return;
+    if (text) { e.textContent = text; e.classList.add('show'); }
+    else { e.textContent = ''; e.classList.remove('show'); }
+}
+
+function calculatePercent1() {
+    const base = num('pct-base'), pct = num('pct-val');
+    const op = el('pct-op') ? el('pct-op').value : 'add';
+    if (base === null || pct === null) { showToast('Unesite broj i procenat.', 'error'); return; }
+    const res = percentAddSub(base, pct, op);
+    if (!res) return;
+    const rv = el('res-pct1-val'); if (rv) rv.innerText = fmt(res.result, 2);
+    setFormula('pct1-formula', res.formula);
+    show('pct1-result-box');
+}
+function calculatePercent2() {
+    const x = num('pct-x'), y = num('pct-y');
+    if (x === null || y === null || y === 0) { showToast('Unesite X i Y (Y ≠ 0).', 'error'); return; }
+    const res = percentXofY(x, y);
+    if (!res) return;
+    const rv = el('res-pct2-val'); if (rv) rv.innerText = fmt(res.result, 2);
+    setFormula('pct2-formula', res.formula);
+    show('pct2-result-box');
+}
+function calculatePercent3() {
+    const from = num('pct-from'), to = num('pct-to');
+    if (from === null || to === null || from === 0) { showToast('Unesite početnu i krajnju vrednost.', 'error'); return; }
+    const res = percentChange(from, to);
+    if (!res) return;
+    const rv = el('res-pct3-val');
+    if (rv) { const sign = res.result >= 0 ? '+' : ''; rv.innerText = sign + fmt(res.result, 2); }
+    setFormula('pct3-formula', res.formula);
+    show('pct3-result-box');
+}
+function calculateMoneyPercent1() {
+    const base = num('np-base'), pct = num('np-val');
+    const op = el('np-op') ? el('np-op').value : 'add';
+    if (base === null || pct === null) { showToast('Unesite cenu i procenat.', 'error'); return; }
+    const res = percentAddSub(base, pct, op);
+    if (!res) return;
+    const rv = el('res-np1-val'); if (rv) rv.innerText = money(res.result);
+    const ru = el('res-np1-unit'); if (ru) ru.innerText = 'RSD';
+    setFormula('np1-formula', res.formula + ' RSD');
+    show('np1-result-box');
+}
+function calculateMoneyPercent2() {
+    const x = num('np-x'), y = num('np-y');
+    if (x === null || y === null || y === 0) { showToast('Unesite deo i ukupno.', 'error'); return; }
+    const res = percentXofY(x, y);
+    if (!res) return;
+    const rv = el('res-np2-val'); if (rv) rv.innerText = fmt(res.result, 2);
+    setFormula('np2-formula', res.formula);
+    show('np2-result-box');
 }// ============================================================
-// RENDER FUNKCIJE — svaka vraća HTML string za jedan tab
+// RENDER FUNKCIJE — pomoćne
 // ============================================================
 
-// Pomoćne za generisanje HTML-a
 function inputField(label, id, unit = '', extra = '') {
     const unitHtml = unit ? `<span class="unit">${escapeHtml(unit)}</span>` : '';
     return `
@@ -2020,9 +1868,9 @@ function renderAutoPotrosnja() {
     return `
         ${favStarHeader('auto', 'potrosnja')}
         <div class="converter-box">
-            ${inputField('Pređeni put', 'distance', 'km')}
-            ${inputField('Potrošeno gorivo', 'fuel', 'L', 'step="0.1"')}
-            ${inputFieldWithSelect('Cena goriva po litru (opciono)', 'price', 'auto-currency', ['RSD', 'EUR'], '0')}
+            ${inputField('Pređeni put', 'distance', 'km', 'placeholder="npr. 500"')}
+            ${inputField('Potrošeno gorivo', 'fuel', 'L', 'step="0.1" placeholder="npr. 35"')}
+            ${inputFieldWithSelect('Cena goriva po litru (opciono)', 'price', 'auto-currency', ['RSD', 'EUR'], 'npr. 180')}
             ${calcButton('Izračunaj Potrošnju', 'calculateAuto()')}
         </div>
         ${resultCard('result-box', 'fuel', 'Prosečna potrošnja', 'res-consumption', 'L/100km', 'AUTO', 'Potrošnja goriva')}
@@ -2047,13 +1895,13 @@ function renderAutoPlaner() {
         ${favStarHeader('auto', 'planer')}
         <div class="converter-box">
             ${sectionDesc('Izračunaj koliko ti treba vremena za put i kada ćeš stići.')}
-            ${inputField('Distanca', 'trip-distance', 'km')}
-            ${inputField('Prosečna brzina', 'trip-speed', 'km/h', 'value="80"')}
+            ${inputField('Distanca', 'trip-distance', 'km', 'placeholder="npr. 300"')}
+            ${inputField('Prosečna brzina', 'trip-speed', 'km/h', 'placeholder="npr. 80"')}
             <div class="input-field">
                 <label>Vreme polaska (opciono)</label>
                 <div class="input-wrapper"><input type="time" id="trip-depart" class="custom-input"></div>
             </div>
-            ${inputField('Trajanje pauza (opciono)', 'trip-breaks', 'min', 'value="0"')}
+            ${inputField('Trajanje pauza (opciono)', 'trip-breaks', 'min', 'placeholder="npr. 30"')}
             ${calcButton('Izračunaj Put', 'calculateTripPlanner()')}
         </div>
         ${resultCard('trip-result-box', 'route', 'Vreme putovanja', 'res-trip-time', '', 'PUTOVANJE', 'Planer puta')}
@@ -2069,12 +1917,12 @@ function renderAutoTrosakPuta() {
         ${favStarHeader('auto', 'trosakputa')}
         <div class="converter-box">
             ${sectionDesc('Ukupni troškovi puta, uključujući podelu po osobama.')}
-            ${inputField('Distanca', 'road-distance', 'km')}
-            ${inputField('Prosečna potrošnja', 'road-consumption', 'L/100km', 'value="7" step="0.1"')}
-            ${inputField('Cena goriva po litru', 'road-price', 'RSD', 'value="180" step="0.1"')}
-            ${inputField('Putarina', 'road-toll', 'RSD', 'value="0"')}
-            ${inputField('Parking', 'road-parking', 'RSD', 'value="0"')}
-            ${inputField('Ostali troškovi', 'road-other', 'RSD', 'value="0"')}
+            ${inputField('Distanca', 'road-distance', 'km', 'placeholder="npr. 500"')}
+            ${inputField('Prosečna potrošnja', 'road-consumption', 'L/100km', 'step="0.1" placeholder="npr. 7"')}
+            ${inputField('Cena goriva po litru', 'road-price', 'RSD', 'step="0.1" placeholder="npr. 180"')}
+            ${inputField('Putarina', 'road-toll', 'RSD', 'placeholder="npr. 3000"')}
+            ${inputField('Parking', 'road-parking', 'RSD', 'placeholder="0"')}
+            ${inputField('Ostali troškovi', 'road-other', 'RSD', 'placeholder="0"')}
             ${inputField('Broj osoba', 'road-people', '', 'value="1" min="1"')}
             ${calcButton('Izračunaj Trošak Puta', 'calculateRoadTrip()')}
         </div>
@@ -2092,8 +1940,8 @@ function renderAutoServis() {
         ${favStarHeader('auto', 'servis')}
         <div class="converter-box">
             ${sectionDesc('Izračunaj kada je vreme za sledeći mali/veliki servis.')}
-            ${inputField('Trenutna kilometraža auta', 'current-km', 'km', 'value="150000"')}
-            ${inputField('Kilometraža poslednjeg servisa', 'last-service-km', 'km', 'value="140000"')}
+            ${inputField('Trenutna kilometraža auta', 'current-km', 'km', 'placeholder="npr. 150000"')}
+            ${inputField('Kilometraža poslednjeg servisa', 'last-service-km', 'km', 'placeholder="npr. 140000"')}
             ${inputField('Interval servisa', 'service-interval', 'km', 'value="10000"')}
             ${calcButton('Izračunaj Servis', 'calculateService()')}
         </div>
@@ -2111,9 +1959,7 @@ function renderAutoServis() {
                 <button class="copy-btn" data-category="AUTO" data-label="Servis" onclick="shareResult(this)">Podeli</button>
             </div>
         </div>
-        ${statsRow('service-stats-row', [
-            ['Sledeći servis na', 'stat-service-next', '0 km']
-        ])}
+        ${statsRow('service-stats-row', [['Sledeći servis na', 'stat-service-next', '0 km']])}
     `;
 }
 
@@ -2122,14 +1968,12 @@ function renderAutoGodisnji() {
         ${favStarHeader('auto', 'godisnji')}
         <div class="converter-box">
             ${sectionDesc('Okvirni godišnji troškovi registracije i održavanja.')}
-            ${inputField('Registracija i osiguranje', 'cost-reg', 'RSD')}
-            ${inputField('Gorivo i servis godišnje', 'cost-fuel-year', 'RSD')}
+            ${inputField('Registracija i osiguranje', 'cost-reg', 'RSD', 'placeholder="npr. 30000"')}
+            ${inputField('Gorivo i servis godišnje', 'cost-fuel-year', 'RSD', 'placeholder="npr. 120000"')}
             ${calcButton('Izračunaj Godišnje', 'calculateAnnualCost()')}
         </div>
         ${resultCard('annual-result-box', 'calendar', 'Ukupno godišnje', 'res-annual-total', 'RSD', 'AUTO', 'Godišnji trošak')}
-        ${statsRow('annual-stats-row', [
-            ['Prosečno mesečno', 'stat-annual-month', '0 RSD']
-        ])}
+        ${statsRow('annual-stats-row', [['Prosečno mesečno', 'stat-annual-month', '0 RSD']])}
     `;
 }
 
@@ -2137,17 +1981,15 @@ function renderAutoPoKm() {
     return `
         ${favStarHeader('auto', 'pokm')}
         <div class="converter-box">
-            ${sectionDesc('Ukupan trošak vlasništva po pređenom kilometru za period koji uneseš.')}
-            ${inputField('Pređeno u tom periodu', 'pokm-dist', 'km')}
-            ${inputField('Gorivo', 'pokm-fuel-cost', 'RSD', 'value="0"')}
-            ${inputField('Servis i održavanje', 'pokm-service-cost', 'RSD', 'value="0"')}
-            ${inputField('Registracija i osiguranje', 'pokm-reg-cost', 'RSD', 'value="0"')}
+            ${sectionDesc('Ukupan trošak vlasništva po pređenom kilometru.')}
+            ${inputField('Pređeno u tom periodu', 'pokm-dist', 'km', 'placeholder="npr. 15000"')}
+            ${inputField('Gorivo', 'pokm-fuel-cost', 'RSD', 'placeholder="0"')}
+            ${inputField('Servis i održavanje', 'pokm-service-cost', 'RSD', 'placeholder="0"')}
+            ${inputField('Registracija i osiguranje', 'pokm-reg-cost', 'RSD', 'placeholder="0"')}
             ${calcButton('Izračunaj Trošak po Km', 'calculateCostPerKm()')}
         </div>
         ${resultCard('pokm-result-box', 'calculator', 'Trošak po pređenom kilometru', 'res-pokm-val', 'RSD/km', 'AUTO', 'Trošak po km')}
-        ${statsRow('pokm-stats-row', [
-            ['Ukupan trošak', 'stat-pokm-total', '0 RSD']
-        ])}
+        ${statsRow('pokm-stats-row', [['Ukupan trošak', 'stat-pokm-total', '0 RSD']])}
     `;
 }
 
@@ -2155,7 +1997,7 @@ function renderAutoMojAuto() {
     return `
         ${favStarHeader('auto', 'mojauto')}
         <div class="converter-box">
-            ${sectionDesc('Ovo je opciono — samo da aplikacija zna koji je tvoj auto i da te podseti kad ističu dokumenti.')}
+            ${sectionDesc('Opciono — samo da aplikacija zna koji je tvoj auto.')}
             ${inputFieldText('Marka i model', 'auto-profile-model', 'npr. VW Golf 7')}
             ${inputFieldText('Registarske oznake', 'auto-profile-plate', 'npr. NP123-AB')}
             ${dateTripleField('Registracija ističe', 'auto-profile-reg-date')}
@@ -2185,10 +2027,10 @@ function renderBikeBrzina() {
         ${favStarHeader('bike', 'brzina')}
         <div class="converter-box">
             ${sectionDesc('Kolika ti je brzina za izabrani prenos i ritam pedaliranja.')}
-            ${inputField('Prednji lančanik (broj zuba)', 'bike-front', '', 'value="32"')}
-            ${inputField('Zadnji lančanik (broj zuba)', 'bike-rear', '', 'value="18"')}
-            ${inputField('Kadenca (obrtaja u min)', 'bike-cadence', '', 'value="90"')}
-            ${inputField('Veličina točka', 'bike-wheel-inch', 'inči', 'value="29"')}
+            ${inputField('Prednji lančanik (broj zuba)', 'bike-front', '', 'placeholder="npr. 32"')}
+            ${inputField('Zadnji lančanik (broj zuba)', 'bike-rear', '', 'placeholder="npr. 18"')}
+            ${inputField('Kadenca (obrtaja u min)', 'bike-cadence', '', 'placeholder="npr. 90"')}
+            ${inputField('Veličina točka', 'bike-wheel-inch', 'inči', 'placeholder="npr. 29"')}
             ${calcButton('Izračunaj Brzinu', 'calculateBike()')}
         </div>
         ${resultCard('bike-result-box', 'bike', 'Izračunata brzina', 'res-bike-speed', 'km/h', 'BICIKL', 'Brzina')}
@@ -2204,8 +2046,8 @@ function renderBikePritisak() {
         ${favStarHeader('bike', 'pritisak')}
         <div class="converter-box">
             ${sectionDesc('Orijentacioni pritisak u gumama.')}
-            ${inputField('Ukupna težina (vozač + bicikl)', 'bike-rider-weight', 'kg', 'value="80"')}
-            ${inputField('Širina gume', 'bike-tire-width', 'mm', 'value="28"')}
+            ${inputField('Ukupna težina (vozač + bicikl)', 'bike-rider-weight', 'kg', 'placeholder="npr. 80"')}
+            ${inputField('Širina gume', 'bike-tire-width', 'mm', 'placeholder="npr. 28"')}
             ${selectField('Tip sistema guma', 'bike-tire-type', [
                 { value: 'tube', text: 'Sa unutrašnjom gumom' },
                 { value: 'tubeless', text: 'Tubeless' }
@@ -2213,9 +2055,7 @@ function renderBikePritisak() {
             ${calcButton('Izračunaj Pritisak', 'calculateBikePressure()')}
         </div>
         ${resultCard('bike-pressure-result-box', 'wind', 'Preporučeni pritisak', 'res-bike-pressure-bar', 'Bar', 'BICIKL', 'Pritisak guma')}
-        ${statsRow('bike-pressure-stats-row', [
-            ['Pritisak u PSI', 'stat-pressure-psi', '0 PSI']
-        ])}
+        ${statsRow('bike-pressure-stats-row', [['Pritisak u PSI', 'stat-pressure-psi', '0 PSI']])}
     `;
 }
 
@@ -2224,7 +2064,7 @@ function renderBikeRama() {
         ${favStarHeader('bike', 'rama')}
         <div class="converter-box">
             ${sectionDesc('Okvirna veličina rama prema visini.')}
-            ${inputField('Visina osobe', 'bike-user-height', 'cm', 'value="175"')}
+            ${inputField('Visina osobe', 'bike-user-height', 'cm', 'placeholder="npr. 175"')}
             ${selectField('Tip bicikla', 'bike-frame-type', [
                 { value: 'mtb', text: 'MTB (Planinski)' },
                 { value: 'road', text: 'Drumski (Trkački)' },
@@ -2258,9 +2098,9 @@ function renderBikeKalorije() {
         ${favStarHeader('bike', 'kalorije')}
         <div class="converter-box">
             ${sectionDesc('Okvirno utrošene kalorije tokom vožnje.')}
-            ${inputField('Težina vozača', 'bike-cal-weight', 'kg', 'value="75"')}
-            ${inputField('Trajanje vožnje', 'bike-cal-time', 'min', 'value="60"')}
-            ${inputField('Prosečna brzina', 'bike-cal-speed', 'km/h', 'value="20"')}
+            ${inputField('Težina vozača', 'bike-cal-weight', 'kg', 'placeholder="npr. 75"')}
+            ${inputField('Trajanje vožnje', 'bike-cal-time', 'min', 'placeholder="npr. 60"')}
+            ${inputField('Prosečna brzina', 'bike-cal-speed', 'km/h', 'placeholder="npr. 20"')}
             ${calcButton('Izračunaj Kalorije', 'calculateBikeCalories()')}
         </div>
         ${resultCard('bike-cal-result-box', 'flame', 'Utrošene kalorije', 'res-bike-calories', 'kcal', 'BICIKL', 'Kalorije')}
@@ -2274,8 +2114,8 @@ function renderBikeTabela() {
             ${sectionDesc('Brzina (km/h) za svaku kombinaciju lančanika.')}
             ${inputFieldText('Prednji lančanici (odvojeni zarezom)', 'gear-fronts', 'npr. 34,50')}
             ${inputFieldText('Zadnji lančanici (odvojeni zarezom)', 'gear-rears', 'npr. 11,13,15,17,19,21,23,25,28,32')}
-            ${inputField('Veličina točka', 'gear-wheel', 'inči', 'value="29"')}
-            ${inputField('Kadenca', 'gear-cadence', 'rpm', 'value="90"')}
+            ${inputField('Veličina točka', 'gear-wheel', 'inči', 'placeholder="npr. 29"')}
+            ${inputField('Kadenca', 'gear-cadence', 'rpm', 'placeholder="npr. 90"')}
             ${calcButton('Napravi Tabelu', 'calculateGearTable()')}
         </div>
         <div id="gear-table-wrap" style="display:none;">
@@ -2303,14 +2143,12 @@ function renderMoneyPopust() {
     return `
         ${favStarHeader('money', 'popust')}
         <div class="converter-box">
-            ${inputField('Originalna cena', 'money-price', 'RSD')}
-            ${inputField('Procenat popusta', 'money-discount', '%')}
+            ${inputField('Originalna cena', 'money-price', 'RSD', 'placeholder="npr. 2500"')}
+            ${inputField('Procenat popusta', 'money-discount', '%', 'placeholder="npr. 20"')}
             ${calcButton('Izračunaj Popust', 'calculateMoney()')}
         </div>
         ${resultCard('money-result-box', 'tag', 'Nova cena sa popustom', 'res-money-final', 'RSD', 'NOVAC', 'Popust')}
-        ${statsRow('money-stats-row', [
-            ['Ušteđeno', 'stat-money-saved', '0 RSD']
-        ])}
+        ${statsRow('money-stats-row', [['Ušteđeno', 'stat-money-saved', '0 RSD']])}
     `;
 }
 
@@ -2318,7 +2156,7 @@ function renderMoneyPDV() {
     return `
         ${favStarHeader('money', 'pdv')}
         <div class="converter-box">
-            ${inputField('Iznos', 'pdv-amount', 'RSD')}
+            ${inputField('Iznos', 'pdv-amount', 'RSD', 'placeholder="npr. 1000"')}
             ${inputField('Stopa PDV-a', 'pdv-rate', '%', 'value="20"')}
             ${selectField('Tip obračuna', 'pdv-type', [
                 { value: 'add', text: 'Dodaj PDV na osnovicu' },
@@ -2404,7 +2242,7 @@ function renderMoneyKredit() {
             <div class="input-field">
                 <label>Iznos kredita</label>
                 <div class="input-wrapper">
-                    <input type="number" id="loan-amount" class="custom-input" placeholder="1000000" inputmode="decimal">
+                    <input type="number" id="loan-amount" class="custom-input" placeholder="npr. 1000000" inputmode="decimal">
                     <span class="unit" id="loan-amount-unit">RSD</span>
                 </div>
             </div>
@@ -2428,9 +2266,7 @@ function renderMoneyKredit() {
                 <div class="amort-scroll" style="margin-top: 12px;">
                     <table id="amort-table" class="amort-table">
                         <thead>
-                            <tr>
-                                <th>Mes.</th><th>Rata</th><th>Kamata</th><th>Glavnica</th><th>Ostatak</th>
-                            </tr>
+                            <tr><th>Mes.</th><th>Rata</th><th>Kamata</th><th>Glavnica</th><th>Ostatak</th></tr>
                         </thead>
                         <tbody id="amort-body"></tbody>
                     </table>
@@ -2452,7 +2288,7 @@ function renderMoneyValuta() {
             <div class="input-field">
                 <label>Iznos</label>
                 <div class="input-wrapper">
-                    <input type="number" id="fx-amount" class="custom-input" placeholder="0" inputmode="decimal" oninput="calculateCurrency()">
+                    <input type="number" id="fx-amount" class="custom-input" placeholder="npr. 1000" inputmode="decimal" oninput="calculateCurrency()">
                 </div>
             </div>
             <div class="fx-row">
@@ -2494,15 +2330,13 @@ function renderMoneyPodela() {
     return `
         ${favStarHeader('money', 'podela')}
         <div class="converter-box">
-            ${inputField('Ukupan iznos računa', 'split-total', 'RSD')}
+            ${inputField('Ukupan iznos računa', 'split-total', 'RSD', 'placeholder="npr. 4500"')}
             ${inputField('Broj osoba', 'split-people', '', 'value="2" min="1"')}
-            ${inputField('Napojnica (opciono)', 'split-tip', '%', 'value="0"')}
+            ${inputField('Napojnica (opciono)', 'split-tip', '%', 'placeholder="npr. 10"')}
             ${calcButton('Podeli Račun', 'calculateSplit()')}
         </div>
         ${resultCard('split-result-box', 'receipt', 'Po osobi', 'res-split-val', 'RSD', 'NOVAC', 'Podela računa')}
-        ${statsRow('split-stats-row', [
-            ['Sa napojnicom', 'stat-split-total', '0 RSD']
-        ])}
+        ${statsRow('split-stats-row', [['Sa napojnicom', 'stat-split-total', '0 RSD']])}
     `;
 }
 
@@ -2510,8 +2344,8 @@ function renderMoneyNapojnica() {
     return `
         ${favStarHeader('money', 'napojnica')}
         <div class="converter-box">
-            ${inputField('Iznos računa', 'tip-bill', 'RSD')}
-            ${inputField('Napojnica', 'tip-percent', '%', 'value="10"')}
+            ${inputField('Iznos računa', 'tip-bill', 'RSD', 'placeholder="npr. 2500"')}
+            ${inputField('Napojnica', 'tip-percent', '%', 'placeholder="npr. 10"')}
             ${inputField('Broj osoba (opciono)', 'tip-people', '', 'value="1" min="1"')}
             ${calcButton('Izračunaj Napojnicu', 'calculateTip()')}
         </div>
@@ -2526,35 +2360,33 @@ function renderMoneyNapojnica() {
 // ====================== MERE ======================
 
 function measureTab(prefix, label, units, fromDefault = '', toDefault = '') {
-    const fromOpts = units.map(u => ({ value: u.v, text: u.t }));
-    const toOpts = units.map(u => ({ value: u.v, text: u.t }));
-    if (fromDefault) fromOpts.forEach(o => { if (o.value === fromDefault) o.selected = true; });
-    if (toDefault) toOpts.forEach(o => { if (o.value === toDefault) o.selected = true; });
-
+    const fromOpts = units.map(u => ({ value: u.v, text: u.t, sel: u.v === fromDefault }));
+    const toOpts = units.map(u => ({ value: u.v, text: u.t, sel: u.v === toDefault }));
+    const fnName = 'calculate' + prefix.charAt(0).toUpperCase() + prefix.slice(1);
     return `
         <div class="converter-box">
             <div class="input-field">
                 <label>Vrednost</label>
                 <div class="input-wrapper">
-                    <input type="number" id="${prefix}-val" class="custom-input" placeholder="0" inputmode="decimal" oninput="calculate${prefix.charAt(0).toUpperCase() + prefix.slice(1)}()">
+                    <input type="number" id="${prefix}-val" class="custom-input" placeholder="0" inputmode="decimal" oninput="${fnName}()">
                 </div>
             </div>
             <div class="input-field">
                 <label>Iz jedinice</label>
-                <select id="${prefix}-from" class="custom-input" onchange="calculate${prefix.charAt(0).toUpperCase() + prefix.slice(1)}()">
-                    ${fromOpts.map(o => `<option value="${o.value}"${o.selected ? ' selected' : ''}>${escapeHtml(o.text)}</option>`).join('')}
+                <select id="${prefix}-from" class="custom-input" onchange="${fnName}()">
+                    ${fromOpts.map(o => `<option value="${o.value}"${o.sel ? ' selected' : ''}>${escapeHtml(o.text)}</option>`).join('')}
                 </select>
             </div>
             <div class="swap-icon-container">
-                <button class="swap-btn" onclick="swapInputs('${prefix}-from', '${prefix}-to'); calculate${prefix.charAt(0).toUpperCase() + prefix.slice(1)}();">Zameni</button>
+                <button class="swap-btn" onclick="swapInputs('${prefix}-from', '${prefix}-to'); ${fnName}();">Zameni</button>
             </div>
             <div class="input-field">
                 <label>U jedinicu</label>
-                <select id="${prefix}-to" class="custom-input" onchange="calculate${prefix.charAt(0).toUpperCase() + prefix.slice(1)}()">
-                    ${toOpts.map(o => `<option value="${o.value}"${o.selected ? ' selected' : ''}>${escapeHtml(o.text)}</option>`).join('')}
+                <select id="${prefix}-to" class="custom-input" onchange="${fnName}()">
+                    ${toOpts.map(o => `<option value="${o.value}"${o.sel ? ' selected' : ''}>${escapeHtml(o.text)}</option>`).join('')}
                 </select>
             </div>
-            ${calcButton('Izračunaj', `calculate${prefix.charAt(0).toUpperCase() + prefix.slice(1)}()`)}
+            ${calcButton('Izračunaj', `${fnName}()`)}
         </div>
         <div id="${prefix}-result-box" class="result-card-green" style="display: none;">
             <div class="res-left">
@@ -2579,26 +2411,41 @@ function renderMeasuresDuzina() {
         { v: 'mm', t: 'Milimetar (mm)' }, { v: 'ft', t: 'Stopa (ft)' }, { v: 'in', t: 'Inč (in)' }
     ], 'm', 'cm');
 }
-
 function renderMeasuresTezina() {
     return `${favStarHeader('measures', 'tezina')}` + measureTab('weight', 'Težina', [
         { v: 'kg', t: 'Kilogram (kg)' }, { v: 'g', t: 'Gram (g)' }, { v: 't', t: 'Tona (t)' },
         { v: 'lbs', t: 'Pound (lbs)' }, { v: 'oz', t: 'Unca (oz)' }
     ], 'kg', 'g');
 }
-
 function renderMeasuresPovrsina() {
     return `${favStarHeader('measures', 'povrsina')}` + measureTab('area', 'Površina', [
         { v: 'm2', t: 'Kvadratni metar (m²)' }, { v: 'ar', t: 'Ar' },
         { v: 'ha', t: 'Hektar (ha)' }, { v: 'km2', t: 'Kvadratni km (km²)' }
     ], 'm2', 'ar');
 }
-
 function renderMeasuresZapremina() {
     return `${favStarHeader('measures', 'zapremina')}` + measureTab('volume', 'Zapremina', [
         { v: 'L', t: 'Litar (L)' }, { v: 'ml', t: 'Mililitar (ml)' },
         { v: 'm3', t: 'Kubni metar (m³)' }, { v: 'galus', t: 'Galon (US)' }, { v: 'galuk', t: 'Galon (UK)' }
     ], 'L', 'ml');
+}
+function renderMeasuresBrzina() {
+    return `${favStarHeader('measures', 'brzina')}` + measureTab('speed', 'Brzina', [
+        { v: 'kmh', t: 'Kilometar/h (km/h)' }, { v: 'ms', t: 'Metar/s (m/s)' },
+        { v: 'mph', t: 'Milja/h (mph)' }, { v: 'knot', t: 'Čvor (kn)' }
+    ], 'kmh', 'ms');
+}
+function renderMeasuresPritisak() {
+    return `${favStarHeader('measures', 'pritisak')}` + measureTab('pres', 'Pritisak', [
+        { v: 'bar', t: 'Bar' }, { v: 'psi', t: 'PSI' }, { v: 'kpa', t: 'Kilopaskal (kPa)' },
+        { v: 'atm', t: 'Atmosfera (atm)' }, { v: 'mmhg', t: 'mmHg' }
+    ], 'bar', 'psi');
+}
+function renderMeasuresPodaci() {
+    return `${favStarHeader('measures', 'podaci')}` + measureTab('data', 'Podaci', [
+        { v: 'B', t: 'Bajt (B)' }, { v: 'KB', t: 'Kilobajt (KB)' }, { v: 'MB', t: 'Megabajt (MB)' },
+        { v: 'GB', t: 'Gigabajt (GB)' }, { v: 'TB', t: 'Terabajt (TB)' }
+    ], 'GB', 'MB');
 }
 
 function renderMeasuresTemp() {
@@ -2607,7 +2454,7 @@ function renderMeasuresTemp() {
         <div class="converter-box">
             <div class="input-field">
                 <label>Vrednost</label>
-                <div class="input-wrapper"><input type="number" id="temp-val" class="custom-input" placeholder="0" inputmode="decimal" oninput="calculateTemp()"></div>
+                <div class="input-wrapper"><input type="number" id="temp-val" class="custom-input" placeholder="npr. 25" inputmode="decimal" oninput="calculateTemp()"></div>
             </div>
             <div class="input-field">
                 <label>Iz jedinice</label>
@@ -2645,27 +2492,6 @@ function renderMeasuresTemp() {
             </div>
         </div>
     `;
-}
-
-function renderMeasuresBrzina() {
-    return `${favStarHeader('measures', 'brzina')}` + measureTab('speed', 'Brzina', [
-        { v: 'kmh', t: 'Kilometar/h (km/h)' }, { v: 'ms', t: 'Metar/s (m/s)' },
-        { v: 'mph', t: 'Milja/h (mph)' }, { v: 'knot', t: 'Čvor (kn)' }
-    ], 'kmh', 'ms');
-}
-
-function renderMeasuresPritisak() {
-    return `${favStarHeader('measures', 'pritisak')}` + measureTab('pres', 'Pritisak', [
-        { v: 'bar', t: 'Bar' }, { v: 'psi', t: 'PSI' }, { v: 'kpa', t: 'Kilopaskal (kPa)' },
-        { v: 'atm', t: 'Atmosfera (atm)' }, { v: 'mmhg', t: 'mmHg' }
-    ], 'bar', 'psi');
-}
-
-function renderMeasuresPodaci() {
-    return `${favStarHeader('measures', 'podaci')}` + measureTab('data', 'Podaci', [
-        { v: 'B', t: 'Bajt (B)' }, { v: 'KB', t: 'Kilobajt (KB)' }, { v: 'MB', t: 'Megabajt (MB)' },
-        { v: 'GB', t: 'Gigabajt (GB)' }, { v: 'TB', t: 'Terabajt (TB)' }
-    ], 'GB', 'MB');
 }
 
 function renderMeasuresProcenat() {
@@ -2754,9 +2580,9 @@ function renderHealthBMI() {
         ${favStarHeader('health', 'bmi')}
         <div class="converter-box">
             ${sectionDesc('Indeks telesne mase je okvirna orijentacija, a ne medicinski savet.')}
-            ${inputField('Težina', 'health-weight', 'kg', 'value="75"')}
-            ${inputField('Visina', 'health-height', 'cm', 'value="175"')}
-            ${inputField('Godine (opciono)', 'health-bmi-age', 'god', 'value="30"')}
+            ${inputField('Težina', 'health-weight', 'kg', 'placeholder="npr. 75"')}
+            ${inputField('Visina', 'health-height', 'cm', 'placeholder="npr. 175"')}
+            ${inputField('Godine (opciono)', 'health-bmi-age', 'god', 'placeholder="npr. 30"')}
             ${calcButton('Izračunaj BMI', 'calculateBMI()')}
         </div>
         ${resultCard('health-bmi-result-box', 'scale', 'Vaš BMI', 'res-bmi-val', '', 'ZDRAVLJE', 'BMI')}
@@ -2769,7 +2595,7 @@ function renderHealthIdealna() {
         ${favStarHeader('health', 'tezina')}
         <div class="converter-box">
             ${sectionDesc('Idealna težina prema visini i polu.')}
-            ${inputField('Visina', 'health-ideal-height', 'cm', 'value="175"')}
+            ${inputField('Visina', 'health-ideal-height', 'cm', 'placeholder="npr. 175"')}
             ${selectField('Pol', 'health-gender', [
                 { value: 'male', text: 'Muški' },
                 { value: 'female', text: 'Ženski' }
@@ -2786,9 +2612,9 @@ function renderHealthBMR() {
         ${favStarHeader('health', 'kalorije')}
         <div class="converter-box">
             ${sectionDesc('Bazalni metabolizam (BMR) i dnevne potrebe.')}
-            ${inputField('Težina', 'bmr-weight', 'kg', 'value="75"')}
-            ${inputField('Visina', 'bmr-height', 'cm', 'value="175"')}
-            ${inputField('Godine', 'bmr-age', 'god', 'value="30"')}
+            ${inputField('Težina', 'bmr-weight', 'kg', 'placeholder="npr. 75"')}
+            ${inputField('Visina', 'bmr-height', 'cm', 'placeholder="npr. 175"')}
+            ${inputField('Godine', 'bmr-age', 'god', 'placeholder="npr. 30"')}
             ${selectField('Pol', 'bmr-gender', [
                 { value: 'male', text: 'Muški' },
                 { value: 'female', text: 'Ženski' }
@@ -2811,7 +2637,7 @@ function renderHealthPuls() {
         ${favStarHeader('health', 'puls')}
         <div class="converter-box">
             ${sectionDesc('Okvirne zone treninga prema formuli 220 − godine.')}
-            ${inputField('Godine', 'hr-age', 'god', 'value="30"')}
+            ${inputField('Godine', 'hr-age', 'god', 'placeholder="npr. 30"')}
             ${calcButton('Izračunaj Zone', 'calculateHeartRate()')}
         </div>
         ${resultCard('hr-result-box', 'heartPulse', 'Maksimalni puls', 'res-hr-max', 'otk/min', 'ZDRAVLJE', 'Puls i zone')}
@@ -2830,9 +2656,9 @@ function renderHealthTrcanje() {
         ${favStarHeader('health', 'trcanje')}
         <div class="converter-box">
             ${sectionDesc('Izračunaj tempo i brzinu trčanja.')}
-            ${inputField('Distanca', 'run-distance', 'km', 'value="5" step="0.01"')}
-            ${inputField('Vreme (minuti)', 'run-min', 'min', 'value="28"')}
-            ${inputField('Vreme (sekunde)', 'run-sec', 'sec', 'value="30" min="0" max="59"')}
+            ${inputField('Distanca', 'run-distance', 'km', 'step="0.01" placeholder="npr. 5"')}
+            ${inputField('Vreme (minuti)', 'run-min', 'min', 'placeholder="npr. 28"')}
+            ${inputField('Vreme (sekunde)', 'run-sec', 'sec', 'min="0" max="59" placeholder="npr. 30"')}
             ${calcButton('Izračunaj Tempo', 'calculateRunning()')}
         </div>
         ${resultCard('run-result-box', 'run', 'Tempo', 'res-run-pace', 'min/km', 'FITNESS', 'Trčanje')}
@@ -2848,9 +2674,9 @@ function renderHealthBikeFit() {
         ${favStarHeader('health', 'bikefit')}
         <div class="converter-box">
             ${sectionDesc('Trening na biciklu - brzina i kalorije.')}
-            ${inputField('Distanca', 'fitbike-distance', 'km', 'value="30" step="0.1"')}
-            ${inputField('Vreme (minuti)', 'fitbike-min', 'min', 'value="60"')}
-            ${inputField('Težina vozača', 'fitbike-weight', 'kg', 'value="75"')}
+            ${inputField('Distanca', 'fitbike-distance', 'km', 'step="0.1" placeholder="npr. 30"')}
+            ${inputField('Vreme (minuti)', 'fitbike-min', 'min', 'placeholder="npr. 60"')}
+            ${inputField('Težina vozača', 'fitbike-weight', 'kg', 'placeholder="npr. 75"')}
             ${calcButton('Izračunaj', 'calculateBikeFitness()')}
         </div>
         ${resultCard('fitbike-result-box', 'bike', 'Prosečna brzina', 'res-fitbike-speed', 'km/h', 'FITNESS', 'Biciklizam trening')}
@@ -2869,8 +2695,8 @@ function renderHealth1RM() {
                 { value: 'deadlift', text: 'Deadlift' },
                 { value: 'ohp', text: 'Overhead Press' }
             ])}
-            ${inputField('Težina', 'rm1-weight', 'kg', 'value="80"')}
-            ${inputField('Broj ponavljanja', 'rm1-reps', 'pon', 'value="5"')}
+            ${inputField('Težina', 'rm1-weight', 'kg', 'placeholder="npr. 80"')}
+            ${inputField('Broj ponavljanja', 'rm1-reps', 'pon', 'placeholder="npr. 5"')}
             ${calcButton('Izračunaj 1RM', 'calculate1RM()')}
         </div>
         ${resultCard('rm1-result-box', 'dumbbell', 'Procena 1RM', 'res-rm1-val', 'kg', 'FITNESS', '1RM')}
@@ -2886,9 +2712,9 @@ function renderHealthVolume() {
         ${favStarHeader('health', 'volume')}
         <div class="converter-box">
             ${sectionDesc('Ukupan volumen treninga.')}
-            ${inputField('Težina', 'vol-weight', 'kg', 'value="60"')}
-            ${inputField('Ponavljanja', 'vol-reps', '', 'value="8"')}
-            ${inputField('Broj serija', 'vol-sets', '', 'value="4"')}
+            ${inputField('Težina', 'vol-weight', 'kg', 'placeholder="npr. 60"')}
+            ${inputField('Ponavljanja', 'vol-reps', '', 'placeholder="npr. 8"')}
+            ${inputField('Broj serija', 'vol-sets', '', 'placeholder="npr. 4"')}
             ${calcButton('Izračunaj Volumen', 'calculateWorkoutVolume()')}
         </div>
         ${resultCard('vol-result-box', 'activity', 'Ukupan volumen', 'res-vol-val', 'kg', 'FITNESS', 'Volumen')}
@@ -2901,7 +2727,7 @@ function renderTimeKonverter() {
     return `
         ${favStarHeader('time', 'konverter')}
         <div class="converter-box">
-            ${inputField('Vrednost', 'time-value', '')}
+            ${inputField('Vrednost', 'time-value', '', 'placeholder="npr. 24"')}
             ${selectField('Iz jedinice', 'time-from', [
                 { value: 'seconds', text: 'Sekunde' },
                 { value: 'minutes', text: 'Minuti' },
@@ -2944,7 +2770,7 @@ function renderTimePomeraj() {
         <div class="converter-box">
             ${sectionDesc('Saznaj koji je datum posle ili pre određenog broja dana.')}
             ${dateTripleField('Polazni datum', 'shift-date')}
-            ${inputField('Broj dana', 'shift-days', '', 'value="0"')}
+            ${inputField('Broj dana', 'shift-days', '', 'placeholder="npr. 30"')}
             ${selectField('Operacija', 'shift-op', [
                 { value: 'add', text: 'Dodaj dane' },
                 { value: 'sub', text: 'Oduzmi dane' }
@@ -3030,18 +2856,18 @@ function renderHomePovrsina() {
                 </select>
             </div>
             <div id="shape-rect-inputs">
-                ${inputField('Dužina', 'shape-a', 'm', 'step="0.01"')}
-                ${inputField('Širina', 'shape-b', 'm', 'step="0.01"')}
+                ${inputField('Dužina', 'shape-a', 'm', 'step="0.01" placeholder="npr. 5"')}
+                ${inputField('Širina', 'shape-b', 'm', 'step="0.01" placeholder="npr. 3"')}
             </div>
             <div id="shape-square-inputs" style="display:none;">
-                ${inputField('Stranica', 'shape-side', 'm', 'step="0.01"')}
+                ${inputField('Stranica', 'shape-side', 'm', 'step="0.01" placeholder="npr. 4"')}
             </div>
             <div id="shape-circle-inputs" style="display:none;">
-                ${inputField('Prečnik', 'shape-diameter', 'm', 'step="0.01"')}
+                ${inputField('Prečnik', 'shape-diameter', 'm', 'step="0.01" placeholder="npr. 2"')}
             </div>
             <div id="shape-triangle-inputs" style="display:none;">
-                ${inputField('Osnova', 'shape-base', 'm', 'step="0.01"')}
-                ${inputField('Visina', 'shape-height', 'm', 'step="0.01"')}
+                ${inputField('Osnova', 'shape-base', 'm', 'step="0.01" placeholder="npr. 4"')}
+                ${inputField('Visina', 'shape-height', 'm', 'step="0.01" placeholder="npr. 3"')}
             </div>
             ${calcButton('Izračunaj Površinu', 'calculateShapeArea()')}
         </div>
@@ -3065,8 +2891,8 @@ function renderHomeBlokovi() {
                     <option value="custom">Ručno</option>
                 </select>
             </div>
-            ${inputField('Dužina zida', 'block-wall-l', 'm', 'step="0.01"')}
-            ${inputField('Visina zida', 'block-wall-h', 'm', 'step="0.01"')}
+            ${inputField('Dužina zida', 'block-wall-l', 'm', 'step="0.01" placeholder="npr. 10"')}
+            ${inputField('Visina zida', 'block-wall-h', 'm', 'step="0.01" placeholder="npr. 2.8"')}
             <div class="input-field">
                 <label>Dimenzije bloka (D×V×Š)</label>
                 <div class="input-wrapper">
@@ -3078,7 +2904,7 @@ function renderHomeBlokovi() {
                     <span class="unit">cm</span>
                 </div>
             </div>
-            ${inputField('Cena po komadu (opciono)', 'block-price', 'RSD', 'value="0"')}
+            ${inputField('Cena po komadu (opciono)', 'block-price', 'RSD', 'placeholder="npr. 60"')}
             ${openingsSection('block', 'Otvori')}
             ${calcButton('Izračunaj Blokove', 'calculateBlocks()')}
         </div>
@@ -3094,7 +2920,7 @@ function renderHomeTable() {
     return `
         ${favStarHeader('homecalc', 'table')}
         <div class="converter-box">
-            ${sectionDesc('Izračunaj broj tabli (OSB, regips, šper ploča, iverica...).')}
+            ${sectionDesc('Izračunaj broj tabli (OSB, regips, šper ploča, iverica).')}
             <div class="input-field">
                 <label>Tip table</label>
                 <select id="board-type" class="custom-input" onchange="updateBoardDefaults()">
@@ -3105,8 +2931,8 @@ function renderHomeTable() {
                     <option value="custom">Ručno</option>
                 </select>
             </div>
-            ${inputField('Dužina površine', 'board-wall-l', 'm', 'step="0.01"')}
-            ${inputField('Visina površine', 'board-wall-h', 'm', 'step="0.01"')}
+            ${inputField('Dužina površine', 'board-wall-l', 'm', 'step="0.01" placeholder="npr. 5"')}
+            ${inputField('Visina površine', 'board-wall-h', 'm', 'step="0.01" placeholder="npr. 2.5"')}
             <div class="input-field">
                 <label>Dimenzije table (D×Š)</label>
                 <div class="input-wrapper">
@@ -3142,7 +2968,7 @@ function renderHomeCrep() {
                     <option value="custom">Ručno</option>
                 </select>
             </div>
-            ${inputField('Površina krova', 'crep-area', 'm²', 'step="0.01"')}
+            ${inputField('Površina krova', 'crep-area', 'm²', 'step="0.01" placeholder="npr. 120"')}
             ${inputField('Broj crepova po m²', 'crep-per-m2', '', 'value="15.5" step="0.1"')}
             ${inputField('Rezerva (lom, rezanje)', 'crep-reserve', '%', 'value="10"')}
             ${calcButton('Izračunaj Crep', 'calculateCrep()')}
@@ -3157,9 +2983,9 @@ function renderHomeBeton() {
         ${favStarHeader('homecalc', 'beton')}
         <div class="converter-box">
             ${sectionDesc('Izračunaj kubikažu betona.')}
-            ${inputField('Dužina', 'beton-l', 'm', 'step="0.01"')}
-            ${inputField('Širina', 'beton-w', 'm', 'step="0.01"')}
-            ${inputField('Debljina', 'beton-h', 'm', 'step="0.01"')}
+            ${inputField('Dužina', 'beton-l', 'm', 'step="0.01" placeholder="npr. 5"')}
+            ${inputField('Širina', 'beton-w', 'm', 'step="0.01" placeholder="npr. 3"')}
+            ${inputField('Debljina', 'beton-h', 'm', 'step="0.01" placeholder="npr. 0.15"')}
             ${calcButton('Izračunaj Beton', 'calculateConcrete()')}
         </div>
         ${resultCard('beton-result-box', 'building', 'Potrebno betona', 'res-beton-m3', 'm³', 'GRAĐEVINA', 'Beton')}
@@ -3171,9 +2997,9 @@ function renderHomeTemelj() {
         ${favStarHeader('homecalc', 'temelj')}
         <div class="converter-box">
             ${sectionDesc('Izračunaj materijal za temelj (beton + armatura).')}
-            ${inputField('Dužina temelja', 'temelj-l', 'm', 'step="0.01"')}
-            ${inputField('Širina temelja', 'temelj-w', 'm', 'step="0.01"')}
-            ${inputField('Visina (dubina) temelja', 'temelj-h', 'm', 'step="0.01"')}
+            ${inputField('Dužina temelja', 'temelj-l', 'm', 'step="0.01" placeholder="npr. 10"')}
+            ${inputField('Širina temelja', 'temelj-w', 'm', 'step="0.01" placeholder="npr. 0.6"')}
+            ${inputField('Visina (dubina) temelja', 'temelj-h', 'm', 'step="0.01" placeholder="npr. 0.8"')}
             ${calcButton('Izračunaj Temelj', 'calculateFoundation()')}
         </div>
         ${resultCard('temelj-result-box', 'layers', 'Potrebno betona', 'res-temelj-m3', 'm³', 'GRAĐEVINA', 'Temelj')}
@@ -3188,9 +3014,9 @@ function renderHomeFarbanje() {
     return `
         ${favStarHeader('homecalc', 'farbanje')}
         <div class="converter-box">
-            ${sectionDesc('Izračunaj koliko ti treba farbe. Možeš dodati više otvora koji se odbijaju.')}
-            ${inputField('Širina zida', 'paint-width', 'm', 'step="0.01"')}
-            ${inputField('Visina zida', 'paint-height', 'm', 'step="0.01"')}
+            ${sectionDesc('Izračunaj koliko ti treba farbe. Otvori se odbijaju.')}
+            ${inputField('Širina zida', 'paint-width', 'm', 'step="0.01" placeholder="npr. 4"')}
+            ${inputField('Visina zida', 'paint-height', 'm', 'step="0.01" placeholder="npr. 2.5"')}
             ${inputField('Broj zidova', 'paint-walls', '', 'value="4"')}
             ${inputField('Pokrivnost farbe', 'paint-coverage', 'm²/L', 'value="10" step="0.1"')}
             ${openingsSection('paint', 'Otvori (vrata, prozori)')}
@@ -3208,11 +3034,11 @@ function renderHomePlocice() {
     return `
         ${favStarHeader('homecalc', 'plocice')}
         <div class="converter-box">
-            ${sectionDesc('Izračunaj broj pločica. Otvori se odbijaju od površine.')}
-            ${inputField('Dužina prostora', 'tile-room-l', 'm', 'step="0.01"')}
-            ${inputField('Širina prostora', 'tile-room-w', 'm', 'step="0.01"')}
-            ${inputField('Dužina pločice', 'tile-l', 'cm', 'value="30" step="0.1"')}
-            ${inputField('Širina pločice', 'tile-w', 'cm', 'value="30" step="0.1"')}
+            ${sectionDesc('Izračunaj broj pločica. Otvori se odbijaju.')}
+            ${inputField('Dužina prostora', 'tile-room-l', 'm', 'step="0.01" placeholder="npr. 4"')}
+            ${inputField('Širina prostora', 'tile-room-w', 'm', 'step="0.01" placeholder="npr. 3"')}
+            ${inputField('Dužina pločice', 'tile-l', 'cm', 'step="0.1" placeholder="npr. 30"')}
+            ${inputField('Širina pločice', 'tile-w', 'cm', 'step="0.1" placeholder="npr. 30"')}
             ${inputField('Rezerva', 'tile-reserve', '%', 'value="10"')}
             ${openingsSection('tile', 'Otvori')}
             ${calcButton('Izračunaj Pločice', 'calculateTiles()')}
@@ -3230,8 +3056,8 @@ function renderHomeLaminat() {
         ${favStarHeader('homecalc', 'laminat')}
         <div class="converter-box">
             ${sectionDesc('Izračunaj broj pakovanja laminata.')}
-            ${inputField('Dužina prostorije', 'lam-room-l', 'm', 'step="0.01"')}
-            ${inputField('Širina prostorije', 'lam-room-w', 'm', 'step="0.01"')}
+            ${inputField('Dužina prostorije', 'lam-room-l', 'm', 'step="0.01" placeholder="npr. 5"')}
+            ${inputField('Širina prostorije', 'lam-room-w', 'm', 'step="0.01" placeholder="npr. 4"')}
             ${inputField('Površina pakovanja', 'lam-pack', 'm²', 'value="2.2" step="0.01"')}
             ${inputField('Rezerva', 'lam-reserve', '%', 'value="10"')}
             ${calcButton('Izračunaj Laminat', 'calculateLaminate()')}
@@ -3246,7 +3072,7 @@ function renderHomeMalter() {
         ${favStarHeader('homecalc', 'malter')}
         <div class="converter-box">
             ${sectionDesc('Izračunaj potrošnju materijala za malter.')}
-            ${inputField('Površina malterisanja', 'malter-area', 'm²', 'step="0.01"')}
+            ${inputField('Površina malterisanja', 'malter-area', 'm²', 'step="0.01" placeholder="npr. 20"')}
             ${inputField('Debljina maltera', 'malter-thickness', 'cm', 'value="2" step="0.1"')}
             ${selectField('Odnos cement:pesak', 'malter-ratio', [
                 { value: '1:3', text: '1:3 (čvršći)' },
@@ -3270,7 +3096,7 @@ function renderHomeGips() {
         ${favStarHeader('homecalc', 'gips')}
         <div class="converter-box">
             ${sectionDesc('Gipsani radovi - ploče, profili, vijci.')}
-            ${inputField('Površina zida/plafona', 'gips-area', 'm²', 'step="0.01"')}
+            ${inputField('Površina zida/plafona', 'gips-area', 'm²', 'step="0.01" placeholder="npr. 15"')}
             ${selectField('Slojevi gipsa', 'gips-layers', [
                 { value: '1', text: '1 sloj (standardno)' },
                 { value: '2', text: '2 sloja (protivpožarno/zvučno)' }
@@ -3291,7 +3117,7 @@ function renderHomeHidro() {
         ${favStarHeader('homecalc', 'hidro')}
         <div class="converter-box">
             ${sectionDesc('Izračunaj materijal za hidroizolaciju.')}
-            ${inputField('Površina', 'hidro-area', 'm²', 'step="0.01"')}
+            ${inputField('Površina', 'hidro-area', 'm²', 'step="0.01" placeholder="npr. 20"')}
             ${selectField('Tip hidroizolacije', 'hidro-type', [
                 { value: 'folija', text: 'PVC folija (širina 1.5m)' },
                 { value: 'premaz', text: 'Premaz (potrošnja ~1.5 kg/m²)' },
@@ -3309,10 +3135,10 @@ function renderHomeElektro() {
         ${favStarHeader('homecalc', 'elektro')}
         <div class="converter-box">
             ${sectionDesc('Procena elektro materijala.')}
-            ${inputField('Broj utičnica', 'elektro-outlets', '', 'value="0"')}
-            ${inputField('Broj prekidača', 'elektro-switches', '', 'value="0"')}
-            ${inputField('Broj svetala', 'elektro-lights', '', 'value="0"')}
-            ${inputField('Dužina kablova', 'elektro-cable', 'm', 'value="0"')}
+            ${inputField('Broj utičnica', 'elektro-outlets', '', 'placeholder="npr. 8"')}
+            ${inputField('Broj prekidača', 'elektro-switches', '', 'placeholder="npr. 5"')}
+            ${inputField('Broj svetala', 'elektro-lights', '', 'placeholder="npr. 6"')}
+            ${inputField('Dužina kablova', 'elektro-cable', 'm', 'placeholder="npr. 100"')}
             ${calcButton('Izračunaj Elektro', 'calculateElectro()')}
         </div>
         ${resultCardText('elektro-result-box', 'plug', 'Ukupno materijala', 'res-elektro-text', 'GRAĐEVINA', 'Elektro')}
@@ -3334,9 +3160,9 @@ function renderHomeStolarija() {
                 { value: 'alu', text: 'Aluminijum' },
                 { value: 'drvo', text: 'Drvo' }
             ])}
-            ${inputField('Broj komada', 'stolarija-qty', '', 'value="0"')}
-            ${inputField('Prosečna širina', 'stolarija-w', 'm', 'value="0" step="0.01"')}
-            ${inputField('Prosečna visina', 'stolarija-h', 'm', 'value="0" step="0.01"')}
+            ${inputField('Broj komada', 'stolarija-qty', '', 'placeholder="npr. 4"')}
+            ${inputField('Prosečna širina', 'stolarija-w', 'm', 'step="0.01" placeholder="npr. 1.2"')}
+            ${inputField('Prosečna visina', 'stolarija-h', 'm', 'step="0.01" placeholder="npr. 2.1"')}
             ${calcButton('Izračunaj Stolariju', 'calculateJoinery()')}
         </div>
         ${resultCard('stolarija-result-box', 'door', 'Ukupna površina stolarije', 'res-stolarija-m2', 'm²', 'GRAĐEVINA', 'Stolarija')}
@@ -3349,8 +3175,8 @@ function renderHomeUniverzalno() {
         <div class="converter-box">
             ${sectionDesc('Univerzalni kalkulator - komada × cena = ukupno.')}
             ${inputFieldText('Naziv materijala', 'univ-name', 'npr. Cigla')}
-            ${inputField('Broj komada', 'univ-qty', '', 'value="0"')}
-            ${inputField('Cena po komadu', 'univ-price', 'RSD', 'value="0" step="0.01"')}
+            ${inputField('Broj komada', 'univ-qty', '', 'placeholder="npr. 500"')}
+            ${inputField('Cena po komadu', 'univ-price', 'RSD', 'step="0.01" placeholder="npr. 60"')}
             ${calcButton('Izračunaj Ukupno', 'calculateUniversal()')}
         </div>
         ${resultCard('univ-result-box', 'calculator', 'Ukupna cena', 'res-univ-total', 'RSD', 'GRAĐEVINA', 'Univerzalno')}
@@ -3363,9 +3189,9 @@ function renderShopUnit() {
     return `
         ${favStarHeader('shopping', 'unit')}
         <div class="converter-box">
-            ${sectionDesc('Izračunaj cenu po kilogramu, litru, komadu…')}
-            ${inputField('Ukupna cena', 'unit-price', 'RSD', 'step="0.01"')}
-            ${inputField('Količina', 'unit-qty', '', 'step="0.01"')}
+            ${sectionDesc('Izračunaj cenu po kilogramu, litru, komadu.')}
+            ${inputField('Ukupna cena', 'unit-price', 'RSD', 'step="0.01" placeholder="npr. 250"')}
+            ${inputField('Količina', 'unit-qty', '', 'step="0.01" placeholder="npr. 2"')}
             ${selectField('Jedinica', 'unit-type', [
                 { value: 'kg', text: 'Kilogram (cena/kg)' },
                 { value: 'g100', text: 'Grami (cena/100g)' },
@@ -3400,11 +3226,11 @@ function renderShopCompare() {
             ${sectionDesc('Uporedi dva proizvoda i vidi koji je jeftiniji po jedinici.')}
             <div class="compare-group">
                 <div class="compare-title">Proizvod A</div>
-                ${inputField('Cena', 'cmp-a-price', 'RSD', 'step="0.01"')}
+                ${inputField('Cena', 'cmp-a-price', 'RSD', 'step="0.01" placeholder="npr. 250"')}
                 <div class="input-field">
                     <label>Količina</label>
                     <div class="input-wrapper">
-                        <input type="number" id="cmp-a-qty" class="custom-input" placeholder="0" step="0.01" inputmode="decimal">
+                        <input type="number" id="cmp-a-qty" class="custom-input" placeholder="npr. 1" step="0.01" inputmode="decimal">
                         <select id="cmp-a-unit" class="custom-select-unit">
                             <option value="kg">kg</option>
                             <option value="g">g</option>
@@ -3417,11 +3243,11 @@ function renderShopCompare() {
             </div>
             <div class="compare-group">
                 <div class="compare-title">Proizvod B</div>
-                ${inputField('Cena', 'cmp-b-price', 'RSD', 'step="0.01"')}
+                ${inputField('Cena', 'cmp-b-price', 'RSD', 'step="0.01" placeholder="npr. 320"')}
                 <div class="input-field">
                     <label>Količina</label>
                     <div class="input-wrapper">
-                        <input type="number" id="cmp-b-qty" class="custom-input" placeholder="0" step="0.01" inputmode="decimal">
+                        <input type="number" id="cmp-b-qty" class="custom-input" placeholder="npr. 1.5" step="0.01" inputmode="decimal">
                         <select id="cmp-b-unit" class="custom-select-unit">
                             <option value="kg">kg</option>
                             <option value="g">g</option>
@@ -3453,7 +3279,7 @@ function renderShopPromo() {
                 { value: '3plus1', text: '3+1 gratis (platiš 3, dobiješ 4)' },
                 { value: 'second', text: 'Druga po povoljnijoj ceni' }
             ])}
-            ${inputField('Cena po komadu', 'promo-price', 'RSD', 'step="0.01"')}
+            ${inputField('Cena po komadu', 'promo-price', 'RSD', 'step="0.01" placeholder="npr. 200"')}
             <div class="input-field" id="promo-second-wrap" style="display:none;">
                 <label>Popust na drugu jedinicu</label>
                 <div class="input-wrapper">
@@ -3476,10 +3302,10 @@ function renderShopLista() {
     return `
         ${favStarHeader('shopping', 'lista')}
         <div class="converter-box">
-            ${sectionDesc('Dodaj stavke, čekiraj kupljeno, prati ukupan trošak. Sve se pamti lokalno.')}
+            ${sectionDesc('Dodaj stavke, čekiraj kupljeno, prati ukupan trošak.')}
             ${inputFieldText('Naziv stavke', 'lista-name', 'npr. Mleko')}
-            ${inputFieldText('Količina (opciono)', 'lista-qty', 'npr. 2 L ili 1 kom')}
-            ${inputField('Procena cene (opciono)', 'lista-price', 'RSD', 'step="0.01"')}
+            ${inputFieldText('Količina (opciono)', 'lista-qty', 'npr. 2 L')}
+            ${inputField('Procena cene (opciono)', 'lista-price', 'RSD', 'step="0.01" placeholder="npr. 150"')}
             ${calcButton('Dodaj stavku', 'addShoppingItem()')}
         </div>
         <div class="converter-box" id="lista-box" style="display:none;">
@@ -3508,13 +3334,13 @@ function renderShopBudzet() {
         ${favStarHeader('shopping', 'budzet')}
         <div class="converter-box">
             ${sectionDesc('Koliko smeš dnevno da trošiš da ostaneš u budžetu.')}
-            ${inputField('Ukupan budžet', 'budzet-total', 'RSD', 'step="0.01"')}
+            ${inputField('Ukupan budžet', 'budzet-total', 'RSD', 'step="0.01" placeholder="npr. 30000"')}
             ${selectField('Period', 'budzet-period', [
                 { value: '7', text: 'Nedelja dana (7)' },
                 { value: '14', text: 'Dve nedelje (14)' },
                 { value: '30', text: 'Mesec dana (30)' }
             ], '30')}
-            ${inputField('Već potrošeno (opciono)', 'budzet-spent', 'RSD', 'step="0.01" value="0"')}
+            ${inputField('Već potrošeno (opciono)', 'budzet-spent', 'RSD', 'step="0.01" placeholder="npr. 5000"')}
             ${calcButton('Izračunaj Budžet', 'calculateBudget()')}
         </div>
         ${resultCard('budzet-result-box', 'calendarSm', 'Dnevni limit', 'res-budzet-daily', 'RSD/dan', 'KUPOVINA', 'Budžet')}
@@ -3531,9 +3357,9 @@ function renderShopRate() {
         ${favStarHeader('shopping', 'rate')}
         <div class="converter-box">
             ${sectionDesc('Da li se više isplati platiti kešom uz popust ili na rate?')}
-            ${inputField('Redovna cena (na rate)', 'rate-cena', 'RSD', 'step="0.01"')}
+            ${inputField('Redovna cena (na rate)', 'rate-cena', 'RSD', 'step="0.01" placeholder="npr. 60000"')}
             ${inputField('Broj rata', 'rate-br', 'mes', 'value="12"')}
-            ${inputField('Cena kešom (sa popustom)', 'rate-kes', 'RSD', 'step="0.01"')}
+            ${inputField('Cena kešom (sa popustom)', 'rate-kes', 'RSD', 'step="0.01" placeholder="npr. 54000"')}
             ${inputField('Godišnja inflacija (opciono)', 'rate-infl', '%', 'value="0" step="0.1"')}
             ${calcButton('Uporedi Rate i Keš', 'calculateRates()')}
         </div>
@@ -3551,9 +3377,9 @@ function renderShopKartice() {
         ${favStarHeader('shopping', 'kartice')}
         <div class="converter-box">
             ${sectionDesc('Koliko te realno košta plaćanje karticom sa odloženim plaćanjem.')}
-            ${inputField('Cena', 'kart-cena', 'RSD', 'step="0.01"')}
-            ${inputField('Popust za keš', 'kart-popust', '%', 'value="0" step="0.1"')}
-            ${inputField('Naknada za odloženo (opciono)', 'kart-naknada', '%', 'value="0" step="0.1"')}
+            ${inputField('Cena', 'kart-cena', 'RSD', 'step="0.01" placeholder="npr. 25000"')}
+            ${inputField('Popust za keš', 'kart-popust', '%', 'placeholder="npr. 10"')}
+            ${inputField('Naknada za odloženo (opciono)', 'kart-naknada', '%', 'placeholder="npr. 2"')}
             ${calcButton('Izračunaj', 'calculateCardVsCash()')}
         </div>
         ${resultCardText('kart-result-box', 'banknote', 'Isplativije', 'res-kart-winner', 'KUPOVINA', 'Kartica vs keš')}
@@ -3570,11 +3396,11 @@ function renderShopLitar() {
         ${favStarHeader('shopping', 'litar')}
         <div class="converter-box">
             ${sectionDesc('Za tečnosti — sokovi, mleko, deterdžent, ulje.')}
-            ${inputField('Cena pakovanja', 'litar-cena', 'RSD', 'step="0.01"')}
+            ${inputField('Cena pakovanja', 'litar-cena', 'RSD', 'step="0.01" placeholder="npr. 150"')}
             <div class="input-field">
                 <label>Zapremina pakovanja</label>
                 <div class="input-wrapper">
-                    <input type="number" id="litar-qty" class="custom-input" placeholder="0" step="0.01" inputmode="decimal">
+                    <input type="number" id="litar-qty" class="custom-input" placeholder="npr. 1.5" step="0.01" inputmode="decimal">
                     <select id="litar-unit" class="custom-select-unit">
                         <option value="L">L</option>
                         <option value="ml">ml</option>
@@ -3597,7 +3423,7 @@ function renderShopOsoba() {
         ${favStarHeader('shopping', 'osoba')}
         <div class="converter-box">
             ${sectionDesc('Podeli trošak kupovine na članove domaćinstva.')}
-            ${inputField('Ukupan trošak', 'osoba-total', 'RSD', 'step="0.01"')}
+            ${inputField('Ukupan trošak', 'osoba-total', 'RSD', 'step="0.01" placeholder="npr. 15000"')}
             ${inputField('Broj osoba', 'osoba-br', '', 'value="1" min="1"')}
             ${inputField('Broj dana', 'osoba-dana', 'dana', 'value="7" min="1"')}
             ${calcButton('Izračunaj po Osobi', 'calculatePerPerson()')}
@@ -3615,9 +3441,9 @@ function renderShopIsplati() {
         ${favStarHeader('shopping', 'isplati')}
         <div class="converter-box">
             ${sectionDesc('Da li se isplati ići u udaljenu prodavnicu po jeftinijoj robi?')}
-            ${inputField('Ušteda po artiklu', 'isplati-usteda', 'RSD', 'step="0.01"')}
+            ${inputField('Ušteda po artiklu', 'isplati-usteda', 'RSD', 'step="0.01" placeholder="npr. 50"')}
             ${inputField('Broj artikala', 'isplati-br', '', 'value="1" min="1"')}
-            ${inputField('Distanca u jednom smeru', 'isplati-dist', 'km', 'step="0.1"')}
+            ${inputField('Distanca u jednom smeru', 'isplati-dist', 'km', 'step="0.1" placeholder="npr. 10"')}
             ${inputField('Potrošnja auta', 'isplati-potrosnja', 'L/100km', 'value="7" step="0.1"')}
             ${inputField('Cena goriva', 'isplati-gorivo', 'RSD/L', 'value="180" step="0.1"')}
             ${calcButton('Izračunaj', 'calculateWorthTrip()')}
@@ -3638,13 +3464,13 @@ function renderShopRacuni() {
             ${sectionDesc('Uporedi dva računa iz prodavnice.')}
             <div class="compare-group">
                 <div class="compare-title">Račun A</div>
-                ${inputField('Ukupan iznos', 'rac-a-total', 'RSD', 'step="0.01"')}
-                ${inputField('Broj artikala', 'rac-a-items', '', 'value="0"')}
+                ${inputField('Ukupan iznos', 'rac-a-total', 'RSD', 'step="0.01" placeholder="npr. 4500"')}
+                ${inputField('Broj artikala', 'rac-a-items', '', 'placeholder="npr. 12"')}
             </div>
             <div class="compare-group">
                 <div class="compare-title">Račun B</div>
-                ${inputField('Ukupan iznos', 'rac-b-total', 'RSD', 'step="0.01"')}
-                ${inputField('Broj artikala', 'rac-b-items', '', 'value="0"')}
+                ${inputField('Ukupan iznos', 'rac-b-total', 'RSD', 'step="0.01" placeholder="npr. 5200"')}
+                ${inputField('Broj artikala', 'rac-b-items', '', 'placeholder="npr. 15"')}
             </div>
             ${calcButton('Uporedi Račune', 'calculateReceipts()')}
         </div>
@@ -3662,9 +3488,9 @@ function renderShopRasipanje() {
         ${favStarHeader('shopping', 'rasipanje')}
         <div class="converter-box">
             ${sectionDesc('Koliko te realno košta jedan obrok / porcija iz namirnice.')}
-            ${inputField('Cena namirnice / pakovanja', 'rasip-cena', 'RSD', 'step="0.01"')}
-            ${inputField('Broj obroka / porcija', 'rasip-porcija', '', 'step="0.1" min="1"')}
-            ${inputField('Procenat bacanja (opciono)', 'rasip-bacanje', '%', 'value="0"')}
+            ${inputField('Cena namirnice / pakovanja', 'rasip-cena', 'RSD', 'step="0.01" placeholder="npr. 500"')}
+            ${inputField('Broj obroka / porcija', 'rasip-porcija', '', 'step="0.1" min="1" placeholder="npr. 4"')}
+            ${inputField('Procenat bacanja (opciono)', 'rasip-bacanje', '%', 'placeholder="npr. 10"')}
             ${calcButton('Izračunaj', 'calculateMealCost()')}
         </div>
         ${resultCard('rasip-result-box', 'packageSm', 'Cena po obroku', 'res-rasip-val', 'RSD', 'KUPOVINA', 'Cena po obroku')}
@@ -3681,7 +3507,7 @@ function renderKitchenKasike() {
     return `
         ${favStarHeader('kitchen', 'kasike')}
         <div class="converter-box">
-            ${sectionDesc('Konverzija kašika ↔ grami za različite namirnice.')}
+            ${sectionDesc('Konverzija kašika u grame za različite namirnice.')}
             <div class="input-field">
                 <label>Namirnica</label>
                 <select id="spoon-ingredient" class="custom-input">
@@ -3698,7 +3524,7 @@ function renderKitchenKasike() {
                     <option value="custom">Ručno</option>
                 </select>
             </div>
-            ${inputField('Vrednost', 'spoon-val', '', 'step="0.01"')}
+            ${inputField('Vrednost', 'spoon-val', '', 'step="0.01" placeholder="npr. 2"')}
             ${selectField('Iz jedinice', 'spoon-from', [
                 { value: 'kasika', text: 'Kašika (supena)' },
                 { value: 'kasika_mala', text: 'Mala kašika (čajna)' },
@@ -3712,7 +3538,7 @@ function renderKitchenKasike() {
             <div class="input-field" id="spoon-custom-wrap" style="display:none;">
                 <label>Gram po kašici (ručno)</label>
                 <div class="input-wrapper">
-                    <input type="number" id="spoon-custom-g" class="custom-input" placeholder="20" step="0.1" inputmode="decimal">
+                    <input type="number" id="spoon-custom-g" class="custom-input" placeholder="npr. 20" step="0.1" inputmode="decimal">
                     <span class="unit">g/kašika</span>
                 </div>
             </div>
@@ -3739,7 +3565,7 @@ function renderKitchenCase() {
     return `
         ${favStarHeader('kitchen', 'case')}
         <div class="converter-box">
-            ${sectionDesc('Konverzija čaša ↔ mililitri/litre.')}
+            ${sectionDesc('Konverzija čaša u mililitre/litre.')}
             <div class="input-field">
                 <label>Tip čaše</label>
                 <select id="cup-type" class="custom-input">
@@ -3751,7 +3577,7 @@ function renderKitchenCase() {
                     <option value="custom">Ručno</option>
                 </select>
             </div>
-            ${inputField('Vrednost', 'cup-val', '', 'step="0.01"')}
+            ${inputField('Vrednost', 'cup-val', '', 'step="0.01" placeholder="npr. 2"')}
             ${selectField('Iz jedinice', 'cup-from', [
                 { value: 'casa', text: 'Čaša' },
                 { value: 'ml', text: 'Mililitar' },
@@ -3767,7 +3593,7 @@ function renderKitchenCase() {
             <div class="input-field" id="cup-custom-wrap" style="display:none;">
                 <label>Zapremina čaše (ručno)</label>
                 <div class="input-wrapper">
-                    <input type="number" id="cup-custom-ml" class="custom-input" placeholder="200" inputmode="decimal">
+                    <input type="number" id="cup-custom-ml" class="custom-input" placeholder="npr. 200" inputmode="decimal">
                     <span class="unit">ml</span>
                 </div>
             </div>
@@ -3802,7 +3628,7 @@ function renderKitchenOstalo() {
                 { value: 'kolut', text: 'Kolut (komad)' },
                 { value: 'kocka', text: 'Kocka (~5g)' }
             ])}
-            ${inputField('Broj mera', 'other-qty', '', 'step="0.1"')}
+            ${inputField('Broj mera', 'other-qty', '', 'step="0.1" placeholder="npr. 2"')}
             ${calcButton('Izračunaj', 'calculateOtherMeasure()')}
         </div>
         ${resultCard('other-result-box', 'utensils', 'Približna težina', 'res-other-g', 'g', 'KUHINJA', 'Ostalo')}
@@ -3819,7 +3645,7 @@ function renderKitchenPecenje() {
                 { value: 'f', text: 'Farenhajt (°F)' },
                 { value: 'gas', text: 'Gas mark (1-9)' }
             ])}
-            ${inputField('Vrednost', 'oven-val', '', 'value="180" step="0.1"')}
+            ${inputField('Vrednost', 'oven-val', '', 'placeholder="npr. 180" step="0.1"')}
             ${selectField('U jedinicu', 'oven-to', [
                 { value: 'c', text: 'Celzijus (°C)' },
                 { value: 'f', text: 'Farenhajt (°F)' },
@@ -3849,9 +3675,9 @@ function renderKitchenPorcije() {
         ${favStarHeader('kitchen', 'porcije')}
         <div class="converter-box">
             ${sectionDesc('Preračunaj recept za drugi broj porcija.')}
-            ${inputField('Originalni broj porcija', 'portion-orig', '', 'value="4" min="1"')}
-            ${inputField('Željeni broj porcija', 'portion-want', '', 'value="6" min="1"')}
-            ${inputField('Količina sastojka', 'portion-qty', '', 'step="0.01"')}
+            ${inputField('Originalni broj porcija', 'portion-orig', '', 'placeholder="npr. 4" min="1"')}
+            ${inputField('Željeni broj porcija', 'portion-want', '', 'placeholder="npr. 6" min="1"')}
+            ${inputField('Količina sastojka', 'portion-qty', '', 'step="0.01" placeholder="npr. 250"')}
             ${inputFieldText('Jedinica', 'portion-unit', 'g, ml, kom')}
             ${calcButton('Preračunaj', 'calculatePortion()')}
         </div>
@@ -3885,7 +3711,7 @@ function renderKitchenKafa() {
                 { value: 'caj_list', text: 'Čaj - list (2g/šolja)' },
                 { value: 'caj_kesica', text: 'Čaj - kesica (1 kesica/šolja)' }
             ])}
-            ${inputField('Broj šoljica', 'drink-cups', '', 'value="0" min="1"')}
+            ${inputField('Broj šoljica', 'drink-cups', '', 'placeholder="npr. 4" min="1"')}
             ${calcButton('Izračunaj', 'calculateDrink()')}
         </div>
         <div id="drink-result-box" class="result-card-green" style="display: none;">
@@ -3911,8 +3737,8 @@ function renderPowerUredjaj() {
         <div class="converter-box">
             ${sectionDesc('Izračunaj potrošnju i trošak za jedan uređaj.')}
             ${inputFieldText('Naziv uređaja (opciono)', 'power-name', 'npr. Bojler')}
-            ${inputField('Snaga uređaja', 'power-watts', 'W', 'value="2000"')}
-            ${inputField('Broj sati dnevno', 'power-hours', 'h', 'value="2" step="0.1"')}
+            ${inputField('Snaga uređaja', 'power-watts', 'W', 'placeholder="npr. 2000"')}
+            ${inputField('Broj sati dnevno', 'power-hours', 'h', 'step="0.1" placeholder="npr. 2"')}
             ${inputField('Cena struje', 'power-price', 'RSD/kWh', 'value="12" step="0.01"')}
             ${calcButton('Izračunaj Potrošnju', 'calculatePower()')}
         </div>
@@ -3932,8 +3758,8 @@ function renderPowerVise() {
             ${sectionDesc('Dodaj više uređaja i vidi ukupnu potrošnju.')}
             <div id="power-devices-list"></div>
             ${inputFieldText('Naziv uređaja', 'dev-name', 'Bojler')}
-            ${inputField('Snaga (W)', 'dev-watts', '', 'value="2000"')}
-            ${inputField('Sati dnevno', 'dev-hours', '', 'value="2" step="0.1"')}
+            ${inputField('Snaga (W)', 'dev-watts', '', 'placeholder="npr. 2000"')}
+            ${inputField('Sati dnevno', 'dev-hours', '', 'step="0.1" placeholder="npr. 2"')}
             ${inputField('Cena struje', 'dev-price', 'RSD/kWh', 'value="12" step="0.01"')}
             ${calcButton('Dodaj Uređaj', 'addPowerDevice()')}
         </div>
@@ -3958,7 +3784,7 @@ function renderPowerWatt() {
                 { value: 'w-to-a', text: 'W → A' },
                 { value: 'a-to-w', text: 'A → W' }
             ])}
-            ${inputField('Vrednost', 'watt-val', '', 'step="0.01"')}
+            ${inputField('Vrednost', 'watt-val', '', 'step="0.01" placeholder="npr. 2000"')}
             ${inputField('Faktor snage (cos φ)', 'watt-cosfi', '', 'value="0.95" step="0.01" min="0.1" max="1"')}
             ${inputField('Napon', 'watt-volt', 'V', 'value="230"')}
             ${calcButton('Izračunaj', 'calculateWattAmps()')}
@@ -3990,11 +3816,11 @@ function renderPowerFaktura() {
         ${favStarHeader('power', 'faktura')}
         <div class="converter-box">
             ${sectionDesc('Procena mesečnog računa za struju prema potrošnji i tarifi.')}
-            ${inputField('Potrošnja — viša tarifa', 'fakt-visa', 'kWh', 'step="0.1"')}
-            ${inputField('Potrošnja — niža tarifa', 'fakt-niza', 'kWh', 'step="0.1"')}
+            ${inputField('Potrošnja — viša tarifa', 'fakt-visa', 'kWh', 'step="0.1" placeholder="npr. 300"')}
+            ${inputField('Potrošnja — niža tarifa', 'fakt-niza', 'kWh', 'step="0.1" placeholder="npr. 200"')}
             ${inputField('Cena — viša tarifa', 'fakt-cena-visa', 'RSD/kWh', 'value="12" step="0.01"')}
             ${inputField('Cena — niža tarifa', 'fakt-cena-niza', 'RSD/kWh', 'value="6" step="0.01"')}
-            ${inputField('Fiksni deo računa', 'fakt-fiksni', 'RSD', 'value="0" step="0.01"')}
+            ${inputField('Fiksni deo računa', 'fakt-fiksni', 'RSD', 'placeholder="npr. 500" step="0.01"')}
             ${calcButton('Izračunaj Fakturu', 'calculateBill()')}
         </div>
         ${resultCard('fakt-result-box', 'trending', 'Ukupno za plaćanje', 'res-fakt-total', 'RSD', 'STRUJA', 'Faktura')}
@@ -4011,8 +3837,8 @@ function renderPowerKabl() {
         ${favStarHeader('power', 'kabl')}
         <div class="converter-box">
             ${sectionDesc('Preporuka preseka kabla (mm²) i snage osigurača.')}
-            ${inputField('Struja opterećenja', 'kabl-amps', 'A', 'step="0.1"')}
-            ${inputField('Dužina kabla', 'kabl-len', 'm', 'step="0.1"')}
+            ${inputField('Struja opterećenja', 'kabl-amps', 'A', 'step="0.1" placeholder="npr. 16"')}
+            ${inputField('Dužina kabla', 'kabl-len', 'm', 'step="0.1" placeholder="npr. 20"')}
             ${inputField('Napon', 'kabl-volt', 'V', 'value="230"')}
             ${selectField('Tip kabla', 'kabl-type', [
                 { value: 'bakr', text: 'Bakar (Cu)' },
@@ -4033,10 +3859,10 @@ function renderPowerPadNapona() {
     return `
         ${favStarHeader('power', 'padnapona')}
         <div class="converter-box">
-            ${sectionDesc('Izračunaj pad napona na kablu (dozvoljeno do 5% za rasvetu, 4% za ostalo).')}
-            ${inputField('Struja', 'pad-amps', 'A', 'step="0.1"')}
-            ${inputField('Dužina kabla (jedan smer)', 'pad-len', 'm', 'step="0.1"')}
-            ${inputField('Presek kabla', 'pad-mm2', 'mm²', 'value="2.5" step="0.1"')}
+            ${sectionDesc('Izračunaj pad napona na kablu (dozvoljeno do 5%).')}
+            ${inputField('Struja', 'pad-amps', 'A', 'step="0.1" placeholder="npr. 10"')}
+            ${inputField('Dužina kabla (jedan smer)', 'pad-len', 'm', 'step="0.1" placeholder="npr. 25"')}
+            ${inputField('Presek kabla', 'pad-mm2', 'mm²', 'step="0.1" placeholder="npr. 2.5"')}
             ${inputField('Napon', 'pad-volt', 'V', 'value="230"')}
             ${selectField('Materijal', 'pad-mat', [
                 { value: '0.0178', text: 'Bakar (ρ = 0.0178)' },
@@ -4058,7 +3884,7 @@ function renderPowerOsigurac() {
         ${favStarHeader('power', 'osigurac')}
         <div class="converter-box">
             ${sectionDesc('Preporuka osigurača prema snazi uređaja i tipu potrošača.')}
-            ${inputField('Snaga uređaja', 'osig-watt', 'W', 'step="1"')}
+            ${inputField('Snaga uređaja', 'osig-watt', 'W', 'step="1" placeholder="npr. 2000"')}
             ${inputField('Napon', 'osig-volt', 'V', 'value="230"')}
             ${selectField('Tip potrošača (startna struja)', 'osig-tip', [
                 { value: '1', text: 'Omski (grejalica, bojler) — 1×' },
@@ -4103,7 +3929,7 @@ function renderPowerTrofazna() {
                 { value: 'snaga', text: 'Snaga (kW) → Struja (A)' },
                 { value: 'struja', text: 'Struja (A) → Snaga (kW)' }
             ])}
-            ${inputField('Vrednost', 'trofaz-val', '', 'step="0.01"')}
+            ${inputField('Vrednost', 'trofaz-val', '', 'step="0.01" placeholder="npr. 5"')}
             ${inputField('Napon (linijski)', 'trofaz-volt', 'V', 'value="400"')}
             ${inputField('Faktor snage (cos φ)', 'trofaz-cosfi', '', 'value="0.9" step="0.01"')}
             ${calcButton('Izračunaj', 'calculateThreePhase()')}
@@ -4135,8 +3961,8 @@ function renderPowerOsvetljenje() {
         ${favStarHeader('power', 'osvetljenje')}
         <div class="converter-box">
             ${sectionDesc('Izračunaj potrebnu količinu svetla za prostoriju.')}
-            ${inputField('Dužina prostorije', 'osv-l', 'm', 'step="0.1"')}
-            ${inputField('Širina prostorije', 'osv-w', 'm', 'step="0.1"')}
+            ${inputField('Dužina prostorije', 'osv-l', 'm', 'step="0.1" placeholder="npr. 5"')}
+            ${inputField('Širina prostorije', 'osv-w', 'm', 'step="0.1" placeholder="npr. 4"')}
             ${inputField('Visina plafona', 'osv-h', 'm', 'value="2.6" step="0.1"')}
             ${selectField('Tip prostorije', 'osv-tip', [
                 { value: '50', text: 'Kupatilo / Hodnik (50 lux)' },
@@ -4163,8 +3989,8 @@ function renderPowerGrejac() {
         ${favStarHeader('power', 'grejac')}
         <div class="converter-box">
             ${sectionDesc('Vreme zagrevanja vode sa grejačem date snage.')}
-            ${inputField('Snaga grejača', 'grej-watt', 'W', 'step="1"')}
-            ${inputField('Količina vode', 'grej-litar', 'L', 'step="0.1"')}
+            ${inputField('Snaga grejača', 'grej-watt', 'W', 'step="1" placeholder="npr. 2000"')}
+            ${inputField('Količina vode', 'grej-litar', 'L', 'step="0.1" placeholder="npr. 80"')}
             ${inputField('Početna temperatura', 'grej-t1', '°C', 'value="15" step="0.5"')}
             ${inputField('Željena temperatura', 'grej-t2', '°C', 'value="60" step="0.5"')}
             ${inputField('Cena struje', 'grej-cena', 'RSD/kWh', 'value="12" step="0.01"')}
@@ -4185,8 +4011,8 @@ function renderPowerBaterije() {
         <div class="converter-box">
             ${sectionDesc('Trajanje baterije / UPS-a prema kapacitetu i opterećenju.')}
             ${inputField('Napon baterije', 'bat-volt', 'V', 'value="12" step="0.1"')}
-            ${inputField('Kapacitet', 'bat-ah', 'Ah', 'step="0.1"')}
-            ${inputField('Opterećenje', 'bat-watt', 'W', 'step="1"')}
+            ${inputField('Kapacitet', 'bat-ah', 'Ah', 'step="0.1" placeholder="npr. 100"')}
+            ${inputField('Opterećenje', 'bat-watt', 'W', 'step="1" placeholder="npr. 200"')}
             ${inputField('Dubina pražnjenja (DoD)', 'bat-dod', '%', 'value="80" step="1" min="10" max="100"')}
             ${calcButton('Izračunaj Trajanje', 'calculateBattery()')}
         </div>
@@ -4263,7 +4089,7 @@ function renderWorkSatnica() {
                 { value: 'monthly', text: 'Mesečno' },
                 { value: 'yearly', text: 'Godišnje' }
             ])}
-            ${inputField('Mesečna/Godišnja plata (neto)', 'work-salary', 'RSD', 'step="0.01"')}
+            ${inputField('Mesečna/Godišnja plata (neto)', 'work-salary', 'RSD', 'step="0.01" placeholder="npr. 80000"')}
             ${inputField('Broj radnih sati mesečno', 'work-hours', 'h', 'value="176"')}
             ${calcButton('Izračunaj Satnicu', 'calculateHourlyRate()')}
         </div>
@@ -4280,12 +4106,12 @@ function renderWorkPlata() {
     return `
         ${favStarHeader('work', 'plata')}
         <div class="converter-box">
-            ${sectionDesc('Izračunaj bruto/neto platu sa doprinosima i porezom (Srbija).')}
+            ${sectionDesc('Izračunaj bruto/neto platu sa doprinosima i porezom.')}
             ${selectField('Tip obračuna', 'plata-type', [
                 { value: 'neto-to-bruto', text: 'Neto → Bruto' },
                 { value: 'bruto-to-neto', text: 'Bruto → Neto' }
             ])}
-            ${inputField('Iznos', 'plata-amount', 'RSD', 'step="0.01"')}
+            ${inputField('Iznos', 'plata-amount', 'RSD', 'step="0.01" placeholder="npr. 80000"')}
             ${calcButton('Izračunaj Platu', 'calculateSalary()')}
         </div>
         <div id="plata-result-box" class="result-card-green" style="display: none;">
@@ -4316,8 +4142,8 @@ function renderWorkOdmor() {
         <div class="converter-box">
             ${sectionDesc('Izračunaj dane godišnjeg odmora i naknadu.')}
             ${inputField('Ukupno dana godišnjeg odmora', 'odmor-total', 'dana', 'value="20" min="0"')}
-            ${inputField('Iskorišćeno dana', 'odmor-used', 'dana', 'value="0" min="0"')}
-            ${inputField('Prosečna dnevna zarada', 'odmor-daily', 'RSD', 'step="0.01"')}
+            ${inputField('Iskorišćeno dana', 'odmor-used', 'dana', 'min="0" placeholder="npr. 5"')}
+            ${inputField('Prosečna dnevna zarada', 'odmor-daily', 'RSD', 'step="0.01" placeholder="npr. 3000"')}
             ${calcButton('Izračunaj Odmor', 'calculateVacation()')}
         </div>
         ${resultCard('odmor-result-box', 'calendar', 'Ostatak dana odmora', 'res-odmor-left', 'dana', 'POSAO', 'Godišnji odmor')}
@@ -4333,8 +4159,8 @@ function renderWorkNocni() {
         ${favStarHeader('work', 'nocni')}
         <div class="converter-box">
             ${sectionDesc('Izračunaj zaradu za noćni rad.')}
-            ${inputField('Broj noćnih sati', 'nocni-hours', 'h', 'step="0.5"')}
-            ${inputField('Satnica', 'nocni-rate', 'RSD/h', 'step="0.01"')}
+            ${inputField('Broj noćnih sati', 'nocni-hours', 'h', 'step="0.5" placeholder="npr. 8"')}
+            ${inputField('Satnica', 'nocni-rate', 'RSD/h', 'step="0.01" placeholder="npr. 400"')}
             ${selectField('Uvećanje', 'nocni-mult', [
                 { value: '1.26', text: '26% (zakonski minimum)' },
                 { value: '1.35', text: '35%' },
@@ -4354,9 +4180,9 @@ function renderWorkPrekovremeno() {
     return `
         ${favStarHeader('work', 'prekovremeno')}
         <div class="converter-box">
-            ${sectionDesc('Izračunaj zaradu za prekovremeni rad (26% za prva 2h, 50% dalje).')}
-            ${inputField('Broj prekovremenih sati', 'prek-hours', 'h', 'step="0.5"')}
-            ${inputField('Satnica', 'prek-rate', 'RSD/h', 'step="0.01"')}
+            ${sectionDesc('Prekovremeni rad (26% za prva 2h, 50% dalje).')}
+            ${inputField('Broj prekovremenih sati', 'prek-hours', 'h', 'step="0.5" placeholder="npr. 5"')}
+            ${inputField('Satnica', 'prek-rate', 'RSD/h', 'step="0.01" placeholder="npr. 400"')}
             ${calcButton('Izračunaj Prekovremeno', 'calculateOvertime()')}
         </div>
         ${resultCard('prek-result-box', 'activity', 'Ukupna zarada', 'res-prek-total', 'RSD', 'POSAO', 'Prekovremeno')}
@@ -4372,10 +4198,10 @@ function renderWorkPutni() {
         ${favStarHeader('work', 'putni')}
         <div class="converter-box">
             ${sectionDesc('Izračunaj putne troškove (dnevnice, gorivo, smeštaj).')}
-            ${inputField('Broj dana putovanja', 'putni-days', '', 'value="0"')}
-            ${inputField('Dnevnica po danu', 'putni-daily', 'RSD', 'value="0" step="0.01"')}
-            ${inputField('Trošak goriva', 'putni-fuel', 'RSD', 'value="0" step="0.01"')}
-            ${inputField('Trošak smeštaja', 'putni-hotel', 'RSD', 'value="0" step="0.01"')}
+            ${inputField('Broj dana putovanja', 'putni-days', '', 'placeholder="npr. 3"')}
+            ${inputField('Dnevnica po danu', 'putni-daily', 'RSD', 'step="0.01" placeholder="npr. 2500"')}
+            ${inputField('Trošak goriva', 'putni-fuel', 'RSD', 'step="0.01" placeholder="npr. 6000"')}
+            ${inputField('Trošak smeštaja', 'putni-hotel', 'RSD', 'step="0.01" placeholder="npr. 12000"')}
             ${calcButton('Izračunaj Putne Troškove', 'calculateTravelExpenses()')}
         </div>
         ${resultCard('putni-result-box', 'car', 'Ukupni putni troškovi', 'res-putni-total', 'RSD', 'POSAO', 'Putni troškovi')}
@@ -4392,11 +4218,11 @@ function renderWorkBonusi() {
         ${favStarHeader('work', 'bonusi')}
         <div class="converter-box">
             ${sectionDesc('Izračunaj bonuse i dodatke (13. plata, regres, topli obrok).')}
-            ${inputField('Broj meseci za bonus', 'bonus-months', '', 'value="0" min="0"')}
-            ${inputField('Prosečna mesečna plata', 'bonus-salary', 'RSD', 'value="0" step="0.01"')}
-            ${inputField('13. plata (opciono)', 'bonus-13th', 'RSD', 'value="0" step="0.01"')}
-            ${inputField('Regres za odmor (opciono)', 'bonus-regres', 'RSD', 'value="0" step="0.01"')}
-            ${inputField('Topli obrok mesečno', 'bonus-meal', 'RSD', 'value="0" step="0.01"')}
+            ${inputField('Broj meseci za bonus', 'bonus-months', '', 'min="0" placeholder="npr. 1"')}
+            ${inputField('Prosečna mesečna plata', 'bonus-salary', 'RSD', 'step="0.01" placeholder="npr. 80000"')}
+            ${inputField('13. plata (opciono)', 'bonus-13th', 'RSD', 'step="0.01" placeholder="npr. 80000"')}
+            ${inputField('Regres za odmor (opciono)', 'bonus-regres', 'RSD', 'step="0.01" placeholder="npr. 25000"')}
+            ${inputField('Topli obrok mesečno (opciono)', 'bonus-meal', 'RSD', 'step="0.01" placeholder="npr. 5000"')}
             ${calcButton('Izračunaj Bonuse', 'calculateBonuses()')}
         </div>
         ${resultCard('bonus-result-box', 'gift', 'Ukupni bonusi', 'res-bonus-total', 'RSD', 'POSAO', 'Bonusi')}
@@ -4413,7 +4239,7 @@ function renderMusicStimer() {
     return `
         ${favStarHeader('music', 'stimer')}
         <div class="converter-box">
-            ${sectionDesc('Izaberi instrument i klikni na žicu da čuješ referentni ton. Za auto-štimovanje, uključi mikrofon.')}
+            ${sectionDesc('Izaberi instrument i klikni na žicu da čuješ referentni ton.')}
             <div class="input-field">
                 <label>Instrument</label>
                 <select id="tuner-instrument" class="custom-input" onchange="renderTunerStrings()">
@@ -4573,7 +4399,7 @@ function renderMusicTempo() {
     return `
         ${favStarHeader('music', 'tempo')}
         <div class="converter-box">
-            ${sectionDesc('Konverzija BPM ↔ milisekunde (za delay, reverb, itd).')}
+            ${sectionDesc('Konverzija BPM ↔ milisekunde (za delay, reverb).')}
             ${selectField('Iz jedinice', 'tempo-from', [
                 { value: 'bpm', text: 'BPM (otkucaji/min)' },
                 { value: 'ms', text: 'Milisekunde (ms)' }
@@ -4690,84 +4516,8 @@ function renderMusicDetektor() {
 }
 
 // ============================================================
-// ============== KALKULACIJE (sve postojeće) ================
+// ============== KALKULACIJE ================
 // ============================================================
-
-// ---------- Pomoćne za procenat ----------
-function percentAddSub(base, pct, op) {
-    if (base === null || pct === null) return null;
-    const factor = op === 'add' ? 1 + pct / 100 : 1 - pct / 100;
-    const result = base * factor;
-    const sign = op === 'add' ? '+' : '−';
-    return { result, formula: `${fmt(base)} ${sign} ${fmt(pct)}% = ${fmt(base)} × ${fmt(fmt(factor, 4))} = ${fmt(result)}` };
-}
-function percentXofY(x, y) {
-    if (x === null || y === null || y === 0) return null;
-    const p = (x / y) * 100;
-    return { result: p, formula: `${fmt(x)} ÷ ${fmt(y)} × 100 = ${fmt(p)}%` };
-}
-function percentChange(from, to) {
-    if (from === null || to === null || from === 0) return null;
-    const p = ((to - from) / Math.abs(from)) * 100;
-    const sign = p >= 0 ? '+' : '';
-    return { result: p, formula: `(${fmt(to)} − ${fmt(from)}) ÷ ${fmt(Math.abs(from))} × 100 = ${sign}${fmt(p)}%` };
-}
-function setFormula(id, text) {
-    const e = el(id);
-    if (!e) return;
-    if (text) { e.textContent = text; e.classList.add('show'); }
-    else { e.textContent = ''; e.classList.remove('show'); }
-}
-
-function calculatePercent1() {
-    const base = num('pct-base'), pct = num('pct-val');
-    const op = el('pct-op') ? el('pct-op').value : 'add';
-    if (base === null || pct === null) { showToast('Unesite broj i procenat.', 'error'); return; }
-    const res = percentAddSub(base, pct, op);
-    if (!res) return;
-    const rv = el('res-pct1-val'); if (rv) rv.innerText = fmt(res.result, 2);
-    setFormula('pct1-formula', res.formula);
-    show('pct1-result-box');
-}
-function calculatePercent2() {
-    const x = num('pct-x'), y = num('pct-y');
-    if (x === null || y === null || y === 0) { showToast('Unesite X i Y (Y ≠ 0).', 'error'); return; }
-    const res = percentXofY(x, y);
-    if (!res) return;
-    const rv = el('res-pct2-val'); if (rv) rv.innerText = fmt(res.result, 2);
-    setFormula('pct2-formula', res.formula);
-    show('pct2-result-box');
-}
-function calculatePercent3() {
-    const from = num('pct-from'), to = num('pct-to');
-    if (from === null || to === null || from === 0) { showToast('Unesite početnu i krajnju vrednost.', 'error'); return; }
-    const res = percentChange(from, to);
-    if (!res) return;
-    const rv = el('res-pct3-val');
-    if (rv) { const sign = res.result >= 0 ? '+' : ''; rv.innerText = sign + fmt(res.result, 2); }
-    setFormula('pct3-formula', res.formula);
-    show('pct3-result-box');
-}
-function calculateMoneyPercent1() {
-    const base = num('np-base'), pct = num('np-val');
-    const op = el('np-op') ? el('np-op').value : 'add';
-    if (base === null || pct === null) { showToast('Unesite cenu i procenat.', 'error'); return; }
-    const res = percentAddSub(base, pct, op);
-    if (!res) return;
-    const rv = el('res-np1-val'); if (rv) rv.innerText = money(res.result);
-    const ru = el('res-np1-unit'); if (ru) ru.innerText = 'RSD';
-    setFormula('np1-formula', res.formula + ' RSD');
-    show('np1-result-box');
-}
-function calculateMoneyPercent2() {
-    const x = num('np-x'), y = num('np-y');
-    if (x === null || y === null || y === 0) { showToast('Unesite deo i ukupno.', 'error'); return; }
-    const res = percentXofY(x, y);
-    if (!res) return;
-    const rv = el('res-np2-val'); if (rv) rv.innerText = fmt(res.result, 2);
-    setFormula('np2-formula', res.formula);
-    show('np2-result-box');
-}
 
 // ---------- AUTO ----------
 function calculateAuto() {
@@ -4782,8 +4532,7 @@ function calculateAuto() {
     const sf = el('stat-fuel'); if (sf) sf.innerText = fmt(fuel) + ' L';
     const sc = el('stat-cost'); if (sc) sc.innerText = price > 0 ? fmt(totalCost, 0) + ' ' + currency : '—';
     if (price > 0) { try { localStorage.setItem('cx_fuel_price', String(price)); } catch (e) {} }
-    show('result-box');
-    show('stats-row');
+    show('result-box'); show('stats-row');
     logFuelEntry(consumption, dist, fuel);
 }
 function calculateService() {
@@ -4851,12 +4600,8 @@ function calculateRoadTrip() {
     show('road-result-box'); show('road-stats-row');
     try { localStorage.setItem('cx_fuel_price', String(price)); } catch (e) {}
 }
-function loadAutoProfile() {
-    try { return JSON.parse(localStorage.getItem('cx_auto_profile')) || {}; } catch (e) { return {}; }
-}
-function saveAutoProfileData(p) {
-    try { localStorage.setItem('cx_auto_profile', JSON.stringify(p)); } catch (e) {}
-}
+function loadAutoProfile() { try { return JSON.parse(localStorage.getItem('cx_auto_profile')) || {}; } catch (e) { return {}; } }
+function saveAutoProfileData(p) { try { localStorage.setItem('cx_auto_profile', JSON.stringify(p)); } catch (e) {} }
 function daysUntil(dateStr) {
     if (!dateStr) return null;
     const target = parseDate(dateStr);
@@ -4900,14 +4645,10 @@ function saveAutoProfile() {
         show('auto-profile-result-box');
         showToast('Podaci o autu sačuvani', 'success');
         updateAutoStatus();
-    } catch (e) { console.error('saveAutoProfile error:', e); }
+    } catch (e) {}
 }
-function loadFuelLog() {
-    try { return JSON.parse(localStorage.getItem('cx_auto_fuel_log')) || []; } catch (e) { return []; }
-}
-function saveFuelLog(log) {
-    try { localStorage.setItem('cx_auto_fuel_log', JSON.stringify(log)); } catch (e) {}
-}
+function loadFuelLog() { try { return JSON.parse(localStorage.getItem('cx_auto_fuel_log')) || []; } catch (e) { return []; } }
+function saveFuelLog(log) { try { localStorage.setItem('cx_auto_fuel_log', JSON.stringify(log)); } catch (e) {} }
 function logFuelEntry(consumption, dist, fuel) {
     try {
         const log = loadFuelLog();
@@ -4934,16 +4675,14 @@ function renderFuelHistory() {
         if (!container) return;
         container.innerHTML = '';
         const entries = log.slice(0, 12).reverse();
-        if (entries.length < 2) {
-            container.innerHTML = '<div class="chart-empty"><span class="chart-empty-icon">📈</span>Sačuvaj bar 2 merenja za grafik</div>';
-        } else { renderLineChart(container, entries); }
+        if (entries.length < 2) container.innerHTML = '<div class="chart-empty"><span class="chart-empty-icon">📈</span>Sačuvaj bar 2 merenja za grafik</div>';
+        else renderLineChart(container, entries);
         const last5 = log.slice(0, 5);
         const avg5 = last5.reduce((a, e) => a + e.consumption, 0) / last5.length;
         const lastVal = log[0].consumption;
         let trend = '';
         if (log.length > 1) {
-            const prevSet = log.slice(1, 6);
-            const prevAvg = prevSet.reduce((a, e) => a + e.consumption, 0) / Math.max(1, prevSet.length);
+            const prevAvg = log.slice(1, 6).reduce((a, e) => a + e.consumption, 0) / Math.max(1, log.slice(1, 6).length);
             if (lastVal > prevAvg + 0.2) trend = ' ↑';
             else if (lastVal < prevAvg - 0.2) trend = ' ↓';
         }
@@ -5020,8 +4759,7 @@ function calculateBikeCalories() {
     if (!weight || !timeMinutes || !speed) { showToast('Unesite sve podatke.', 'error'); return; }
     let met = 8.0;
     if (speed < 15) met = 6.0; else if (speed < 20) met = 8.0; else if (speed < 25) met = 10.0; else met = 12.0;
-    const totalCalories = met * weight * (timeMinutes / 60);
-    const bc = el('res-bike-calories'); if (bc) bc.innerText = fmt(totalCalories, 0);
+    const bc = el('res-bike-calories'); if (bc) bc.innerText = fmt(met * weight * (timeMinutes / 60), 0);
     show('bike-cal-result-box');
 }
 function calculateGearTable() {
@@ -5040,7 +4778,7 @@ function calculateGearTable() {
     rears.forEach(r => {
         const row = document.createElement('tr');
         let cells = `<td class="gear-row-label">${r}</td>`;
-        fronts.forEach(f => { const speed = (cadence * (f / r) * wheelCircumference * 60) / 1000; cells += `<td>${fmt(speed, 1)}</td>`; });
+        fronts.forEach(f => { cells += `<td>${fmt((cadence * (f / r) * wheelCircumference * 60) / 1000, 1)}</td>`; });
         row.innerHTML = cells;
         table.appendChild(row);
     });
@@ -5060,8 +4798,7 @@ function calculateMoney() {
     const price = num('money-price'), discount = num('money-discount');
     if (!price || discount === null || discount < 0 || discount > 100) { showToast('Unesite cenu i popust (0–100%).', 'error'); return; }
     const saved = price * (discount / 100);
-    const finalPrice = price - saved;
-    const mf = el('res-money-final'); if (mf) mf.innerText = money(finalPrice);
+    const mf = el('res-money-final'); if (mf) mf.innerText = money(price - saved);
     const ms = el('stat-money-saved'); if (ms) ms.innerText = money(saved) + ' RSD';
     show('money-result-box'); show('money-stats-row');
 }
@@ -5142,8 +4879,7 @@ function calculateSplit() {
     const total = num('split-total'), people = num('split-people'), tip = num('split-tip') || 0;
     if (!total || !people || people < 1) { showToast('Unesite iznos i broj osoba.', 'error'); return; }
     const totalWithTip = total * (1 + tip / 100);
-    const perPerson = totalWithTip / people;
-    const sv = el('res-split-val'); if (sv) sv.innerText = money(perPerson);
+    const sv = el('res-split-val'); if (sv) sv.innerText = money(totalWithTip / people);
     const st = el('stat-split-total'); if (st) st.innerText = money(totalWithTip) + ' RSD';
     show('split-result-box'); show('split-stats-row');
 }
@@ -5152,10 +4888,9 @@ function calculateTip() {
     if (!bill || percent === null) { showToast('Unesite iznos i procenat.', 'error'); return; }
     const tipAmount = bill * (percent / 100);
     const total = bill + tipAmount;
-    const perPerson = total / people;
     const tv = el('res-tip-val'); if (tv) tv.innerText = money(tipAmount);
     const tt = el('stat-tip-total'); if (tt) tt.innerText = money(total) + ' RSD';
-    const tp = el('stat-tip-per-person'); if (tp) tp.innerText = money(perPerson) + ' RSD';
+    const tp = el('stat-tip-per-person'); if (tp) tp.innerText = money(total / people) + ' RSD';
     show('tip-result-box'); show('tip-stats-row');
 }
 
@@ -5208,10 +4943,8 @@ function loadFxRates() {
             CURRENCIES.forEach(c => {
                 if (typeof raw.rates[c.code] === 'number' && raw.rates[c.code] > 0) c.rate = raw.rates[c.code];
             });
-            return raw.updated || null;
         }
     } catch (e) {}
-    return null;
 }
 function saveFxRates() {
     try {
@@ -5222,8 +4955,7 @@ function saveFxRates() {
 }
 function formatFxUpdated(ts) {
     if (!ts) return 'nije osveženo';
-    const d = new Date(ts), now = new Date();
-    const diffMin = Math.round((now - d) / 60000);
+    const diffMin = Math.round((new Date() - new Date(ts)) / 60000);
     if (diffMin < 1) return 'upravo sad';
     if (diffMin < 60) return `pre ${diffMin} min`;
     const diffH = Math.round(diffMin / 60);
@@ -5234,16 +4966,15 @@ async function fetchFromErApi() {
     const res = await fetch('https://open.er-api.com/v6/latest/RSD', { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    if (!data || data.result !== 'success' || !data.rates) throw new Error('Neispravan odgovor');
+    if (!data || data.result !== 'success' || !data.rates) throw new Error('Neispravan');
     return data.rates;
 }
 async function fetchFromFrankfurter() {
     const supported = CURRENCIES.map(c => c.code).filter(code => code !== 'RSD');
-    const url = `https://api.frankfurter.app/latest?from=EUR&to=${supported.join(',')}`;
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(`https://api.frankfurter.app/latest?from=EUR&to=${supported.join(',')}`, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    if (!data || !data.rates) throw new Error('Neispravan odgovor');
+    if (!data || !data.rates) throw new Error('Neispravan');
     return data.rates;
 }
 async function refreshExchangeRates(silent = false) {
@@ -5291,10 +5022,10 @@ function populateCurrencySelects() {
     const prevFrom = fromSel.value || 'RSD', prevTo = toSel.value || 'EUR';
     fromSel.innerHTML = ''; toSel.innerHTML = '';
     CURRENCIES.forEach(c => {
-        const opt1 = document.createElement('option');
-        opt1.value = c.code; opt1.textContent = `${c.flag} ${c.code} — ${c.name}`; fromSel.appendChild(opt1);
-        const opt2 = document.createElement('option');
-        opt2.value = c.code; opt2.textContent = `${c.flag} ${c.code} — ${c.name}`; toSel.appendChild(opt2);
+        const o1 = document.createElement('option');
+        o1.value = c.code; o1.textContent = `${c.flag} ${c.code} — ${c.name}`; fromSel.appendChild(o1);
+        const o2 = document.createElement('option');
+        o2.value = c.code; o2.textContent = `${c.flag} ${c.code} — ${c.name}`; toSel.appendChild(o2);
     });
     fromSel.value = prevFrom || 'RSD'; toSel.value = prevTo || 'EUR';
 }
@@ -5336,9 +5067,7 @@ function calculateCurrency() {
     if (!fromSel || !toSel) return;
     const fromCur = getCurrencyByCode(fromSel.value), toCur = getCurrencyByCode(toSel.value);
     const info = el('fx-rate-info');
-    if (info && fromCur && toCur) {
-        info.innerHTML = `1 ${fromCur.code} = <strong>${fmt(fromCur.rate / toCur.rate, 4)}</strong> ${toCur.code}`;
-    }
+    if (info && fromCur && toCur) info.innerHTML = `1 ${fromCur.code} = <strong>${fmt(fromCur.rate / toCur.rate, 4)}</strong> ${toCur.code}`;
     if (!amount) { hide('fx-result-box'); highlightFxSelected(); return; }
     if (!fromCur || !toCur) return;
     const result = (amount * fromCur.rate) / toCur.rate;
@@ -5370,9 +5099,8 @@ function calculateIdealWeight() {
     const inchesOver = Math.max(0, (height - 152.4) / 2.54);
     const ideal = (gender === 'male' ? 50 : 45.5) + (2.3 * inchesOver);
     const heightM = height / 100;
-    const low = 18.5 * heightM * heightM, high = 24.9 * heightM * heightM;
     const iw = el('res-ideal-weight'); if (iw) iw.innerText = fmt(ideal, 1);
-    const ir = el('stat-ideal-range'); if (ir) ir.innerText = fmt(low, 1) + ' – ' + fmt(high, 1) + ' kg';
+    const ir = el('stat-ideal-range'); if (ir) ir.innerText = fmt(18.5 * heightM * heightM, 1) + ' – ' + fmt(24.9 * heightM * heightM, 1) + ' kg';
     show('health-ideal-result-box'); show('health-ideal-stats-row');
 }
 function calculateBMR() {
@@ -5405,9 +5133,8 @@ function calculateRunning() {
     if (totalMinutes === 0) { showToast('Unesite vreme.', 'error'); return; }
     const paceMin = totalMinutes / distance;
     const paceMinWhole = Math.floor(paceMin), paceSec = Math.round((paceMin - paceMinWhole) * 60);
-    const speed = distance / (totalMinutes / 60);
     const rp = el('res-run-pace'); if (rp) rp.innerText = `${paceMinWhole}:${String(paceSec).padStart(2, '0')}`;
-    const rs = el('stat-run-speed'); if (rs) rs.innerText = fmt(speed, 2) + ' km/h';
+    const rs = el('stat-run-speed'); if (rs) rs.innerText = fmt(distance / (totalMinutes / 60), 2) + ' km/h';
     const rt = el('stat-run-total'); if (rt) rt.innerText = `${min}min ${sec}s`;
     show('run-result-box'); show('run-stats-row');
 }
@@ -5706,19 +5433,19 @@ function renderOpenings(type) {
     openingsData[type].forEach((op, idx) => {
         const item = document.createElement('div');
         item.className = 'opening-item';
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text'; nameInput.placeholder = 'naziv'; nameInput.value = op.name || '';
-        nameInput.oninput = e => updateOpening(type, idx, 'name', e.target.value);
-        const wInput = document.createElement('input');
-        wInput.type = 'text'; wInput.inputMode = 'decimal'; wInput.placeholder = 'šir. m'; wInput.value = op.w || '';
-        wInput.oninput = e => updateOpening(type, idx, 'w', e.target.value);
-        const hInput = document.createElement('input');
-        hInput.type = 'text'; hInput.inputMode = 'decimal'; hInput.placeholder = 'vis. m'; hInput.value = op.h || '';
-        hInput.oninput = e => updateOpening(type, idx, 'h', e.target.value);
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'opening-remove'; removeBtn.textContent = '✕';
-        removeBtn.onclick = () => removeOpening(type, idx);
-        item.appendChild(nameInput); item.appendChild(wInput); item.appendChild(hInput); item.appendChild(removeBtn);
+        const n = document.createElement('input');
+        n.type = 'text'; n.placeholder = 'naziv'; n.value = op.name || '';
+        n.oninput = e => updateOpening(type, idx, 'name', e.target.value);
+        const w = document.createElement('input');
+        w.type = 'text'; w.inputMode = 'decimal'; w.placeholder = 'šir. m'; w.value = op.w || '';
+        w.oninput = e => updateOpening(type, idx, 'w', e.target.value);
+        const h = document.createElement('input');
+        h.type = 'text'; h.inputMode = 'decimal'; h.placeholder = 'vis. m'; h.value = op.h || '';
+        h.oninput = e => updateOpening(type, idx, 'h', e.target.value);
+        const r = document.createElement('button');
+        r.className = 'opening-remove'; r.textContent = '✕';
+        r.onclick = () => removeOpening(type, idx);
+        item.appendChild(n); item.appendChild(w); item.appendChild(h); item.appendChild(r);
         list.appendChild(item);
     });
 }
@@ -5756,12 +5483,10 @@ function calculateShapeArea() {
 function calculatePaint() {
     const width = num('paint-width'), height = num('paint-height'), walls = num('paint-walls') || 0, coverage = num('paint-coverage') || 10;
     if (!width || !height || !walls) { showToast('Unesite dimenzije zidova.', 'error'); return; }
-    const grossArea = width * height * walls;
-    const openingsArea = getOpeningsArea('paint');
-    const netArea = Math.max(0, grossArea - openingsArea);
+    const netArea = Math.max(0, width * height * walls - getOpeningsArea('paint'));
     const pl = el('res-paint-liters'); if (pl) pl.innerText = fmt(netArea / coverage, 2);
     const pa = el('stat-paint-area'); if (pa) pa.innerText = fmt(netArea, 2) + ' m²';
-    const po = el('stat-paint-openings'); if (po) po.innerText = fmt(openingsArea, 2) + ' m²';
+    const po = el('stat-paint-openings'); if (po) po.innerText = fmt(getOpeningsArea('paint'), 2) + ' m²';
     show('paint-result-box'); show('paint-stats-row');
 }
 function calculateTiles() {
@@ -5780,8 +5505,7 @@ function calculateLaminate() {
     const roomL = num('lam-room-l'), roomW = num('lam-room-w'), packArea = num('lam-pack'), reserve = num('lam-reserve') || 0;
     if (!roomL || !roomW || !packArea) { showToast('Unesite sve podatke.', 'error'); return; }
     const area = roomL * roomW;
-    const packs = Math.ceil((area * (1 + reserve / 100)) / packArea);
-    const lp = el('res-lam-packs'); if (lp) lp.innerText = packs;
+    const lp = el('res-lam-packs'); if (lp) lp.innerText = Math.ceil((area * (1 + reserve / 100)) / packArea);
     const la = el('stat-lam-area'); if (la) la.innerText = fmt(area, 2) + ' m²';
     show('laminate-result-box'); show('laminate-stats-row');
 }
@@ -5807,13 +5531,11 @@ function calculateBlocks() {
     const wallL = num('block-wall-l'), wallH = num('block-wall-h'), blockL = num('block-l'), blockH = num('block-h');
     if (!wallL || !wallH || !blockL || !blockH) { showToast('Unesite dimenzije zida i bloka.', 'error'); return; }
     const netArea = Math.max(0, wallL * wallH - getOpeningsArea('block'));
-    const blockArea = (blockL / 100) * (blockH / 100);
-    const blocks = Math.ceil(netArea / blockArea);
+    const blocks = Math.ceil(netArea / ((blockL / 100) * (blockH / 100)));
     const bc = el('res-blocks-count'); if (bc) bc.innerText = blocks;
     const ba = el('stat-blocks-area'); if (ba) ba.innerText = fmt(netArea, 2) + ' m²';
     const price = num('block-price');
-    const bp = el('stat-blocks-price');
-    if (bp) bp.innerText = price ? money(blocks * price) + ' RSD' : '—';
+    const bp = el('stat-blocks-price'); if (bp) bp.innerText = price ? money(blocks * price) + ' RSD' : '—';
     show('blocks-result-box'); show('blocks-stats-row');
 }
 const BOARD_DEFAULTS = { osb: { l: 125, w: 250 }, regips: { l: 120, w: 200 }, sper: { l: 125, w: 250 }, iverica: { l: 183, w: 280 } };
@@ -5859,12 +5581,11 @@ function calculateMortar() {
     const totalParts = cementPart + sandPart;
     const cementKg = dryVolume * (cementPart / totalParts) * 1400;
     const sandKg = dryVolume * (sandPart / totalParts) * 1600;
-    const waterL = cementKg * 0.5;
     const mt = el('res-malter-text');
     if (mt) mt.innerHTML = `<strong>${fmt(volume, 3)} m³</strong> maltera`;
     const mc = el('stat-malter-cement'); if (mc) mc.innerText = fmt(cementKg, 0) + ' kg';
     const ms = el('stat-malter-sand'); if (ms) ms.innerText = fmt(sandKg, 0) + ' kg';
-    const mw = el('stat-malter-water'); if (mw) mw.innerText = fmt(waterL, 0) + ' L';
+    const mw = el('stat-malter-water'); if (mw) mw.innerText = fmt(cementKg * 0.5, 0) + ' L';
     show('malter-result-box'); show('malter-stats-row');
 }
 function calculateGypsum() {
@@ -5872,14 +5593,11 @@ function calculateGypsum() {
     const layers = el('gips-layers') ? parseInt(el('gips-layers').value) : 1;
     if (!area) { showToast('Unesite površinu.', 'error'); return; }
     const sheetArea = 1.2 * 2.0;
-    const sheets = Math.ceil((area * layers) / sheetArea * 1.1);
-    const profilesNeeded = Math.ceil(area * 2.5 / 3);
-    const screws = Math.ceil(area * 30 * layers);
     const gt = el('res-gips-text');
     if (gt) gt.innerHTML = `<strong>${fmt(area, 2)} m²</strong> × ${layers} sloja`;
-    const gs = el('stat-gips-sheets'); if (gs) gs.innerText = sheets + ' kom';
-    const gp = el('stat-gips-profiles'); if (gp) gp.innerText = profilesNeeded + ' kom';
-    const gsc = el('stat-gips-screws'); if (gsc) gsc.innerText = screws + ' kom';
+    const gs = el('stat-gips-sheets'); if (gs) gs.innerText = Math.ceil((area * layers) / sheetArea * 1.1) + ' kom';
+    const gp = el('stat-gips-profiles'); if (gp) gp.innerText = Math.ceil(area * 2.5 / 3) + ' kom';
+    const gsc = el('stat-gips-screws'); if (gsc) gsc.innerText = Math.ceil(area * 30 * layers) + ' kom';
     show('gips-result-box'); show('gips-stats-row');
 }
 function calculateFoundation() {
@@ -5898,15 +5616,15 @@ function calculateHydro() {
     if (!area) { showToast('Unesite površinu.', 'error'); return; }
     const areaWithReserve = area * (1 + reserve / 100);
     let text = '';
-    if (type === 'folija') text = `<strong>${Math.ceil(areaWithReserve / (1.5 * 20))}</strong> rola folije (1.5×20m)`;
+    if (type === 'folija') text = `<strong>${Math.ceil(areaWithReserve / (1.5 * 20))}</strong> rola folije`;
     else if (type === 'premaz') text = `<strong>${Math.ceil(areaWithReserve * 1.5)} kg</strong> premaza`;
-    else text = `<strong>${Math.ceil(areaWithReserve * 2.5)} m</strong> trake (širina 10cm)`;
+    else text = `<strong>${Math.ceil(areaWithReserve * 2.5)} m</strong> trake`;
     const ht = el('res-hidro-text'); if (ht) ht.innerHTML = text;
     show('hidro-result-box');
 }
 function calculateElectro() {
-    const outlets = num('elektro-outlets') || 0, switches = num('elektro-switches') || 0, lights = num('elektro-lights') || 0, cable = num('elektro-cable') || 0;
-    if (!outlets && !switches && !lights && !cable) { showToast('Unesite bar jedan podatak.', 'error'); return; }
+    const outlets = num('elektro-outlets') || 0, switches = num('elektro-switches') || 0, cable = num('elektro-cable') || 0;
+    if (!outlets && !switches && !cable) { showToast('Unesite bar jedan podatak.', 'error'); return; }
     const et = el('res-elektro-text');
     if (et) et.innerHTML = `<strong>${outlets + switches}</strong> doza • ${fmt(cable, 0)}m kabla`;
     const eo = el('stat-elektro-out'); if (eo) eo.innerText = outlets;
@@ -5932,10 +5650,10 @@ function calculatePower() {
     const watts = num('power-watts'), hours = num('power-hours'), price = num('power-price') || 12;
     if (!watts || !hours) { showToast('Unesite snagu i sate.', 'error'); return; }
     const kwhDay = (watts * hours) / 1000;
-    const kwhMonth = kwhDay * 30, kwhYear = kwhDay * 365;
+    const kwhMonth = kwhDay * 30;
     const pm = el('res-power-month'); if (pm) pm.innerText = money(kwhMonth * price);
     const pd = el('stat-power-day'); if (pd) pd.innerText = money(kwhDay * price) + ' RSD';
-    const py = el('stat-power-year'); if (py) py.innerText = money(kwhYear * price) + ' RSD';
+    const py = el('stat-power-year'); if (py) py.innerText = money(kwhDay * 365 * price) + ' RSD';
     const pk = el('stat-power-kwh'); if (pk) pk.innerText = fmt(kwhMonth, 1);
     show('power-result-box'); show('power-stats-row');
 }
@@ -6017,8 +5735,7 @@ function calculateBill() {
     const visaCena = num('fakt-cena-visa') || 12, nizaCena = num('fakt-cena-niza') || 6, fiksni = num('fakt-fiksni') || 0;
     if (!visaKwh && !nizaKwh) { showToast('Unesite potrošnju.', 'error'); return; }
     const visaTotal = visaKwh * visaCena, nizaTotal = nizaKwh * nizaCena;
-    const ukupno = visaTotal + nizaTotal + fiksni;
-    const rt = el('res-fakt-total'); if (rt) rt.innerText = money(ukupno);
+    const rt = el('res-fakt-total'); if (rt) rt.innerText = money(visaTotal + nizaTotal + fiksni);
     const sv = el('stat-fakt-visa'); if (sv) sv.innerText = money(visaTotal) + ' RSD';
     const sn = el('stat-fakt-niza'); if (sn) sn.innerText = money(nizaTotal) + ' RSD';
     const sk = el('stat-fakt-kwh'); if (sk) sk.innerText = fmt(visaKwh + nizaKwh, 1);
@@ -6038,11 +5755,10 @@ function calculateCable() {
     if (!chosen) chosen = sections[sections.length - 1];
     const minSectionForDrop = (2 * rho * len * amps) / (volts * 0.05);
     if (minSectionForDrop > chosen) { for (const s of sections) { if (s >= minSectionForDrop) { chosen = s; break; } } }
-    const dropV = (2 * rho * len * amps) / chosen, dropPct = (dropV / volts) * 100;
+    const dropPct = ((2 * rho * len * amps) / chosen / volts) * 100;
     const fuses = [6, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125];
-    const recommendedFuse = fuses.find(f => f >= amps * 1.15) || 125;
     const rv = el('res-kabl-mm2'); if (rv) rv.innerText = fmt(chosen, 1);
-    const so = el('stat-kabl-osig'); if (so) so.innerText = recommendedFuse + ' A';
+    const so = el('stat-kabl-osig'); if (so) so.innerText = (fuses.find(f => f >= amps * 1.15) || 125) + ' A';
     const sp = el('stat-kabl-pad'); if (sp) sp.innerText = fmt(dropPct, 2) + ' %';
     const sm = el('stat-kabl-mat'); if (sm) sm.innerText = isCopper ? 'Bakar' : 'Aluminijum';
     show('kabl-result-box'); show('kabl-stats-row');
@@ -6051,13 +5767,13 @@ function calculateVoltageDrop() {
     const amps = num('pad-amps'), len = num('pad-len'), mm2 = num('pad-mm2'), volts = num('pad-volt') || 230;
     const rho = el('pad-mat') ? parseFloat(el('pad-mat').value) : 0.0178;
     if (!amps || !len || !mm2) { showToast('Unesite sve podatke.', 'error'); return; }
-    const dropV = (2 * rho * len * amps) / mm2, dropPct = (dropV / volts) * 100, endV = volts - dropV;
+    const dropV = (2 * rho * len * amps) / mm2, dropPct = (dropV / volts) * 100;
     let ocena = '✅ Odlično', boja = '#10b981';
     if (dropPct > 5) { ocena = '❌ Preveliki pad'; boja = '#f43f5e'; }
     else if (dropPct > 3) { ocena = '⚠️ Granično'; boja = '#f59e0b'; }
     const rv = el('res-pad-volt'); if (rv) rv.innerText = fmt(dropV, 2);
     const sp = el('stat-pad-pct'); if (sp) sp.innerText = fmt(dropPct, 2) + ' %';
-    const se = el('stat-pad-end'); if (se) se.innerText = fmt(endV, 1) + ' V';
+    const se = el('stat-pad-end'); if (se) se.innerText = fmt(volts - dropV, 1) + ' V';
     const so = el('stat-pad-ok'); if (so) { so.innerText = ocena; so.style.color = boja; }
     show('pad-result-box'); show('pad-stats-row');
 }
@@ -6102,8 +5818,7 @@ function calculateLighting() {
     let heightFactor = 1;
     if (h > 3) heightFactor = 1 + (h - 3) * 0.15; else if (h > 2.7) heightFactor = 1.05;
     const lumens = area * lux * heightFactor;
-    const totalWatt = lumens / 100;
-    const brojSijalica = Math.max(1, Math.ceil(totalWatt / wattEl));
+    const brojSijalica = Math.max(1, Math.ceil((lumens / 100) / wattEl));
     const rv = el('res-osv-lumen'); if (rv) rv.innerText = fmt(lumens, 0);
     const sp = el('stat-osv-pov'); if (sp) sp.innerText = fmt(area, 2) + ' m²';
     const sb = el('stat-osv-br'); if (sb) sb.innerText = brojSijalica;
@@ -6116,21 +5831,20 @@ function calculateHeater() {
     if (t2 <= t1) { showToast('Krajnja temperatura mora biti veća.', 'error'); return; }
     const energyJ = litra * 4186 * (t2 - t1), energyKwh = energyJ / 3600000;
     const timeMin = (energyKwh / (watt / 1000)) * 60;
-    const cost = energyKwh * cena;
     const rv = el('res-grej-vreme'); if (rv) rv.innerText = fmt(timeMin, 1);
     const sk = el('stat-grej-kwh'); if (sk) sk.innerText = fmt(energyKwh, 2) + ' kWh';
-    const sc = el('stat-grej-cena'); if (sc) sc.innerText = money(cost) + ' RSD';
+    const sc = el('stat-grej-cena'); if (sc) sc.innerText = money(energyKwh * cena) + ' RSD';
     const sj = el('stat-grej-kj'); if (sj) sj.innerText = fmt(energyJ / 1000, 0) + ' kJ';
     show('grej-result-box'); show('grej-stats-row');
 }
 function calculateBattery() {
     const volt = num('bat-volt') || 12, ah = num('bat-ah'), watt = num('bat-watt'), dod = num('bat-dod') || 80;
     if (!ah || !watt) { showToast('Unesite kapacitet i opterećenje.', 'error'); return; }
-    const wh = volt * ah, usefulWh = wh * (dod / 100), hours = usefulWh / watt, amp = watt / volt;
-    const rv = el('res-bat-time'); if (rv) rv.innerText = fmt(hours, 2);
+    const wh = volt * ah, usefulWh = wh * (dod / 100);
+    const rv = el('res-bat-time'); if (rv) rv.innerText = fmt(usefulWh / watt, 2);
     const sw = el('stat-bat-wh'); if (sw) sw.innerText = fmt(wh, 1) + ' Wh';
     const su = el('stat-bat-wh-use'); if (su) su.innerText = fmt(usefulWh, 1) + ' Wh';
-    const sa = el('stat-bat-amp'); if (sa) sa.innerText = fmt(amp, 2) + ' A';
+    const sa = el('stat-bat-amp'); if (sa) sa.innerText = fmt(watt / volt, 2) + ' A';
     show('bat-result-box'); show('bat-stats-row');
 }
 function calculateKelvin() {
@@ -6177,18 +5891,17 @@ function calculateCompare() {
     }
     const aBase = toBase(aPrice, aQty, aUnit), bBase = toBase(bPrice, bQty, bUnit);
     const winner = aBase < bBase ? 'Proizvod A je jeftiniji' : (bBase < aBase ? 'Proizvod B je jeftiniji' : 'Ista cena');
-    const diff = Math.abs(aBase - bBase) / Math.max(aBase, bBase) * 100;
     const cw = el('res-cmp-winner'); if (cw) cw.innerText = winner;
     const ca = el('stat-cmp-a'); if (ca) ca.innerText = money(aBase);
     const cb = el('stat-cmp-b'); if (cb) cb.innerText = money(bBase);
-    const cd = el('stat-cmp-diff'); if (cd) cd.innerText = fmt(diff, 1) + '%';
+    const cd = el('stat-cmp-diff'); if (cd) cd.innerText = fmt(Math.abs(aBase - bBase) / Math.max(aBase, bBase) * 100, 1) + '%';
     show('compare-result-box'); show('compare-stats-row');
 }
 function calculatePromo() {
     const type = el('promo-type') ? el('promo-type').value : '2plus1';
     const price = num('promo-price');
     if (!price) { showToast('Unesite cenu po komadu.', 'error'); return; }
-    let totalPaid, totalQty, saved, effectiveUnit;
+    let totalPaid, totalQty, saved;
     if (type === '2plus1') { totalPaid = price * 2; totalQty = 3; saved = price * 3 - totalPaid; }
     else if (type === '3plus1') { totalPaid = price * 3; totalQty = 4; saved = price * 4 - totalPaid; }
     else {
@@ -6196,8 +5909,7 @@ function calculatePromo() {
         totalPaid = price + price * (1 - secondPct / 100);
         totalQty = 2; saved = price * 2 - totalPaid;
     }
-    effectiveUnit = totalPaid / totalQty;
-    const pu = el('res-promo-unit'); if (pu) pu.innerText = money(effectiveUnit);
+    const pu = el('res-promo-unit'); if (pu) pu.innerText = money(totalPaid / totalQty);
     const pt = el('stat-promo-total'); if (pt) pt.innerText = money(totalPaid) + ' RSD';
     const pq = el('stat-promo-qty'); if (pq) pq.innerText = totalQty;
     const ps = el('stat-promo-save'); if (ps) ps.innerText = money(saved) + ' RSD';
@@ -6271,7 +5983,7 @@ function renderShoppingList() {
         check.addEventListener('click', () => toggleShoppingItem(item.id));
         const info = document.createElement('div'); info.className = 'lista-item-info';
         const nameEl = document.createElement('div'); nameEl.className = 'lista-item-name'; nameEl.textContent = item.name; info.appendChild(nameEl);
-        if (item.qty) { const qtyEl = document.createElement('div'); qtyEl.className = 'lista-item-qty'; qtyEl.textContent = item.qty; info.appendChild(qtyEl); }
+        if (item.qty) { const q = document.createElement('div'); q.className = 'lista-item-qty'; q.textContent = item.qty; info.appendChild(q); }
         const priceEl = document.createElement('div');
         priceEl.className = 'lista-item-price';
         priceEl.textContent = item.price > 0 ? money(item.price) + ' RSD' : '—';
@@ -6289,25 +6001,21 @@ function calculateBudget() {
     const period = el('budzet-period') ? parseInt(el('budzet-period').value) : 30;
     const spent = num('budzet-spent') || 0;
     if (!total || total <= 0) { showToast('Unesite ukupan budžet.', 'error'); return; }
-    const daily = total / period, left = Math.max(0, total - spent), leftDaily = left / period;
+    const daily = total / period, left = Math.max(0, total - spent);
     const rd = el('res-budzet-daily'); if (rd) rd.innerText = money(daily);
     const sl = el('stat-budzet-left'); if (sl) sl.innerText = money(left) + ' RSD';
     const sd = el('stat-budzet-days'); if (sd) sd.innerText = period + ' dana';
-    const sr = el('stat-budzet-recalc'); if (sr) sr.innerText = money(leftDaily) + ' RSD';
+    const sr = el('stat-budzet-recalc'); if (sr) sr.innerText = money(left / period) + ' RSD';
     show('budzet-result-box'); show('budzet-stats-row');
 }
 function calculateRates() {
     const cena = num('rate-cena'), br = num('rate-br'), kes = num('rate-kes'), infl = num('rate-infl') || 0;
     if (!cena || !br || !kes) { showToast('Unesite sve podatke.', 'error'); return; }
-    const monthly = cena / br;
     const kesSaInfl = kes * Math.pow(1 + infl / 100, br / 12);
     const saving = cena - kesSaInfl;
-    let winner = '';
-    if (kesSaInfl < cena) winner = 'Keš je isplativiji';
-    else if (kesSaInfl > cena) winner = 'Rate su isplativije';
-    else winner = 'Isto';
+    const winner = kesSaInfl < cena ? 'Keš je isplativiji' : (kesSaInfl > cena ? 'Rate su isplativije' : 'Isto');
     const rw = el('res-rate-winner'); if (rw) rw.innerText = winner;
-    const sm = el('stat-rate-monthly'); if (sm) sm.innerText = money(monthly) + ' RSD';
+    const sm = el('stat-rate-monthly'); if (sm) sm.innerText = money(cena / br) + ' RSD';
     const st = el('stat-rate-total'); if (st) st.innerText = money(cena) + ' RSD';
     const sv = el('stat-rate-saving'); if (sv) sv.innerText = money(saving) + ' RSD';
     show('rate-result-box'); show('rate-stats-row');
@@ -6316,12 +6024,11 @@ function calculateCardVsCash() {
     const cena = num('kart-cena'), popust = num('kart-popust') || 0, naknada = num('kart-naknada') || 0;
     if (!cena) { showToast('Unesite cenu.', 'error'); return; }
     const kes = cena * (1 - popust / 100), kartica = cena * (1 + naknada / 100);
-    const diff = Math.abs(kartica - kes);
     const winner = kes < kartica ? 'Keš je isplativiji' : (kartica < kes ? 'Kartica je isplativija' : 'Isto');
     const rw = el('res-kart-winner'); if (rw) rw.innerText = winner;
     const sk = el('stat-kart-kes'); if (sk) sk.innerText = money(kes) + ' RSD';
     const ska = el('stat-kart-kart'); if (ska) ska.innerText = money(kartica) + ' RSD';
-    const sd = el('stat-kart-diff'); if (sd) sd.innerText = money(diff) + ' RSD';
+    const sd = el('stat-kart-diff'); if (sd) sd.innerText = money(Math.abs(kartica - kes)) + ' RSD';
     show('kart-result-box'); show('kart-stats-row');
 }
 function calculatePerLiter() {
@@ -6341,10 +6048,9 @@ function calculatePerPerson() {
     const total = num('osoba-total'), br = num('osoba-br') || 1, dana = num('osoba-dana') || 1;
     if (!total) { showToast('Unesite ukupan trošak.', 'error'); return; }
     if (br < 1 || dana < 1) { showToast('Broj mora biti bar 1.', 'error'); return; }
-    const perPerson = total / br, perDay = perPerson / dana, totalDaily = total / dana;
-    const rv = el('res-osoba-val'); if (rv) rv.innerText = money(perPerson);
-    const sd = el('stat-osoba-dan'); if (sd) sd.innerText = money(perDay) + ' RSD';
-    const su = el('stat-osoba-ukupno'); if (su) su.innerText = money(totalDaily) + ' RSD';
+    const rv = el('res-osoba-val'); if (rv) rv.innerText = money(total / br);
+    const sd = el('stat-osoba-dan'); if (sd) sd.innerText = money(total / br / dana) + ' RSD';
+    const su = el('stat-osoba-ukupno'); if (su) su.innerText = money(total / dana) + ' RSD';
     show('osoba-result-box'); show('osoba-stats-row');
 }
 function calculateWorthTrip() {
@@ -6368,20 +6074,19 @@ function calculateReceipts() {
     const aTotal = num('rac-a-total'), aItems = num('rac-a-items'), bTotal = num('rac-b-total'), bItems = num('rac-b-items');
     if (!aTotal || !aItems || !bTotal || !bItems) { showToast('Unesite sve podatke.', 'error'); return; }
     const aAvg = aTotal / aItems, bAvg = bTotal / bItems;
-    const diff = Math.abs(aAvg - bAvg) / Math.max(aAvg, bAvg) * 100;
     const winner = aAvg < bAvg ? 'Račun A je isplativiji' : (bAvg < aAvg ? 'Račun B je isplativiji' : 'Isto');
     const rw = el('res-rac-winner'); if (rw) rw.innerText = winner;
     const sa = el('stat-rac-a'); if (sa) sa.innerText = money(aAvg) + ' RSD';
     const sb = el('stat-rac-b'); if (sb) sb.innerText = money(bAvg) + ' RSD';
-    const sd = el('stat-rac-diff'); if (sd) sd.innerText = fmt(diff, 1) + ' %';
+    const sd = el('stat-rac-diff'); if (sd) sd.innerText = fmt(Math.abs(aAvg - bAvg) / Math.max(aAvg, bAvg) * 100, 1) + ' %';
     show('racuni-result-box'); show('racuni-stats-row');
 }
 function calculateMealCost() {
     const cena = num('rasip-cena'), porcija = num('rasip-porcija'), bacanje = num('rasip-bacanje') || 0;
     if (!cena || !porcija) { showToast('Unesite cenu i broj obroka.', 'error'); return; }
     if (porcija < 1) { showToast('Broj obroka mora biti bar 1.', 'error'); return; }
-    const base = cena / porcija, waste = cena * (bacanje / 100), effective = (cena + waste) / porcija;
-    const rv = el('res-rasip-val'); if (rv) rv.innerText = money(effective);
+    const base = cena / porcija, waste = cena * (bacanje / 100);
+    const rv = el('res-rasip-val'); if (rv) rv.innerText = money((cena + waste) / porcija);
     const sb = el('stat-rasip-base'); if (sb) sb.innerText = money(base) + ' RSD';
     const sw = el('stat-rasip-waste'); if (sw) sw.innerText = money(waste) + ' RSD';
     show('rasip-result-box'); show('rasip-stats-row');
@@ -6401,11 +6106,10 @@ function calculateWorkTime() {
     const rawMinutes = endMin - startMin;
     const totalMinutes = Math.max(0, rawMinutes - breakMin);
     const hours = Math.floor(totalMinutes / 60), minutes = totalMinutes % 60;
-    const rawH = Math.floor(rawMinutes / 60), rawM = rawMinutes % 60;
     let multLabel = '100%';
     if (dayType === 'weekend') multLabel = '110%'; else if (dayType === 'holiday') multLabel = '150%';
     const rw = el('res-worktime'); if (rw) rw.innerText = `${hours}h ${minutes}min`;
-    const wr = el('stat-worktime-raw'); if (wr) wr.innerText = `${rawH}h ${rawM}min`;
+    const wr = el('stat-worktime-raw'); if (wr) wr.innerText = `${Math.floor(rawMinutes / 60)}h ${rawMinutes % 60}min`;
     const wd = el('stat-worktime-dec'); if (wd) wd.innerText = fmt(totalMinutes / 60, 2) + ' h';
     const wm = el('stat-worktime-mult'); if (wm) wm.innerText = multLabel;
     show('worktime-result-box'); show('worktime-stats-row');
@@ -6431,23 +6135,19 @@ function calculateSalary() {
     if (type === 'bruto-to-neto') {
         bruto = amount;
         pio = bruto * PIO; zdr = bruto * ZDR; nez = bruto * NEZ;
-        const osnovica = Math.max(0, bruto - pio - zdr - nez - NEOPOREZIVO);
-        porez = osnovica * POREZ;
+        porez = Math.max(0, bruto - pio - zdr - nez - NEOPOREZIVO) * POREZ;
         neto = bruto - pio - zdr - nez - porez;
     } else {
         neto = amount; bruto = neto / 0.65;
         for (let i = 0; i < 10; i++) {
             pio = bruto * PIO; zdr = bruto * ZDR; nez = bruto * NEZ;
-            const osnovica = Math.max(0, bruto - pio - zdr - nez - NEOPOREZIVO);
-            porez = osnovica * POREZ;
-            const netoCalc = bruto - pio - zdr - nez - porez;
-            const diff = neto - netoCalc;
+            porez = Math.max(0, bruto - pio - zdr - nez - NEOPOREZIVO) * POREZ;
+            const diff = neto - (bruto - pio - zdr - nez - porez);
             if (Math.abs(diff) < 1) break;
             bruto += diff / 0.65;
         }
         pio = bruto * PIO; zdr = bruto * ZDR; nez = bruto * NEZ;
-        const osnovica = Math.max(0, bruto - pio - zdr - nez - NEOPOREZIVO);
-        porez = osnovica * POREZ;
+        porez = Math.max(0, bruto - pio - zdr - nez - NEOPOREZIVO) * POREZ;
     }
     const label = el('plata-result-label'), val = el('res-plata-val');
     if (type === 'bruto-to-neto') { if (label) label.innerText = 'Neto plata'; if (val) val.innerText = money(neto); }
@@ -6459,10 +6159,10 @@ function calculateSalary() {
 }
 function calculateVacation() {
     const total = num('odmor-total') || 0, used = num('odmor-used') || 0, daily = num('odmor-daily') || 0;
-    const left = Math.max(0, total - used), pay = left * daily;
+    const left = Math.max(0, total - used);
     const rl = el('res-odmor-left'); if (rl) rl.innerText = left;
     const su = el('stat-odmor-used'); if (su) su.innerText = used + ' dana';
-    const sp = el('stat-odmor-pay'); if (sp) sp.innerText = money(pay) + ' RSD';
+    const sp = el('stat-odmor-pay'); if (sp) sp.innerText = money(left * daily) + ' RSD';
     show('odmor-result-box'); show('odmor-stats-row');
 }
 function calculateNightWork() {
@@ -6479,16 +6179,15 @@ function calculateOvertime() {
     const hours = num('prek-hours'), rate = num('prek-rate');
     if (!hours || !rate) { showToast('Unesite sate i satnicu.', 'error'); return; }
     const first2 = Math.min(hours, 2), rest = Math.max(0, hours - 2);
-    const total = first2 * rate * 1.26 + rest * rate * 1.5;
-    const pt = el('res-prek-total'); if (pt) pt.innerText = money(total);
+    const pt = el('res-prek-total'); if (pt) pt.innerText = money(first2 * rate * 1.26 + rest * rate * 1.5);
     const pf = el('stat-prek-first'); if (pf) pf.innerText = money(first2 * rate * 1.26) + ' RSD';
     const pr = el('stat-prek-rest'); if (pr) pr.innerText = money(rest * rate * 1.5) + ' RSD';
     show('prek-result-box'); show('prek-stats-row');
 }
 function calculateTravelExpenses() {
     const days = num('putni-days') || 0, daily = num('putni-daily') || 0, fuel = num('putni-fuel') || 0, hotel = num('putni-hotel') || 0;
-    const dailyTotal = days * daily, total = dailyTotal + fuel + hotel;
-    const pt = el('res-putni-total'); if (pt) pt.innerText = money(total);
+    const dailyTotal = days * daily;
+    const pt = el('res-putni-total'); if (pt) pt.innerText = money(dailyTotal + fuel + hotel);
     const pd = el('stat-putni-daily-total'); if (pd) pd.innerText = money(dailyTotal) + ' RSD';
     const pf = el('stat-putni-fuel-total'); if (pf) pf.innerText = money(fuel) + ' RSD';
     const ph = el('stat-putni-hotel-total'); if (ph) ph.innerText = money(hotel) + ' RSD';
@@ -6556,8 +6255,7 @@ function calculateTranspose() {
     if (!chordsRaw) { showToast('Unesite akorde.', 'error'); return; }
     const steps = ((noteToSemitone(newKey) - noteToSemitone(orig)) % 12 + 12) % 12;
     const stepsSigned = steps > 6 ? steps - 12 : steps;
-    const chords = chordsRaw.split(/[,\s]+/).filter(c => c);
-    const transposed = chords.map(c => transposeChord(c, steps));
+    const transposed = chordsRaw.split(/[,\s]+/).filter(c => c).map(c => transposeChord(c, steps));
     const resultEl = el('res-trans-chords'); if (resultEl) resultEl.innerText = transposed.join('  ');
     const statEl = el('stat-trans-steps'); if (statEl) statEl.innerText = (stepsSigned >= 0 ? '+' : '') + stepsSigned + ' polutonova';
     show('trans-result-box'); show('trans-stats-row');
@@ -6675,8 +6373,7 @@ function calculateFrequency() {
 function calculateDetectNote() {
     const freq = num('detect-freq');
     if (!freq || freq <= 0) { showToast('Unesite frekvenciju.', 'error'); return; }
-    const midiNoteExact = 69 + 12 * Math.log2(freq / 440);
-    const midiNote = Math.round(midiNoteExact);
+    const midiNote = Math.round(69 + 12 * Math.log2(freq / 440));
     const octave = Math.floor(midiNote / 12) - 1;
     const noteName = NOTES_SHARP[((midiNote % 12) + 12) % 12];
     const exactFreq = 440 * Math.pow(2, (midiNote - 69) / 12);
@@ -6799,7 +6496,7 @@ function playTunerTone(freq, btn) {
         document.querySelectorAll('.tuner-string-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         vibrate(10);
-    } catch (e) { showToast('Greška pri reprodukciji tona', 'error'); }
+    } catch (e) {}
 }
 function stopTunerTone() {
     if (tunerOscillator) {
@@ -6874,8 +6571,7 @@ function autoCorrelate(buffer, sampleRate) {
     return sampleRate / T0;
 }
 function updateTunerDisplay(freq) {
-    const midiNoteExact = 69 + 12 * Math.log2(freq / 440);
-    const midiNote = Math.round(midiNoteExact);
+    const midiNote = Math.round(69 + 12 * Math.log2(freq / 440));
     const octave = Math.floor(midiNote / 12) - 1;
     const noteName = NOTES_SHARP[((midiNote % 12) + 12) % 12];
     const exactFreq = 440 * Math.pow(2, (midiNote - 69) / 12);
@@ -6903,7 +6599,6 @@ function updateTunerDisplay(freq) {
 // ============================================================
 
 function initApp() {
-    // Tema
     try {
         const savedTheme = localStorage.getItem('cx_theme');
         if (savedTheme === 'light' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches)) {
@@ -6913,31 +6608,13 @@ function initApp() {
         }
     } catch (e) {}
 
-    // Učitaj keš inpute
-    try {
-        loadInputCache();
-        setupInputPersistence();
-    } catch (e) {}
-
-    // Postavi današnji datum za neke tabove kad se otvore
-    const today = new Date();
-    const iso = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-
-    // Auto profil
-    try {
-        const profile = loadAutoProfile();
-        if (el('auto-profile-model')) el('auto-profile-model').value = profile.model || '';
-        if (el('auto-profile-plate')) el('auto-profile-plate').value = profile.plate || '';
-    } catch (e) {}
-
-    // Postavi default valutu
+    try { loadInputCache(); setupInputPersistence(); } catch (e) {}
     try {
         const savedCurrency = localStorage.getItem('cx_default_currency');
         const ac = el('auto-currency');
         if (savedCurrency && ac) ac.value = savedCurrency;
     } catch (e) {}
 
-    // Inicijalni renderi
     try { renderQuickTools(); } catch (e) { console.error('renderQuickTools:', e); }
     try { renderAllTools(); } catch (e) { console.error('renderAllTools:', e); }
     try { renderFavorites(); } catch (e) { console.error('renderFavorites:', e); }
@@ -6947,7 +6624,6 @@ function initApp() {
     try { setupBackButton(); } catch (e) {}
     try { loadFxRates(); } catch (e) {}
 
-    // Splash
     setTimeout(() => {
         const splash = el('splash-screen');
         if (splash) {
