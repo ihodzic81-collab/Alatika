@@ -5564,6 +5564,7 @@ function calculatePres() { convertMeasure('pres', PRES_FACTORS, PRES_LABELS); }
 function calculateSpeed() { convertMeasure('speed', SPEED_FACTORS, SPEED_LABELS); }
 function calculateData() { convertMeasure('data', DATA_FACTORS, DATA_LABELS); }
 function calculateVolumeConversion() { convertMeasure('volume', VOLUME_FACTORS, VOLUME_LABELS); }
+function calculateVolume() { convertMeasure('volume', VOLUME_FACTORS, VOLUME_LABELS); }
 function calculateTemp() {
     const val = num('temp-val');
     if (val === null) { hide('temp-result-box'); return; }
