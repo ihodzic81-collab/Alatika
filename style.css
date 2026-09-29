@@ -3012,4 +3012,926 @@ input[type="text"].custom-input::placeholder {
         width: 13px;
         height: 13px;
     }
+}/* ============================================================
+   TAB BAR — 2 KOLONE, PUNI NAZIVI, SIMETRIJA
+   ============================================================ */
+.tab-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 16px 18px 20px;
+    overflow-y: auto;
+    max-height: calc(92vh - 72px);
+    align-content: start;
+}
+.tab-bar .tab-btn:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+}
+.tab-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    padding: 16px 10px 14px;
+    cursor: pointer;
+    color: var(--text-main);
+    font-weight: 800;
+    transition: transform 0.12s ease, border-color 0.15s ease, background 0.15s ease;
+    box-shadow: var(--shadow-input);
+    min-width: 0;
+    text-align: center;
+    min-height: 110px;
+    word-break: break-word;
+    hyphens: auto;
+}
+.tab-btn:hover {
+    border-color: var(--qt-accent, var(--accent-primary));
+    background: var(--card-active);
+}
+.tab-btn:active { transform: scale(0.97); }
+.tab-btn-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    flex-shrink: 0;
+    background: linear-gradient(145deg,
+        color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 95%, white 5%),
+        color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 80%, black 20%));
+    box-shadow:
+        inset 0 2px 1px rgba(255, 255, 255, 0.40),
+        inset 0 -3px 5px rgba(0, 0, 0, 0.30),
+        0 6px 14px color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 45%, transparent),
+        0 3px 6px rgba(0, 0, 0, 0.30);
+    position: relative;
+}
+.tab-btn-icon::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 14%;
+    right: 14%;
+    height: 32%;
+    border-radius: 12px 12px 50% 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.45), transparent);
+    pointer-events: none;
+}
+.tab-btn-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+}
+.tab-btn-label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.25;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: -0.1px;
+    white-space: normal;
+    word-break: break-word;
+    max-width: 100%;
+    min-width: 0;
+}
+@media (max-width: 400px) {
+    .tab-bar { gap: 8px; padding: 14px 14px 18px; }
+    .tab-btn { padding: 14px 8px 12px; min-height: 100px; border-radius: 14px; }
+    .tab-btn-icon { width: 40px; height: 40px; border-radius: 12px; }
+    .tab-btn-icon svg { width: 20px; height: 20px; }
+    .tab-btn-label { font-size: 0.76rem; line-height: 1.2; }
+}
+
+/* ============================================================
+   ZVEZDICA U HEADERU MODALA
+   ============================================================ */
+.modal-header-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.modal-fav-star {
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    padding: 0;
+    margin-right: 4px;
+}
+.modal-fav-star svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    transition: fill 0.2s ease;
+}
+.modal-fav-star:hover {
+    background: rgba(250, 204, 21, 0.12);
+    color: #facc15;
+    border-color: rgba(250, 204, 21, 0.4);
+}
+.modal-fav-star:active { transform: scale(0.9); }
+.modal-fav-star.active {
+    color: #facc15;
+    border-color: rgba(250, 204, 21, 0.5);
+    background: rgba(250, 204, 21, 0.1);
+}
+.modal-fav-star.active svg {
+    fill: #facc15;
+    filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.6));
+}
+
+/* ============================================================
+   FAV HINT (30 dana)
+   ============================================================ */
+.fav-hint {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10002;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-strong);
+    border-left: 4px solid #facc15;
+    border-radius: 14px;
+    padding: 14px 16px;
+    max-width: calc(100% - 40px);
+    width: 420px;
+    box-shadow:
+        0 12px 32px rgba(0, 0, 0, 0.4),
+        0 4px 10px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    animation: favHintSlideUp 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: auto;
+}
+@keyframes favHintSlideUp {
+    from { transform: translateX(-50%) translateY(120%); opacity: 0; }
+    to   { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+.fav-hint.hide {
+    transform: translateX(-50%) translateY(120%);
+    opacity: 0;
+    transition: transform 0.35s ease, opacity 0.3s ease;
+}
+.fav-hint-icon {
+    font-size: 1.6rem;
+    flex-shrink: 0;
+    line-height: 1;
+    filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.5));
+}
+.fav-hint-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+.fav-hint-text strong {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: -0.1px;
+}
+.fav-hint-text span {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    line-height: 1.35;
+}
+.fav-hint-btn {
+    background: linear-gradient(135deg, #facc15, #eab308);
+    border: none;
+    color: #422006;
+    font-weight: 800;
+    font-size: 0.75rem;
+    padding: 9px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: transform 0.1s ease, opacity 0.2s ease;
+    letter-spacing: 0.2px;
+}
+.fav-hint-btn:hover { opacity: 0.92; }
+.fav-hint-btn:active { transform: scale(0.95); }
+
+@media (max-width: 400px) {
+    .fav-hint {
+        padding: 12px 14px;
+        gap: 10px;
+        width: calc(100% - 24px);
+    }
+    .fav-hint-icon { font-size: 1.4rem; }
+    .fav-hint-text strong { font-size: 0.8rem; }
+    .fav-hint-text span { font-size: 0.7rem; }
+    .fav-hint-btn { padding: 8px 12px; font-size: 0.7rem; }
+}
+
+/* ============================================================
+   VREME — kartica
+   ============================================================ */
+.weather-current {
+    background: linear-gradient(135deg,
+        color-mix(in srgb, var(--qt-accent, #38bdf8) 12%, var(--card-bg)),
+        var(--card-bg));
+    border: 1px solid color-mix(in srgb, var(--qt-accent, #38bdf8) 30%, var(--border-strong));
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+}
+.weather-current::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -20%;
+    width: 150%;
+    height: 150%;
+    background: radial-gradient(circle at 75% 30%,
+        color-mix(in srgb, var(--qt-accent, #38bdf8) 25%, transparent),
+        transparent 55%);
+    pointer-events: none;
+}
+.weather-current > * { position: relative; z-index: 1; }
+.weather-location-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.weather-location {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-main);
+    min-width: 0;
+    cursor: pointer;
+    padding: 4px 8px;
+    margin: -4px -8px;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+}
+.weather-location:hover { background: rgba(255, 255, 255, 0.06); }
+.weather-location svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    flex-shrink: 0;
+}
+.weather-location-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.weather-refresh-btn {
+    background: var(--card-active);
+    border: 1px solid var(--border-strong);
+    color: var(--accent-primary);
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+    padding: 0;
+}
+.weather-refresh-btn:active { transform: rotate(360deg); }
+.weather-refresh-btn.spinning { animation: fxSpin 0.7s ease; }
+.weather-refresh-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+
+.weather-temp-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+.weather-temp-big {
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--text-main);
+    line-height: 1;
+    letter-spacing: -2px;
+}
+.weather-temp-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.weather-condition {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+.weather-feels {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+.weather-meta-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+.weather-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+.weather-meta-item svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+}
+
+.weather-hourly {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 12px 0;
+    margin-bottom: 8px;
+    scroll-snap-type: x mandatory;
+}
+.weather-hourly::-webkit-scrollbar { height: 4px; }
+.weather-hourly::-webkit-scrollbar-track { background: transparent; }
+.weather-hourly::-webkit-scrollbar-thumb {
+    background: var(--card-active);
+    border-radius: 2px;
+}
+.weather-hour-card {
+    flex: 0 0 auto;
+    min-width: 70px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    scroll-snap-align: start;
+}
+.weather-hour-time {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+.weather-hour-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--qt-accent, #38bdf8);
+}
+.weather-hour-icon svg {
+    width: 28px;
+    height: 28px;
+    stroke: currentColor;
+    fill: none;
+}
+.weather-hour-temp {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+.weather-hour-rain {
+    font-size: 0.7rem;
+    color: #38bdf8;
+    font-weight: 700;
+}
+
+.weather-section-title {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin: 16px 4px 10px;
+}
+
+.weather-daily-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.weather-day-item {
+    display: grid;
+    grid-template-columns: 85px 36px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    background: var(--card-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+.weather-day-name {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+.weather-day-icon {
+    display: flex;
+    justify-content: center;
+    color: var(--qt-accent, #38bdf8);
+}
+.weather-day-icon svg {
+    width: 26px;
+    height: 26px;
+    stroke: currentColor;
+    fill: none;
+}
+.weather-day-comment {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    line-height: 1.35;
+}
+.weather-day-temps {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--text-main);
+    text-align: right;
+    white-space: nowrap;
+}
+.weather-day-temps small {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+@media (max-width: 400px) {
+    .weather-current { padding: 16px; }
+    .weather-temp-big { font-size: 2.5rem; }
+    .weather-day-item { grid-template-columns: 70px 32px 1fr auto; padding: 10px 12px; }
+    .weather-day-name { font-size: 0.78rem; }
+    .weather-day-icon svg { width: 22px; height: 22px; }
+    .weather-day-comment { font-size: 0.7rem; }
+    .weather-day-temps { font-size: 0.78rem; }
+}
+
+/* ============================================================
+   VREME — AQI / VAZDUH
+   ============================================================ */
+.aqi-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+}
+.aqi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--aqi-color, #10b981);
+}
+.aqi-value {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--aqi-color, #10b981);
+    line-height: 1;
+}
+.aqi-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.aqi-label {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+.aqi-sub {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.aqi-pollutant-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    font-size: 0.82rem;
+}
+.aqi-pollutant-name {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+.aqi-pollutant-value {
+    color: var(--text-main);
+    font-weight: 800;
+}
+
+.pollen-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    font-size: 0.82rem;
+}
+.pollen-name {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+.pollen-value {
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.pollen-value.low { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+.pollen-value.medium { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.pollen-value.high { background: rgba(244, 63, 94, 0.15); color: #f43f5e; }
+
+/* ============================================================
+   VREME — PAMETNI DAN
+   ============================================================ */
+.smart-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+}
+.smart-card::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -30%;
+    width: 160%;
+    height: 160%;
+    background: radial-gradient(circle at 70% 30%,
+        color-mix(in srgb, var(--smart-accent, var(--accent-primary)) 15%, transparent),
+        transparent 55%);
+    pointer-events: none;
+}
+.smart-card > * { position: relative; z-index: 1; }
+.smart-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.smart-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+    background: linear-gradient(145deg,
+        color-mix(in srgb, var(--smart-accent, var(--accent-primary)) 95%, white 5%),
+        color-mix(in srgb, var(--smart-accent, var(--accent-primary)) 80%, black 20%));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        0 3px 8px color-mix(in srgb, var(--smart-accent, var(--accent-primary)) 40%, transparent);
+}
+.smart-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+}
+.smart-title {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+.smart-text {
+    font-size: 0.85rem;
+    color: var(--text-main);
+    line-height: 1.45;
+    font-weight: 500;
+}
+.smart-text strong {
+    color: var(--accent-primary);
+    font-weight: 800;
+}
+.smart-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.smart-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--text-main);
+    line-height: 1.4;
+    font-weight: 500;
+}
+.smart-list li .check-icon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.smart-list li .check-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.5;
+    fill: none;
+}
+.smart-list li.yes .check-icon { color: #10b981; }
+.smart-list li.no .check-icon { color: #f43f5e; }
+.smart-list li.warn .check-icon { color: #f59e0b; }
+
+/* ============================================================
+   VREME — SUNCE I MESEC
+   ============================================================ */
+.celestial-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+.celestial-title {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.celestial-title svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+}
+.celestial-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.celestial-row:last-child { border-bottom: none; }
+.celestial-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+.celestial-value {
+    font-size: 0.9rem;
+    color: var(--text-main);
+    font-weight: 800;
+}
+
+/* ============================================================
+   VREME — LOADING SKELETON
+   ============================================================ */
+.weather-loading {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 0;
+}
+.weather-loading-row {
+    height: 60px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, var(--card-active) 25%, var(--border-color) 37%, var(--card-active) 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.2s ease infinite;
+}
+
+/* ============================================================
+   LOCATION MODAL
+   ============================================================ */
+.location-panel { max-width: 480px; }
+.location-body {
+    padding: 16px 18px 20px;
+    overflow-y: auto;
+    max-height: calc(92vh - 72px);
+}
+.location-search-box {
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 0 14px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    box-shadow: var(--shadow-input);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.location-search-box:focus-within {
+    border-color: var(--accent-primary);
+    box-shadow:
+        0 0 0 3px rgba(99, 102, 241, 0.18),
+        0 0 12px rgba(99, 102, 241, 0.12),
+        var(--shadow-input);
+}
+.location-search-box input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 14px 0;
+}
+.location-search-box input::placeholder {
+    color: var(--text-tertiary);
+    opacity: 0.5;
+    font-style: italic;
+}
+.location-gps-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--card-active);
+    border: 1px solid var(--border-strong);
+    color: var(--accent-primary);
+    font-weight: 800;
+    font-size: 0.85rem;
+    padding: 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-bottom: 12px;
+    transition: transform 0.1s ease, background 0.15s ease;
+    font-family: inherit;
+}
+.location-gps-btn:hover { background: var(--input-bg); }
+.location-gps-btn:active { transform: scale(0.98); }
+.location-gps-icon { display: flex; }
+.location-gps-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+}
+.location-results {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.location-result-item {
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+    animation: fadeInUp 0.25s ease;
+}
+.location-result-item:hover {
+    background: var(--card-active);
+    border-color: var(--accent-primary);
+}
+.location-result-item:active { transform: scale(0.98); }
+.location-result-name {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+.location-result-region {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+.location-empty {
+    text-align: center;
+    padding: 24px 10px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+/* ============================================================
+   VREME — EMPTY / ERROR STATE
+   ============================================================ */
+.weather-error {
+    background: var(--card-bg);
+    border: 1px solid var(--border-strong);
+    border-left: 4px solid #f43f5e;
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 14px;
+}
+.weather-error-icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+.weather-error-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 4px;
+}
+.weather-error-text {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+.weather-error-btn {
+    margin-top: 12px;
+    background: var(--accent-primary);
+    border: none;
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+}
+.weather-stale-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-left: 8px;
 }
