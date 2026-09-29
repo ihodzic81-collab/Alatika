@@ -1850,16 +1850,7 @@ function sectionDesc(text) {
 }
 
 function favStarHeader(catId, tabId) {
-    const key = `${catId}:${tabId}`;
-    const active = isFavorite(key);
-    return `
-        <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
-            <button class="copy-btn calc-fav-star ${active ? 'active' : ''}" onclick="toggleFavorite(event, '${key}')" style="width: auto; padding: 8px 14px;">
-                ${active ? icon('starFill') : icon('star')}
-                <span style="margin-left: 6px;">${active ? 'Sačuvano' : 'Sačuvaj'}</span>
-            </button>
-        </div>
-    `;
+    return '';
 }
 
 // ====================== AUTO ======================
