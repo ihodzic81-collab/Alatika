@@ -8,6 +8,8 @@
     --border-color: rgba(255, 255, 255, 0.10);
     --border-strong: rgba(255, 255, 255, 0.18);
     --input-glow: rgba(255, 255, 255, 0.04);
+    --input-glow-strong: rgba(0, 230, 118, 0.18);
+    --input-bg: #1c1c20;
     --glass-bg: rgba(255, 255, 255, 0.06);
     --glass-border: rgba(255, 255, 255, 0.12);
     --glass-highlight: rgba(255, 255, 255, 0.28);
@@ -25,6 +27,8 @@
     --border-color: rgba(0, 0, 0, 0.08);
     --border-strong: rgba(0, 0, 0, 0.14);
     --input-glow: rgba(0, 0, 0, 0.02);
+    --input-glow-strong: rgba(0, 171, 85, 0.15);
+    --input-bg: #f9f9fb;
     --glass-bg: rgba(255, 255, 255, 0.7);
     --glass-border: rgba(255, 255, 255, 0.9);
     --glass-highlight: rgba(255, 255, 255, 1);
@@ -212,7 +216,6 @@ body {
     letter-spacing: 0.1px;
 }
 
-/* STICKY HEADER — samo za home ekran */
 #home-screen.active .header {
     position: sticky;
     top: 0;
@@ -268,7 +271,10 @@ body {
 }
 .search-box:focus-within {
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.12), inset 0 1px 0 var(--input-glow);
+    box-shadow:
+        0 0 0 3px rgba(0, 230, 118, 0.18),
+        0 0 12px rgba(0, 230, 118, 0.12),
+        inset 0 1px 0 var(--input-glow);
 }
 .search-icon {
     font-size: 1rem;
@@ -570,7 +576,7 @@ body {
 }
 .card-star.active::before { content: '★'; }
 
-/* IKONICA KARTICE — REALISTIČNA 3D PLASTIKA */
+/* IKONICA KARTICE */
 .card-icon {
     width: 46px;
     height: 46px;
@@ -804,17 +810,20 @@ body {
     display: flex;
     align-items: center;
     gap: 4px;
-    background: var(--bg-color);
+    background: var(--input-bg);
     border: 1px solid var(--border-strong);
     border-radius: 12px;
     padding: 0 12px;
     width: 100%;
-    box-shadow: inset 0 1px 0 var(--input-glow);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 3px rgba(0, 0, 0, 0.3);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .date-triple:focus-within {
-    border-color: var(--category-accent, var(--accent-color));
-    box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.12), inset 0 1px 0 var(--input-glow);
+    border-color: var(--accent-color);
+    box-shadow:
+        0 0 0 3px rgba(0, 230, 118, 0.18),
+        0 0 12px rgba(0, 230, 118, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 .date-part {
     background: transparent;
@@ -851,11 +860,11 @@ body {
     font-size: 0.88rem;
 }
 .date-part:focus {
-    color: var(--category-accent, var(--accent-color));
+    color: var(--accent-color);
 }
 .date-triple input[type="hidden"] { display: none; }
 
-/* PROCENAT */
+/* PROCENAT — FINALNA VERZIJA */
 .pct-label {
     display: block;
     font-size: 0.85rem;
@@ -865,48 +874,65 @@ body {
     letter-spacing: -0.1px;
 }
 .pct-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    flex-wrap: nowrap !important;
 }
-.pct-row .pct-input,
-.pct-row .pct-select {
-    flex: 1 1 0;
-    min-width: 0;
-    background: var(--bg-color);
-    border: 1px solid var(--border-strong);
-    border-radius: 12px;
-    color: var(--text-main);
-    font-size: 1rem;
-    font-weight: 600;
-    padding: 12px 14px;
-    outline: none;
-    box-shadow: inset 0 1px 0 var(--input-glow);
-    transition: border-color 0.18s ease, box-shadow 0.18s ease;
-    -moz-appearance: textfield;
-    appearance: textfield;
-    font-variant-numeric: tabular-nums;
+.pct-row .pct-input {
+    flex: 1 1 0% !important;
+    width: 0 !important;
+    min-width: 60px !important;
+    max-width: none !important;
+    background: var(--input-bg) !important;
+    border: 1px solid var(--border-strong) !important;
+    border-radius: 12px !important;
+    color: var(--text-main) !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    padding: 12px 14px !important;
+    outline: none !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+    text-align: center !important;
 }
 .pct-row .pct-input::-webkit-outer-spin-button,
 .pct-row .pct-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+    -webkit-appearance: none !important;
+    margin: 0 !important;
 }
 .pct-row .pct-input::placeholder {
-    color: var(--text-secondary);
-    font-weight: 500;
-    font-size: 0.9rem;
+    color: var(--text-secondary) !important;
+    font-weight: 500 !important;
+    font-size: 0.9rem !important;
+}
+.pct-row .pct-select {
+    flex: 0 0 100px !important;
+    width: 100px !important;
+    min-width: 100px !important;
+    max-width: 100px !important;
+    background: var(--input-bg) !important;
+    border: 1px solid var(--border-strong) !important;
+    border-radius: 12px !important;
+    color: var(--text-main) !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    padding: 12px 8px !important;
+    outline: none !important;
+    cursor: pointer !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 3px rgba(0, 0, 0, 0.3) !important;
 }
 .pct-row .pct-input:focus,
 .pct-row .pct-select:focus {
-    border-color: var(--category-accent, var(--accent-color));
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--category-accent, var(--accent-color)) 15%, transparent), inset 0 1px 0 var(--input-glow);
-}
-.pct-select {
-    flex: 0 0 auto !important;
-    min-width: 90px;
-    cursor: pointer;
-    background-image: none;
+    border-color: var(--accent-color) !important;
+    box-shadow:
+        0 0 0 3px rgba(0, 230, 118, 0.18),
+        0 0 12px rgba(0, 230, 118, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
 }
 
 .pct-formula {
@@ -939,7 +965,7 @@ body {
     font-size: 0.9rem;
     font-weight: 500;
     outline: none;
-    box-shadow: inset 0 1px 0 var(--input-glow);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 3px rgba(0, 0, 0, 0.3);
     transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 .history-search::placeholder {
@@ -948,7 +974,10 @@ body {
 }
 .history-search:focus {
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.12), inset 0 1px 0 var(--input-glow);
+    box-shadow:
+        0 0 0 3px rgba(0, 230, 118, 0.18),
+        0 0 12px rgba(0, 230, 118, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .history-meta {
@@ -1381,7 +1410,7 @@ body {
     line-height: 1.4;
 }
 
-/* FORM BOX — COMPACT */
+/* FORM BOX */
 .form-container, .converter-box {
     background: var(--card-bg);
     border: 1px solid var(--border-strong);
@@ -1406,16 +1435,19 @@ body {
 .input-wrapper {
     display: flex;
     align-items: center;
-    background: var(--bg-color);
+    background: var(--input-bg);
     border: 1px solid var(--border-strong);
     border-radius: 11px;
     padding: 0 12px;
-    box-shadow: inset 0 1px 0 var(--input-glow);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 3px rgba(0, 0, 0, 0.3);
     transition: border-color 0.2s ease, box-shadow 0.2s;
 }
 .input-wrapper:focus-within {
-    border-color: var(--category-accent, var(--accent-color));
-    box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.12), inset 0 1px 0 var(--input-glow);
+    border-color: var(--accent-color);
+    box-shadow:
+        0 0 0 3px rgba(0, 230, 118, 0.18),
+        0 0 12px rgba(0, 230, 118, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 .custom-input {
     width: 100%;
@@ -1428,12 +1460,19 @@ body {
     padding: 11px 0;
 }
 select.custom-input {
-    background: var(--bg-color);
+    background: var(--input-bg);
     border: 1px solid var(--border-strong);
     border-radius: 11px;
     padding: 11px 12px;
     font-size: 0.95rem;
-    box-shadow: inset 0 1px 0 var(--input-glow);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+select.custom-input:focus {
+    border-color: var(--accent-color);
+    box-shadow:
+        0 0 0 3px rgba(0, 230, 118, 0.18),
+        0 0 12px rgba(0, 230, 118, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 .unit {
     color: var(--text-secondary);
@@ -1469,7 +1508,7 @@ select.custom-input {
     justify-content: space-between;
     align-items: center;
     gap: 12px;
-    background: var(--bg-color);
+    background: var(--input-bg);
     border: 1px solid var(--border-strong);
     border-radius: 12px;
     padding: 12px 14px;
@@ -1497,7 +1536,7 @@ select.custom-input {
 
 /* OPENINGS */
 .openings-section {
-    background: var(--bg-color);
+    background: var(--input-bg);
     border: 1px solid var(--border-strong);
     border-radius: 14px;
     padding: 12px;
@@ -1518,7 +1557,7 @@ select.custom-input {
 .openings-add-btn {
     background: var(--card-active);
     border: 1px solid var(--border-strong);
-    color: var(--category-accent, var(--accent-color));
+    color: var(--accent-color);
     padding: 6px 12px;
     border-radius: 10px;
     font-size: 0.75rem;
@@ -1529,7 +1568,7 @@ select.custom-input {
 }
 .openings-add-btn:active {
     transform: scale(0.95);
-    background: var(--bg-color);
+    background: var(--input-bg);
 }
 .openings-list {
     display: flex;
@@ -1722,7 +1761,7 @@ select.custom-input {
 .stat-label { font-size: 0.68rem; color: var(--text-secondary); }
 .stat-item strong { font-size: 0.85rem; color: var(--text-main); }
 
-/* TABS — COMPACT, 3 PER ROW on mobile */
+/* TABS */
 .tabs {
     display: flex;
     flex-wrap: wrap;
@@ -1759,8 +1798,8 @@ select.custom-input {
 }
 .tabs .tab.active {
     background: var(--card-active);
-    border-color: var(--category-accent, var(--accent-color));
-    color: var(--category-accent, var(--accent-color));
+    border-color: var(--accent-color);
+    color: var(--accent-color);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 var(--input-glow);
 }
 
@@ -1821,7 +1860,7 @@ select.custom-input {
 .swap-btn {
     background: var(--card-active);
     border: 1px solid var(--border-strong);
-    color: var(--category-accent, var(--accent-color));
+    color: var(--accent-color);
     padding: 6px 16px;
     border-radius: 20px;
     font-weight: 700;
@@ -1940,7 +1979,7 @@ select.custom-input {
     position: relative;
     height: 24px;
     margin: 14px 0 8px;
-    background: var(--bg-color);
+    background: var(--input-bg);
     border-radius: 12px;
     border: 1px solid var(--border-strong);
     overflow: hidden;
@@ -1974,6 +2013,7 @@ select.custom-input {
 .tuner-cents-label.ok { color: #34d399; }
 .tuner-cents-label.close { color: #f59e0b; }
 .tuner-cents-label.far { color: #ef4444; }
+
 /* ============================================================
    GEAR TABLE
    ============================================================ */
@@ -1992,14 +2032,14 @@ select.custom-input {
     white-space: nowrap;
 }
 .gear-table th {
-    color: var(--category-accent, var(--accent-color));
+    color: var(--accent-color);
     font-weight: 800;
 }
 .gear-table .gear-row-label {
     color: var(--text-secondary);
     font-weight: 700;
 }
-.gear-table tr:nth-child(even) { background: var(--bg-color); }
+.gear-table tr:nth-child(even) { background: var(--input-bg); }
 .gear-skeleton {
     display: flex;
     flex-direction: column;
@@ -2049,7 +2089,7 @@ select.custom-input {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--bg-color);
+    background: var(--input-bg);
     border: 1px solid var(--border-strong);
     border-radius: 12px;
     padding: 10px 14px;
@@ -2080,7 +2120,7 @@ select.custom-input {
 }
 .power-device-remove:active { transform: scale(1.2); }
 
-/* VALUTA — Kursna lista */
+/* VALUTA */
 .fx-head {
     display: flex;
     justify-content: space-between;
@@ -2104,7 +2144,7 @@ select.custom-input {
     transition: transform 0.3s ease, background 0.15s;
     flex-shrink: 0;
 }
-.fx-refresh-btn:hover { background: var(--bg-color); }
+.fx-refresh-btn:hover { background: var(--input-bg); }
 .fx-refresh-btn:active { transform: rotate(360deg); }
 .fx-refresh-btn.spinning { animation: fxSpin 0.7s ease; }
 @keyframes fxSpin {
@@ -2138,7 +2178,7 @@ select.custom-input {
     flex-shrink: 0;
 }
 .fx-swap-btn:active { transform: scale(0.92); }
-.fx-swap-btn:hover { background: var(--bg-color); }
+.fx-swap-btn:hover { background: var(--input-bg); }
 
 .fx-rate-info {
     text-align: center;
@@ -2282,7 +2322,7 @@ select.custom-input {
     align-items: center;
     gap: 10px;
     padding: 10px 10px;
-    background: var(--bg-color);
+    background: var(--input-bg);
     border: 1px solid var(--border-strong);
     border-radius: 12px;
     animation: fadeInUp 0.25s ease;
@@ -2394,7 +2434,7 @@ select.custom-input {
 
 /* COMPARE GROUPS */
 .compare-group {
-    background: var(--bg-color);
+    background: var(--input-bg);
     border: 1px solid var(--border-strong);
     border-radius: 14px;
     padding: 14px;
@@ -2405,7 +2445,7 @@ select.custom-input {
 .compare-title {
     font-size: 0.85rem;
     font-weight: 800;
-    color: var(--category-accent, var(--accent-color));
+    color: var(--accent-color);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 4px;
@@ -2413,7 +2453,7 @@ select.custom-input {
 
 /* CHARTS */
 .chart-container {
-    background: var(--bg-color);
+    background: var(--input-bg);
     border: 1px solid var(--border-strong);
     border-radius: 14px;
     padding: 14px;
@@ -2427,17 +2467,17 @@ select.custom-input {
 }
 .chart-line {
     fill: none;
-    stroke: var(--category-accent, var(--accent-color));
+    stroke: var(--accent-color);
     stroke-width: 2.5;
     stroke-linecap: round;
     stroke-linejoin: round;
 }
 .chart-area {
-    fill: var(--category-accent, var(--accent-color));
+    fill: var(--accent-color);
     opacity: 0.15;
 }
 .chart-dot {
-    fill: var(--category-accent, var(--accent-color));
+    fill: var(--accent-color);
     stroke: var(--card-bg);
     stroke-width: 2;
     cursor: pointer;
@@ -2545,7 +2585,7 @@ select.custom-input {
     white-space: nowrap;
 }
 .amort-table th {
-    color: var(--category-accent, var(--accent-color));
+    color: var(--accent-color);
     font-weight: 800;
     text-align: right;
     font-size: 0.68rem;
@@ -2560,7 +2600,7 @@ select.custom-input {
 .amort-table th:first-child {
     text-align: left;
 }
-.amort-table tr:nth-child(even) { background: var(--bg-color); }
+.amort-table tr:nth-child(even) { background: var(--input-bg); }
 
 #usage-stats-box {
     display: flex;
@@ -2754,7 +2794,56 @@ select.custom-input {
     font-weight: 800;
 }
 
-/* RESPONSIVE — Mobile (max 400px) — 3 tabs in row */
+/* ============================================================
+   INPUT GLOW — bolja vidljivost polja (dark mode)
+   ============================================================ */
+.custom-input,
+.input-wrapper,
+.pct-row .pct-input,
+.pct-row .pct-select,
+select.custom-input,
+.history-search,
+.search-box {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        0 0 0 1px rgba(255, 255, 255, 0.02),
+        0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+.input-wrapper:focus-within,
+.search-box:focus-within,
+.pct-row .pct-input:focus,
+.pct-row .pct-select:focus,
+select.custom-input:focus,
+.history-search:focus {
+    border-color: var(--accent-color) !important;
+    box-shadow:
+        0 0 0 3px rgba(0, 230, 118, 0.18),
+        0 0 12px rgba(0, 230, 118, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+[data-theme="light"] .custom-input,
+[data-theme="light"] .input-wrapper,
+[data-theme="light"] .pct-row .pct-input,
+[data-theme="light"] .pct-row .pct-select,
+[data-theme="light"] select.custom-input {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .input-wrapper:focus-within,
+[data-theme="light"] .search-box:focus-within,
+[data-theme="light"] .pct-row .pct-input:focus,
+[data-theme="light"] .pct-row .pct-select:focus {
+    box-shadow:
+        0 0 0 3px rgba(0, 171, 85, 0.15),
+        0 0 10px rgba(0, 171, 85, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+/* RESPONSIVE */
 @media (max-width: 400px) {
     body { padding: 14px; }
     .grid-menu { gap: 10px; }
@@ -2825,9 +2914,19 @@ select.custom-input {
     .lista-item-price { font-size: 0.8rem; }
     .lista-total-value { font-size: 0.95rem; }
     .hqs-value { font-size: 0.95rem; }
-    .pct-row { flex-wrap: nowrap; }
-    .pct-row .pct-input { flex: 1 1 0; min-width: 0; font-size: 0.9rem; padding: 10px 10px; }
-    .pct-row .pct-select { flex: 0 0 auto; min-width: 72px; font-size: 0.78rem; padding: 10px 6px; }
+    .pct-row { gap: 6px !important; }
+    .pct-row .pct-input {
+        padding: 10px 8px !important;
+        font-size: 0.9rem !important;
+    }
+    .pct-row .pct-select {
+        flex: 0 0 80px !important;
+        width: 80px !important;
+        min-width: 80px !important;
+        max-width: 80px !important;
+        font-size: 0.72rem !important;
+        padding: 10px 4px !important;
+    }
     .converter-box { padding: 14px; gap: 10px; border-radius: 16px; }
     .custom-input { font-size: 1rem; padding: 10px 0; }
     select.custom-input { font-size: 0.9rem; padding: 10px 12px; }
@@ -2844,7 +2943,6 @@ select.custom-input {
     .tuner-detected-note { font-size: 1.7rem; }
 }
 
-/* RESPONSIVE — Larger phones (400-480px) */
 @media (min-width: 401px) and (max-width: 480px) {
     .tabs .tab {
         flex: 1 1 calc(33.333% - 4px);
@@ -2852,7 +2950,6 @@ select.custom-input {
     }
 }
 
-/* RESPONSIVE — Tablets (481-768px) — 4 tabs in row */
 @media (min-width: 481px) and (max-width: 768px) {
     body { padding: 24px; }
     .app-container { max-width: 640px; }
@@ -2878,7 +2975,6 @@ select.custom-input {
     .tabs { gap: 8px; margin-bottom: 14px; }
 }
 
-/* RESPONSIVE — Desktop (769px+) — 4 tabs in row, larger UI */
 @media (min-width: 769px) {
     body { padding: 32px; }
     .app-container { max-width: 720px; }
@@ -2910,91 +3006,9 @@ select.custom-input {
     .subtitle { font-size: 0.85rem; }
 }
 
-/* WebKit specifičnosti */
 @supports (-webkit-touch-callout: none) {
     .card {
         -webkit-backface-visibility: hidden;
         backface-visibility: hidden;
-    }
-}/* ============================================================
-   PROCENAT — ispravka layout-a
-   ============================================================ */
-
-.pct-row {
-    display: flex !important;
-    flex-direction: row !important;
-    gap: 8px !important;
-    margin-bottom: 12px !important;
-    align-items: stretch !important;
-    width: 100% !important;
-    flex-wrap: nowrap !important;
-}
-
-.pct-row .pct-input {
-    flex: 1 1 0 !important;
-    min-width: 0 !important;
-    width: auto !important;
-    background: var(--bg-color) !important;
-    border: 1px solid var(--border-strong) !important;
-    border-radius: 12px !important;
-    color: var(--text-main) !important;
-    font-size: 1rem !important;
-    font-weight: 600 !important;
-    padding: 12px 14px !important;
-    outline: none !important;
-    box-shadow: inset 0 1px 0 var(--input-glow) !important;
-    -moz-appearance: textfield !important;
-    appearance: textfield !important;
-    font-variant-numeric: tabular-nums !important;
-    text-align: center !important;
-}
-
-.pct-row .pct-input::-webkit-outer-spin-button,
-.pct-row .pct-input::-webkit-inner-spin-button {
-    -webkit-appearance: none !important;
-    margin: 0 !important;
-}
-
-.pct-row .pct-input::placeholder {
-    color: var(--text-secondary) !important;
-    font-weight: 500 !important;
-    font-size: 0.9rem !important;
-}
-
-.pct-row .pct-select {
-    flex: 0 0 auto !important;
-    min-width: 100px !important;
-    max-width: 130px !important;
-    width: auto !important;
-    background: var(--bg-color) !important;
-    border: 1px solid var(--border-strong) !important;
-    border-radius: 12px !important;
-    color: var(--text-main) !important;
-    font-size: 0.85rem !important;
-    font-weight: 600 !important;
-    padding: 12px 8px !important;
-    outline: none !important;
-    cursor: pointer !important;
-    box-shadow: inset 0 1px 0 var(--input-glow) !important;
-}
-
-.pct-row .pct-input:focus,
-.pct-row .pct-select:focus {
-    border-color: var(--category-accent, var(--accent-color)) !important;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--category-accent, var(--accent-color)) 15%, transparent),
-                inset 0 1px 0 var(--input-glow) !important;
-}@media (max-width: 400px) {
-    .pct-row {
-        gap: 6px !important;
-    }
-    .pct-row .pct-input {
-        padding: 10px 10px !important;
-        font-size: 0.9rem !important;
-    }
-    .pct-row .pct-select {
-        min-width: 84px !important;
-        max-width: 100px !important;
-        font-size: 0.75rem !important;
-        padding: 10px 4px !important;
     }
 }
