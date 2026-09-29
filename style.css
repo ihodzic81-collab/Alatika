@@ -2973,13 +2973,23 @@ input[type="text"].custom-input::placeholder {
    PRAZAN PROSTOR U MODALIMA — smanjeno
    ============================================================ */
 .calc-body {
-    padding: 10px 18px 18px !important;
+    display: block !important;
+    padding: 8px 18px 18px !important;
+    margin: 0 !important;
 }
 .fx-head {
     margin-bottom: 0 !important;
 }
 .calc-body > *:first-child {
     margin-top: 0 !important;
+}
+.calc-body .converter-box {
+    margin-top: 0 !important;
+    margin-bottom: 12px !important;
+}
+.modal-header {
+    padding: 12px 18px !important;
+    min-height: 60px !important;
 }
 
 /* Prilagođavanje zvezdice na malim ekranima */
