@@ -2859,4 +2859,147 @@ select.custom-input:focus {
     .all-tool-icon svg { width: 26px; height: 26px; }
     .all-tool-label { font-size: 0.8rem; }
     .tab-btn { font-size: 0.92rem; padding: 14px 16px; }
+}/* ============================================================
+   ZVEZDICE ZA FAVORITE — ikonice i tabovi
+   ============================================================ */
+.all-tool-wrap {
+    position: relative;
+    display: flex;
+}
+.all-tool-wrap .all-tool {
+    flex: 1;
+    width: 100%;
+}
+.all-tool-star {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 26px;
+    height: 26px;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    z-index: 3;
+    opacity: 0.75;
+    transition: opacity 0.15s ease, background 0.15s ease, transform 0.12s ease, color 0.15s ease;
+}
+.all-tool-star svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    fill: none;
+}
+.all-tool-star:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.55);
+    transform: scale(1.08);
+}
+.all-tool-star:active { transform: scale(0.9); }
+.all-tool-star.active {
+    color: #facc15;
+    opacity: 1;
+    background: rgba(250, 204, 21, 0.15);
+    border-color: rgba(250, 204, 21, 0.5);
+}
+.all-tool-star.active svg {
+    fill: currentColor;
+    filter: drop-shadow(0 0 4px rgba(250, 204, 21, 0.6));
+}
+[data-theme="light"] .all-tool-star {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+.tab-btn {
+    position: relative;
+}
+.tab-btn-star {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    opacity: 0.55;
+    transition: color 0.15s ease, background 0.15s ease, transform 0.12s ease, opacity 0.15s ease;
+    padding: 0;
+}
+.tab-btn-star svg {
+    width: 15px;
+    height: 15px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+.tab-btn-star:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.08);
+}
+.tab-btn-star:active { transform: scale(0.85); }
+.tab-btn-star.active {
+    color: #facc15;
+    opacity: 1;
+}
+.tab-btn-star.active svg {
+    fill: currentColor;
+    filter: drop-shadow(0 0 4px rgba(250, 204, 21, 0.5));
+}
+
+/* ============================================================
+   PLACEHOLDER — jedva vidljiv
+   ============================================================ */
+.custom-input::placeholder,
+input[type="number"].custom-input::placeholder,
+input[type="text"].custom-input::placeholder {
+    color: var(--text-tertiary) !important;
+    opacity: 0.45 !important;
+    font-weight: 500 !important;
+    font-style: italic;
+}
+
+/* ============================================================
+   PRAZAN PROSTOR U MODALIMA — smanjeno
+   ============================================================ */
+.calc-body {
+    padding: 10px 18px 18px !important;
+}
+.fx-head {
+    margin-bottom: 0 !important;
+}
+.calc-body > *:first-child {
+    margin-top: 0 !important;
+}
+
+/* Prilagođavanje zvezdice na malim ekranima */
+@media (max-width: 400px) {
+    .all-tool-star {
+        width: 22px;
+        height: 22px;
+        top: 4px;
+        right: 4px;
+    }
+    .all-tool-star svg {
+        width: 11px;
+        height: 11px;
+    }
+    .tab-btn-star {
+        width: 22px;
+        height: 22px;
+    }
+    .tab-btn-star svg {
+        width: 13px;
+        height: 13px;
+    }
 }
