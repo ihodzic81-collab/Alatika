@@ -204,9 +204,14 @@
                 <span class="modal-cat-icon" id="calc-icon"></span>
                 <h2 class="modal-title" id="calc-title">Računanje</h2>
             </div>
-            <button class="modal-close-btn" onclick="closeModal('calc-modal')" aria-label="Zatvori">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
+            <div class="modal-header-right">
+                <button class="modal-fav-star" id="calc-fav-star" onclick="toggleCalcFavStar()" title="Dodaj u Moje alate" aria-label="Favorit">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </button>
+                <button class="modal-close-btn" onclick="closeModal('calc-modal')" aria-label="Zatvori">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
         </div>
         <div class="calc-body" id="calc-body"></div>
     </div>
@@ -227,6 +232,45 @@
         <div class="editor-grid" id="editor-grid"></div>
         <button class="calc-btn-main" onclick="saveQuickTools()">Sačuvaj</button>
     </div>
+</div>
+
+<!-- ================= MODAL: LOKACIJA (za Vreme) ================= -->
+<div id="location-modal" class="modal" onclick="closeModalOnBackdrop(event, 'location-modal')">
+    <div class="modal-panel location-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" id="location-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                </span>
+                <h2 class="modal-title">Izaberi lokaciju</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('location-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="location-body">
+            <div class="location-search-box">
+                <input type="text" id="location-search-input" class="custom-input" placeholder="Ukucaj grad (npr. Beograd, Novi Sad...)" oninput="searchLocation()" autocomplete="off">
+            </div>
+            <button class="location-gps-btn" onclick="useGPSLocation()">
+                <span class="location-gps-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                </span>
+                <span>Koristi moju trenutnu lokaciju</span>
+            </button>
+            <div id="location-results" class="location-results"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= FAV HINT ================= -->
+<div id="fav-hint" class="fav-hint" style="display: none;">
+    <div class="fav-hint-icon">⭐</div>
+    <div class="fav-hint-text">
+        <strong>Sačuvaj svoje alate</strong>
+        <span>Klikni zvezdicu u gornjem uglu da dodaš alat u "Moje alate".</span>
+    </div>
+    <button class="fav-hint-btn" onclick="dismissFavHint()">Razumem</button>
 </div>
 
 <!-- ================= TOAST ================= -->
