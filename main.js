@@ -160,7 +160,7 @@ function setupRipple() {
     }, { passive: true });
 }
 
-// ================= REGISTAR ALATA (TOOLS) =================
+// ================= REGISTAR ALATA =================
 
 const TOOLS = [
     { id: 'fuel', name: 'Potrošnja goriva', category: 'Auto', icon: '⛽', description: 'Potrošnja i trošak goriva', screen: 'auto-screen', tab: 'auto-potrosnja-tab', keywords: ['gorivo', 'benzin', 'dizel', 'potrosnja'] },
@@ -673,7 +673,6 @@ function restoreInputsFor(root = document) {
         }
     });
 
-    // Posebno za date-triple hidden input
     root.querySelectorAll('.date-triple').forEach(wrap => {
         const hidden = wrap.querySelector('input[type="hidden"]');
         if (hidden && hidden.id && inputCache[hidden.id]) {
@@ -1251,7 +1250,9 @@ function renderHistoryPreview() {
             </div>
         `;
     } catch (e) { console.error('renderHistoryPreview error:', e); }
-}// ================= DRAG & DROP — TABOVI =================
+}
+
+// ================= DRAG & DROP — TABOVI =================
 
 let tabDragEl = null;
 let tabDragStartX = 0;
@@ -1716,7 +1717,7 @@ function dismissDragHint(hintId) {
     });
 }
 
-// ================= NAVIGACIJA + ANDROID BACK (KRITIČNO) =================
+// ================= NAVIGACIJA + ANDROID BACK =================
 
 let currentScreenId = 'home-screen';
 let navDirection = 'right';
@@ -1743,7 +1744,6 @@ function openScreen(screenId, direction = 'right') {
 
         trackCardUse(screenId);
 
-        // Pamćenje unosa — restore za novi ekran
         try { restoreInputsFor(target); } catch (e) {}
 
         if (screenId === 'home-screen') {
@@ -1752,10 +1752,8 @@ function openScreen(screenId, direction = 'right') {
             try { setupTabDrag(); } catch (e) {}
         }
 
-        // Auto akcije po ekranu
         onScreenOpened(screenId);
 
-        // Push state za back dugme — samo kad nije back navigacija
         if (direction !== 'left' && prevScreenId !== screenId) {
             try {
                 history.pushState({ screen: screenId }, '', '');
@@ -1767,26 +1765,8 @@ function openScreen(screenId, direction = 'right') {
 }
 
 function onScreenOpened(screenId) {
-    // Auto-osvežavanje kursne liste kad uđeš u Novac → Kursna lista
     if (screenId === 'money-screen') {
-        const valutaTab = document.querySelector('#money-valuta-tab.active');
-        if (valutaTab) {
-            // Auto-refresh samo ako je stariji od 6h
-            const lastUpdate = getFxLastUpdate();
-            const ageH = lastUpdate ? (Date.now() - lastUpdate) / 3600000 : 999;
-            if (ageH > 6) {
-                refreshExchangeRates().catch(() => {});
-            }
-        }
-        // Restore valuta tab active state
-        try {
-            const activeTab = document.querySelector('#money-screen .tab.active');
-            if (activeTab && activeTab.dataset.favKey === 'money:valuta') {
-                const lastUpdate = getFxLastUpdate();
-                const ageH = lastUpdate ? (Date.now() - lastUpdate) / 3600000 : 999;
-                if (ageH > 6) refreshExchangeRates().catch(() => {});
-            }
-        } catch (e) {}
+        // Nema više auto-refresh-a — samo ručno preko ↻ dugmeta
     }
     if (screenId === 'history-screen') {
         renderHistory();
@@ -1804,7 +1784,6 @@ function goHome() {
         handleQuickSearch();
     }
     if (currentScreenId === 'home-screen') return;
-    // Idi kroz history da bi back ostao sinhronizovan
     if (history.state && history.state.screen && history.state.screen !== 'home-screen') {
         history.back();
     } else {
@@ -1812,8 +1791,11 @@ function goHome() {
     }
 }
 
+function goBackInApp() {
+    goHome();
+}
+
 function setupBackButton() {
-    // Inicijalni state
     try {
         history.replaceState({ screen: 'home-screen', home: true }, '', '');
     } catch (e) {}
@@ -1821,17 +1803,14 @@ function setupBackButton() {
     window.addEventListener('popstate', (e) => {
         const state = e.state;
 
-        // Ako je home state
         if (state && state.home) {
             if (currentScreenId !== 'home-screen') {
                 openScreen('home-screen', 'left');
-                // Re-push home da bi sledeći back ponovo uhvatio
                 try { history.pushState({ screen: 'home-screen', home: true }, '', ''); } catch (err) {}
             }
             return;
         }
 
-        // Ako ima screen u state
         if (state && state.screen) {
             const target = el(state.screen);
             if (target) {
@@ -1840,7 +1819,6 @@ function setupBackButton() {
             }
         }
 
-        // Fallback: home
         if (currentScreenId !== 'home-screen') {
             openScreen('home-screen', 'left');
             try { history.pushState({ screen: 'home-screen', home: true }, '', ''); } catch (err) {}
@@ -1866,7 +1844,6 @@ function switchSubTab(category, tabName, event) {
         const target = el(`${category}-${tabName}-tab`);
         if (target) {
             target.classList.add('active');
-            // Pamćenje — restore unosa u tabu
             try { restoreInputsFor(target); } catch (e) {}
         }
 
@@ -1874,17 +1851,13 @@ function switchSubTab(category, tabName, event) {
         if (btn && btn.tagName !== 'BUTTON') btn = btn.closest('.tab');
         if (btn) btn.classList.add('active');
 
-        // Specijalne akcije po tabu
         if (category === 'money' && tabName === 'valuta') {
-            const lastUpdate = getFxLastUpdate();
-            const ageH = lastUpdate ? (Date.now() - lastUpdate) / 3600000 : 999;
-            if (ageH > 6) {
-                refreshExchangeRates().catch(() => {});
-            } else {
-                populateCurrencySelects();
-                renderFxList();
-                updateFxUpdatedLabel();
-            }
+            // Samo osveži iz keša, ne pozivaj API
+            loadFxRates();
+            populateCurrencySelects();
+            renderFxList();
+            updateFxUpdatedLabel();
+            calculateCurrency();
         }
         if (category === 'music' && tabName === 'stimer') {
             try { renderTunerStrings(); } catch (e) {}
@@ -1995,7 +1968,7 @@ function fallbackCopy(text, done) {
     document.body.removeChild(ta);
 }
 
-// ================= PROCENAT — funkcije =================
+// ================= PROCENAT =================
 
 function percentAddSub(base, pct, op) {
     if (base === null || pct === null) return null;
@@ -2609,7 +2582,9 @@ function calculatePDV() {
     const px = el('stat-pdv-tax'); if (px) px.innerText = money(tax) + ' RSD';
     show('pdv-result-box');
     show('pdv-stats-row');
-}// ================= KREDIT — sa valutom =================
+}
+
+// ================= KREDIT =================
 
 let currentAmortData = null;
 let amortShowAll = false;
@@ -2857,7 +2832,12 @@ function calculateTip() {
     show('tip-stats-row');
 }
 
-// ================= VALUTA — LIVE KURSNA LISTA (Frankfurter API) =================
+// ================= VALUTA — KURSNA LISTA =================
+//
+// STRATEGIJA (bez problema sa CORS-om i "nema interneta"):
+// 1) Primarni izvor: exchangerate.host (radi bez API ključa, podržava RSD)
+// 2) Fallback: frankfurter.app (ECB kursevi, bez RSD — koristi fiksni RSD)
+// 3) Ako nijedan ne radi: keširani kursevi iz localStorage
 
 const CURRENCIES = [
     { code: 'RSD', name: 'Srpski dinar',       flag: '🇷🇸', rate: 1 },
@@ -2892,8 +2872,7 @@ const CURRENCIES = [
     { code: 'AED', name: 'Dirham UAE',          flag: '🇦🇪', rate: 29.55 }
 ];
 
-const FX_STORAGE_KEY = 'cx_fx_rates_v2';
-const FX_CACHE_HOURS = 6;
+const FX_STORAGE_KEY = 'cx_fx_rates_v3';
 
 function getFxLastUpdate() {
     try {
@@ -2930,44 +2909,47 @@ function saveFxRates() {
 }
 
 function formatFxUpdated(ts) {
-    if (!ts) return 'ručno uneto';
+    if (!ts) return 'nije osveženo';
     const d = new Date(ts);
     const now = new Date();
     const diffMin = Math.round((now - d) / 60000);
-    if (diffMin < 1) return 'osveženo upravo sad';
-    if (diffMin < 60) return `osveženo pre ${diffMin} min`;
+    if (diffMin < 1) return 'upravo sad';
+    if (diffMin < 60) return `pre ${diffMin} min`;
     const diffH = Math.round(diffMin / 60);
-    if (diffH < 24) return `osveženo pre ${diffH}h`;
+    if (diffH < 24) return `pre ${diffH}h`;
     const days = Math.floor(diffH / 24);
-    return `osveženo pre ${days} d.`;
+    return `pre ${days} d.`;
 }
 
 /**
- * Frankfurter API — besplatno, bez ključa, bez CORS problema.
- * Vraća kurseve bazirane na ECB (Evropska centralna banka).
- * Endpoint: https://api.frankfurter.app/latest?from=EUR&to=RSD,USD,...
- *
- * NAPOMENA: Frankfurter ne podržava RSD direktno.
- * Zato dobavljamo sve kurseve baza EUR, a RSD izračunamo iz HUF-a (Mađarska forinta je podržana)
- * ili koristimo fiksni RSD kurs kao fallback.
- *
- * Strategija:
- *   1) Pokušamo Frankfurter sa bazom EUR za sve valute koje podržava.
- *   2) RSD i valute koje Frankfurter ne podržava ostaju na ručnim vrednostima.
+ * Primarni izvor: exchangerate.host
+ * Podržava RSD, besplatan, ne zahteva API ključ, dozvoljava CORS.
+ * Endpoint: https://api.exchangerate.host/latest?base=RSD
  */
-async function fetchFrankfurterRates() {
+async function fetchFromExchangeRateHost() {
+    const url = 'https://api.exchangerate.host/latest?base=RSD';
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (!data || !data.rates) throw new Error('Neispravan odgovor');
+    return data.rates; // { EUR: 0.00854, USD: 0.00922, ... } — 1 RSD = X strane valute
+}
+
+/**
+ * Sekundarni izvor: frankfurter.app
+ * ECB kursevi, ne podržava RSD. Koristimo EUR→X pa izračunamo RSD preko fiksnog kursa.
+ */
+async function fetchFromFrankfurter() {
     const supported = CURRENCIES
         .map(c => c.code)
         .filter(code => code !== 'RSD');
 
     const url = `https://api.frankfurter.app/latest?from=EUR&to=${supported.join(',')}`;
-
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     if (!data || !data.rates) throw new Error('Neispravan odgovor');
-
-    return data.rates; // { USD: 1.08, GBP: 0.85, ... }
+    return data.rates; // { USD: 1.08, GBP: 0.85, ... } — 1 EUR = X strane valute
 }
 
 async function refreshExchangeRates(silent = false) {
@@ -2975,28 +2957,54 @@ async function refreshExchangeRates(silent = false) {
     if (btn) btn.classList.add('spinning');
     setTimeout(() => { if (btn) btn.classList.remove('spinning'); }, 700);
 
-    if (!silent) {
-        showToast('Osvežavam kurseve...', 'info', 1500);
-    }
+    if (!silent) showToast('Osvežavam kurseve...', 'info', 1500);
 
+    let success = false;
+
+    // Pokušaj 1: exchangerate.host (podržava RSD direktno)
     try {
-        const rates = await fetchFrankfurterRates();
-
-        // Uzimamo trenutni RSD kurs (EUR → RSD) iz lokalnog keša kao referencu
-        const currentEur = CURRENCIES.find(c => c.code === 'EUR');
-        const eurToRsd = currentEur ? currentEur.rate : 117.20;
-
+        const rates = await fetchFromExchangeRateHost();
         CURRENCIES.forEach(c => {
             if (c.code === 'RSD') { c.rate = 1; return; }
-            if (c.code === 'EUR') { c.rate = eurToRsd; return; }
-
-            const eurToCur = rates[c.code];
-            if (typeof eurToCur === 'number' && eurToCur > 0) {
-                // 1 EUR = eurToCur X  →  1 X = eurToRsd / eurToCur RSD
-                c.rate = Number((eurToRsd / eurToCur).toFixed(4));
+            const rate = rates[c.code];
+            if (typeof rate === 'number' && rate > 0) {
+                // 1 RSD = rate X  →  1 X = 1/rate RSD
+                c.rate = Number((1 / rate).toFixed(4));
             }
         });
+        success = true;
+        console.log('Kursevi učitani sa exchangerate.host');
+    } catch (e) {
+        console.warn('exchangerate.host greška:', e);
+    }
 
+    // Pokušaj 2: frankfurter.app (fallback)
+    if (!success) {
+        try {
+            const rates = await fetchFromFrankfurter();
+
+            // Koristimo trenutni RSD kurs iz keša ili fiksni
+            const currentEur = CURRENCIES.find(c => c.code === 'EUR');
+            const eurToRsd = currentEur ? currentEur.rate : 117.20;
+
+            CURRENCIES.forEach(c => {
+                if (c.code === 'RSD') { c.rate = 1; return; }
+                if (c.code === 'EUR') { c.rate = eurToRsd; return; }
+
+                const eurToCur = rates[c.code];
+                if (typeof eurToCur === 'number' && eurToCur > 0) {
+                    // 1 EUR = eurToCur X  →  1 X = eurToRsd / eurToCur RSD
+                    c.rate = Number((eurToRsd / eurToCur).toFixed(4));
+                }
+            });
+            success = true;
+            console.log('Kursevi učitani sa frankfurter.app');
+        } catch (e) {
+            console.warn('frankfurter.app greška:', e);
+        }
+    }
+
+    if (success) {
         saveFxRates();
         populateCurrencySelects();
         renderFxList();
@@ -3004,14 +3012,25 @@ async function refreshExchangeRates(silent = false) {
         calculateCurrency();
 
         if (!silent) {
-            showToast('Kursevi osveženi (ECB)', 'success', 2000);
+            showToast('Kursevi osveženi ✓', 'success', 2000);
             vibrate(20);
             playTick(0, 1400, 0.08, 0.03);
         }
-    } catch (e) {
-        console.warn('Frankfurter greška:', e);
+    } else {
+        // Oba izvora pala — koristi keš
+        loadFxRates();
+        populateCurrencySelects();
+        renderFxList();
+        updateFxUpdatedLabel();
+        calculateCurrency();
+
         if (!silent) {
-            showToast('Nema interneta — koristim keširane kurseve', 'warning', 2500);
+            const hasCache = !!getFxLastUpdate();
+            if (hasCache) {
+                showToast('Nema interneta — koristim keširane kurseve', 'warning', 2500);
+            } else {
+                showToast('Nema interneta — koristim podrazumevane kurseve', 'warning', 2500);
+            }
         }
     }
 }
@@ -3021,7 +3040,6 @@ function populateCurrencySelects() {
     const toSel = el('fx-to');
     if (!fromSel || !toSel) return;
 
-    // Sačuvaj trenutne izbore
     const prevFrom = fromSel.value || 'RSD';
     const prevTo = toSel.value || 'EUR';
 
@@ -3087,7 +3105,11 @@ function updateFxUpdatedLabel() {
     const label = el('fx-updated-label');
     if (!label) return;
     const ts = getFxLastUpdate();
-    label.textContent = formatFxUpdated(ts);
+    if (!ts) {
+        label.textContent = 'podrazumevani kursevi';
+    } else {
+        label.textContent = 'osveženo ' + formatFxUpdated(ts);
+    }
 }
 
 function swapCurrencies() {
@@ -5491,7 +5513,7 @@ function calculateDetectNote() {
     show('detect-stats-row');
 }
 
-// ================= ŠTIMER (TUNER) =================
+// ================= ŠTIMER =================
 
 const TUNER_INSTRUMENTS = {
     'guitar-standard': {
@@ -5656,8 +5678,17 @@ function renderTunerStrings() {
     });
 }
 
+// ✨ IZMENA: toggle — klik na aktivnu žicu zaustavlja ton
 function playTunerTone(freq, btn) {
     try {
+        const isActive = btn && btn.classList.contains('active');
+        if (isActive) {
+            stopTunerTone();
+            const status = el('tuner-status');
+            if (status) status.style.display = 'none';
+            return;
+        }
+
         if (!audioCtx) audioCtx = getAudio();
         if (!audioCtx) return;
         if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -5711,7 +5742,7 @@ function stopTunerTone() {
     document.querySelectorAll('.tuner-string-btn').forEach(b => b.classList.remove('active'));
 }
 
-/* --- Mikrofon + auto-detekcija --- */
+/* Mikrofon + auto-detekcija */
 
 async function toggleTunerMic() {
     const btn = el('tuner-mic-btn');
@@ -5783,7 +5814,6 @@ function micLoop() {
     if (freq > 0) {
         updateTunerDisplay(freq);
     } else {
-        // Blago resetovanje
         const detectedNote = el('tuner-detected-note');
         if (detectedNote) detectedNote.textContent = '—';
         const detectedFreq = el('tuner-detected-freq');
@@ -5793,10 +5823,6 @@ function micLoop() {
     micRafId = requestAnimationFrame(micLoop);
 }
 
-/**
- * Autokorelacija — klasičan algoritam za detekciju osnovne frekvencije.
- * Radi dobro za monofone instrumente (gitara, violina, itd.).
- */
 function autoCorrelate(buffer, sampleRate) {
     const SIZE = buffer.length;
     let rms = 0;
@@ -5804,9 +5830,8 @@ function autoCorrelate(buffer, sampleRate) {
         rms += buffer[i] * buffer[i];
     }
     rms = Math.sqrt(rms / SIZE);
-    if (rms < 0.01) return -1; // previše tiho
+    if (rms < 0.01) return -1;
 
-    // Trim tišinu sa početka/kraja
     let r1 = 0, r2 = SIZE - 1;
     const thres = 0.2;
     for (let i = 0; i < SIZE / 2; i++) {
@@ -5826,7 +5851,6 @@ function autoCorrelate(buffer, sampleRate) {
         }
     }
 
-    // Pronađi prvi "dip" pa maksimum posle njega
     let d = 0;
     while (c[d] > c[d + 1]) d++;
     let maxval = -1, maxpos = -1;
@@ -5839,7 +5863,6 @@ function autoCorrelate(buffer, sampleRate) {
 
     let T0 = maxpos;
 
-    // Parabolična interpolacija za precizniju frekvenciju
     const x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1];
     const a = (x1 + x3 - 2 * x2) / 2;
     const b = (x3 - x1) / 2;
@@ -5864,14 +5887,12 @@ function updateTunerDisplay(freq) {
     const detectedFreq = el('tuner-detected-freq');
     if (detectedFreq) detectedFreq.textContent = freq.toFixed(2) + ' Hz';
 
-    // Pomeri marker na cents skali (-50 do +50)
     const marker = el('tuner-cents-marker');
     if (marker) {
         const clamped = Math.max(-50, Math.min(50, cents));
-        const percent = 50 + (clamped / 50) * 45; // 5% do 95%
+        const percent = 50 + (clamped / 50) * 45;
         marker.style.left = percent + '%';
 
-        // Boja prema tačnosti
         if (Math.abs(cents) < 5) {
             marker.style.background = '#34d399';
         } else if (Math.abs(cents) < 15) {
@@ -5892,7 +5913,7 @@ function updateTunerDisplay(freq) {
     }
 }
 
-// ================= FX DUGMAD (zvuk, vibracija) =================
+// ================= FX DUGMAD =================
 
 function makeFxButton(key, title) {
     const btn = document.createElement('button');
@@ -5996,7 +6017,6 @@ document.addEventListener('change', function (e) {
 
 function initApp() {
     try {
-        // Tema
         const savedTheme = localStorage.getItem('cx_theme');
         if (savedTheme === 'light') {
             document.documentElement.setAttribute('data-theme', 'light');
@@ -6008,16 +6028,13 @@ function initApp() {
             if (tt) tt.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
         }
 
-        // Cene goriva
         const savedPrice = localStorage.getItem('cx_fuel_price');
         const p1 = el('price'); if (savedPrice && p1) p1.value = savedPrice;
         const p2 = el('road-price'); if (savedPrice && p2) p2.value = savedPrice;
 
-        // Valuta
         const savedCurrency = localStorage.getItem('cx_default_currency');
         const ac = el('auto-currency'); if (savedCurrency && ac) ac.value = savedCurrency;
 
-        // Profil auta
         const profile = loadAutoProfile();
         const apm = el('auto-profile-model');
         const app = el('auto-profile-plate');
@@ -6027,7 +6044,6 @@ function initApp() {
         if (profile.tehDate) setTripleDate('auto-profile-teh-date', profile.tehDate);
     } catch (e) { console.error('init load error:', e); }
 
-    // Današnji datum u prazna date-triple polja
     const today = new Date();
     const iso = today.getFullYear() + '-' +
         String(today.getMonth() + 1).padStart(2, '0') + '-' +
@@ -6055,7 +6071,6 @@ function initApp() {
     try { setupTabDrag(); } catch (e) { console.error('setupTabDrag:', e); }
     try { applyTabOrder(); } catch (e) {}
 
-    // Kursna lista — učitaj iz keša, pa ako je staro, osveži
     try {
         loadFxRates();
         populateCurrencySelects();
@@ -6072,23 +6087,18 @@ function initApp() {
 
     try { renderHistoryPreview(); } catch (e) { console.error('init history preview error:', e); }
 
-    // PAMĆENJE UNOSA — učitaj keš i postavi listenere
     try {
         loadInputCache();
-        // Restore za trenutno aktivni ekran (home je default, ali restore sve)
         restoreInputsFor(document);
         setupInputPersistence();
     } catch (e) { console.error('init inputs error:', e); }
 
-    // Štimer — renderuj žice za default instrument
     try { renderTunerStrings(); } catch (e) {}
 
-    // ANDROID BACK
     try { setupBackButton(); } catch (e) { console.error('setupBackButton:', e); }
 
     document.title = 'Alatika — Mali alat za velika računanja';
 
-    // Splash screen
     setTimeout(() => {
         const splash = el('splash-screen');
         if (splash) {
