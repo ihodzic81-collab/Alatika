@@ -1689,6 +1689,16 @@ const WMO_ICONS = {
     95: 'cloudLightning', 96: 'cloudLightning', 99: 'cloudLightning'
 };
 
+// Boje za vremenske ikone
+const WMO_ICON_COLORS = {
+    sun: '#fbbf24',           // žuto — sunce
+    cloudSun: '#fbbf24',      // žuto — sunce sa oblakom
+    cloud: '#94a3b8',         // sivo — oblak
+    cloudRain: '#60a5fa',     // plavo — kiša
+    cloudSnow: '#e0e7ff',     // belo-plavo — sneg
+    cloudLightning: '#facc15' // žuto — grmljavina
+};
+
 const CITY_MAP = {
     'beograd': { name: 'Beograd', admin1: 'Srbija', country: 'Srbija', lat: 44.8176, lon: 20.4633 },
     'novi sad': { name: 'Novi Sad', admin1: 'Vojvodina', country: 'Srbija', lat: 45.2671, lon: 19.8335 },
@@ -2023,7 +2033,7 @@ function updateWeatherPrognoza() {
         hourlyHtml += `
             <div class="weather-hour-card">
                 <div class="weather-hour-time">${formatHour(timeStr)}</div>
-                <div class="weather-hour-icon" style="color: var(--qt-accent, #38bdf8);">${icon(wInfo.icon)}</div>
+                <div class="weather-hour-icon" style="color: ${WMO_ICON_COLORS[wInfo.icon] || '#38bdf8'};">${icon(wInfo.icon)}</div>
                 <div class="weather-hour-temp">${t2}°</div>
                 ${rain > 20 ? `<div class="weather-hour-rain">${rain}%</div>` : ''}
             </div>
@@ -2043,7 +2053,7 @@ function updateWeatherPrognoza() {
         dailyHtml += `
             <div class="weather-day-item">
                 <div class="weather-day-name">${formatDayName(timeStr, i)}</div>
-                <div class="weather-day-icon" style="color: var(--qt-accent, #38bdf8);">${icon(wInfo.icon)}</div>
+                <div class="weather-day-icon" style="color: ${WMO_ICON_COLORS[wInfo.icon] || '#38bdf8'};">${icon(wInfo.icon)}</div>
                 <div class="weather-day-comment">${escapeHtml(comment)}</div>
                 <div class="weather-day-temps">${tMax}°<small> / ${tMin}°</small></div>
             </div>
