@@ -5226,8 +5226,8 @@ function updateTunerDisplay(freq) {
 
     const ti = el('tuner-target-info');
     if (ti) {
-        const statusText = Math.abs(cents) < 3 ? '✓ U ŠTIMU' :
-                          (Math.abs(cents) < 15 ? '~ BLIZU' : '✗ VAN ŠTIMA');
+                const statusText = Math.abs(cents) < 3 ? safeT('label.music.tunerInTune') :
+                          (Math.abs(cents) < 15 ? safeT('label.music.tunerClose') : safeT('label.music.tunerOut'));
         ti.textContent = `${safeT('label.music.string')} ${index + 1} • ${statusText}`;
         ti.classList.remove('ok', 'close', 'far');
         if (Math.abs(cents) < 3) ti.classList.add('ok');
