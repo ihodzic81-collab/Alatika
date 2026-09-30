@@ -5763,3 +5763,9 @@ function refreshUIText() {
         if (confirmOkBtn) confirmOkBtn.textContent = t('confirm.ok');
     } catch (e) { console.warn('refreshUIText greška:', e); }
 }
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
