@@ -31,6 +31,7 @@
                     <h1 class="logo-text">ALATI<span>KA</span></h1>
                 </div>
                 <div class="header-actions">
+                    <button id="lang-toggle" class="icon-btn-text" onclick="toggleLanguage()" title="Jezik / Language" aria-label="Language">SR</button>
                     <button id="theme-toggle" class="icon-btn-svg" onclick="toggleTheme()" title="Tema" aria-label="Tema">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                     </button>
@@ -39,7 +40,7 @@
                     </button>
                 </div>
             </div>
-            <p class="subtitle">Mali alat za velika računanja</p>
+            <p class="subtitle" id="app-subtitle">Mali alat za velika računanja</p>
         </header>
 
         <div class="search-wrap">
@@ -57,19 +58,17 @@
 
         <div id="home-normal-content">
 
-            <!-- BRZI ALATI -->
             <section class="home-section" id="quick-tools-section">
                 <div class="section-head">
-                    <h2 class="section-title">Brzi alati</h2>
-                    <button class="section-action-btn" onclick="openQuickToolsEditor()">Izmeni</button>
+                    <h2 class="section-title" id="sec-title-quick">Brzi alati</h2>
+                    <button class="section-action-btn" id="btn-edit-quick" onclick="openQuickToolsEditor()">Izmeni</button>
                 </div>
                 <div id="quick-tools-grid" class="quick-tools-grid"></div>
             </section>
 
-            <!-- MOJI ALATI -->
             <section class="home-section" id="my-tools-section">
                 <div class="section-head">
-                    <h2 class="section-title">Moji alati</h2>
+                    <h2 class="section-title" id="sec-title-my">Moji alati</h2>
                 </div>
                 <div id="favorites-row" class="favorites-row"></div>
                 <div id="favorites-empty" class="favorites-empty">
@@ -77,15 +76,14 @@
                 </div>
             </section>
 
-            <!-- SVI ALATI -->
             <section class="home-section">
                 <div class="section-head">
-                    <h2 class="section-title">Svi alati</h2>
+                    <h2 class="section-title" id="sec-title-all">Svi alati</h2>
                 </div>
                 <div id="all-tools-grid" class="all-tools-grid"></div>
             </section>
 
-            <div class="footer-tag">Alatika — mali alat za velika računanja</div>
+            <div class="footer-tag" id="footer-tag">Alatika — mali alat za velika računanja</div>
         </div>
     </div>
 
@@ -95,7 +93,7 @@
             <button class="back-btn" onclick="goHome()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
             </button>
-            <h2>Moja računanja</h2>
+            <h2 id="history-title">Moja računanja</h2>
             <span class="dots">•••</span>
         </div>
 
@@ -108,8 +106,8 @@
         <div class="history-meta">
             <div class="history-count" id="history-count">Ukupno: 0</div>
             <div class="history-actions-mini">
-                <button class="copy-btn-mini" onclick="exportHistory()">Izvezi</button>
-                <button class="copy-btn-mini history-danger-mini" onclick="clearHistory()">Obriši</button>
+                <button class="copy-btn-mini" id="btn-history-export" onclick="exportHistory()">Izvezi</button>
+                <button class="copy-btn-mini history-danger-mini" id="btn-history-clear" onclick="clearHistory()">Obriši</button>
             </div>
         </div>
 
@@ -139,43 +137,53 @@
             <button class="back-btn" onclick="goHome()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
             </button>
-            <h2>Podešavanja</h2>
+            <h2 id="settings-title">Podešavanja</h2>
             <span class="dots">•••</span>
         </div>
         <div class="converter-box">
             <div class="settings-row">
                 <div>
-                    <div class="settings-label">Tema</div>
-                    <div class="settings-sub">Tamna ili svetla pozadina</div>
+                    <div class="settings-label" id="settings-theme-label">Tema</div>
+                    <div class="settings-sub" id="settings-theme-sub">Tamna ili svetla pozadina</div>
                 </div>
                 <button class="settings-toggle-btn" id="settings-theme-btn" onclick="toggleTheme()">Tamna</button>
             </div>
             <div class="settings-row">
                 <div>
-                    <div class="settings-label">Zvuk</div>
-                    <div class="settings-sub">Kratki klik na dugmad i rezultate</div>
+                    <div class="settings-label" id="settings-sound-label">Zvuk</div>
+                    <div class="settings-sub" id="settings-sound-sub">Kratki klik na dugmad i rezultate</div>
                 </div>
                 <button class="settings-toggle-btn" id="settings-sound-btn" onclick="toggleSetting('sound')">Uključen</button>
             </div>
             <div class="settings-row">
                 <div>
-                    <div class="settings-label">Vibracija</div>
-                    <div class="settings-sub">Radi samo na Android telefonima</div>
+                    <div class="settings-label" id="settings-haptic-label">Vibracija</div>
+                    <div class="settings-sub" id="settings-haptic-sub">Radi samo na Android telefonima</div>
                 </div>
                 <button class="settings-toggle-btn" id="settings-haptic-btn" onclick="toggleSetting('haptic')">Uključena</button>
             </div>
             <div class="settings-row">
                 <div>
-                    <div class="settings-label">Podrazumevana valuta</div>
-                    <div class="settings-sub">Koristi se u Auto kalkulatoru</div>
+                    <div class="settings-label" id="settings-currency-label">Podrazumevana valuta</div>
+                    <div class="settings-sub" id="settings-currency-sub">Koristi se u Auto kalkulatoru</div>
                 </div>
                 <select id="settings-currency" class="custom-input settings-select" onchange="setDefaultCurrency()">
                     <option value="RSD">RSD</option>
                     <option value="EUR">EUR</option>
                 </select>
             </div>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-label" id="settings-language-label">Jezik / Language</div>
+                    <div class="settings-sub" id="settings-language-sub">Srpski / English</div>
+                </div>
+                <select id="settings-language" class="custom-input settings-select" onchange="setLanguageFromSettings(this.value)">
+                    <option value="sr">Srpski</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
         </div>
-        <p class="section-desc">Alatika radi u potpunosti lokalno na tvom telefonu — ništa se ne šalje na internet.</p>
+        <p class="section-desc" id="settings-offline-text">Alatika radi u potpunosti lokalno na tvom telefonu — ništa se ne šalje na internet.</p>
     </div>
 
 </div>
@@ -222,15 +230,15 @@
     <div class="modal-panel editor-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
             <div class="modal-header-left">
-                <h2 class="modal-title">Izmeni brze alate</h2>
+                <h2 class="modal-title" id="editor-title">Izmeni brze alate</h2>
             </div>
             <button class="modal-close-btn" onclick="closeModal('editor-modal')" aria-label="Zatvori">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
         </div>
-        <p class="editor-desc">Izaberi 4 alata koja želiš da vidiš na početnom ekranu.</p>
+        <p class="editor-desc" id="editor-desc">Izaberi 4 alata koja želiš da vidiš na početnom ekranu.</p>
         <div class="editor-grid" id="editor-grid"></div>
-        <button class="calc-btn-main" onclick="saveQuickTools()">Sačuvaj</button>
+        <button class="calc-btn-main" id="editor-save-btn" onclick="saveQuickTools()">Sačuvaj</button>
     </div>
 </div>
 
@@ -242,7 +250,7 @@
                 <span class="modal-cat-icon" id="location-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                 </span>
-                <h2 class="modal-title">Izaberi lokaciju</h2>
+                <h2 class="modal-title" id="location-title">Izaberi lokaciju</h2>
             </div>
             <button class="modal-close-btn" onclick="closeModal('location-modal')" aria-label="Zatvori">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -250,13 +258,13 @@
         </div>
         <div class="location-body">
             <div class="location-search-box">
-                <input type="text" id="location-search-input" class="custom-input" placeholder="Ukucaj grad (npr. Beograd, Novi Sad...)" oninput="searchLocation()" autocomplete="off">
+                <input type="text" id="location-search-input" class="custom-input" placeholder="Ukucaj grad..." oninput="searchLocation()" autocomplete="off">
             </div>
             <button class="location-gps-btn" onclick="useGPSLocation()">
                 <span class="location-gps-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                 </span>
-                <span>Koristi moju trenutnu lokaciju</span>
+                <span id="location-gps-text">Koristi moju trenutnu lokaciju</span>
             </button>
             <div id="location-results" class="location-results"></div>
         </div>
@@ -267,10 +275,10 @@
 <div id="fav-hint" class="fav-hint" style="display: none;">
     <div class="fav-hint-icon">⭐</div>
     <div class="fav-hint-text">
-        <strong>Sačuvaj svoje alate</strong>
-        <span>Klikni zvezdicu u gornjem uglu da dodaš alat u "Moje alate".</span>
+        <strong id="fav-hint-title">Sačuvaj svoje alate</strong>
+        <span id="fav-hint-text">Klikni zvezdicu u gornjem uglu da dodaš alat u "Moje alate".</span>
     </div>
-    <button class="fav-hint-btn" onclick="dismissFavHint()">Razumem</button>
+    <button class="fav-hint-btn" id="fav-hint-btn" onclick="dismissFavHint()">Razumem</button>
 </div>
 
 <!-- ================= TOAST ================= -->
@@ -285,12 +293,13 @@
         <h3 id="confirm-title" class="confirm-title">Potvrda</h3>
         <p id="confirm-message" class="confirm-message">Da li si siguran?</p>
         <div class="confirm-actions">
-            <button class="confirm-btn confirm-cancel" onclick="closeConfirm(false)">Otkaži</button>
-            <button class="confirm-btn confirm-ok" onclick="closeConfirm(true)">Potvrdi</button>
+            <button class="confirm-btn confirm-cancel" id="confirm-cancel-btn" onclick="closeConfirm(false)">Otkaži</button>
+            <button class="confirm-btn confirm-ok" id="confirm-ok-btn" onclick="closeConfirm(true)">Potvrdi</button>
         </div>
     </div>
 </div>
 
+<script src="translations.js"></script>
 <script src="main.js"></script>
 </body>
 </html>
