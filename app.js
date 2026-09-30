@@ -4786,7 +4786,75 @@ function populateNoteSelects() {
     if (el('int-note2')) el('int-note2').value = 'G';
     if (el('freq-note')) el('freq-note').value = 'A';
 }
-function renderMusicStimer() { return `<div class="converter-box">${sectionDescKey('desc.music.tuner')}${inputField('label.music.referenceFreq','tuner-a4','Hz','value="440"')}<div class="input-field"><label>${safeT('label.music.instrument')}</label><select id="tuner-instrument" class="custom-input" onchange="renderTunerStrings()"><option value="guitar-standard">${safeT('option.music.guitarStandard')}</option><option value="guitar-dropd">${safeT('option.music.guitarDropD')}</option><option value="bass-4">${safeT('option.music.bass4')}</option><option value="ukulele-soprano">${safeT('option.music.ukuleleSoprano')}</option><option value="violin">${safeT('option.music.violin')}</option></select></div></div><div id="tuner-strings" class="tuner-strings"></div><div id="tuner-status" class="tuner-status" style="display:none;"><div class="tuner-note" id="tuner-note-display">—</div><div class="tuner-freq" id="tuner-freq-display">— Hz</div></div><button class="copy-btn" id="tuner-stop-btn" style="display:none; width:100%; margin-top:8px;" onclick="stopTunerTone()">${safeT('btn.stopTone')}</button>`; }
+function renderMusicStimer() {
+    return `
+        <div class="converter-box">
+            <div class="section-desc" style="margin-bottom: 12px;">${safeT('desc.music.tuner')}</div>
+            ${inputField('label.music.referenceFreq', 'tuner-a4', 'Hz', 'value="440"')}
+            <div class="input-field">
+                <label>${safeT('label.music.instrument')}</label>
+                <select id="tuner-instrument" class="custom-input" onchange="renderTunerStrings()">
+                    <option value="guitar-standard">${safeT('option.music.guitarStandard')}</option>
+                    <option value="guitar-dropd">${safeT('option.music.guitarDropD')}</option>
+                    <option value="guitar-halfdown">${safeT('option.music.guitarHalfDown')}</option>
+                    <option value="bass-4">${safeT('option.music.bass4')}</option>
+                    <option value="bass-5">${safeT('option.music.bass5')}</option>
+                    <option value="ukulele-soprano">${safeT('option.music.ukuleleSoprano')}</option>
+                    <option value="ukulele-baritone">${safeT('option.music.ukuleleBaritone')}</option>
+                    <option value="violin">${safeT('option.music.violin')}</option>
+                    <option value="cello">${safeT('option.music.cello')}</option>
+                    <option value="mandolin">${safeT('option.music.mandolin')}</option>
+                    <option value="banjo">${safeT('option.music.banjo')}</option>
+                    <option value="kontrabas">${safeT('option.music.doubleBass')}</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="converter-box mic-tuner-box">
+            <div class="mic-tuner-header">
+                <div class="section-desc" style="margin: 0;">${safeT('label.music.micTunerDesc')}</div>
+            </div>
+            <button class="calc-btn-main mic-tuner-btn" id="tuner-mic-btn" onclick="toggleTunerMic()">
+                🎤 ${safeT('btn.enableMic')}
+            </button>
+            <div id="tuner-mic-result" class="tuner-mic-result" style="display: none;">
+                <div class="tuner-big-note" id="tuner-detected-note">—</div>
+                <div class="tuner-target-info" id="tuner-target-info"></div>
+                <div class="tuner-detected-freq" id="tuner-detected-freq">— Hz</div>
+                
+                <div class="tuner-gauge-wrap">
+                    <div class="tuner-gauge-labels">
+                        <span class="tuner-gauge-label">−50</span>
+                        <span class="tuner-gauge-label tuner-gauge-label-center">0</span>
+                        <span class="tuner-gauge-label">+50</span>
+                    </div>
+                    <div class="tuner-cents-bar">
+                        <div class="tuner-cents-zone flat"><span>♭</span></div>
+                        <div class="tuner-cents-zone center"><span>✓</span></div>
+                        <div class="tuner-cents-zone sharp"><span>♯</span></div>
+                        <div class="tuner-cents-center"></div>
+                        <div class="tuner-cents-marker" id="tuner-cents-marker" style="left: 50%;"></div>
+                    </div>
+                    <div class="tuner-cents-label" id="tuner-cents-label">0 cents</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tuner-strings-head">
+            <div class="section-desc" style="margin: 0;">${safeT('label.music.stringsReference')}</div>
+        </div>
+        <div id="tuner-strings" class="tuner-strings"></div>
+
+        <div id="tuner-status" class="tuner-status" style="display: none;">
+            <div class="tuner-note" id="tuner-note-display">—</div>
+            <div class="tuner-freq" id="tuner-freq-display">— Hz</div>
+        </div>
+        <button class="copy-btn" id="tuner-stop-btn" style="display: none; width: 100%; margin-top: 8px;" onclick="stopTunerTone()">
+            ${safeT('btn.stopTone')}
+        </button>
+    `;
+}
+
 function renderMusicTranspozicija() { return `<div class="converter-box">${sectionDescKey('desc.music.transpose')}<div class="input-field"><label>${safeT('label.music.originalKey')}</label><select id="trans-orig" class="custom-input"></select></div><div class="input-field"><label>${safeT('label.music.newKey')}</label><select id="trans-new" class="custom-input"></select></div>${inputFieldText('label.music.enterChords','trans-chords','npr. C G Am F')}${calcButton('btn.calculate','calculateTranspose()')}</div><div id="trans-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('musicNote')}</div><div><div class="res-label">${safeT('label.music.transposedChords')}</div><h3 id="res-trans-chords" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-trans-chords','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Transpozicija" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Transpozicija" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('trans-stats-row',[['label.music.shift','stat-trans-steps','0']])}`; }
 function renderMusicLestvice() { return `<div class="converter-box">${sectionDescKey('desc.music.scales')}<div class="input-field"><label>${safeT('label.music.rootNote')}</label><select id="scale-root" class="custom-input"></select></div><div class="input-field"><label>${safeT('label.music.scaleType')}</label><select id="scale-type" class="custom-input"><option value="major">${safeT('option.music.major')}</option><option value="minor">${safeT('option.music.naturalMinor')}</option><option value="harmonic_minor">${safeT('option.music.harmonicMinor')}</option><option value="pentatonic_major">${safeT('option.music.pentatonicMajor')}</option><option value="pentatonic_minor">${safeT('option.music.pentatonicMinor')}</option><option value="blues">${safeT('option.music.blues')}</option></select></div>${calcButton('btn.calculate','calculateScale()')}</div><div id="scale-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('piano')}</div><div><div class="res-label">${safeT('label.music.notesInScale')}</div><h3 id="res-scale-notes" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-scale-notes','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Lestvica" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Lestvica" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('scale-stats-row',[['label.music.notesCount','stat-scale-count','0'],['label.music.intervals','stat-scale-intervals','—']])}`; }
 function renderMusicAkordi() { return `<div class="converter-box">${sectionDescKey('desc.music.chords')}<div class="input-field"><label>${safeT('label.music.rootNote')}</label><select id="chord-root" class="custom-input"></select></div><div class="input-field"><label>${safeT('label.music.chordType')}</label><select id="chord-type" class="custom-input"><option value="major">${safeT('option.music.majorChord')}</option><option value="minor">${safeT('option.music.minorChord')}</option><option value="7">${safeT('option.music.dominant7')}</option><option value="maj7">${safeT('option.music.major7')}</option><option value="min7">${safeT('option.music.minor7')}</option><option value="dim">${safeT('option.music.dim')}</option><option value="aug">${safeT('option.music.aug')}</option></select></div>${calcButton('btn.calculate','calculateChord()')}</div><div id="chord-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('guitar')}</div><div><div class="res-label">${safeT('label.music.chordNotes')}</div><h3 id="res-chord-notes" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-chord-notes','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Akord" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Akord" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('chord-stats-row',[['label.music.formula','stat-chord-formula','—']])}`; }
@@ -4981,8 +5049,14 @@ function renderTunerStrings() {
     inst.strings.forEach((s, i) => {
         const freq = s.freq * ratio;
         const btn = document.createElement('button');
-        btn.className = 'tuner-string-btn'; btn.type = 'button';
-        btn.innerHTML = `<span class="ts-num">${i + 1}. ${safeT('label.music.string')}</span><span class="ts-note">${s.note}${s.octave}</span><span class="ts-freq">${freq.toFixed(2)} Hz</span>`;
+        btn.className = 'tuner-string-btn';
+        btn.type = 'button';
+        btn.dataset.index = i;
+        btn.innerHTML = `
+            <span class="ts-num">${i + 1}.</span>
+            <span class="ts-note">${s.note}${s.octave}</span>
+            <span class="ts-freq">${freq.toFixed(2)} Hz</span>
+        `;
         btn.addEventListener('click', () => playTunerTone(freq, btn));
         wrap.appendChild(btn);
     });
@@ -5025,6 +5099,76 @@ function stopTunerTone() {
     }
     const sb = el('tuner-stop-btn'); if (sb) sb.style.display = 'none';
     document.querySelectorAll('.tuner-string-btn').forEach(b => b.classList.remove('active'));
+}
+// ============================================================
+// TUNER — Detekcija note i prikaz skale
+// ============================================================
+
+function updateTunerDisplay(freq) {
+    const nearest = findNearestString(freq);
+    if (!nearest) return;
+
+    const { string, cents, index, targetFreq } = nearest;
+
+    const dn = el('tuner-detected-note');
+    if (dn) dn.textContent = `${string.note}${string.octave}`;
+
+    const ti = el('tuner-target-info');
+    if (ti) {
+        const statusText = Math.abs(cents) < 3 ? '✓ U ŠTIMU' :
+                          (Math.abs(cents) < 15 ? '~ BLIZU' : '✗ VAN ŠTIMA');
+        ti.textContent = `${safeT('label.music.string')} ${index + 1} • ${statusText}`;
+        ti.classList.remove('ok', 'close', 'far');
+        if (Math.abs(cents) < 3) ti.classList.add('ok');
+        else if (Math.abs(cents) < 15) ti.classList.add('close');
+        else ti.classList.add('far');
+    }
+
+    const df = el('tuner-detected-freq');
+    if (df) df.textContent = freq.toFixed(2) + ' Hz → ' + targetFreq.toFixed(2) + ' Hz';
+
+    const marker = el('tuner-cents-marker');
+    if (marker) {
+        const clamped = Math.max(-50, Math.min(50, cents));
+        marker.style.left = (50 + (clamped / 50) * 45) + '%';
+        if (Math.abs(cents) < 3) marker.style.background = '#10b981';
+        else if (Math.abs(cents) < 15) marker.style.background = '#f59e0b';
+        else marker.style.background = '#f43f5e';
+    }
+
+    const cl = el('tuner-cents-label');
+    if (cl) {
+        const sign = cents > 0 ? '+' : '';
+        cl.textContent = `${sign}${Math.round(cents)} cents`;
+        cl.classList.remove('ok', 'close', 'far');
+        if (Math.abs(cents) < 3) cl.classList.add('ok');
+        else if (Math.abs(cents) < 15) cl.classList.add('close');
+        else cl.classList.add('far');
+    }
+
+    document.querySelectorAll('.tuner-string-btn').forEach(b => b.classList.remove('active'));
+    const activeBtn = document.querySelector(`.tuner-string-btn[data-index="${index}"]`);
+    if (activeBtn && Math.abs(cents) < 50) activeBtn.classList.add('active');
+}
+
+function findNearestString(freq) {
+    const sel = el('tuner-instrument');
+    if (!sel) return null;
+    const inst = TUNER_INSTRUMENTS[sel.value];
+    if (!inst) return null;
+    const ratio = getA4() / 440;
+
+    let nearest = null;
+    let minDiff = Infinity;
+    inst.strings.forEach((s, i) => {
+        const targetFreq = s.freq * ratio;
+        const cents = 1200 * Math.log2(freq / targetFreq);
+        if (Math.abs(cents) < Math.abs(minDiff)) {
+            minDiff = cents;
+            nearest = { index: i, string: s, cents, targetFreq };
+        }
+    });
+    return nearest;
 }
 
 // ============================================================
