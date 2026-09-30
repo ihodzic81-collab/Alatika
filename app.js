@@ -5100,6 +5100,117 @@ function stopTunerTone() {
     const sb = el('tuner-stop-btn'); if (sb) sb.style.display = 'none';
     document.querySelectorAll('.tuner-string-btn').forEach(b => b.classList.remove('active'));
 }
+
+// ============================================================
+// MIKROFON — funkcije za detekciju tona
+// ============================================================
+
+
+async function toggleTunerMic() {
+    const btn = el('tuner-mic-btn');
+    if (micRunning) {
+        stopTunerMic();
+        if (btn) {
+            btn.textContent = '🎤 ' + safeT('btn.enableMic');
+            btn.classList.remove('active');
+        }
+        return;
+    }
+    try {
+        if (!audioCtx) audioCtx = getAudio();
+        if (!audioCtx) throw new Error('AudioContext not available');
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+        micStream = await navigator.mediaDevices.getUserMedia({
+            audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+        });
+        micSource = audioCtx.createMediaStreamSource(micStream);
+        micAnalyser = audioCtx.createAnalyser();
+        micAnalyser.fftSize = 4096;
+        micAnalyser.smoothingTimeConstant = 0.6;
+        micSource.connect(micAnalyser);
+        micRunning = true;
+
+        if (btn) {
+            btn.textContent = '⏹ ' + safeT('btn.stopMic');
+            btn.classList.add('active');
+        }
+        const r = el('tuner-mic-result');
+        if (r) r.style.display = 'block';
+        micLoop();
+        vibrate(20);
+        playTick(0, 1400, 0.08, 0.03);
+    } catch (e) {
+        console.warn('Mic error:', e);
+        showToast(safeT('toast.micError') || 'Greška pri pristupu mikrofonu', 'error', 2500);
+    }
+}
+
+function stopTunerMic() {
+    micRunning = false;
+    if (micRafId) { cancelAnimationFrame(micRafId); micRafId = null; }
+    if (micStream) {
+        micStream.getTracks().forEach(track => track.stop());
+        micStream = null;
+    }
+    micSource = null;
+    micAnalyser = null;
+    const r = el('tuner-mic-result');
+    if (r) r.style.display = 'none';
+}
+
+function micLoop() {
+    if (!micRunning || !micAnalyser) return;
+    const buffer = new Float32Array(micAnalyser.fftSize);
+    micAnalyser.getFloatTimeDomainData(buffer);
+    const freq = autoCorrelate(buffer, audioCtx.sampleRate);
+    if (freq > 0) {
+        updateTunerDisplay(freq);
+    } else {
+        const dn = el('tuner-detected-note');
+        if (dn) dn.textContent = '—';
+        const df = el('tuner-detected-freq');
+        if (df) df.textContent = '— Hz';
+    }
+    micRafId = requestAnimationFrame(micLoop);
+}
+
+function autoCorrelate(buffer, sampleRate) {
+    const SIZE = buffer.length;
+    let rms = 0;
+    for (let i = 0; i < SIZE; i++) rms += buffer[i] * buffer[i];
+    rms = Math.sqrt(rms / SIZE);
+    if (rms < 0.01) return -1;
+
+    let r1 = 0, r2 = SIZE - 1;
+    const thres = 0.2;
+    for (let i = 0; i < SIZE / 2; i++) {
+        if (Math.abs(buffer[i]) < thres) { r1 = i; break; }
+    }
+    for (let i = 1; i < SIZE / 2; i++) {
+        if (Math.abs(buffer[SIZE - i]) < thres) { r2 = SIZE - i; break; }
+    }
+    const buf = buffer.slice(r1, r2);
+    const newSize = buf.length;
+    const c = new Array(newSize).fill(0);
+    for (let i = 0; i < newSize; i++) {
+        for (let j = 0; j < newSize - i; j++) {
+            c[i] += buf[j] * buf[j + i];
+        }
+    }
+    let d = 0;
+    while (c[d] > c[d + 1]) d++;
+    let maxval = -1, maxpos = -1;
+    for (let i = d; i < newSize; i++) {
+        if (c[i] > maxval) { maxval = c[i]; maxpos = i; }
+    }
+    let T0 = maxpos;
+    const x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1];
+    const a = (x1 + x3 - 2 * x2) / 2, b = (x3 - x1) / 2;
+    if (a) T0 = T0 - b / (2 * a);
+    return sampleRate / T0;
+}
+
 // ============================================================
 // TUNER — Detekcija note i prikaz skale
 // ============================================================
