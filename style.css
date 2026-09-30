@@ -3989,3 +3989,251 @@ input[type="text"].custom-input::placeholder {
     color: var(--accent-primary);
 }
 .icon-btn-text:active { transform: scale(0.9); }
+
+/* ============================================================
+   TUNER — Mikrofonski štimer sa velikom skalom
+   ============================================================ */
+
+.mic-tuner-box {
+    background: linear-gradient(135deg,
+        color-mix(in srgb, var(--accent-primary) 8%, var(--card-bg)),
+        var(--card-bg));
+    border: 1px solid color-mix(in srgb, var(--accent-primary) 30%, var(--border-strong));
+    padding: 18px;
+}
+
+.mic-tuner-header {
+    margin-bottom: 12px;
+}
+
+.mic-tuner-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 1rem;
+    margin-bottom: 14px;
+}
+
+.mic-tuner-btn.active {
+    background: linear-gradient(135deg, #f43f5e, #be123c);
+    box-shadow: 0 6px 16px rgba(244, 63, 94, 0.4);
+}
+
+.tuner-big-note {
+    font-size: 4.5rem;
+    font-weight: 900;
+    text-align: center;
+    color: var(--accent-primary);
+    line-height: 1;
+    letter-spacing: -3px;
+    margin-bottom: 6px;
+    text-shadow: 0 4px 16px color-mix(in srgb, var(--accent-primary) 40%, transparent);
+    transition: color 0.15s ease;
+}
+
+.tuner-target-info {
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    display: block;
+    max-width: fit-content;
+    margin: 0 auto 10px;
+    color: var(--text-secondary);
+    transition: color 0.15s ease, background 0.15s ease;
+}
+
+.tuner-target-info.ok {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.4);
+}
+.tuner-target-info.close {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.4);
+}
+.tuner-target-info.far {
+    color: #f43f5e;
+    background: rgba(244, 63, 94, 0.12);
+    border-color: rgba(244, 63, 94, 0.4);
+}
+
+.tuner-gauge-wrap {
+    margin-top: 20px;
+}
+
+.tuner-gauge-labels {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 4px;
+    margin-bottom: 6px;
+}
+
+.tuner-gauge-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+}
+
+.tuner-gauge-label-center {
+    color: #10b981;
+}
+
+.tuner-cents-bar {
+    position: relative;
+    height: 56px;
+    background: var(--input-bg);
+    border-radius: 14px;
+    border: 1px solid var(--border-strong);
+    overflow: hidden;
+    display: flex;
+}
+
+.tuner-cents-zone {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 900;
+    opacity: 0.35;
+    transition: opacity 0.2s ease;
+}
+.tuner-cents-zone.flat {
+    background: linear-gradient(90deg, rgba(244, 63, 94, 0.15), rgba(245, 158, 11, 0.1));
+    color: #f43f5e;
+}
+.tuner-cents-zone.center {
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.1), rgba(16, 185, 129, 0.15), rgba(245, 158, 11, 0.1));
+    color: #10b981;
+}
+.tuner-cents-zone.sharp {
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.1), rgba(244, 63, 94, 0.15));
+    color: #f43f5e;
+}
+
+.tuner-cents-center {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(16, 185, 129, 0.4);
+    transform: translateX(-50%);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+.tuner-cents-marker {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    width: 6px;
+    border-radius: 3px;
+    background: #f43f5e;
+    transform: translateX(-50%);
+    transition: left 0.12s ease-out, background 0.15s ease;
+    box-shadow: 0 0 12px currentColor;
+    z-index: 2;
+}
+
+.tuner-cents-label {
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 900;
+    color: var(--text-secondary);
+    margin-top: 10px;
+    font-variant-numeric: tabular-nums;
+    transition: color 0.15s ease;
+    letter-spacing: 0.3px;
+}
+.tuner-cents-label.ok { color: #10b981; }
+.tuner-cents-label.close { color: #f59e0b; }
+.tuner-cents-label.far { color: #f43f5e; }
+
+.tuner-strings-head {
+    margin: 16px 4px 10px;
+}
+
+.tuner-strings {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    margin: 12px 0 4px;
+}
+
+.tuner-string-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 16px 10px;
+    background: var(--card-bg);
+    border: 2px solid var(--border-strong);
+    border-radius: 16px;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+    user-select: none;
+    touch-action: manipulation;
+    box-shadow: var(--shadow-input);
+    position: relative;
+    overflow: hidden;
+}
+
+.tuner-string-btn:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+}
+
+.tuner-string-btn:active {
+    transform: scale(0.96);
+}
+
+.tuner-string-btn.active {
+    background: linear-gradient(145deg,
+        color-mix(in srgb, var(--accent-primary) 25%, var(--card-bg)),
+        var(--card-bg));
+    border-color: var(--accent-primary);
+    box-shadow:
+        0 0 24px color-mix(in srgb, var(--accent-primary) 50%, transparent),
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transform: translateY(-3px) scale(1.02);
+}
+
+.ts-note {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--accent-primary);
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+.ts-freq {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.ts-num {
+    font-size: 0.62rem;
+    color: var(--text-tertiary);
+    font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 400px) {
+    .tuner-big-note { font-size: 3.5rem; }
+    .tuner-cents-bar { height: 48px; }
+    .tuner-cents-zone { font-size: 1.2rem; }
+    .tuner-strings { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
+    .tuner-string-btn { padding: 14px 8px; border-radius: 14px; }
+    .ts-note { font-size: 1.35rem; }
+    .ts-freq { font-size: 0.65rem; }
+}
