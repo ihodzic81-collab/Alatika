@@ -5646,10 +5646,6 @@ function initApp() {
     document.title = t('app.title');
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
 }
 // ============================================================
 // OSVEŽAVANJE STATIČNIH TEKSTOVA (refreshUIText)
