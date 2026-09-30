@@ -5646,7 +5646,6 @@ function initApp() {
     document.title = t('app.title');
 }
 
-}
 // ============================================================
 // OSVEŽAVANJE STATIČNIH TEKSTOVA (refreshUIText)
 // ============================================================
