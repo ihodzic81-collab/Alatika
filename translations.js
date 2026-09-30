@@ -1089,6 +1089,9 @@ const TRANSLATIONS = {
         'label.music.consonance': 'Konsonanca',
         'label.music.dissonance': 'Disonanca',
         'label.music.tritone': 'Tritonus',
+        'label.music.tunerInTune': '✓ U ŠTIMU',
+        'label.music.tunerClose': '~ BLIZU',
+        'label.music.tunerOut': '✗ VAN ŠTIMA',
 
         // ============ LABELS — OPŠTE ============
         'label.total': 'Ukupno',
@@ -2684,6 +2687,9 @@ const TRANSLATIONS = {
         'label.music.consonance': 'Consonance',
         'label.music.dissonance': 'Dissonance',
         'label.music.tritone': 'Tritone',
+        'label.music.tunerInTune': '✓ IN TUNE',
+        'label.music.tunerClose': '~ CLOSE',
+        'label.music.tunerOut': '✗ OUT OF TUNE',
 
         // ============ LABELS — GENERAL ============
         'label.total': 'Total',
