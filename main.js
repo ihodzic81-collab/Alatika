@@ -5651,3 +5651,115 @@ if (document.readyState === 'loading') {
 } else {
     initApp();
 }
+// ============================================================
+// OSVEŽAVANJE STATIČNIH TEKSTOVA (refreshUIText)
+// ============================================================
+function refreshUIText() {
+    try {
+        const subtitle = el('app-subtitle');
+        if (subtitle) subtitle.textContent = t('app.subtitle');
+
+        const searchInput = el('home-search');
+        if (searchInput) searchInput.placeholder = t('app.search.placeholder');
+
+        const secQuick = el('sec-title-quick');
+        if (secQuick) secQuick.textContent = t('section.quickTools');
+        const secMy = el('sec-title-my');
+        if (secMy) secMy.textContent = t('section.myTools');
+        const secAll = el('sec-title-all');
+        if (secAll) secAll.textContent = t('section.allTools');
+
+        const btnEditQuick = el('btn-edit-quick');
+        if (btnEditQuick) btnEditQuick.textContent = t('section.edit');
+
+        const favEmpty = el('favorites-empty');
+        if (favEmpty) favEmpty.innerHTML = t('section.favoritesEmpty');
+
+        const footerTag = el('footer-tag');
+        if (footerTag) footerTag.textContent = t('app.footer');
+
+        // Podešavanja
+        const settingsTitle = el('settings-title');
+        if (settingsTitle) settingsTitle.textContent = t('settings.title');
+        const settingsThemeLabel = el('settings-theme-label');
+        if (settingsThemeLabel) settingsThemeLabel.textContent = t('settings.theme');
+        const settingsThemeSub = el('settings-theme-sub');
+        if (settingsThemeSub) settingsThemeSub.textContent = t('settings.theme.desc');
+        const settingsSoundLabel = el('settings-sound-label');
+        if (settingsSoundLabel) settingsSoundLabel.textContent = t('settings.sound');
+        const settingsSoundSub = el('settings-sound-sub');
+        if (settingsSoundSub) settingsSoundSub.textContent = t('settings.sound.desc');
+        const settingsHapticLabel = el('settings-haptic-label');
+        if (settingsHapticLabel) settingsHapticLabel.textContent = t('settings.haptic');
+        const settingsHapticSub = el('settings-haptic-sub');
+        if (settingsHapticSub) settingsHapticSub.textContent = t('settings.haptic.desc');
+        const settingsCurrencyLabel = el('settings-currency-label');
+        if (settingsCurrencyLabel) settingsCurrencyLabel.textContent = t('settings.currency');
+        const settingsCurrencySub = el('settings-currency-sub');
+        if (settingsCurrencySub) settingsCurrencySub.textContent = t('settings.currency.desc');
+        const settingsLanguageLabel = el('settings-language-label');
+        if (settingsLanguageLabel) settingsLanguageLabel.textContent = t('settings.language');
+        const settingsLanguageSub = el('settings-language-sub');
+        if (settingsLanguageSub) settingsLanguageSub.textContent = t('settings.language.desc');
+        const settingsOffline = el('settings-offline-text');
+        if (settingsOffline) settingsOffline.textContent = t('settings.offline');
+
+        // Istorija
+        const historyTitle = el('history-title');
+        if (historyTitle) historyTitle.textContent = t('history.title');
+        const historySearch = el('history-search');
+        if (historySearch) historySearch.placeholder = t('history.search');
+        const btnHistoryExport = el('btn-history-export');
+        if (btnHistoryExport) btnHistoryExport.textContent = t('history.export');
+        const btnHistoryClear = el('btn-history-clear');
+        if (btnHistoryClear) btnHistoryClear.textContent = t('history.clear');
+        const historyEmpty = el('history-empty');
+        if (historyEmpty) historyEmpty.textContent = t('history.empty');
+        const historyNoResults = el('history-no-results');
+        if (historyNoResults) historyNoResults.textContent = t('history.noResults');
+        const statsToggleBtn = el('stats-toggle-btn');
+        if (statsToggleBtn) {
+            const panel = el('stats-panel');
+            const isOpen = panel && panel.style.display !== 'none';
+            statsToggleBtn.textContent = isOpen ? t('history.stats.hide') : t('history.stats.show');
+        }
+
+        // Lang toggle dugme
+        const langBtn = el('lang-toggle');
+        if (langBtn) langBtn.textContent = currentLang.toUpperCase();
+
+        // Editor modal
+        const editorTitle = el('editor-title');
+        if (editorTitle) editorTitle.textContent = t('editor.title');
+        const editorDesc = el('editor-desc');
+        if (editorDesc) editorDesc.textContent = t('editor.desc');
+        const editorSaveBtn = el('editor-save-btn');
+        if (editorSaveBtn) editorSaveBtn.textContent = t('editor.save');
+
+        // Location modal
+        const locationTitle = el('location-title');
+        if (locationTitle) locationTitle.textContent = t('weather.location.title');
+        const locationSearchInput = el('location-search-input');
+        if (locationSearchInput) locationSearchInput.placeholder = t('weather.location.search');
+        const locationGpsText = el('location-gps-text');
+        if (locationGpsText) locationGpsText.textContent = t('weather.location.gps');
+
+        // Fav hint
+        const favHintTitle = el('fav-hint-title');
+        if (favHintTitle) favHintTitle.textContent = t('fav.hint.title');
+        const favHintText = el('fav-hint-text');
+        if (favHintText) favHintText.textContent = t('fav.hint.text');
+        const favHintBtn = el('fav-hint-btn');
+        if (favHintBtn) favHintBtn.textContent = t('fav.hint.btn');
+
+        // Confirm modal
+        const confirmTitle = el('confirm-title');
+        if (confirmTitle) confirmTitle.textContent = t('confirm.title');
+        const confirmMsg = el('confirm-message');
+        if (confirmMsg) confirmMsg.textContent = t('confirm.title');
+        const confirmCancelBtn = el('confirm-cancel-btn');
+        if (confirmCancelBtn) confirmCancelBtn.textContent = t('confirm.cancel');
+        const confirmOkBtn = el('confirm-ok-btn');
+        if (confirmOkBtn) confirmOkBtn.textContent = t('confirm.ok');
+    } catch (e) { console.warn('refreshUIText greška:', e); }
+}
