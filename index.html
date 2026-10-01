@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0f0f14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Alatika">
 <title>Alatika — Mali alat za velika računanja</title>
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
@@ -79,6 +83,15 @@
             <section class="home-section">
                 <div class="section-head">
                     <h2 class="section-title" id="sec-title-all">Svi alati</h2>
+                    <button class="section-action-btn" id="btn-edit-all-tools" onclick="toggleAllToolsEditMode()">Izmeni</button>
+                </div>
+                <div id="tools-hint" class="tools-hint" style="display:none;">
+                    <div class="tools-hint-icon">💡</div>
+                    <div class="tools-hint-text">
+                        <strong id="tools-hint-title">Prilagodi svoje alate</strong>
+                        <span id="tools-hint-text">Ovde možeš da sakriješ alate koje ne koristiš i da promeniš njihov redosled. Klikni "Izmeni" da počneš.</span>
+                    </div>
+                    <button class="tools-hint-btn" id="tools-hint-btn" onclick="dismissToolsHint()">Razumem</button>
                 </div>
                 <div id="all-tools-grid" class="all-tools-grid"></div>
             </section>
@@ -184,6 +197,17 @@
             </div>
         </div>
         <p class="section-desc" id="settings-offline-text">Alatika radi u potpunosti lokalno na tvom telefonu — ništa se ne šalje na internet.</p>
+
+        <!-- O aplikaciji -->
+        <div class="about-section">
+            <div class="settings-row about-row" onclick="openAboutModal()">
+                <div>
+                    <div class="settings-label" id="about-title">O aplikaciji</div>
+                    <div class="settings-sub" id="about-sub">Verzija, autor, zahvalnice</div>
+                </div>
+                <span class="about-arrow">›</span>
+            </div>
+        </div>
     </div>
 
 </div>
@@ -271,6 +295,73 @@
     </div>
 </div>
 
+<!-- ================= MODAL: O APLIKACIJI ================= -->
+<div id="about-modal" class="modal" onclick="closeModalOnBackdrop(event, 'about-modal')">
+    <div class="modal-panel about-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #6366f1;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                </span>
+                <h2 class="modal-title" id="about-modal-title">O aplikaciji</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('about-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="about-body">
+            <div class="about-logo">
+                <span class="cx-logo">A</span>
+                <h1 class="logo-text">ALATI<span>KA</span></h1>
+            </div>
+            <p class="about-version" id="about-version">v1.0 • Oktobar 2026</p>
+
+            <div class="about-description" id="about-description"></div>
+
+            <div class="about-section-block">
+                <div class="about-section-title">💡 <span id="about-what-title">Šta je Alatika</span></div>
+                <p class="about-text" id="about-what-text"></p>
+            </div>
+
+            <div class="about-section-block">
+                <div class="about-section-title">⭐ <span id="about-thanks-title">Zahvalnice</span></div>
+                <p class="about-text italic" id="about-thanks-text"></p>
+            </div>
+
+            <div class="about-section-block">
+                <div class="about-section-title">❤️ <span id="about-author-title">Autor</span></div>
+                <p class="about-text" id="about-author-text">Irfan Hodžić</p>
+                <a href="https://github.com/ihodzic81-collab" target="_blank" rel="noopener" class="about-github-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+                    <span id="about-github-text">Otvori GitHub</span>
+                </a>
+            </div>
+
+            <div class="about-footer">
+                <p id="about-footer-text">Napravljeno sa ❤️ u Srbiji</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL: REMINDER FORMA ================= -->
+<div id="reminder-modal" class="modal" onclick="closeModalOnBackdrop(event, 'reminder-modal')">
+    <div class="modal-panel reminder-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #f59e0b;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                </span>
+                <h2 class="modal-title" id="reminder-modal-title">Novi podsetnik</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeReminderModal()" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="reminder-modal-body"></div>
+    </div>
+</div>
+
 <!-- ================= FAV HINT ================= -->
 <div id="fav-hint" class="fav-hint" style="display: none;">
     <div class="fav-hint-icon">⭐</div>
@@ -279,6 +370,16 @@
         <span id="fav-hint-text">Klikni zvezdicu u gornjem uglu da dodaš alat u "Moje alate".</span>
     </div>
     <button class="fav-hint-btn" id="fav-hint-btn" onclick="dismissFavHint()">Razumem</button>
+</div>
+
+<!-- ================= BADGE HINT ================= -->
+<div id="badge-hint" class="badge-hint" style="display: none;">
+    <div class="badge-hint-icon">🔔</div>
+    <div class="badge-hint-text">
+        <strong id="badge-hint-title">Broj hitnih podsetnika</strong>
+        <span id="badge-hint-text">Ovo je broj hitnih podsetnika. Klikni da vidiš šta je hitno.</span>
+    </div>
+    <button class="badge-hint-btn" id="badge-hint-btn" onclick="dismissBadgeHint()">Razumem</button>
 </div>
 
 <!-- ================= TOAST ================= -->
@@ -299,7 +400,7 @@
     </div>
 </div>
 
-<script src="translations.js?v=3"></script>
-<script src="app.js"></script>
+<script src="translations.js?v=4"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>
