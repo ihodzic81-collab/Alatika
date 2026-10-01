@@ -1,6 +1,5 @@
 // ============================================================
-// ALATIKA — translations.js (KOMPLETNO)
-// Svi prevodi (SR + EN) — UI + labels + btn + option + desc + toast
+// ALATIKA — translations.js (v4 — kompletno SR + EN)
 // ============================================================
 
 const TRANSLATIONS = {
@@ -10,14 +9,27 @@ const TRANSLATIONS = {
         'app.subtitle': 'Mali alat za velika računanja',
         'app.search.placeholder': 'Šta želiš da izračunaš?',
         'app.footer': 'Alatika — mali alat za velika računanja',
-        
+
         // ============ SEKCIJE ============
         'section.quickTools': 'Brzi alati',
         'section.myTools': 'Moji alati',
         'section.allTools': 'Svi alati',
         'section.edit': 'Izmeni',
         'section.favoritesEmpty': 'Dodirni ☆ na bilo kom alatu da ga dodaš ovde.',
-        
+
+        // Raspored alata
+        'section.allTools.edit': 'Izmeni',
+        'section.allTools.save': 'Sačuvaj',
+        'section.allTools.cancel': 'Otkaži',
+        'section.allTools.reset': 'Vrati na podrazumevano',
+        'section.allTools.hidden': 'Sakriveno',
+        'section.allTools.saved': 'Raspored sačuvan',
+        'section.allTools.reset.done': 'Vraćeno na podrazumevano',
+        'section.allTools.hint.title': 'Prilagodi svoje alate',
+        'section.allTools.hint.text': 'Ovde možeš da sakriješ alate koje ne koristiš i da promeniš njihov redosled. Klikni "Izmeni" da počneš.',
+        'section.allTools.hint.btn': 'Razumem',
+        'section.allTools.dragHint': 'Prevuci za promenu redosleda • Klikni ✕ za skrivanje',
+
         // ============ MODALI ============
         'modal.close': 'Zatvori',
         'modal.back': 'Nazad',
@@ -28,7 +40,7 @@ const TRANSLATIONS = {
         'modal.saved': 'Sačuvano',
         'modal.copied': 'Kopirano',
         'modal.delete': 'Obriši',
-        
+
         // ============ EDITOR BRZIH ALATA ============
         'editor.title': 'Izmeni brze alate',
         'editor.desc': 'Izaberi 4 alata koja želiš da vidiš na početnom ekranu.',
@@ -36,7 +48,7 @@ const TRANSLATIONS = {
         'editor.error.tooMany': 'Možeš izabrati najviše 4 alata.',
         'editor.error.wrongCount': 'Izaberi tačno 4 alata.',
         'editor.success': 'Brzi alati sačuvani',
-        
+
         // ============ FAVORITI ============
         'fav.add': 'Dodaj u Moje alate',
         'fav.remove': 'Ukloni iz Mojih alata',
@@ -45,11 +57,11 @@ const TRANSLATIONS = {
         'fav.hint.title': 'Sačuvaj svoje alate',
         'fav.hint.text': 'Klikni zvezdicu u gornjem uglu da dodaš alat u "Moje alate".',
         'fav.hint.btn': 'Razumem',
-        
+
         // ============ PRETRAGA ============
         'search.noResults': 'Nema pronađenog alata',
         'search.tryAgain': 'Probaj sa drugim pojmom.',
-        
+
         // ============ ISTORIJA ============
         'history.title': 'Moja računanja',
         'history.search': 'Pretraži računanja...',
@@ -72,7 +84,7 @@ const TRANSLATIONS = {
         'history.week': 'Ove nedelje',
         'history.older': 'Starije',
         'history.deleted': 'Obrisano',
-        
+
         // ============ PODEŠAVANJA ============
         'settings.title': 'Podešavanja',
         'settings.theme': 'Tema',
@@ -93,7 +105,21 @@ const TRANSLATIONS = {
         'settings.language': 'Jezik',
         'settings.language.desc': 'Izaberi jezik interfejsa',
         'settings.offline': 'Alatika radi u potpunosti lokalno na tvom telefonu — ništa se ne šalje na internet.',
-        
+
+        // ============ O APLIKACIJI ============
+        'about.title': 'O aplikaciji',
+        'about.subtitle': 'Verzija, autor, zahvalnice',
+        'about.whatTitle': 'Šta je Alatika',
+        'about.whatText': 'Alatika je mali alat za velika računanja — napravljena da ti svakodnevne stvari budu jednostavnije. Radi bez interneta, bez reklama, bez registracije. Sve je na tvom telefonu.',
+        'about.description': 'Alatika je nastala iz želje da se svakodnevne stvari olakšaju — da ti sve bude na jednom mestu, bez reklama, bez registracije, bez interneta. Od kalkulacija za kuću, auto, posao, do podsetnika za račune, rođendane i dokumente. Napravljena je da pomogne — tebi, tvojoj porodici, prijateljima. Jednostavna, brza, i uvek pri ruci. Nadam se da će ti koristiti bar upola koliko je meni koristila dok sam je pravio.',
+        'about.thanksTitle': 'Zahvalnice',
+        'about.thanksText': 'Zahvaljujem se porodici i prijateljima na podršci.',
+        'about.authorTitle': 'Autor',
+        'about.author': 'Irfan Hodžić',
+        'about.github': 'Otvori GitHub',
+        'about.footer': 'Napravljeno sa ❤️ u Srbiji',
+        'about.version': 'Verzija',
+
         // ============ KATEGORIJE ============
         'cat.weather': 'Vreme',
         'cat.money': 'Novac',
@@ -108,13 +134,155 @@ const TRANSLATIONS = {
         'cat.power': 'Struja',
         'cat.work': 'Posao',
         'cat.music': 'Muzika',
-        
+        'cat.podsetnici': 'Podsetnici',
+
+        // ============ PODSETNICI — TABOVI ============
+        'tab.podsetnici.danas': 'Danas',
+        'tab.podsetnici.rodjendani': 'Rođendani',
+        'tab.podsetnici.racuni': 'Računi',
+        'tab.podsetnici.vozila': 'Vozila i dokumenti',
+        'tab.podsetnici.pretplate': 'Pretplate',
+        'tab.podsetnici.lekivi': 'Lekovi',
+        'tab.podsetnici.godisnjice': 'Godišnjice',
+        'tab.podsetnici.napomene': 'Napomene',
+
+        // ============ PODSETNICI — DASHBOARD ============
+        'rem.dashboard.title': 'Pregled danas',
+        'rem.dashboard.empty': 'Sve je pod kontrolom. Nema hitnih podsetnika.',
+        'rem.dashboard.urgent': 'Hitno',
+        'rem.dashboard.soon': 'Uskoro',
+        'rem.dashboard.later': 'Kasnije',
+        'rem.dashboard.daysLeft': 'dana',
+        'rem.dashboard.today': 'Danas',
+        'rem.dashboard.tomorrow': 'Sutra',
+        'rem.dashboard.yesterday': 'Juče',
+        'rem.dashboard.overdue': 'Prekoračeno',
+        'rem.dashboard.noItems': 'Nema podsetnika u ovoj kategoriji.',
+
+        // ============ PODSETNICI — OPŠTE ============
+        'rem.add': '+ Dodaj',
+        'rem.add.title': 'Novi podsetnik',
+        'rem.edit.title': 'Izmeni podsetnik',
+        'rem.save': 'Sačuvaj',
+        'rem.cancel': 'Otkaži',
+        'rem.delete': 'Obriši',
+        'rem.delete.confirm': 'Obrisati ovaj podsetnik?',
+        'rem.empty': 'Još nema podsetnika. Dodaj prvi!',
+        'rem.empty.short': 'Nema stavki.',
+        'rem.days': 'dana',
+        'rem.daysLeft': 'Još',
+        'rem.years': 'godina',
+        'rem.turns': 'puni',
+        'rem.total.monthly': 'Ukupno mesečno',
+        'rem.total.yearly': 'Ukupno godišnje',
+        'rem.paid': 'Plaćeno',
+        'rem.active': 'Aktivno',
+        'rem.inactive': 'Neaktivno',
+        'rem.priority.high': 'Visok',
+        'rem.priority.medium': 'Srednji',
+        'rem.priority.low': 'Nizak',
+        'rem.filter.all': 'Sve',
+        'rem.filter.active': 'Aktivne',
+        'rem.filter.done': 'Završene',
+        'rem.sort.byDate': 'Po datumu',
+        'rem.sort.byPriority': 'Po prioritetu',
+
+        // ============ PODSETNICI — ROĐENDANI ============
+        'rem.bd.name': 'Ime',
+        'rem.bd.date': 'Datum rođenja',
+        'rem.bd.remindBefore': 'Podseti pre (dana)',
+        'rem.bd.favorite': 'Poseban (zvezdica)',
+        'rem.bd.note': 'Napomena',
+        'rem.bd.turnsYears': 'Puni',
+        'rem.bd.daysTo': 'Do rođendana',
+
+        // ============ PODSETNICI — RAČUNI ============
+        'rem.bill.name': 'Naziv',
+        'rem.bill.amount': 'Iznos',
+        'rem.bill.currency': 'Valuta',
+        'rem.bill.dayOfMonth': 'Dan u mesecu',
+        'rem.bill.period': 'Period',
+        'rem.bill.period.monthly': 'Mesečno',
+        'rem.bill.period.quarterly': 'Kvartalno',
+        'rem.bill.period.yearly': 'Godišnje',
+        'rem.bill.period.onetime': 'Jednokratno',
+        'rem.bill.icon': 'Ikonica',
+        'rem.bill.reminder': 'Podsetnik (dana pre)',
+        'rem.bill.paid': 'Plaćeno',
+        'rem.bill.daysTo': 'Do uplate',
+
+        // ============ PODSETNICI — VOZILA ============
+        'rem.veh.name': 'Naziv vozila',
+        'rem.veh.plate': 'Registarske tablice',
+        'rem.veh.regDate': 'Registracija ističe',
+        'rem.veh.techDate': 'Tehnički ističe',
+        'rem.veh.insuranceDate': 'Osiguranje ističe',
+        'rem.veh.note': 'Napomena',
+
+        // ============ PODSETNICI — DOKUMENTI ============
+        'rem.doc.type': 'Tip dokumenta',
+        'rem.doc.type.lk': 'Lična karta',
+        'rem.doc.type.passport': 'Pasoš',
+        'rem.doc.type.drivers': 'Vozačka dozvola',
+        'rem.doc.type.health': 'Zdravstvena knjižica',
+        'rem.doc.type.custom': 'Drugo',
+        'rem.doc.name': 'Naziv dokumenta',
+        'rem.doc.expires': 'Ističe',
+        'rem.doc.note': 'Napomena',
+
+        // ============ PODSETNICI — PRETPLATE ============
+        'rem.sub.name': 'Naziv',
+        'rem.sub.amount': 'Iznos',
+        'rem.sub.currency': 'Valuta',
+        'rem.sub.dayOfMonth': 'Dan u mesecu',
+        'rem.sub.period': 'Period',
+        'rem.sub.active': 'Aktivno',
+
+        // ============ PODSETNICI — LEKOVI ============
+        'rem.med.name': 'Naziv leka',
+        'rem.med.dose': 'Doza',
+        'rem.med.time': 'Vreme',
+        'rem.med.time.morning': 'Ujutru',
+        'rem.med.time.noon': 'Podne',
+        'rem.med.time.evening': 'Uveče',
+        'rem.med.time.custom': 'Drugo',
+        'rem.med.frequency': 'Frekvencija',
+        'rem.med.freq.daily': 'Dnevno',
+        'rem.med.freq.everyOther': 'Svaki drugi dan',
+        'rem.med.freq.weekly': 'Nedeljno',
+        'rem.med.startDate': 'Datum početka',
+        'rem.med.endDate': 'Datum kraja',
+        'rem.med.remaining': 'Preostalo tableta',
+        'rem.med.note': 'Napomena',
+        'rem.med.daysLeft': 'Dana još',
+
+        // ============ PODSETNICI — GODIŠNJICE ============
+        'rem.ann.name': 'Naziv',
+        'rem.ann.date': 'Datum',
+        'rem.ann.remindBefore': 'Podseti pre (dana)',
+        'rem.ann.favorite': 'Posebno (zvezdica)',
+        'rem.ann.note': 'Napomena',
+        'rem.ann.years': 'Godina',
+        'rem.ann.daysTo': 'Do godišnjice',
+
+        // ============ PODSETNICI — NAPOMENE ============
+        'rem.note.title': 'Naslov',
+        'rem.note.description': 'Opis',
+        'rem.note.dueDate': 'Rok (opciono)',
+        'rem.note.priority': 'Prioritet',
+        'rem.note.done': 'Završeno',
+
+        // ============ BADGE / HINT ============
+        'rem.badge.hint.title': 'Broj hitnih podsetnika',
+        'rem.badge.hint.text': 'Ovo je broj hitnih podsetnika. Klikni da vidiš šta je hitno.',
+        'rem.badge.hint.btn': 'Razumem',
+
         // ============ WEATHER TABOVI ============
         'tab.weather.prognoza': 'Prognoza',
         'tab.weather.vazduh': 'Vazduh',
         'tab.weather.pametni': 'Pametni dan',
         'tab.weather.sunce': 'Sunce i mesec',
-        
+
         // ============ MONEY TABOVI ============
         'tab.money.popust': 'Popust',
         'tab.money.pdv': 'PDV',
@@ -123,7 +291,7 @@ const TRANSLATIONS = {
         'tab.money.valuta': 'Kursna lista',
         'tab.money.podela': 'Podela računa',
         'tab.money.napojnica': 'Napojnica',
-        
+
         // ============ MEASURES TABOVI ============
         'tab.measures.duzina': 'Dužina',
         'tab.measures.tezina': 'Težina',
@@ -134,7 +302,7 @@ const TRANSLATIONS = {
         'tab.measures.pritisak': 'Pritisak',
         'tab.measures.podaci': 'Podaci',
         'tab.measures.procenat': 'Procenat',
-        
+
         // ============ SHOPPING TABOVI ============
         'tab.shopping.unit': 'Cena po jedinici',
         'tab.shopping.compare': 'Poređenje',
@@ -148,7 +316,7 @@ const TRANSLATIONS = {
         'tab.shopping.isplati': 'Isplati li se',
         'tab.shopping.racuni': 'Poređenje računa',
         'tab.shopping.rasipanje': 'Cena po obroku',
-        
+
         // ============ AUTO TABOVI ============
         'tab.auto.potrosnja': 'Potrošnja',
         'tab.auto.planer': 'Planer puta',
@@ -157,14 +325,14 @@ const TRANSLATIONS = {
         'tab.auto.godisnji': 'Godišnji trošak',
         'tab.auto.pokm': 'Po kilometru',
         'tab.auto.mojauto': 'Moj auto',
-        
+
         // ============ BIKE TABOVI ============
         'tab.bike.brzina': 'Brzina',
         'tab.bike.pritisak': 'Pritisak guma',
         'tab.bike.rama': 'Veličina rama',
         'tab.bike.kalorije': 'Kalorije',
         'tab.bike.tabela': 'Tabela prenosa',
-        
+
         // ============ HEALTH TABOVI ============
         'tab.health.bmi': 'BMI',
         'tab.health.tezina': 'Idealna težina',
@@ -174,7 +342,7 @@ const TRANSLATIONS = {
         'tab.health.bikefit': 'Biciklizam',
         'tab.health.rm1': '1RM',
         'tab.health.volume': 'Volumen',
-        
+
         // ============ TIME TABOVI ============
         'tab.time.konverter': 'Konverter vremena',
         'tab.time.razlika': 'Razlika datuma',
@@ -182,7 +350,7 @@ const TRANSLATIONS = {
         'tab.time.godine': 'Godine osobe',
         'tab.time.dan': 'Dan u nedelji',
         'tab.time.radni': 'Radni dani',
-        
+
         // ============ HOMECALC TABOVI ============
         'tab.homecalc.povrsina': 'Površina',
         'tab.homecalc.blokovi': 'Blokovi',
@@ -199,7 +367,7 @@ const TRANSLATIONS = {
         'tab.homecalc.elektro': 'Elektro',
         'tab.homecalc.stolarija': 'Stolarija',
         'tab.homecalc.univerzalno': 'Univerzalno',
-        
+
         // ============ KITCHEN TABOVI ============
         'tab.kitchen.kasike': 'Kašike',
         'tab.kitchen.case': 'Čaše',
@@ -207,7 +375,7 @@ const TRANSLATIONS = {
         'tab.kitchen.pecenje': 'Pečenje',
         'tab.kitchen.porcije': 'Porcije',
         'tab.kitchen.kafa': 'Kafa/Čaj',
-        
+
         // ============ POWER TABOVI ============
         'tab.power.uredjaj': 'Uređaj',
         'tab.power.vise': 'Više uređaja',
@@ -221,7 +389,7 @@ const TRANSLATIONS = {
         'tab.power.grejac': 'Grejač vode',
         'tab.power.baterije': 'Baterije',
         'tab.power.kelvin': 'Kelvin',
-        
+
         // ============ WORK TABOVI ============
         'tab.work.vreme': 'Radno vreme',
         'tab.work.satnica': 'Satnica',
@@ -231,7 +399,7 @@ const TRANSLATIONS = {
         'tab.work.prekovremeno': 'Prekovremeno',
         'tab.work.putni': 'Putni troškovi',
         'tab.work.bonusi': 'Bonusi',
-        
+
         // ============ MUSIC TABOVI ============
         'tab.music.stimer': 'Štimer',
         'tab.music.transpozicija': 'Transpozicija',
@@ -243,8 +411,8 @@ const TRANSLATIONS = {
         'tab.music.metronom': 'Metronom',
         'tab.music.frekvencije': 'Frekvencije',
         'tab.music.detektor': 'Detektor tona',
-        
-        // ============ WEATHER — SVE PORUKE ============
+
+        // ============ WEATHER — PORUKE ============
         'weather.location.title': 'Izaberi lokaciju',
         'weather.location.search': 'Ukucaj grad (npr. Beograd, Novi Sad...)',
         'weather.location.gps': 'Koristi moju trenutnu lokaciju',
@@ -256,22 +424,18 @@ const TRANSLATIONS = {
         'weather.location.gpsSearching': 'Tražim tvoju lokaciju...',
         'weather.location.gpsError': 'Ne mogu da dobijem lokaciju. Proveri dozvole.',
         'weather.location.gpsUnsupported': 'GPS nije dostupan na ovom uređaju.',
-        
         'weather.refresh': 'Osveži',
         'weather.refreshing': 'Osvežavam prognozu...',
         'weather.stale': 'Keširano',
-        
         'weather.error.noData': 'Nema podataka',
         'weather.error.checkInternet': 'Proveri internet vezu i pokušaj ponovo.',
         'weather.error.retry': 'Pokušaj ponovo',
         'weather.error.noAirQuality': 'Nema podataka o vazduhu',
         'weather.error.noAirQualityText': 'Podaci o kvalitetu vazduha nisu dostupni za ovu lokaciju.',
-        
         'weather.section.hourly': 'Po satima',
         'weather.section.daily': 'Narednih 7 dana',
         'weather.section.pollutants': 'Zagađivači',
         'weather.section.pollen': 'Polen',
-        
         'weather.feels': 'Osećaj',
         'weather.day.today': 'Danas',
         'weather.day.tomorrow': 'Sutra',
@@ -282,8 +446,6 @@ const TRANSLATIONS = {
         'weather.day.fri': 'Pet',
         'weather.day.sat': 'Sub',
         'weather.day.sun': 'Ned',
-        
-        // Weather — uslovi
         'weather.condition.clear': 'Vedro',
         'weather.condition.mostlyClear': 'Pretežno vedro',
         'weather.condition.partlyCloudy': 'Delimično oblačno',
@@ -311,8 +473,6 @@ const TRANSLATIONS = {
         'weather.condition.thunderstormHail': 'Grmljavina sa gradom',
         'weather.condition.thunderstormHailHeavy': 'Jaka grmljavina sa gradom',
         'weather.condition.unknown': 'Nepoznato',
-        
-        // Weather — AQI
         'weather.aqi.excellent': 'Odličan',
         'weather.aqi.good': 'Dobar',
         'weather.aqi.moderate': 'Umeren',
@@ -320,8 +480,6 @@ const TRANSLATIONS = {
         'weather.aqi.veryBad': 'Veoma loš',
         'weather.aqi.dangerous': 'Opasan',
         'weather.aqi.subtitle': 'Evropski AQI indeks',
-        
-        // Weather — polen
         'weather.pollen.grass': 'Trave',
         'weather.pollen.birch': 'Breza',
         'weather.pollen.alder': 'Joha',
@@ -331,8 +489,6 @@ const TRANSLATIONS = {
         'weather.pollen.low': 'Nizak',
         'weather.pollen.medium': 'Umeren',
         'weather.pollen.high': 'Visok',
-        
-        // Weather — pametni dan
         'weather.smart.clothes': 'Šta obući',
         'weather.smart.whenToGoOut': 'Kada izaći',
         'weather.smart.whatToBring': 'Šta poneti',
@@ -358,8 +514,6 @@ const TRANSLATIONS = {
         'weather.smart.bike.bad': 'Bicikl — nepovoljno',
         'weather.smart.walk.avoidNoon': 'Šetnja — izbegavaj podne',
         'weather.smart.walk.pleasant': 'Šetnja — prijatno',
-        
-        // Weather — sunce i mesec
         'weather.celestial.sun': 'Sunce',
         'weather.celestial.sunrise': 'Izlazak',
         'weather.celestial.sunset': 'Zalazak',
@@ -376,8 +530,6 @@ const TRANSLATIONS = {
         'weather.celestial.visibilityExcellent': 'Odlična',
         'weather.celestial.visibilityGood': 'Umerena',
         'weather.celestial.visibilityPoor': 'Slaba',
-        
-        // Weather — faze meseca
         'moon.new': 'Mlad mesec',
         'moon.waxingCrescent': 'Rastući srp',
         'moon.firstQuarter': 'Prva četvrt',
@@ -386,8 +538,6 @@ const TRANSLATIONS = {
         'moon.waningGibbous': 'Opadajući gibavi',
         'moon.lastQuarter': 'Poslednja četvrt',
         'moon.waningCrescent': 'Opadajući srp',
-        
-        // Weather — komentari za dan
         'weather.comment.thunderstorm': 'Grmljavina',
         'weather.comment.snow': 'Sneg',
         'weather.comment.rain': 'Kiša',
@@ -400,18 +550,36 @@ const TRANSLATIONS = {
         'weather.comment.hot': 'vruće',
         'weather.comment.frost': 'mraz',
         'weather.comment.bigTempDiff': 'velika razlika temp.',
-        
+
         // ============ TOAST ============
         'toast.error': 'Greška',
         'toast.success': 'Uspeh',
         'toast.info': 'Info',
         'toast.warning': 'Upozorenje',
-        
+        'toast.rem.saved': 'Podsetnik sačuvan',
+        'toast.rem.deleted': 'Podsetnik obrisan',
+        'toast.rem.error.name': 'Unesi naziv.',
+        'toast.rem.error.date': 'Unesi datum.',
+        'toast.rem.error.amount': 'Unesi iznos.',
+        'toast.carSaved': 'Podaci o autu sačuvani.',
+        'toast.historyCleared': 'Istorija obrisana.',
+        'toast.itemAdded': 'Stavka dodata.',
+        'toast.noBoughtItems': 'Nema kupljenih stavki.',
+        'toast.boughtCleared': 'Kupljene stavke obrisane.',
+        'toast.listEmpty': 'Lista je prazna.',
+        'toast.listCleared': 'Lista obrisana.',
+        'toast.deviceAdded': 'Uređaj dodat.',
+        'toast.micError': 'Greška pri pristupu mikrofonu.',
+
         // ============ CONFIRM ============
         'confirm.title': 'Potvrda',
         'confirm.cancel': 'Otkaži',
         'confirm.ok': 'Potvrdi',
-        
+        'confirm.rem.delete': 'Obrisati ovaj podsetnik?',
+        'confirm.clearFuelHistory': 'Obrisati istoriju potrošnje goriva?',
+        'confirm.clearBought': 'Obrisati {0} kupljenih stavki?',
+        'confirm.clearList': 'Obrisati celu listu za kupovinu?',
+
         // ============ REZULTATI ============
         'result.label': 'Rezultat',
         'result.copy': 'Kopiraj',
@@ -420,8 +588,8 @@ const TRANSLATIONS = {
         'result.copied': 'Kopirano u clipboard',
         'result.saved': 'sačuvano',
         'result.copyFailed': 'Kopiranje nije uspelo.',
-        
-        // ============ OSTALO ============
+
+        // ============ JEDINICE ============
         'unit.km': 'km',
         'unit.m': 'm',
         'unit.cm': 'cm',
@@ -441,15 +609,26 @@ const TRANSLATIONS = {
         'unit.celsius': '°C',
         'unit.fahrenheit': '°F',
         'unit.kelvin': 'K',
-        
+        'unit.inch': 'inča',
+        'unit.month': 'mesec',
+        'unit.day': 'dan',
+        'unit.daysShort': 'dana',
+        'unit.weeksShort': 'ned.',
+        'unit.monthsShort': 'mes.',
+        'unit.yearsShort': 'god.',
+        'unit.minShort': 'min',
+        'unit.secShort': 'sek',
+        'unit.pcsShort': 'kom',
+        'unit.packagesShort': 'pak.',
+        'unit.bagsShort': 'džakova',
+        'unit.repsShort': 'pon.',
+        'unit.teaspoon': 'kašičica',
+        'unit.teabag': 'kesica',
+
         'common.optional': 'opciono',
         'common.yes': 'Da',
         'common.no': 'Ne',
         'common.example': 'npr.',
-
-        // ============================================================
-        // DEO 6/6C — DODATNI LABELI, DUGMIĆI, OPCIJE, DESKRPCIJE
-        // ============================================================
 
         // ============ LABELS — HOME / GRAĐEVINA ============
         'label.home.shape': 'Oblik',
@@ -1220,7 +1399,7 @@ const TRANSLATIONS = {
         'option.kitchen.honey': 'Med',
         'option.kitchen.oil': 'Ulje',
         'option.kitchen.milk': 'Mleko',
-        'option.kitchen.rice': 'Pirinаč',
+        'option.kitchen.rice': 'Pirinač',
         'option.kitchen.oats': 'Ovsene pahuljice',
         'option.kitchen.semolina': 'Griz',
         'option.kitchen.tablespoon': 'Kašika (velika)',
@@ -1450,89 +1629,6 @@ const TRANSLATIONS = {
         'desc.home.joinery': 'Izračunaj površinu stolarije.',
         'desc.home.universal': 'Univerzalni kalkulator za materijal.',
 
-        // ============ TOAST PORUKE ============
-        'toast.error.enterNumber': 'Unesi broj.',
-        'toast.error.enterXY': 'Unesi X i Y.',
-        'toast.error.enterStartEnd': 'Unesi početnu i krajnju vrednost.',
-        'toast.error.enterPricePercent': 'Unesi cenu i procenat.',
-        'toast.error.enterPartTotal': 'Unesi deo i ukupno.',
-        'toast.error.enterDistanceFuel': 'Unesi distancu i gorivo.',
-        'toast.error.enterAll': 'Popuni sva polja.',
-        'toast.error.enterAtLeastOne': 'Unesi bar jedan podatak.',
-        'toast.error.enterDistance': 'Unesi distancu.',
-        'toast.error.enterDistanceSpeed': 'Unesi distancu i brzinu.',
-        'toast.error.enterFour': 'Unesi sva četiri podatka.',
-        'toast.error.enterWeightWidth': 'Unesi težinu i širinu.',
-        'toast.error.enterHeight': 'Unesi visinu.',
-        'toast.error.enterWeightHeight': 'Unesi težinu i visinu.',
-        'toast.error.enterAge': 'Unesi godine.',
-        'toast.error.enterTime': 'Unesi vreme.',
-        'toast.error.enterWeightReps': 'Unesi težinu i ponavljanja.',
-        'toast.error.enterBothDates': 'Unesi oba datuma.',
-        'toast.error.enterDateDays': 'Unesi datum i broj dana.',
-        'toast.error.enterBirthDate': 'Unesi datum rođenja.',
-        'toast.error.futureDate': 'Datum ne može biti u budućnosti.',
-        'toast.error.enterDate': 'Unesi datum.',
-        'toast.error.enterValue': 'Unesi vrednost.',
-        'toast.error.enterAmount': 'Unesi iznos.',
-        'toast.error.enterAmountMonths': 'Unesi iznos i broj meseci.',
-        'toast.error.enterAmountPeople': 'Unesi iznos i broj osoba.',
-        'toast.error.enterAmountPercent': 'Unesi iznos i procenat.',
-        'toast.error.enterPriceDiscount': 'Unesi cenu i popust (0-100%).',
-        'toast.error.enterPriceQty': 'Unesi cenu i količinu.',
-        'toast.error.enterPricePerPiece': 'Unesi cenu po komadu.',
-        'toast.error.enterPriceVolume': 'Unesi cenu i zapreminu.',
-        'toast.error.enterPriceMeals': 'Unesi cenu i broj obroka.',
-        'toast.error.enterTotalCost': 'Unesi ukupan trošak.',
-        'toast.error.enterBudget': 'Unesi budžet.',
-        'toast.error.enterSavingsDistance': 'Unesi uštedu i distancu.',
-        'toast.error.enterItemName': 'Unesi naziv stavke.',
-        'toast.error.enterCount': 'Unesi broj.',
-        'toast.error.enterCups': 'Unesi broj šoljica.',
-        'toast.error.enterPowerHours': 'Unesi snagu i sate.',
-        'toast.error.enterPowerWater': 'Unesi snagu i količinu vode.',
-        'toast.error.enterPower': 'Unesi snagu.',
-        'toast.error.enterCurrentLength': 'Unesi struju i dužinu.',
-        'toast.error.enterCapacityLoad': 'Unesi kapacitet i opterećenje.',
-        'toast.error.enterRoomDims': 'Unesi dimenzije prostorije.',
-        'toast.error.enterUsage': 'Unesi potrošnju.',
-        'toast.error.enterHoursRate': 'Unesi sate i cenu sata.',
-        'toast.error.enterSalaryHours': 'Unesi platu i sate.',
-        'toast.error.enterStartEnd': 'Unesi vreme početka i kraja.',
-        'toast.error.enterLengthWidth': 'Unesi dužinu i širinu.',
-        'toast.error.enterSide': 'Unesi stranicu.',
-        'toast.error.enterDiameter': 'Unesi prečnik.',
-        'toast.error.enterBaseHeight': 'Unesi osnovu i visinu.',
-        'toast.error.enterWallDims': 'Unesi dimenzije zida.',
-        'toast.error.enterAllDimensions': 'Unesi sve dimenzije.',
-        'toast.error.enterDimensions': 'Unesi dimenzije.',
-        'toast.error.enterBlockWallDims': 'Unesi dimenzije zida i bloka.',
-        'toast.error.enterAreaAndPer': 'Unesi površinu i crepa po m².',
-        'toast.error.enterAreaThickness': 'Unesi površinu i debljinu.',
-        'toast.error.enterArea': 'Unesi površinu.',
-        'toast.error.enterQtyPrice': 'Unesi količinu i cenu.',
-        'toast.error.enterChords': 'Unesi akorde.',
-        'toast.error.enterChainrings': 'Unesi lančanike.',
-        'toast.error.enterFrequency': 'Unesi frekvenciju.',
-        'toast.error.bpmRange': 'BPM mora biti između 30 i 300.',
-        'toast.error.minOne': 'Vrednost mora biti bar 1.',
-        'toast.error.minOneMeal': 'Broj obroka mora biti bar 1.',
-        'toast.error.endTempHigher': 'Krajnja temperatura mora biti viša od početne.',
-        'toast.carSaved': 'Podaci o autu sačuvani.',
-        'toast.historyCleared': 'Istorija obrisana.',
-        'toast.itemAdded': 'Stavka dodata.',
-        'toast.noBoughtItems': 'Nema kupljenih stavki.',
-        'toast.boughtCleared': 'Kupljene stavke obrisane.',
-        'toast.listEmpty': 'Lista je prazna.',
-        'toast.listCleared': 'Lista obrisana.',
-        'toast.deviceAdded': 'Uređaj dodat.',
-        'toast.micError': 'Greška pri pristupu mikrofonu.',
-
-        // ============ CONFIRM ============
-        'confirm.clearFuelHistory': 'Obrisati istoriju potrošnje goriva?',
-        'confirm.clearBought': 'Obrisati {0} kupljenih stavki?',
-        'confirm.clearList': 'Obrisati celu listu za kupovinu?',
-
         // ============ PLACEHOLDER ============
         'placeholder.material': 'npr. Blok 25cm',
         'placeholder.itemName': 'npr. Mleko',
@@ -1552,11 +1648,6 @@ const TRANSLATIONS = {
         'table.principal': 'Glavnica',
         'table.balance': 'Ostatak',
         'table.rearFront': 'Zadnji \\ Prednji',
-
-        // ============ GRAFIK ============
-        'chart.last': 'Poslednje',
-        'chart.avg5': 'Prosek (5)',
-        'chart.needTwoMeasurements': 'Potrebna su bar 2 merenja za grafik.',
 
         // ============ ZONE PULSA ============
         'zone.easy': 'Lagana zona (50-60%)',
@@ -1582,40 +1673,36 @@ const TRANSLATIONS = {
         'pct.number': 'Broj',
         'pct.from': 'Od',
         'pct.to': 'Na',
-        'pct.change': 'Promena',
-
-        // ============ JEDINICE (dodatne) ============
-        'unit.inch': 'inča',
-        'unit.month': 'mesec',
-        'unit.day': 'dan',
-        'unit.daysShort': 'dana',
-        'unit.weeksShort': 'ned.',
-        'unit.monthsShort': 'mes.',
-        'unit.yearsShort': 'god.',
-        'unit.minShort': 'min',
-        'unit.secShort': 'sek',
-        'unit.pcsShort': 'kom',
-        'unit.packagesShort': 'pak.',
-        'unit.bagsShort': 'džakova',
-        'unit.repsShort': 'pon.',
-        'unit.teaspoon': 'kašičica',
-        'unit.teabag': 'kesica'
+        'pct.change': 'Promena'
     },
-    
+
     en: {
         // ============ UI GENERAL ============
         'app.title': 'Alatika — Small tool for big calculations',
         'app.subtitle': 'Small tool for big calculations',
         'app.search.placeholder': 'What do you want to calculate?',
         'app.footer': 'Alatika — small tool for big calculations',
-        
+
         // ============ SECTIONS ============
         'section.quickTools': 'Quick tools',
         'section.myTools': 'My tools',
         'section.allTools': 'All tools',
         'section.edit': 'Edit',
         'section.favoritesEmpty': 'Tap ☆ on any tool to add it here.',
-        
+
+        // Layout
+        'section.allTools.edit': 'Edit',
+        'section.allTools.save': 'Save',
+        'section.allTools.cancel': 'Cancel',
+        'section.allTools.reset': 'Reset to default',
+        'section.allTools.hidden': 'Hidden',
+        'section.allTools.saved': 'Layout saved',
+        'section.allTools.reset.done': 'Reset to default',
+        'section.allTools.hint.title': 'Customize your tools',
+        'section.allTools.hint.text': 'Here you can hide tools you don\'t use and change their order. Tap "Edit" to start.',
+        'section.allTools.hint.btn': 'Got it',
+        'section.allTools.dragHint': 'Drag to reorder • Tap ✕ to hide',
+
         // ============ MODALS ============
         'modal.close': 'Close',
         'modal.back': 'Back',
@@ -1626,7 +1713,7 @@ const TRANSLATIONS = {
         'modal.saved': 'Saved',
         'modal.copied': 'Copied',
         'modal.delete': 'Delete',
-        
+
         // ============ QUICK TOOLS EDITOR ============
         'editor.title': 'Edit quick tools',
         'editor.desc': 'Choose 4 tools you want to see on the home screen.',
@@ -1634,7 +1721,7 @@ const TRANSLATIONS = {
         'editor.error.tooMany': 'You can choose a maximum of 4 tools.',
         'editor.error.wrongCount': 'Choose exactly 4 tools.',
         'editor.success': 'Quick tools saved',
-        
+
         // ============ FAVORITES ============
         'fav.add': 'Add to My tools',
         'fav.remove': 'Remove from My tools',
@@ -1643,11 +1730,11 @@ const TRANSLATIONS = {
         'fav.hint.title': 'Save your tools',
         'fav.hint.text': 'Click the star in the top corner to add a tool to "My tools".',
         'fav.hint.btn': 'Got it',
-        
+
         // ============ SEARCH ============
         'search.noResults': 'No tool found',
         'search.tryAgain': 'Try another term.',
-        
+
         // ============ HISTORY ============
         'history.title': 'My calculations',
         'history.search': 'Search calculations...',
@@ -1670,7 +1757,7 @@ const TRANSLATIONS = {
         'history.week': 'This week',
         'history.older': 'Older',
         'history.deleted': 'Deleted',
-        
+
         // ============ SETTINGS ============
         'settings.title': 'Settings',
         'settings.theme': 'Theme',
@@ -1691,7 +1778,21 @@ const TRANSLATIONS = {
         'settings.language': 'Language',
         'settings.language.desc': 'Choose interface language',
         'settings.offline': 'Alatika works fully locally on your phone — nothing is sent to the internet.',
-        
+
+        // ============ ABOUT ============
+        'about.title': 'About',
+        'about.subtitle': 'Version, author, thanks',
+        'about.whatTitle': 'What is Alatika',
+        'about.whatText': 'Alatika is a small tool for big calculations — made to make your everyday things simpler. Works without internet, without ads, without registration. Everything is on your phone.',
+        'about.description': 'Alatika was created from a desire to make everyday things easier — to have everything in one place, without ads, without registration, without internet. From calculations for home, car, work, to reminders for bills, birthdays and documents. It\'s made to help — you, your family, friends. Simple, fast, and always at hand. I hope it helps you at least half as much as it helped me while making it.',
+        'about.thanksTitle': 'Thanks',
+        'about.thanksText': 'Thanks to my family and friends for their support.',
+        'about.authorTitle': 'Author',
+        'about.author': 'Irfan Hodžić',
+        'about.github': 'Open GitHub',
+        'about.footer': 'Made with ❤️ in Serbia',
+        'about.version': 'Version',
+
         // ============ CATEGORIES ============
         'cat.weather': 'Weather',
         'cat.money': 'Money',
@@ -1706,13 +1807,155 @@ const TRANSLATIONS = {
         'cat.power': 'Power',
         'cat.work': 'Work',
         'cat.music': 'Music',
-        
+        'cat.podsetnici': 'Reminders',
+
+        // ============ REMINDERS — TABS ============
+        'tab.podsetnici.danas': 'Today',
+        'tab.podsetnici.rodjendani': 'Birthdays',
+        'tab.podsetnici.racuni': 'Bills',
+        'tab.podsetnici.vozila': 'Vehicles & docs',
+        'tab.podsetnici.pretplate': 'Subscriptions',
+        'tab.podsetnici.lekivi': 'Medications',
+        'tab.podsetnici.godisnjice': 'Anniversaries',
+        'tab.podsetnici.napomene': 'Notes',
+
+        // ============ REMINDERS — DASHBOARD ============
+        'rem.dashboard.title': 'Today\'s overview',
+        'rem.dashboard.empty': 'All under control. No urgent reminders.',
+        'rem.dashboard.urgent': 'Urgent',
+        'rem.dashboard.soon': 'Soon',
+        'rem.dashboard.later': 'Later',
+        'rem.dashboard.daysLeft': 'days',
+        'rem.dashboard.today': 'Today',
+        'rem.dashboard.tomorrow': 'Tomorrow',
+        'rem.dashboard.yesterday': 'Yesterday',
+        'rem.dashboard.overdue': 'Overdue',
+        'rem.dashboard.noItems': 'No reminders in this category.',
+
+        // ============ REMINDERS — GENERAL ============
+        'rem.add': '+ Add',
+        'rem.add.title': 'New reminder',
+        'rem.edit.title': 'Edit reminder',
+        'rem.save': 'Save',
+        'rem.cancel': 'Cancel',
+        'rem.delete': 'Delete',
+        'rem.delete.confirm': 'Delete this reminder?',
+        'rem.empty': 'No reminders yet. Add the first one!',
+        'rem.empty.short': 'No items.',
+        'rem.days': 'days',
+        'rem.daysLeft': 'Days left',
+        'rem.years': 'years',
+        'rem.turns': 'turns',
+        'rem.total.monthly': 'Total monthly',
+        'rem.total.yearly': 'Total yearly',
+        'rem.paid': 'Paid',
+        'rem.active': 'Active',
+        'rem.inactive': 'Inactive',
+        'rem.priority.high': 'High',
+        'rem.priority.medium': 'Medium',
+        'rem.priority.low': 'Low',
+        'rem.filter.all': 'All',
+        'rem.filter.active': 'Active',
+        'rem.filter.done': 'Done',
+        'rem.sort.byDate': 'By date',
+        'rem.sort.byPriority': 'By priority',
+
+        // ============ REMINDERS — BIRTHDAYS ============
+        'rem.bd.name': 'Name',
+        'rem.bd.date': 'Birth date',
+        'rem.bd.remindBefore': 'Remind before (days)',
+        'rem.bd.favorite': 'Special (star)',
+        'rem.bd.note': 'Note',
+        'rem.bd.turnsYears': 'Turns',
+        'rem.bd.daysTo': 'Days to birthday',
+
+        // ============ REMINDERS — BILLS ============
+        'rem.bill.name': 'Name',
+        'rem.bill.amount': 'Amount',
+        'rem.bill.currency': 'Currency',
+        'rem.bill.dayOfMonth': 'Day of month',
+        'rem.bill.period': 'Period',
+        'rem.bill.period.monthly': 'Monthly',
+        'rem.bill.period.quarterly': 'Quarterly',
+        'rem.bill.period.yearly': 'Yearly',
+        'rem.bill.period.onetime': 'One-time',
+        'rem.bill.icon': 'Icon',
+        'rem.bill.reminder': 'Reminder (days before)',
+        'rem.bill.paid': 'Paid',
+        'rem.bill.daysTo': 'Days to pay',
+
+        // ============ REMINDERS — VEHICLES ============
+        'rem.veh.name': 'Vehicle name',
+        'rem.veh.plate': 'License plate',
+        'rem.veh.regDate': 'Registration expires',
+        'rem.veh.techDate': 'Technical inspection expires',
+        'rem.veh.insuranceDate': 'Insurance expires',
+        'rem.veh.note': 'Note',
+
+        // ============ REMINDERS — DOCUMENTS ============
+        'rem.doc.type': 'Document type',
+        'rem.doc.type.lk': 'ID card',
+        'rem.doc.type.passport': 'Passport',
+        'rem.doc.type.drivers': 'Driver\'s license',
+        'rem.doc.type.health': 'Health card',
+        'rem.doc.type.custom': 'Other',
+        'rem.doc.name': 'Document name',
+        'rem.doc.expires': 'Expires',
+        'rem.doc.note': 'Note',
+
+        // ============ REMINDERS — SUBSCRIPTIONS ============
+        'rem.sub.name': 'Name',
+        'rem.sub.amount': 'Amount',
+        'rem.sub.currency': 'Currency',
+        'rem.sub.dayOfMonth': 'Day of month',
+        'rem.sub.period': 'Period',
+        'rem.sub.active': 'Active',
+
+        // ============ REMINDERS — MEDICATIONS ============
+        'rem.med.name': 'Medication name',
+        'rem.med.dose': 'Dose',
+        'rem.med.time': 'Time',
+        'rem.med.time.morning': 'Morning',
+        'rem.med.time.noon': 'Noon',
+        'rem.med.time.evening': 'Evening',
+        'rem.med.time.custom': 'Custom',
+        'rem.med.frequency': 'Frequency',
+        'rem.med.freq.daily': 'Daily',
+        'rem.med.freq.everyOther': 'Every other day',
+        'rem.med.freq.weekly': 'Weekly',
+        'rem.med.startDate': 'Start date',
+        'rem.med.endDate': 'End date',
+        'rem.med.remaining': 'Remaining pills',
+        'rem.med.note': 'Note',
+        'rem.med.daysLeft': 'Days left',
+
+        // ============ REMINDERS — ANNIVERSARIES ============
+        'rem.ann.name': 'Name',
+        'rem.ann.date': 'Date',
+        'rem.ann.remindBefore': 'Remind before (days)',
+        'rem.ann.favorite': 'Special (star)',
+        'rem.ann.note': 'Note',
+        'rem.ann.years': 'Years',
+        'rem.ann.daysTo': 'Days to anniversary',
+
+        // ============ REMINDERS — NOTES ============
+        'rem.note.title': 'Title',
+        'rem.note.description': 'Description',
+        'rem.note.dueDate': 'Due date (optional)',
+        'rem.note.priority': 'Priority',
+        'rem.note.done': 'Done',
+
+        // ============ BADGE / HINT ============
+        'rem.badge.hint.title': 'Urgent reminders count',
+        'rem.badge.hint.text': 'This is the number of urgent reminders. Tap to see what\'s urgent.',
+        'rem.badge.hint.btn': 'Got it',
+
         // ============ WEATHER TABS ============
         'tab.weather.prognoza': 'Forecast',
         'tab.weather.vazduh': 'Air',
         'tab.weather.pametni': 'Smart day',
         'tab.weather.sunce': 'Sun and moon',
-        
+
         // ============ MONEY TABS ============
         'tab.money.popust': 'Discount',
         'tab.money.pdv': 'VAT',
@@ -1721,7 +1964,7 @@ const TRANSLATIONS = {
         'tab.money.valuta': 'Exchange rates',
         'tab.money.podela': 'Split bill',
         'tab.money.napojnica': 'Tip',
-        
+
         // ============ MEASURES TABS ============
         'tab.measures.duzina': 'Length',
         'tab.measures.tezina': 'Weight',
@@ -1732,7 +1975,7 @@ const TRANSLATIONS = {
         'tab.measures.pritisak': 'Pressure',
         'tab.measures.podaci': 'Data',
         'tab.measures.procenat': 'Percentage',
-        
+
         // ============ SHOPPING TABS ============
         'tab.shopping.unit': 'Price per unit',
         'tab.shopping.compare': 'Comparison',
@@ -1746,7 +1989,7 @@ const TRANSLATIONS = {
         'tab.shopping.isplati': 'Is it worth it',
         'tab.shopping.racuni': 'Receipt comparison',
         'tab.shopping.rasipanje': 'Price per meal',
-        
+
         // ============ AUTO TABS ============
         'tab.auto.potrosnja': 'Fuel usage',
         'tab.auto.planer': 'Trip planner',
@@ -1755,14 +1998,14 @@ const TRANSLATIONS = {
         'tab.auto.godisnji': 'Annual cost',
         'tab.auto.pokm': 'Per kilometer',
         'tab.auto.mojauto': 'My car',
-        
+
         // ============ BIKE TABS ============
         'tab.bike.brzina': 'Speed',
         'tab.bike.pritisak': 'Tire pressure',
         'tab.bike.rama': 'Frame size',
         'tab.bike.kalorije': 'Calories',
         'tab.bike.tabela': 'Gear table',
-        
+
         // ============ HEALTH TABS ============
         'tab.health.bmi': 'BMI',
         'tab.health.tezina': 'Ideal weight',
@@ -1772,7 +2015,7 @@ const TRANSLATIONS = {
         'tab.health.bikefit': 'Cycling',
         'tab.health.rm1': '1RM',
         'tab.health.volume': 'Volume',
-        
+
         // ============ TIME TABS ============
         'tab.time.konverter': 'Time converter',
         'tab.time.razlika': 'Date difference',
@@ -1780,7 +2023,7 @@ const TRANSLATIONS = {
         'tab.time.godine': 'Person age',
         'tab.time.dan': 'Day of week',
         'tab.time.radni': 'Work days',
-        
+
         // ============ HOMECALC TABS ============
         'tab.homecalc.povrsina': 'Area',
         'tab.homecalc.blokovi': 'Blocks',
@@ -1797,7 +2040,7 @@ const TRANSLATIONS = {
         'tab.homecalc.elektro': 'Electrical',
         'tab.homecalc.stolarija': 'Joinery',
         'tab.homecalc.univerzalno': 'Universal',
-        
+
         // ============ KITCHEN TABS ============
         'tab.kitchen.kasike': 'Spoons',
         'tab.kitchen.case': 'Cups',
@@ -1805,7 +2048,7 @@ const TRANSLATIONS = {
         'tab.kitchen.pecenje': 'Baking',
         'tab.kitchen.porcije': 'Portions',
         'tab.kitchen.kafa': 'Coffee/Tea',
-        
+
         // ============ POWER TABS ============
         'tab.power.uredjaj': 'Device',
         'tab.power.vise': 'Multiple devices',
@@ -1819,7 +2062,7 @@ const TRANSLATIONS = {
         'tab.power.grejac': 'Water heater',
         'tab.power.baterije': 'Batteries',
         'tab.power.kelvin': 'Kelvin',
-        
+
         // ============ WORK TABS ============
         'tab.work.vreme': 'Working hours',
         'tab.work.satnica': 'Hourly rate',
@@ -1829,7 +2072,7 @@ const TRANSLATIONS = {
         'tab.work.prekovremeno': 'Overtime',
         'tab.work.putni': 'Travel expenses',
         'tab.work.bonusi': 'Bonuses',
-        
+
         // ============ MUSIC TABS ============
         'tab.music.stimer': 'Tuner',
         'tab.music.transpozicija': 'Transposition',
@@ -1841,8 +2084,8 @@ const TRANSLATIONS = {
         'tab.music.metronom': 'Metronome',
         'tab.music.frekvencije': 'Frequencies',
         'tab.music.detektor': 'Note detector',
-        
-        // ============ WEATHER — ALL MESSAGES ============
+
+        // ============ WEATHER — MESSAGES ============
         'weather.location.title': 'Choose location',
         'weather.location.search': 'Type a city (e.g. Belgrade, London...)',
         'weather.location.gps': 'Use my current location',
@@ -1854,22 +2097,18 @@ const TRANSLATIONS = {
         'weather.location.gpsSearching': 'Searching for your location...',
         'weather.location.gpsError': 'Cannot get location. Check permissions.',
         'weather.location.gpsUnsupported': 'GPS is not available on this device.',
-        
         'weather.refresh': 'Refresh',
         'weather.refreshing': 'Refreshing forecast...',
         'weather.stale': 'Cached',
-        
         'weather.error.noData': 'No data',
         'weather.error.checkInternet': 'Check internet connection and try again.',
         'weather.error.retry': 'Try again',
         'weather.error.noAirQuality': 'No air quality data',
         'weather.error.noAirQualityText': 'Air quality data is not available for this location.',
-        
         'weather.section.hourly': 'Hourly',
         'weather.section.daily': 'Next 7 days',
         'weather.section.pollutants': 'Pollutants',
         'weather.section.pollen': 'Pollen',
-        
         'weather.feels': 'Feels like',
         'weather.day.today': 'Today',
         'weather.day.tomorrow': 'Tomorrow',
@@ -1880,8 +2119,6 @@ const TRANSLATIONS = {
         'weather.day.fri': 'Fri',
         'weather.day.sat': 'Sat',
         'weather.day.sun': 'Sun',
-        
-        // Weather — conditions
         'weather.condition.clear': 'Clear',
         'weather.condition.mostlyClear': 'Mostly clear',
         'weather.condition.partlyCloudy': 'Partly cloudy',
@@ -1909,8 +2146,6 @@ const TRANSLATIONS = {
         'weather.condition.thunderstormHail': 'Thunderstorm with hail',
         'weather.condition.thunderstormHailHeavy': 'Heavy thunderstorm with hail',
         'weather.condition.unknown': 'Unknown',
-        
-        // Weather — AQI
         'weather.aqi.excellent': 'Excellent',
         'weather.aqi.good': 'Good',
         'weather.aqi.moderate': 'Moderate',
@@ -1918,8 +2153,6 @@ const TRANSLATIONS = {
         'weather.aqi.veryBad': 'Very bad',
         'weather.aqi.dangerous': 'Dangerous',
         'weather.aqi.subtitle': 'European AQI index',
-        
-        // Weather — pollen
         'weather.pollen.grass': 'Grass',
         'weather.pollen.birch': 'Birch',
         'weather.pollen.alder': 'Alder',
@@ -1929,8 +2162,6 @@ const TRANSLATIONS = {
         'weather.pollen.low': 'Low',
         'weather.pollen.medium': 'Medium',
         'weather.pollen.high': 'High',
-        
-        // Weather — smart day
         'weather.smart.clothes': 'What to wear',
         'weather.smart.whenToGoOut': 'When to go out',
         'weather.smart.whatToBring': 'What to bring',
@@ -1956,8 +2187,6 @@ const TRANSLATIONS = {
         'weather.smart.bike.bad': 'Cycling — unfavorable',
         'weather.smart.walk.avoidNoon': 'Walking — avoid noon',
         'weather.smart.walk.pleasant': 'Walking — pleasant',
-        
-        // Weather — sun and moon
         'weather.celestial.sun': 'Sun',
         'weather.celestial.sunrise': 'Sunrise',
         'weather.celestial.sunset': 'Sunset',
@@ -1974,8 +2203,6 @@ const TRANSLATIONS = {
         'weather.celestial.visibilityExcellent': 'Excellent',
         'weather.celestial.visibilityGood': 'Moderate',
         'weather.celestial.visibilityPoor': 'Poor',
-        
-        // Weather — moon phases
         'moon.new': 'New moon',
         'moon.waxingCrescent': 'Waxing crescent',
         'moon.firstQuarter': 'First quarter',
@@ -1984,8 +2211,6 @@ const TRANSLATIONS = {
         'moon.waningGibbous': 'Waning gibbous',
         'moon.lastQuarter': 'Last quarter',
         'moon.waningCrescent': 'Waning crescent',
-        
-        // Weather — day comments
         'weather.comment.thunderstorm': 'Thunderstorm',
         'weather.comment.snow': 'Snow',
         'weather.comment.rain': 'Rain',
@@ -1998,18 +2223,36 @@ const TRANSLATIONS = {
         'weather.comment.hot': 'hot',
         'weather.comment.frost': 'frost',
         'weather.comment.bigTempDiff': 'big temp. difference',
-        
+
         // ============ TOAST ============
         'toast.error': 'Error',
         'toast.success': 'Success',
         'toast.info': 'Info',
         'toast.warning': 'Warning',
-        
+        'toast.rem.saved': 'Reminder saved',
+        'toast.rem.deleted': 'Reminder deleted',
+        'toast.rem.error.name': 'Enter a name.',
+        'toast.rem.error.date': 'Enter a date.',
+        'toast.rem.error.amount': 'Enter an amount.',
+        'toast.carSaved': 'Car data saved.',
+        'toast.historyCleared': 'History cleared.',
+        'toast.itemAdded': 'Item added.',
+        'toast.noBoughtItems': 'No bought items.',
+        'toast.boughtCleared': 'Bought items cleared.',
+        'toast.listEmpty': 'List is empty.',
+        'toast.listCleared': 'List cleared.',
+        'toast.deviceAdded': 'Device added.',
+        'toast.micError': 'Error accessing microphone.',
+
         // ============ CONFIRM ============
         'confirm.title': 'Confirmation',
         'confirm.cancel': 'Cancel',
         'confirm.ok': 'Confirm',
-        
+        'confirm.rem.delete': 'Delete this reminder?',
+        'confirm.clearFuelHistory': 'Clear fuel consumption history?',
+        'confirm.clearBought': 'Clear {0} bought items?',
+        'confirm.clearList': 'Clear the whole shopping list?',
+
         // ============ RESULTS ============
         'result.label': 'Result',
         'result.copy': 'Copy',
@@ -2018,8 +2261,8 @@ const TRANSLATIONS = {
         'result.copied': 'Copied to clipboard',
         'result.saved': 'saved',
         'result.copyFailed': 'Copy failed.',
-        
-        // ============ OTHER ============
+
+        // ============ UNITS ============
         'unit.km': 'km',
         'unit.m': 'm',
         'unit.cm': 'cm',
@@ -2039,15 +2282,26 @@ const TRANSLATIONS = {
         'unit.celsius': '°C',
         'unit.fahrenheit': '°F',
         'unit.kelvin': 'K',
-        
+        'unit.inch': 'inch',
+        'unit.month': 'month',
+        'unit.day': 'day',
+        'unit.daysShort': 'days',
+        'unit.weeksShort': 'wk',
+        'unit.monthsShort': 'mo',
+        'unit.yearsShort': 'yr',
+        'unit.minShort': 'min',
+        'unit.secShort': 'sec',
+        'unit.pcsShort': 'pcs',
+        'unit.packagesShort': 'pkg',
+        'unit.bagsShort': 'bags',
+        'unit.repsShort': 'reps',
+        'unit.teaspoon': 'teaspoon',
+        'unit.teabag': 'bag',
+
         'common.optional': 'optional',
         'common.yes': 'Yes',
         'common.no': 'No',
         'common.example': 'e.g.',
-
-        // ============================================================
-        // PART 6/6C — ADDITIONAL LABELS, BUTTONS, OPTIONS, DESCRIPTIONS
-        // ============================================================
 
         // ============ LABELS — HOME / CONSTRUCTION ============
         'label.home.shape': 'Shape',
@@ -3048,88 +3302,6 @@ const TRANSLATIONS = {
         'desc.home.joinery': 'Calculate joinery area.',
         'desc.home.universal': 'Universal material calculator.',
 
-        // ============ TOAST MESSAGES ============
-        'toast.error.enterNumber': 'Enter a number.',
-        'toast.error.enterXY': 'Enter X and Y.',
-        'toast.error.enterStartEnd': 'Enter start and end value.',
-        'toast.error.enterPricePercent': 'Enter price and percentage.',
-        'toast.error.enterPartTotal': 'Enter part and total.',
-        'toast.error.enterDistanceFuel': 'Enter distance and fuel.',
-        'toast.error.enterAll': 'Fill in all fields.',
-        'toast.error.enterAtLeastOne': 'Enter at least one value.',
-        'toast.error.enterDistance': 'Enter distance.',
-        'toast.error.enterDistanceSpeed': 'Enter distance and speed.',
-        'toast.error.enterFour': 'Enter all four values.',
-        'toast.error.enterWeightWidth': 'Enter weight and width.',
-        'toast.error.enterHeight': 'Enter height.',
-        'toast.error.enterWeightHeight': 'Enter weight and height.',
-        'toast.error.enterAge': 'Enter age.',
-        'toast.error.enterTime': 'Enter time.',
-        'toast.error.enterWeightReps': 'Enter weight and reps.',
-        'toast.error.enterBothDates': 'Enter both dates.',
-        'toast.error.enterDateDays': 'Enter date and number of days.',
-        'toast.error.enterBirthDate': 'Enter birth date.',
-        'toast.error.futureDate': 'Date cannot be in the future.',
-        'toast.error.enterDate': 'Enter date.',
-        'toast.error.enterValue': 'Enter value.',
-        'toast.error.enterAmount': 'Enter amount.',
-        'toast.error.enterAmountMonths': 'Enter amount and number of months.',
-        'toast.error.enterAmountPeople': 'Enter amount and number of people.',
-        'toast.error.enterAmountPercent': 'Enter amount and percentage.',
-        'toast.error.enterPriceDiscount': 'Enter price and discount (0-100%).',
-        'toast.error.enterPriceQty': 'Enter price and quantity.',
-        'toast.error.enterPricePerPiece': 'Enter price per piece.',
-        'toast.error.enterPriceVolume': 'Enter price and volume.',
-        'toast.error.enterPriceMeals': 'Enter price and number of meals.',
-        'toast.error.enterTotalCost': 'Enter total cost.',
-        'toast.error.enterBudget': 'Enter budget.',
-        'toast.error.enterSavingsDistance': 'Enter savings and distance.',
-        'toast.error.enterItemName': 'Enter item name.',
-        'toast.error.enterCount': 'Enter count.',
-        'toast.error.enterCups': 'Enter number of cups.',
-        'toast.error.enterPowerHours': 'Enter power and hours.',
-        'toast.error.enterPowerWater': 'Enter power and water amount.',
-        'toast.error.enterPower': 'Enter power.',
-        'toast.error.enterCurrentLength': 'Enter current and length.',
-        'toast.error.enterCapacityLoad': 'Enter capacity and load.',
-        'toast.error.enterRoomDims': 'Enter room dimensions.',
-        'toast.error.enterUsage': 'Enter usage.',
-        'toast.error.enterHoursRate': 'Enter hours and hourly rate.',
-        'toast.error.enterSalaryHours': 'Enter salary and hours.',
-        'toast.error.enterLengthWidth': 'Enter length and width.',
-        'toast.error.enterSide': 'Enter side.',
-        'toast.error.enterDiameter': 'Enter diameter.',
-        'toast.error.enterBaseHeight': 'Enter base and height.',
-        'toast.error.enterWallDims': 'Enter wall dimensions.',
-        'toast.error.enterAllDimensions': 'Enter all dimensions.',
-        'toast.error.enterDimensions': 'Enter dimensions.',
-        'toast.error.enterBlockWallDims': 'Enter wall and block dimensions.',
-        'toast.error.enterAreaAndPer': 'Enter area and tiles per m².',
-        'toast.error.enterAreaThickness': 'Enter area and thickness.',
-        'toast.error.enterArea': 'Enter area.',
-        'toast.error.enterQtyPrice': 'Enter quantity and price.',
-        'toast.error.enterChords': 'Enter chords.',
-        'toast.error.enterChainrings': 'Enter chainrings.',
-        'toast.error.enterFrequency': 'Enter frequency.',
-        'toast.error.bpmRange': 'BPM must be between 30 and 300.',
-        'toast.error.minOne': 'Value must be at least 1.',
-        'toast.error.minOneMeal': 'Number of meals must be at least 1.',
-        'toast.error.endTempHigher': 'End temperature must be higher than start.',
-        'toast.carSaved': 'Car data saved.',
-        'toast.historyCleared': 'History cleared.',
-        'toast.itemAdded': 'Item added.',
-        'toast.noBoughtItems': 'No bought items.',
-        'toast.boughtCleared': 'Bought items cleared.',
-        'toast.listEmpty': 'List is empty.',
-        'toast.listCleared': 'List cleared.',
-        'toast.deviceAdded': 'Device added.',
-        'toast.micError': 'Error accessing microphone.',
-
-        // ============ CONFIRM ============
-        'confirm.clearFuelHistory': 'Clear fuel consumption history?',
-        'confirm.clearBought': 'Clear {0} bought items?',
-        'confirm.clearList': 'Clear the whole shopping list?',
-
         // ============ PLACEHOLDER ============
         'placeholder.material': 'e.g. Block 25cm',
         'placeholder.itemName': 'e.g. Milk',
@@ -3149,11 +3321,6 @@ const TRANSLATIONS = {
         'table.principal': 'Principal',
         'table.balance': 'Balance',
         'table.rearFront': 'Rear \\ Front',
-
-        // ============ CHART ============
-        'chart.last': 'Last',
-        'chart.avg5': 'Avg (5)',
-        'chart.needTwoMeasurements': 'At least 2 measurements needed for chart.',
 
         // ============ HEART RATE ZONES ============
         'zone.easy': 'Easy zone (50-60%)',
@@ -3179,24 +3346,7 @@ const TRANSLATIONS = {
         'pct.number': 'Number',
         'pct.from': 'From',
         'pct.to': 'To',
-        'pct.change': 'Change',
-
-        // ============ UNITS (additional) ============
-        'unit.inch': 'inch',
-        'unit.month': 'month',
-        'unit.day': 'day',
-        'unit.daysShort': 'days',
-        'unit.weeksShort': 'wk',
-        'unit.monthsShort': 'mo',
-        'unit.yearsShort': 'yr',
-        'unit.minShort': 'min',
-        'unit.secShort': 'sec',
-        'unit.pcsShort': 'pcs',
-        'unit.packagesShort': 'pkg',
-        'unit.bagsShort': 'bags',
-        'unit.repsShort': 'reps',
-        'unit.teaspoon': 'teaspoon',
-        'unit.teabag': 'bag'
+        'pct.change': 'Change'
     }
 };
 
@@ -3212,8 +3362,7 @@ function detectLanguage() {
         if (saved === 'sr' || saved === 'en') return saved;
     } catch (e) {}
     const nav = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
-    // Srpski, bosanski, crnogorski, hrvatski
-    if (nav.startsWith('sr') || nav.startsWith('bs') || 
+    if (nav.startsWith('sr') || nav.startsWith('bs') ||
         nav.startsWith('me') || nav.startsWith('hr') ||
         nav === 'sh' || nav.startsWith('sh-')) {
         return 'sr';
@@ -3225,9 +3374,7 @@ function setLanguage(lang) {
     if (lang !== 'sr' && lang !== 'en') return;
     currentLang = lang;
     try { localStorage.setItem('cx_lang', lang); } catch (e) {}
-    // Update HTML lang attribute
     document.documentElement.lang = lang;
-    // Update lang button text
     const langBtn = document.getElementById('lang-toggle');
     if (langBtn) langBtn.textContent = lang.toUpperCase();
 }
@@ -3235,15 +3382,8 @@ function setLanguage(lang) {
 function t(key, ...args) {
     const dict = TRANSLATIONS[currentLang] || TRANSLATIONS.sr;
     let str = dict[key];
-    if (str === undefined) {
-        // Fallback na srpski
-        str = TRANSLATIONS.sr[key];
-    }
-    if (str === undefined) {
-        // Fallback na ključ
-        return key;
-    }
-    // Zamena {0}, {1}...
+    if (str === undefined) str = TRANSLATIONS.sr[key];
+    if (str === undefined) return key;
     if (args.length) {
         args.forEach((arg, i) => {
             str = str.replace(new RegExp('\\{' + i + '\\}', 'g'), arg);
@@ -3255,15 +3395,12 @@ function t(key, ...args) {
 function toggleLanguage() {
     const newLang = currentLang === 'sr' ? 'en' : 'sr';
     setLanguage(newLang);
-    // Osveži UI
     if (typeof refreshUIText === 'function') refreshUIText();
     if (typeof renderQuickTools === 'function') renderQuickTools();
     if (typeof renderAllTools === 'function') renderAllTools();
     if (typeof renderFavorites === 'function') renderFavorites();
     if (typeof renderHistory === 'function') renderHistory();
-    if (typeof renderHistoryPreview === 'function') renderHistoryPreview();
     if (typeof updateSettingsUI === 'function') updateSettingsUI();
-    // Ponovo otvori trenutni modal ako je otvoren
     if (typeof activeCategory !== 'undefined' && activeCategory) {
         const catId = activeCategory;
         const tabId = activeTab;
@@ -3277,5 +3414,4 @@ function toggleLanguage() {
     }
 }
 
-// Auto-init
 setLanguage(detectLanguage());
