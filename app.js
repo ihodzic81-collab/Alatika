@@ -1,5 +1,7 @@
 // ============================================================
-// ALATIKA — app.js (finalna verzija, dvojezična)
+// ALATIKA — app.js (v4) — DEO 1/4
+// Pomoćne, ICONS, CATEGORIES, navigacija, alati, favoriti,
+// pretraga, istorija, toast, confirm, podešavanja
 // ============================================================
 
 // ================= POMOĆNE =================
@@ -46,8 +48,6 @@ function cardText(card) {
 function escapeHtml(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
-
-// Sigurna verzija t() — ako translations.js nije učitan, vraća ključ
 function safeT(key, ...args) {
     if (typeof t === 'function') return t(key, ...args);
     return key;
@@ -169,7 +169,10 @@ const ICONS = {
     sunset: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>',
     mapPin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
     navigation: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>',
-    eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>'
+    eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
+    // NOVO — Podsetnici
+    bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
+    bellRing: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/><path d="M22 8c0-2.3-.8-4.3-2-6"/></svg>'
 };
 
 function icon(name) {
@@ -178,6 +181,21 @@ function icon(name) {
 
 // ================= CATEGORIES =================
 const CATEGORIES = {
+    podsetnici: {
+        name: 'Podsetnici',
+        icon: 'bell',
+        accent: '#f59e0b',
+        tabs: [
+            { id: 'danas', name: 'Danas', icon: 'sunrise', render: renderRemindersToday },
+            { id: 'rodjendani', name: 'Rođendani', icon: 'cake', render: renderRemindersBirthdays },
+            { id: 'racuni', name: 'Računi', icon: 'receipt', render: renderRemindersBills },
+            { id: 'vozila', name: 'Vozila i dokumenti', icon: 'car', render: renderRemindersVehicles },
+            { id: 'pretplate', name: 'Pretplate', icon: 'creditCard', render: renderRemindersSubscriptions },
+            { id: 'lekivi', name: 'Lekovi', icon: 'heartPulse', render: renderRemindersMedications },
+            { id: 'godisnjice', name: 'Godišnjice', icon: 'gift', render: renderRemindersAnniversaries },
+            { id: 'napomene', name: 'Napomene', icon: 'clipboard', render: renderRemindersNotes }
+        ]
+    },
     weather: {
         name: 'Vreme', icon: 'cloudSun', accent: '#38bdf8',
         tabs: [
@@ -462,6 +480,20 @@ function openCalc(categoryId, tabId) {
         setTimeout(() => { initWeatherTab(tabId); }, 80);
     }
 
+    // Podsetnici
+    if (categoryId === 'podsetnici') {
+        setTimeout(() => {
+            if (tabId === 'danas') renderRemindersDashboard();
+            if (tabId === 'rodjendani') renderReminderList('birthday');
+            if (tabId === 'racuni') renderReminderList('bill');
+            if (tabId === 'vozila') { renderReminderList('vehicle'); renderReminderList('document'); }
+            if (tabId === 'pretplate') renderReminderList('subscription');
+            if (tabId === 'lekivi') renderReminderList('medication');
+            if (tabId === 'godisnjice') renderReminderList('anniversary');
+            if (tabId === 'napomene') renderReminderList('note');
+        }, 50);
+    }
+
     try { history.pushState({ modal: 'calc', category: categoryId, tab: tabId }, '', ''); } catch (e) {}
 
     try { maybeShowFavHint(); } catch (e) {}
@@ -537,6 +569,7 @@ function renderQuickTools() {
         const btn = document.createElement('button');
         btn.className = 'quick-tool';
         btn.style.setProperty('--qt-accent', cat.accent);
+        btn.dataset.catId = id;
         btn.innerHTML = `
             <span class="quick-tool-icon">${icon(cat.icon)}</span>
             <span class="quick-tool-label">${escapeHtml(safeT('cat.' + id))}</span>
@@ -544,6 +577,8 @@ function renderQuickTools() {
         btn.onclick = () => openCategory(id);
         grid.appendChild(btn);
     });
+    // Badge za podsetnike
+    updateVisualBadge(getUrgentRemindersCount());
 }
 
 function openQuickToolsEditor() {
@@ -597,25 +632,208 @@ function saveQuickTools() {
     showToast(safeT('editor.success'), 'success');
 }
 
-// ================= SVI ALATI =================
+// ================= SVI ALATI (sa edit mode + drag&drop) =================
+const HIDDEN_CATS_KEY = 'cx_hidden_cats';
+const CATEGORY_ORDER_KEY = 'cx_category_order';
+const TOOLS_HINT_KEY = 'cx_hint_dismissed_tools';
+
+let allToolsEditMode = false;
+let dragSrcId = null;
+
+function getHiddenCategories() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(HIDDEN_CATS_KEY));
+        if (Array.isArray(raw)) return raw;
+    } catch (e) {}
+    return [];
+}
+function saveHiddenCategories(list) {
+    try { localStorage.setItem(HIDDEN_CATS_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function getCategoryOrder() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(CATEGORY_ORDER_KEY));
+        if (Array.isArray(raw) && raw.length) {
+            const valid = raw.filter(id => CATEGORIES[id]);
+            Object.keys(CATEGORIES).forEach(id => {
+                if (!valid.includes(id)) valid.push(id);
+            });
+            return valid;
+        }
+    } catch (e) {}
+    return Object.keys(CATEGORIES);
+}
+function saveCategoryOrder(list) {
+    try { localStorage.setItem(CATEGORY_ORDER_KEY, JSON.stringify(list)); } catch (e) {}
+}
+
 function renderAllTools() {
     const grid = el('all-tools-grid');
     if (!grid) return;
     grid.innerHTML = '';
-    Object.entries(CATEGORIES).forEach(([id, cat]) => {
+
+    const hidden = getHiddenCategories();
+    const order = getCategoryOrder();
+
+    order.forEach(id => {
+        const cat = CATEGORIES[id];
+        if (!cat) return;
+        const isHidden = hidden.includes(id);
+        if (!allToolsEditMode && isHidden) return;
+
         const wrap = document.createElement('div');
         wrap.className = 'all-tool-wrap';
+        wrap.dataset.catId = id;
+        if (isHidden) wrap.classList.add('hidden-cat');
+        if (allToolsEditMode) {
+            wrap.draggable = true;
+            wrap.classList.add('draggable');
+            wrap.addEventListener('dragstart', handleDragStart);
+            wrap.addEventListener('dragover', handleDragOver);
+            wrap.addEventListener('drop', handleDrop);
+            wrap.addEventListener('dragend', handleDragEnd);
+        }
+
         const btn = document.createElement('button');
         btn.className = 'all-tool';
         btn.style.setProperty('--qt-accent', cat.accent);
+        btn.dataset.catId = id;
         btn.innerHTML = `
             <span class="all-tool-icon">${icon(cat.icon)}</span>
             <span class="all-tool-label">${escapeHtml(safeT('cat.' + id))}</span>
         `;
-        btn.onclick = () => openCategory(id);
+        if (!allToolsEditMode) {
+            btn.onclick = () => openCategory(id);
+        }
         wrap.appendChild(btn);
+
+        if (allToolsEditMode) {
+            const handle = document.createElement('span');
+            handle.className = 'all-tool-handle';
+            handle.textContent = '⋮⋮';
+            wrap.appendChild(handle);
+
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'all-tool-close';
+            closeBtn.type = 'button';
+            closeBtn.textContent = isHidden ? '↺' : '✕';
+            closeBtn.title = isHidden ? safeT('section.allTools.reset') : safeT('section.allTools.hidden');
+            closeBtn.onclick = (e) => {
+                e.stopPropagation();
+                toggleCategoryHidden(id);
+            };
+            wrap.appendChild(closeBtn);
+        }
+
         grid.appendChild(wrap);
     });
+
+    if (allToolsEditMode) {
+        const bar = document.createElement('div');
+        bar.className = 'all-tools-edit-bar';
+        bar.innerHTML = `
+            <div class="all-tools-edit-hint">${safeT('section.allTools.dragHint')}</div>
+            <button type="button" class="all-tools-reset-btn" onclick="resetAllToolsLayout()">${safeT('section.allTools.reset')}</button>
+            <button type="button" class="all-tools-save-btn" onclick="saveAllToolsLayout()">${safeT('section.allTools.save')}</button>
+        `;
+        grid.appendChild(bar);
+    }
+
+    updateVisualBadge(getUrgentRemindersCount());
+    try { maybeShowToolsHint(); } catch (e) {}
+}
+
+function toggleCategoryHidden(id) {
+    const hidden = getHiddenCategories();
+    const idx = hidden.indexOf(id);
+    if (idx === -1) hidden.push(id);
+    else hidden.splice(idx, 1);
+    saveHiddenCategories(hidden);
+    renderAllTools();
+    vibrate(10);
+    playTick(0, 1300, 0.05, 0.015);
+}
+
+function toggleAllToolsEditMode() {
+    allToolsEditMode = !allToolsEditMode;
+    const btn = el('btn-edit-all-tools');
+    if (btn) btn.textContent = allToolsEditMode ? safeT('section.allTools.cancel') : safeT('section.allTools.edit');
+    renderAllTools();
+    vibrate(15);
+}
+
+function saveAllToolsLayout() {
+    allToolsEditMode = false;
+    const btn = el('btn-edit-all-tools');
+    if (btn) btn.textContent = safeT('section.allTools.edit');
+    renderAllTools();
+    showToast(safeT('section.allTools.saved'), 'success');
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+}
+
+function resetAllToolsLayout() {
+    try {
+        localStorage.removeItem(HIDDEN_CATS_KEY);
+        localStorage.removeItem(CATEGORY_ORDER_KEY);
+    } catch (e) {}
+    renderAllTools();
+    showToast(safeT('section.allTools.reset.done'), 'info');
+    vibrate(15);
+}
+
+function handleDragStart(e) {
+    dragSrcId = this.dataset.catId;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', dragSrcId); } catch (err) {}
+}
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const target = e.currentTarget;
+    if (!target || target.dataset.catId === dragSrcId) return;
+    target.classList.add('drag-over');
+}
+function handleDrop(e) {
+    e.preventDefault();
+    const target = e.currentTarget;
+    target.classList.remove('drag-over');
+    const targetId = target.dataset.catId;
+    if (!dragSrcId || targetId === dragSrcId) return;
+    const order = getCategoryOrder();
+    const srcIdx = order.indexOf(dragSrcId);
+    const tgtIdx = order.indexOf(targetId);
+    if (srcIdx === -1 || tgtIdx === -1) return;
+    order.splice(srcIdx, 1);
+    order.splice(tgtIdx, 0, dragSrcId);
+    saveCategoryOrder(order);
+    renderAllTools();
+    vibrate(10);
+    playTick(0, 1300, 0.05, 0.015);
+}
+function handleDragEnd() {
+    this.classList.remove('dragging');
+    document.querySelectorAll('.all-tool-wrap.drag-over').forEach(el => el.classList.remove('drag-over'));
+    dragSrcId = null;
+}
+
+function maybeShowToolsHint() {
+    try {
+        if (localStorage.getItem(TOOLS_HINT_KEY) === '1') return;
+        const hint = el('tools-hint');
+        if (!hint) return;
+        hint.style.display = 'flex';
+        hint.classList.remove('hide');
+    } catch (e) {}
+}
+function dismissToolsHint() {
+    try { localStorage.setItem(TOOLS_HINT_KEY, '1'); } catch (e) {}
+    const hint = el('tools-hint');
+    if (!hint) return;
+    hint.classList.add('hide');
+    setTimeout(() => { hint.style.display = 'none'; }, 400);
+    vibrate(10);
 }
 
 // ================= FAVORITI =================
@@ -744,6 +962,95 @@ function dismissFavHint() {
     playTick(0, 1400, 0.07, 0.02);
 }
 
+// ================= BADGE za podsetnike =================
+const BADGE_HINT_KEY = 'cx_hint_dismissed_badge';
+
+function getUrgentRemindersCount() {
+    try {
+        let total = 0;
+        const birthdays = loadReminders('cx_birthdays');
+        birthdays.forEach(b => {
+            const days = daysToBirthday(b.date);
+            if (days !== null && days <= 7) total++;
+        });
+        const bills = loadReminders('cx_bills');
+        bills.forEach(b => {
+            if (b.paid) return;
+            const days = daysToBillDay(b.dayOfMonth);
+            if (days !== null && days <= 7) total++;
+        });
+        const vehicles = loadReminders('cx_vehicles');
+        vehicles.forEach(v => {
+            [v.regDate, v.techDate, v.insuranceDate].forEach(d => {
+                const days = daysUntilDate(d);
+                if (days !== null && days <= 7 && days >= -30) total++;
+            });
+        });
+        const docs = loadReminders('cx_documents');
+        docs.forEach(d => {
+            const days = daysUntilDate(d.expires);
+            if (days !== null && days <= 7 && days >= -30) total++;
+        });
+        const anns = loadReminders('cx_anniversaries');
+        anns.forEach(a => {
+            const days = daysToAnniversary(a.date);
+            if (days !== null && days <= 7) total++;
+        });
+        const notes = loadReminders('cx_notes');
+        notes.forEach(n => {
+            if (n.done) return;
+            const days = daysUntilDate(n.dueDate);
+            if (days !== null && days <= 7 && days >= -30) total++;
+        });
+        return total;
+    } catch (e) { return 0; }
+}
+
+function updateAppBadge() {
+    const count = getUrgentRemindersCount();
+    if ('setAppBadge' in navigator) {
+        try {
+            if (count > 0) navigator.setAppBadge(count);
+            else navigator.clearAppBadge();
+        } catch (e) {}
+    }
+    updateVisualBadge(count);
+}
+
+function updateVisualBadge(count) {
+    document.querySelectorAll('.category-badge').forEach(el => el.remove());
+    if (count <= 0) return;
+    const cards = document.querySelectorAll('[data-cat-id="podsetnici"]');
+    cards.forEach(card => {
+        const badge = document.createElement('span');
+        badge.className = 'category-badge';
+        badge.textContent = count > 99 ? '99+' : String(count);
+        card.appendChild(badge);
+    });
+}
+
+function maybeShowBadgeHint() {
+    try {
+        if (localStorage.getItem(BADGE_HINT_KEY) === '1') return;
+        const count = getUrgentRemindersCount();
+        if (count <= 0) return;
+        const hint = el('badge-hint');
+        if (!hint) return;
+        hint.style.display = 'flex';
+        hint.classList.remove('hide');
+        vibrate(15);
+    } catch (e) {}
+}
+function dismissBadgeHint() {
+    try { localStorage.setItem(BADGE_HINT_KEY, '1'); } catch (e) {}
+    const hint = el('badge-hint');
+    if (!hint) return;
+    hint.classList.add('hide');
+    setTimeout(() => { hint.style.display = 'none'; }, 400);
+    vibrate(10);
+    playTick(0, 1400, 0.07, 0.02);
+}
+
 // ================= PRETRAGA =================
 function normalizeText(str) {
     return String(str).toLowerCase().replace(/đ/g, 'dj').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -767,22 +1074,19 @@ function searchTools(query) {
     const scored = FLAT_TOOLS.map(tool => {
         let score = 0;
         const nameSr = normalizeText(tool.name);
-        const nameEn = (typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS.en) 
-            ? normalizeText(TRANSLATIONS.en['tab.' + tool.catId + '.' + tool.tabId] || '') 
+        const nameEn = (typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS.en)
+            ? normalizeText(TRANSLATIONS.en['tab.' + tool.catId + '.' + tool.tabId] || '')
             : '';
         const catSr = normalizeText(tool.category);
-        const catEn = (typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS.en) 
-            ? normalizeText(TRANSLATIONS.en['cat.' + tool.catId] || '') 
+        const catEn = (typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS.en)
+            ? normalizeText(TRANSLATIONS.en['cat.' + tool.catId] || '')
             : '';
-        
         if (nameSr === q || nameEn === q) score += 100;
         else if (nameSr.startsWith(q) || nameEn.startsWith(q)) score += 60;
         else if (nameSr.includes(q) || nameEn.includes(q)) score += 40;
-        
         if (catSr === q || catEn === q) score += 50;
         else if (catSr.startsWith(q) || catEn.startsWith(q)) score += 30;
         else if (catSr.includes(q) || catEn.includes(q)) score += 15;
-        
         tool.keywords.forEach(k => {
             if (k === q) score += 40;
             else if (k.startsWith(q)) score += 20;
@@ -1069,6 +1373,7 @@ function openScreen(screenId, direction = 'right') {
             try { renderFavorites(); } catch (e) {}
             try { renderQuickTools(); } catch (e) {}
             try { renderAllTools(); } catch (e) {}
+            try { updateAppBadge(); } catch (e) {}
         }
         if (screenId === 'history-screen') { renderHistory(); renderUsageStats(); }
         if (direction !== 'left' && screenId !== 'home-screen') {
@@ -1096,7 +1401,22 @@ function setupBackButton() {
         const catModal = el('category-modal');
         const editorModal = el('editor-modal');
         const locationModal = el('location-modal');
+        const aboutModal = el('about-modal');
+        const reminderModal = el('reminder-modal');
 
+        if (reminderModal && reminderModal.classList.contains('show')) {
+            reminderModal.classList.remove('show');
+            document.body.classList.remove('modal-open');
+            return;
+        }
+        if (aboutModal && aboutModal.classList.contains('show')) {
+            aboutModal.classList.remove('show');
+            setTimeout(() => {
+                const anyOpen = document.querySelector('.modal.show');
+                if (!anyOpen) document.body.classList.remove('modal-open');
+            }, 220);
+            return;
+        }
         if (calcModal && calcModal.classList.contains('show')) {
             calcModal.classList.remove('show');
             if (activeCategory) {
@@ -1364,7 +1684,7 @@ function createRipple(e) {
     setTimeout(() => { if (ripple.parentNode) ripple.remove(); }, 600);
 }
 function setupRipple() {
-    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn, .modal-fav-star, .weather-refresh-btn, .location-gps-btn, .weather-location, .icon-btn-text';
+    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn, .modal-fav-star, .weather-refresh-btn, .location-gps-btn, .weather-location, .icon-btn-text, .about-row, .all-tools-save-btn, .all-tools-reset-btn';
     document.addEventListener('pointerdown', (e) => {
         const t = e.target.closest(selector);
         if (t) createRipple({ currentTarget: t, clientX: e.clientX, clientY: e.clientY });
@@ -1644,9 +1964,13 @@ function setupInputPersistence() {
 }
 
 // ============================================================
-// DEO B — VREME + RENDER
+// KRAJ DELA 1/4
+// ============================================================// ============================================================
+// ALATIKA — app.js (v4) — DEO 2/4
+// VREME + YIN TUNER + RENDER POMOĆNE
 // ============================================================
 
+// ================= VREME — KONSTANTE =================
 const WEATHER_LOC_KEY = 'cx_weather_location_v1';
 const WEATHER_CACHE_KEY = 'cx_weather_cache_v1';
 const WEATHER_CACHE_TTL = 30 * 60 * 1000;
@@ -1689,14 +2013,13 @@ const WMO_ICONS = {
     95: 'cloudLightning', 96: 'cloudLightning', 99: 'cloudLightning'
 };
 
-// Boje za vremenske ikone
 const WMO_ICON_COLORS = {
-    sun: '#fbbf24',           // žuto — sunce
-    cloudSun: '#fbbf24',      // žuto — sunce sa oblakom
-    cloud: '#94a3b8',         // sivo — oblak
-    cloudRain: '#60a5fa',     // plavo — kiša
-    cloudSnow: '#e0e7ff',     // belo-plavo — sneg
-    cloudLightning: '#facc15' // žuto — grmljavina
+    sun: '#fbbf24',
+    cloudSun: '#fbbf24',
+    cloud: '#94a3b8',
+    cloudRain: '#60a5fa',
+    cloudSnow: '#e0e7ff',
+    cloudLightning: '#facc15'
 };
 
 const CITY_MAP = {
@@ -2391,6 +2714,123 @@ function calculateMoonPhase(date) {
     return { key, illumination };
 }
 
+// ============================================================
+// YIN PITCH DETECTION — zamena autoCorrelate
+// ============================================================
+
+/**
+ * YIN algoritam za detekciju pitch-a. Vraća frekvenciju u Hz ili -1.
+ */
+function yinPitchDetect(buffer, sampleRate, options = {}) {
+    const threshold = options.threshold || 0.12;
+    const minFreq = options.minFreq || 60;
+    const maxFreq = options.maxFreq || 1500;
+
+    const bufferSize = buffer.length;
+    const yinBufferSize = Math.floor(bufferSize / 2);
+    const yinBuffer = new Float32Array(yinBufferSize);
+
+    // 1. Difference function
+    for (let tau = 0; tau < yinBufferSize; tau++) {
+        let sum = 0;
+        for (let i = 0; i < yinBufferSize; i++) {
+            const delta = buffer[i] - buffer[i + tau];
+            sum += delta * delta;
+        }
+        yinBuffer[tau] = sum;
+    }
+
+    // 2. CMNDF
+    yinBuffer[0] = 1;
+    let runningSum = 0;
+    for (let tau = 1; tau < yinBufferSize; tau++) {
+        runningSum += yinBuffer[tau];
+        yinBuffer[tau] *= tau / runningSum;
+    }
+
+    // 3. Apsolutni threshold
+    const minTau = Math.max(2, Math.floor(sampleRate / maxFreq));
+    const maxTau = Math.min(yinBufferSize - 1, Math.floor(sampleRate / minFreq));
+
+    let tauEstimate = -1;
+    for (let tau = minTau; tau < maxTau; tau++) {
+        if (yinBuffer[tau] < threshold) {
+            while (tau + 1 < maxTau && yinBuffer[tau + 1] < yinBuffer[tau]) {
+                tau++;
+            }
+            tauEstimate = tau;
+            break;
+        }
+    }
+
+    if (tauEstimate === -1) {
+        let minVal = Infinity;
+        for (let tau = minTau; tau < maxTau; tau++) {
+            if (yinBuffer[tau] < minVal) {
+                minVal = yinBuffer[tau];
+                tauEstimate = tau;
+            }
+        }
+        if (minVal > 0.5) return -1;
+    }
+
+    const betterTau = parabolicInterpolation(yinBuffer, tauEstimate);
+    const confidence = 1 - yinBuffer[tauEstimate];
+    if (confidence < 0.5) return -1;
+
+    return sampleRate / betterTau;
+}
+
+function parabolicInterpolation(yinBuffer, tau) {
+    if (tau < 1 || tau >= yinBuffer.length - 1) return tau;
+    const x0 = yinBuffer[tau - 1];
+    const x2 = yinBuffer[tau + 1];
+    if (x0 + x2 === 2 * yinBuffer[tau]) return tau;
+    const a = (x0 + x2 - 2 * yinBuffer[tau]) / 2;
+    const b = (x2 - x0) / 2;
+    if (a === 0) return tau;
+    return tau - b / (2 * a);
+}
+
+// Median smoothing za tuner
+const pitchHistory = [];
+const PITCH_HISTORY_SIZE = 5;
+let consecutiveOutliers = 0;
+
+function smoothPitch(newFreq) {
+    if (newFreq <= 0) return -1;
+
+    pitchHistory.push(newFreq);
+    if (pitchHistory.length > PITCH_HISTORY_SIZE) {
+        pitchHistory.shift();
+    }
+
+    if (pitchHistory.length < 3) return newFreq;
+
+    const sorted = [...pitchHistory].sort((a, b) => a - b);
+    const median = sorted[Math.floor(sorted.length / 2)];
+
+    const deviation = Math.abs(newFreq - median) / median;
+    if (deviation > 0.20) {
+        consecutiveOutliers++;
+        if (consecutiveOutliers < 3) {
+            return median;
+        }
+        consecutiveOutliers = 0;
+        pitchHistory.length = 0;
+        pitchHistory.push(newFreq);
+        return newFreq;
+    }
+
+    consecutiveOutliers = 0;
+    return median;
+}
+
+function resetPitchSmoothing() {
+    pitchHistory.length = 0;
+    consecutiveOutliers = 0;
+}
+
 // ================= RENDER POMOĆNE =================
 function inputField(labelKey, id, unit = '', extra = '') {
     const unitHtml = unit ? `<span class="unit">${escapeHtml(unit)}</span>` : '';
@@ -2483,9 +2923,1013 @@ function statsRow(boxId, items) {
 function sectionDescKey(key) { return `<p class="section-desc">${safeT(key)}</p>`; }
 
 // ============================================================
-// RENDER FUNKCIJE ZA SVE TABOVE (skraćeno radi dužine)
+// KRAJ DELA 2/4
+// ============================================================// ============================================================
+// ALATIKA — app.js (v4) — DEO 3/4
+// PODSETNICI — kompletan sistem (8 tabova + modal + storage)
 // ============================================================
-// AUTO
+
+// ================= PODSETNICI — Storage helperi =================
+const REMINDER_KEYS = {
+    birthdays: 'cx_birthdays',
+    bills: 'cx_bills',
+    vehicles: 'cx_vehicles',
+    documents: 'cx_documents',
+    subscriptions: 'cx_subscriptions',
+    medications: 'cx_medications',
+    anniversaries: 'cx_anniversaries',
+    notes: 'cx_notes'
+};
+
+function loadReminders(key) {
+    try {
+        const raw = JSON.parse(localStorage.getItem(key));
+        if (Array.isArray(raw)) return raw;
+    } catch (e) {}
+    return [];
+}
+
+function saveReminders(key, list) {
+    try { localStorage.setItem(key, JSON.stringify(list)); } catch (e) {}
+}
+
+function addReminder(key, item) {
+    const list = loadReminders(key);
+    item.id = item.id || (Date.now() + Math.random());
+    item.createdAt = item.createdAt || Date.now();
+    list.push(item);
+    saveReminders(key, list);
+    return item;
+}
+
+function updateReminder(key, id, changes) {
+    const list = loadReminders(key);
+    const idx = list.findIndex(x => x.id === id);
+    if (idx === -1) return;
+    list[idx] = Object.assign({}, list[idx], changes);
+    saveReminders(key, list);
+}
+
+function deleteReminder(key, id) {
+    let list = loadReminders(key);
+    list = list.filter(x => x.id !== id);
+    saveReminders(key, list);
+}
+
+// ================= PODSETNICI — Date helperi =================
+
+function daysUntilDate(isoOrDate) {
+    if (!isoOrDate) return null;
+    const target = parseDate(isoOrDate);
+    if (!target || isNaN(target)) return null;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    target.setHours(0, 0, 0, 0);
+    return Math.round((target - today) / 86400000);
+}
+
+function daysToBirthday(isoDate) {
+    if (!isoDate) return null;
+    const parts = isoDate.split('-').map(Number);
+    if (parts.length < 3) return null;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    let next = new Date(today.getFullYear(), parts[1] - 1, parts[2]);
+    next.setHours(0, 0, 0, 0);
+    if (next < today) next.setFullYear(today.getFullYear() + 1);
+    return Math.round((next - today) / 86400000);
+}
+
+function daysToAnniversary(isoDate) {
+    return daysToBirthday(isoDate);
+}
+
+function daysToBillDay(dayOfMonth) {
+    if (!dayOfMonth) return null;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const d = Math.max(1, Math.min(31, parseInt(dayOfMonth)));
+    let next = new Date(today.getFullYear(), today.getMonth(), d);
+    next.setHours(0, 0, 0, 0);
+    if (next < today) {
+        let nm = today.getMonth() + 1;
+        let ny = today.getFullYear();
+        if (nm > 11) { nm = 0; ny++; }
+        next = new Date(ny, nm, d);
+    }
+    return Math.round((next - today) / 86400000);
+}
+
+function formatDaysToHuman(days) {
+    if (days === null || days === undefined) return '—';
+    if (days === 0) return safeT('rem.dashboard.today');
+    if (days === 1) return safeT('rem.dashboard.tomorrow');
+    if (days === -1) return safeT('rem.dashboard.yesterday');
+    if (days < 0) return Math.abs(days) + ' ' + safeT('rem.days');
+    return days + ' ' + safeT('rem.days');
+}
+
+function urgencyClass(days) {
+    if (days === null || days === undefined) return 'later';
+    if (days < 0) return 'overdue';
+    if (days <= 7) return 'urgent';
+    if (days <= 30) return 'soon';
+    return 'later';
+}
+
+function urgencyColor(days) {
+    const cls = urgencyClass(days);
+    if (cls === 'overdue') return '#f43f5e';
+    if (cls === 'urgent') return '#f43f5e';
+    if (cls === 'soon') return '#f59e0b';
+    return '#10b981';
+}
+
+// ================= PODSETNICI — Render funkcije =================
+
+function renderRemindersToday() {
+    return `<div class="rem-dashboard" id="rem-dashboard-content"></div>`;
+}
+
+function renderRemindersBirthdays() {
+    return `
+        <div class="converter-box">
+            <div class="section-desc">${safeT('tab.podsetnici.rodjendani')}</div>
+            <div id="rem-bd-list" class="rem-list"></div>
+            <button class="calc-btn-main" onclick="openReminderForm('birthday')">${safeT('rem.add')}</button>
+        </div>
+    `;
+}
+
+function renderRemindersBills() {
+    return `
+        <div class="converter-box">
+            <div class="section-desc">${safeT('tab.podsetnici.racuni')}</div>
+            <div id="rem-bills-summary" class="rem-summary"></div>
+            <div id="rem-bills-list" class="rem-list"></div>
+            <button class="calc-btn-main" onclick="openReminderForm('bill')">${safeT('rem.add')}</button>
+        </div>
+    `;
+}
+
+function renderRemindersVehicles() {
+    return `
+        <div class="converter-box">
+            <div class="section-desc">${safeT('rem.veh.name')}</div>
+            <div id="rem-veh-list" class="rem-list"></div>
+            <button class="calc-btn-main" onclick="openReminderForm('vehicle')">${safeT('rem.add')} — ${safeT('rem.veh.name')}</button>
+        </div>
+        <div class="converter-box">
+            <div class="section-desc">${safeT('rem.doc.type')}</div>
+            <div id="rem-doc-list" class="rem-list"></div>
+            <button class="calc-btn-main" onclick="openReminderForm('document')">${safeT('rem.add')} — ${safeT('rem.doc.type')}</button>
+        </div>
+    `;
+}
+
+function renderRemindersSubscriptions() {
+    return `
+        <div class="converter-box">
+            <div class="section-desc">${safeT('tab.podsetnici.pretplate')}</div>
+            <div id="rem-subs-summary" class="rem-summary"></div>
+            <div id="rem-subs-list" class="rem-list"></div>
+            <button class="calc-btn-main" onclick="openReminderForm('subscription')">${safeT('rem.add')}</button>
+        </div>
+    `;
+}
+
+function renderRemindersMedications() {
+    return `
+        <div class="converter-box">
+            <div class="section-desc">${safeT('tab.podsetnici.lekivi')}</div>
+            <div id="rem-meds-list" class="rem-list"></div>
+            <button class="calc-btn-main" onclick="openReminderForm('medication')">${safeT('rem.add')}</button>
+        </div>
+    `;
+}
+
+function renderRemindersAnniversaries() {
+    return `
+        <div class="converter-box">
+            <div class="section-desc">${safeT('tab.podsetnici.godisnjice')}</div>
+            <div id="rem-ann-list" class="rem-list"></div>
+            <button class="calc-btn-main" onclick="openReminderForm('anniversary')">${safeT('rem.add')}</button>
+        </div>
+    `;
+}
+
+function renderRemindersNotes() {
+    return `
+        <div class="converter-box">
+            <div class="section-desc">${safeT('tab.podsetnici.napomene')}</div>
+            <div id="rem-notes-list" class="rem-list"></div>
+            <button class="calc-btn-main" onclick="openReminderForm('note')">${safeT('rem.add')}</button>
+        </div>
+    `;
+}
+
+// ================= PODSETNICI — Dashboard =================
+
+function renderRemindersDashboard() {
+    const box = el('rem-dashboard-content');
+    if (!box) return;
+
+    const items = [];
+
+    // Rođendani
+    const birthdays = loadReminders('cx_birthdays');
+    birthdays.forEach(b => {
+        const days = daysToBirthday(b.date);
+        if (days !== null) items.push({
+            type: 'bd', icon: 'cake', color: '#ec4899',
+            title: b.name || safeT('tab.podsetnici.rodjendani'),
+            subtitle: safeT('rem.bd.daysTo'),
+            days, ref: b
+        });
+    });
+
+    // Računi (neplaćeni)
+    const bills = loadReminders('cx_bills');
+    bills.forEach(b => {
+        if (b.paid) return;
+        const days = daysToBillDay(b.dayOfMonth);
+        if (days !== null) items.push({
+            type: 'bill', icon: b.icon || 'receipt', color: '#10b981',
+            title: b.name || safeT('tab.podsetnici.racuni'),
+            subtitle: (b.amount ? b.amount + ' ' + (b.currency || 'RSD') : safeT('rem.bill.daysTo')),
+            days, ref: b
+        });
+    });
+
+    // Vozila
+    const vehicles = loadReminders('cx_vehicles');
+    vehicles.forEach(v => {
+        [
+            ['regDate', safeT('rem.veh.regDate')],
+            ['techDate', safeT('rem.veh.techDate')],
+            ['insuranceDate', safeT('rem.veh.insuranceDate')]
+        ].forEach(([field, label]) => {
+            if (!v[field]) return;
+            const days = daysUntilDate(v[field]);
+            if (days !== null) items.push({
+                type: 'veh', icon: 'car', color: '#f43f5e',
+                title: (v.name || 'Vozilo') + ' — ' + label,
+                subtitle: v.plate || '',
+                days, ref: v
+            });
+        });
+    });
+
+    // Dokumenti
+    const docs = loadReminders('cx_documents');
+    docs.forEach(d => {
+        const days = daysUntilDate(d.expires);
+        if (days !== null) items.push({
+            type: 'doc', icon: 'clipboard', color: '#8b5cf6',
+            title: d.name || safeT('rem.doc.type'),
+            subtitle: safeT('rem.doc.expires'),
+            days, ref: d
+        });
+    });
+
+    // Pretplate
+    const subs = loadReminders('cx_subscriptions');
+    subs.forEach(s => {
+        if (!s.active) return;
+        const days = daysToBillDay(s.dayOfMonth);
+        if (days !== null) items.push({
+            type: 'sub', icon: 'creditCard', color: '#14b8a6',
+            title: s.name || safeT('tab.podsetnici.pretplate'),
+            subtitle: (s.amount ? s.amount + ' ' + (s.currency || 'RSD') : ''),
+            days, ref: s
+        });
+    });
+
+    // Lekovi
+    const meds = loadReminders('cx_medications');
+    meds.forEach(m => {
+        if (!m.endDate) return;
+        const days = daysUntilDate(m.endDate);
+        if (days !== null && days >= -1) items.push({
+            type: 'med', icon: 'heartPulse', color: '#ec4899',
+            title: m.name || safeT('tab.podsetnici.lekivi'),
+            subtitle: (m.dose || '') + (m.remaining ? ' • ' + m.remaining + ' ' + safeT('rem.med.remaining') : ''),
+            days, ref: m
+        });
+    });
+
+    // Godišnjice
+    const anns = loadReminders('cx_anniversaries');
+    anns.forEach(a => {
+        const days = daysToAnniversary(a.date);
+        if (days !== null) items.push({
+            type: 'ann', icon: 'gift', color: '#a855f7',
+            title: a.name || safeT('tab.podsetnici.godisnjice'),
+            subtitle: safeT('rem.ann.daysTo'),
+            days, ref: a
+        });
+    });
+
+    // Napomene
+    const notes = loadReminders('cx_notes');
+    notes.forEach(n => {
+        if (n.done) return;
+        if (!n.dueDate) return;
+        const days = daysUntilDate(n.dueDate);
+        if (days !== null) items.push({
+            type: 'note', icon: 'clipboard', color: '#f59e0b',
+            title: n.title || safeT('tab.podsetnici.napomene'),
+            subtitle: safeT('rem.note.dueDate'),
+            days, ref: n
+        });
+    });
+
+    // Sortiraj po hitnosti
+    items.sort((a, b) => a.days - b.days);
+
+    const urgent = items.filter(i => i.days <= 7);
+    const soon = items.filter(i => i.days > 7 && i.days <= 30);
+    const later = items.filter(i => i.days > 30);
+
+    let html = '';
+
+    if (items.length === 0) {
+        html = `<div class="rem-empty">
+            <div class="rem-empty-icon">✓</div>
+            <p>${safeT('rem.dashboard.empty')}</p>
+        </div>`;
+    } else {
+        if (urgent.length) {
+            html += `<div class="rem-group">
+                <div class="rem-group-title rem-urgent">
+                    <span class="rem-dot" style="background:#f43f5e;"></span>
+                    ${safeT('rem.dashboard.urgent')} <span class="rem-count">${urgent.length}</span>
+                </div>
+                ${urgent.map(i => renderDashboardItem(i)).join('')}
+            </div>`;
+        }
+        if (soon.length) {
+            html += `<div class="rem-group">
+                <div class="rem-group-title rem-soon">
+                    <span class="rem-dot" style="background:#f59e0b;"></span>
+                    ${safeT('rem.dashboard.soon')} <span class="rem-count">${soon.length}</span>
+                </div>
+                ${soon.map(i => renderDashboardItem(i)).join('')}
+            </div>`;
+        }
+        if (later.length) {
+            html += `<div class="rem-group">
+                <div class="rem-group-title rem-later">
+                    <span class="rem-dot" style="background:#10b981;"></span>
+                    ${safeT('rem.dashboard.later')} <span class="rem-count">${later.length}</span>
+                </div>
+                ${later.map(i => renderDashboardItem(i)).join('')}
+            </div>`;
+        }
+    }
+
+    box.innerHTML = html;
+}
+
+function renderDashboardItem(item) {
+    const color = urgencyColor(item.days);
+    const daysTxt = formatDaysToHuman(item.days);
+    const iconSvg = icon(item.icon);
+    return `
+        <div class="rem-card rem-${urgencyClass(item.days)}" style="--rem-accent: ${color};">
+            <div class="rem-card-icon">${iconSvg}</div>
+            <div class="rem-card-body">
+                <div class="rem-card-title">${escapeHtml(item.title)}</div>
+                <div class="rem-card-sub">${escapeHtml(item.subtitle || '')}</div>
+            </div>
+            <div class="rem-card-days" style="color:${color};">${daysTxt}</div>
+        </div>
+    `;
+}
+
+// ================= PODSETNICI — Modal forma =================
+
+let currentReminderType = null;
+let currentReminderEditId = null;
+
+function openReminderForm(type, editItem = null) {
+    currentReminderType = type;
+    currentReminderEditId = editItem ? editItem.id : null;
+
+    const modal = el('reminder-modal');
+    const title = el('reminder-modal-title');
+    const body = el('reminder-modal-body');
+    if (!modal || !body) return;
+
+    const tkey = editItem ? 'rem.edit.title' : 'rem.add.title';
+    if (title) title.textContent = safeT(tkey);
+
+    body.innerHTML = buildReminderForm(type, editItem);
+
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+    vibrate(15);
+    playTick(0, 1400, 0.06, 0.02);
+    try { restoreInputsFor(body); } catch (e) {}
+    try { setupDateTriplesIn(body); } catch (e) {}
+    try { history.pushState({ modal: 'reminder' }, '', ''); } catch (e) {}
+
+    if (editItem) {
+        fillReminderForm(type, editItem);
+    }
+}
+
+function buildReminderForm(type, item) {
+    const forms = {
+        birthday: () => `
+            ${inputFieldText('rem.bd.name', 'rem-bd-name', safeT('placeholder.name'))}
+            ${dateTripleField('rem.bd.date', 'rem-bd-date')}
+            ${inputField('rem.bd.remindBefore', 'rem-bd-remind', safeT('rem.days'), 'value="3"')}
+            <div class="input-field">
+                <label>${safeT('rem.bd.favorite')}</label>
+                <label class="rem-check"><input type="checkbox" id="rem-bd-fav"><span></span></label>
+            </div>
+            ${inputFieldText('rem.bd.note', 'rem-bd-note', '')}
+        `,
+        bill: () => `
+            ${inputFieldText('rem.bill.name', 'rem-bill-name', 'npr. Struja')}
+            ${inputField('rem.bill.amount', 'rem-bill-amount', 'RSD', 'placeholder="3000"')}
+            ${selectField('rem.bill.period', 'rem-bill-period', [
+                { value: 'monthly', text: safeT('rem.bill.period.monthly') },
+                { value: 'quarterly', text: safeT('rem.bill.period.quarterly') },
+                { value: 'yearly', text: safeT('rem.bill.period.yearly') },
+                { value: 'onetime', text: safeT('rem.bill.period.onetime') }
+            ], 'monthly')}
+            ${inputField('rem.bill.dayOfMonth', 'rem-bill-day', '', 'value="1" min="1" max="31"')}
+            ${inputField('rem.bill.reminder', 'rem-bill-remind', safeT('rem.days'), 'value="3"')}
+            <div class="input-field">
+                <label>${safeT('rem.bill.paid')}</label>
+                <label class="rem-check"><input type="checkbox" id="rem-bill-paid"><span></span></label>
+            </div>
+        `,
+        vehicle: () => `
+            ${inputFieldText('rem.veh.name', 'rem-veh-name', 'npr. Golf 7')}
+            ${inputFieldText('rem.veh.plate', 'rem-veh-plate', 'npr. NP123-AB')}
+            ${dateTripleField('rem.veh.regDate', 'rem-veh-reg')}
+            ${dateTripleField('rem.veh.techDate', 'rem-veh-tech')}
+            ${dateTripleField('rem.veh.insuranceDate', 'rem-veh-ins')}
+            ${inputFieldText('rem.veh.note', 'rem-veh-note', '')}
+        `,
+        document: () => `
+            ${selectField('rem.doc.type', 'rem-doc-type', [
+                { value: 'lk', text: safeT('rem.doc.type.lk') },
+                { value: 'passport', text: safeT('rem.doc.type.passport') },
+                { value: 'drivers', text: safeT('rem.doc.type.drivers') },
+                { value: 'health', text: safeT('rem.doc.type.health') },
+                { value: 'custom', text: safeT('rem.doc.type.custom') }
+            ])}
+            ${inputFieldText('rem.doc.name', 'rem-doc-name', '')}
+            ${dateTripleField('rem.doc.expires', 'rem-doc-exp')}
+            ${inputFieldText('rem.doc.note', 'rem-doc-note', '')}
+        `,
+        subscription: () => `
+            ${inputFieldText('rem.sub.name', 'rem-sub-name', 'npr. Netflix')}
+            ${inputField('rem.sub.amount', 'rem-sub-amount', 'RSD', 'placeholder="999"')}
+            ${inputField('rem.sub.dayOfMonth', 'rem-sub-day', '', 'value="1" min="1" max="31"')}
+            ${selectField('rem.sub.period', 'rem-sub-period', [
+                { value: 'monthly', text: safeT('rem.bill.period.monthly') },
+                { value: 'yearly', text: safeT('rem.bill.period.yearly') }
+            ], 'monthly')}
+            <div class="input-field">
+                <label>${safeT('rem.sub.active')}</label>
+                <label class="rem-check"><input type="checkbox" id="rem-sub-active" checked><span></span></label>
+            </div>
+        `,
+        medication: () => `
+            ${inputFieldText('rem.med.name', 'rem-med-name', 'npr. Aspirin')}
+            ${inputFieldText('rem.med.dose', 'rem-med-dose', 'npr. 100mg')}
+            ${selectField('rem.med.time', 'rem-med-time', [
+                { value: 'morning', text: safeT('rem.med.time.morning') },
+                { value: 'noon', text: safeT('rem.med.time.noon') },
+                { value: 'evening', text: safeT('rem.med.time.evening') }
+            ], 'morning')}
+            ${selectField('rem.med.frequency', 'rem-med-freq', [
+                { value: 'daily', text: safeT('rem.med.freq.daily') },
+                { value: 'everyOther', text: safeT('rem.med.freq.everyOther') },
+                { value: 'weekly', text: safeT('rem.med.freq.weekly') }
+            ], 'daily')}
+            ${dateTripleField('rem.med.startDate', 'rem-med-start')}
+            ${dateTripleField('rem.med.endDate', 'rem-med-end')}
+            ${inputField('rem.med.remaining', 'rem-med-remaining', '', 'placeholder="30"')}
+            ${inputFieldText('rem.med.note', 'rem-med-note', '')}
+        `,
+        anniversary: () => `
+            ${inputFieldText('rem.ann.name', 'rem-ann-name', '')}
+            ${dateTripleField('rem.ann.date', 'rem-ann-date')}
+            ${inputField('rem.ann.remindBefore', 'rem-ann-remind', safeT('rem.days'), 'value="3"')}
+            <div class="input-field">
+                <label>${safeT('rem.ann.favorite')}</label>
+                <label class="rem-check"><input type="checkbox" id="rem-ann-fav"><span></span></label>
+            </div>
+            ${inputFieldText('rem.ann.note', 'rem-ann-note', '')}
+        `,
+        note: () => `
+            ${inputFieldText('rem.note.title', 'rem-note-title', '')}
+            <div class="input-field">
+                <label>${safeT('rem.note.description')}</label>
+                <textarea id="rem-note-desc" class="custom-input rem-textarea" rows="4"></textarea>
+            </div>
+            ${dateTripleField('rem.note.dueDate', 'rem-note-due')}
+            ${selectField('rem.note.priority', 'rem-note-priority', [
+                { value: 'high', text: safeT('rem.priority.high') },
+                { value: 'medium', text: safeT('rem.priority.medium') },
+                { value: 'low', text: safeT('rem.priority.low') }
+            ], 'medium')}
+            <div class="input-field">
+                <label>${safeT('rem.note.done')}</label>
+                <label class="rem-check"><input type="checkbox" id="rem-note-done"><span></span></label>
+            </div>
+        `
+    };
+
+    const fn = forms[type];
+    const html = fn ? fn() : '<p>Nepoznat tip</p>';
+
+    return `
+        <div class="reminder-form-inner">
+            ${html}
+            <div class="rem-form-actions">
+                <button class="calc-btn-main" onclick="saveReminderForm()">${safeT('rem.save')}</button>
+                ${item ? `<button class="rem-delete-btn" onclick="confirmDeleteReminder()">${safeT('rem.delete')}</button>` : ''}
+            </div>
+        </div>
+    `;
+}
+
+function fillReminderForm(type, item) {
+    setTimeout(() => {
+        const setV = (id, v) => { const e = el(id); if (e) e.value = v == null ? '' : v; };
+        const setC = (id, v) => { const e = el(id); if (e) e.checked = !!v; };
+        const setD = (id, v) => { if (v) setTripleDate(id, v); };
+
+        switch (type) {
+            case 'birthday':
+                setV('rem-bd-name', item.name);
+                setD('rem-bd-date', item.date);
+                setV('rem-bd-remind', item.remindBefore || 3);
+                setC('rem-bd-fav', item.favorite);
+                setV('rem-bd-note', item.note);
+                break;
+            case 'bill':
+                setV('rem-bill-name', item.name);
+                setV('rem-bill-amount', item.amount);
+                setV('rem-bill-period', item.period || 'monthly');
+                setV('rem-bill-day', item.dayOfMonth || 1);
+                setV('rem-bill-remind', item.remindBefore || 3);
+                setC('rem-bill-paid', item.paid);
+                break;
+            case 'vehicle':
+                setV('rem-veh-name', item.name);
+                setV('rem-veh-plate', item.plate);
+                setD('rem-veh-reg', item.regDate);
+                setD('rem-veh-tech', item.techDate);
+                setD('rem-veh-ins', item.insuranceDate);
+                setV('rem-veh-note', item.note);
+                break;
+            case 'document':
+                setV('rem-doc-type', item.type || 'lk');
+                setV('rem-doc-name', item.name);
+                setD('rem-doc-exp', item.expires);
+                setV('rem-doc-note', item.note);
+                break;
+            case 'subscription':
+                setV('rem-sub-name', item.name);
+                setV('rem-sub-amount', item.amount);
+                setV('rem-sub-day', item.dayOfMonth || 1);
+                setV('rem-sub-period', item.period || 'monthly');
+                setC('rem-sub-active', item.active);
+                break;
+            case 'medication':
+                setV('rem-med-name', item.name);
+                setV('rem-med-dose', item.dose);
+                setV('rem-med-time', item.time || 'morning');
+                setV('rem-med-freq', item.frequency || 'daily');
+                setD('rem-med-start', item.startDate);
+                setD('rem-med-end', item.endDate);
+                setV('rem-med-remaining', item.remaining);
+                setV('rem-med-note', item.note);
+                break;
+            case 'anniversary':
+                setV('rem-ann-name', item.name);
+                setD('rem-ann-date', item.date);
+                setV('rem-ann-remind', item.remindBefore || 3);
+                setC('rem-ann-fav', item.favorite);
+                setV('rem-ann-note', item.note);
+                break;
+            case 'note':
+                setV('rem-note-title', item.title);
+                setV('rem-note-desc', item.description);
+                setD('rem-note-due', item.dueDate);
+                setV('rem-note-priority', item.priority || 'medium');
+                setC('rem-note-done', item.done);
+                break;
+        }
+    }, 100);
+}
+
+function saveReminderForm() {
+    const type = currentReminderType;
+    if (!type) return;
+
+    const typeToKey = {
+        birthday: REMINDER_KEYS.birthdays,
+        bill: REMINDER_KEYS.bills,
+        vehicle: REMINDER_KEYS.vehicles,
+        document: REMINDER_KEYS.documents,
+        subscription: REMINDER_KEYS.subscriptions,
+        medication: REMINDER_KEYS.medications,
+        anniversary: REMINDER_KEYS.anniversaries,
+        note: REMINDER_KEYS.notes
+    };
+    const key = typeToKey[type];
+    if (!key) return;
+
+    const v = id => { const e = el(id); return e ? e.value.trim() : ''; };
+    const n = id => { const e = el(id); return e ? parseNum(e.value) : null; };
+    const c = id => { const e = el(id); return e ? e.checked : false; };
+
+    let data = {};
+
+    switch (type) {
+        case 'birthday': {
+            const name = v('rem-bd-name');
+            const date = getTripleDate('rem-bd-date');
+            if (!name) { showToast(safeT('toast.rem.error.name'), 'error'); return; }
+            if (!date) { showToast(safeT('toast.rem.error.date'), 'error'); return; }
+            data = {
+                name, date,
+                remindBefore: n('rem-bd-remind') || 3,
+                favorite: c('rem-bd-fav'),
+                note: v('rem-bd-note')
+            };
+            break;
+        }
+        case 'bill': {
+            const name = v('rem-bill-name');
+            const amount = n('rem-bill-amount');
+            if (!name) { showToast(safeT('toast.rem.error.name'), 'error'); return; }
+            data = {
+                name, amount: amount || 0,
+                period: v('rem-bill-period') || 'monthly',
+                dayOfMonth: n('rem-bill-day') || 1,
+                remindBefore: n('rem-bill-remind') || 3,
+                paid: c('rem-bill-paid')
+            };
+            break;
+        }
+        case 'vehicle': {
+            const name = v('rem-veh-name');
+            if (!name) { showToast(safeT('toast.rem.error.name'), 'error'); return; }
+            data = {
+                name, plate: v('rem-veh-plate'),
+                regDate: getTripleDate('rem-veh-reg'),
+                techDate: getTripleDate('rem-veh-tech'),
+                insuranceDate: getTripleDate('rem-veh-ins'),
+                note: v('rem-veh-note')
+            };
+            break;
+        }
+        case 'document': {
+            const docType = v('rem-doc-type') || 'lk';
+            data = {
+                type: docType,
+                name: v('rem-doc-name') || safeT('rem.doc.type.' + docType),
+                expires: getTripleDate('rem-doc-exp'),
+                note: v('rem-doc-note')
+            };
+            if (!data.expires) { showToast(safeT('toast.rem.error.date'), 'error'); return; }
+            break;
+        }
+        case 'subscription': {
+            const name = v('rem-sub-name');
+            if (!name) { showToast(safeT('toast.rem.error.name'), 'error'); return; }
+            data = {
+                name, amount: n('rem-sub-amount') || 0,
+                dayOfMonth: n('rem-sub-day') || 1,
+                period: v('rem-sub-period') || 'monthly',
+                active: c('rem-sub-active')
+            };
+            break;
+        }
+        case 'medication': {
+            const name = v('rem-med-name');
+            if (!name) { showToast(safeT('toast.rem.error.name'), 'error'); return; }
+            data = {
+                name, dose: v('rem-med-dose'),
+                time: v('rem-med-time') || 'morning',
+                frequency: v('rem-med-freq') || 'daily',
+                startDate: getTripleDate('rem-med-start'),
+                endDate: getTripleDate('rem-med-end'),
+                remaining: n('rem-med-remaining') || 0,
+                note: v('rem-med-note')
+            };
+            break;
+        }
+        case 'anniversary': {
+            const name = v('rem-ann-name');
+            const date = getTripleDate('rem-ann-date');
+            if (!name) { showToast(safeT('toast.rem.error.name'), 'error'); return; }
+            if (!date) { showToast(safeT('toast.rem.error.date'), 'error'); return; }
+            data = {
+                name, date,
+                remindBefore: n('rem-ann-remind') || 3,
+                favorite: c('rem-ann-fav'),
+                note: v('rem-ann-note')
+            };
+            break;
+        }
+        case 'note': {
+            const title = v('rem-note-title');
+            if (!title) { showToast(safeT('toast.rem.error.name'), 'error'); return; }
+            data = {
+                title, description: v('rem-note-desc'),
+                dueDate: getTripleDate('rem-note-due'),
+                priority: v('rem-note-priority') || 'medium',
+                done: c('rem-note-done')
+            };
+            break;
+        }
+    }
+
+    if (currentReminderEditId) {
+        updateReminder(key, currentReminderEditId, data);
+    } else {
+        addReminder(key, data);
+    }
+
+    showToast(safeT('toast.rem.saved'), 'success');
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+
+    closeReminderModal();
+    renderReminderList(type);
+    updateAppBadge();
+}
+
+function closeReminderModal() {
+    const modal = el('reminder-modal');
+    if (modal) modal.classList.remove('show');
+    document.body.classList.remove('modal-open');
+    currentReminderType = null;
+    currentReminderEditId = null;
+}
+
+function confirmDeleteReminder() {
+    if (!currentReminderEditId || !currentReminderType) return;
+    const type = currentReminderType;
+    const id = currentReminderEditId;
+    const typeToKey = {
+        birthday: REMINDER_KEYS.birthdays,
+        bill: REMINDER_KEYS.bills,
+        vehicle: REMINDER_KEYS.vehicles,
+        document: REMINDER_KEYS.documents,
+        subscription: REMINDER_KEYS.subscriptions,
+        medication: REMINDER_KEYS.medications,
+        anniversary: REMINDER_KEYS.anniversaries,
+        note: REMINDER_KEYS.notes
+    };
+    const key = typeToKey[type];
+    if (!key) return;
+
+    showConfirm(safeT('confirm.rem.delete')).then(ok => {
+        if (!ok) return;
+        deleteReminder(key, id);
+        showToast(safeT('toast.rem.deleted'), 'info');
+        closeReminderModal();
+        renderReminderList(type);
+        updateAppBadge();
+    });
+}
+
+// ================= PODSETNICI — Render liste po tipu =================
+
+function renderReminderList(type) {
+    const typeToKey = {
+        birthday: REMINDER_KEYS.birthdays,
+        bill: REMINDER_KEYS.bills,
+        vehicle: REMINDER_KEYS.vehicles,
+        document: REMINDER_KEYS.documents,
+        subscription: REMINDER_KEYS.subscriptions,
+        medication: REMINDER_KEYS.medications,
+        anniversary: REMINDER_KEYS.anniversaries,
+        note: REMINDER_KEYS.notes
+    };
+    const key = typeToKey[type];
+    if (!key) return;
+
+    const listId = {
+        birthday: 'rem-bd-list',
+        bill: 'rem-bills-list',
+        vehicle: 'rem-veh-list',
+        document: 'rem-doc-list',
+        subscription: 'rem-subs-list',
+        medication: 'rem-meds-list',
+        anniversary: 'rem-ann-list',
+        note: 'rem-notes-list'
+    }[type];
+
+    const list = el(listId);
+    if (!list) return;
+
+    const items = loadReminders(key);
+
+    if (items.length === 0) {
+        list.innerHTML = `<div class="rem-empty-small">${safeT('rem.empty')}</div>`;
+    } else {
+        list.innerHTML = items.map(item => renderReminderItem(type, item)).join('');
+    }
+
+    if (type === 'bill') renderBillsSummary();
+    if (type === 'subscription') renderSubsSummary();
+}
+
+function renderReminderItem(type, item) {
+    let title = '', subtitle = '', days = null, accent = '#f59e0b';
+
+    switch (type) {
+        case 'birthday':
+            title = item.name;
+            days = daysToBirthday(item.date);
+            subtitle = formatDaysToHuman(days);
+            accent = urgencyColor(days);
+            break;
+        case 'bill': {
+            title = item.name;
+            days = item.paid ? null : daysToBillDay(item.dayOfMonth);
+            subtitle = `${item.amount || 0} ${item.currency || 'RSD'} • ${item.paid ? safeT('rem.paid') : formatDaysToHuman(days)}`;
+            accent = item.paid ? '#10b981' : urgencyColor(days);
+            break;
+        }
+        case 'vehicle': {
+            title = item.name + (item.plate ? ' (' + item.plate + ')' : '');
+            const dates = [
+                { d: item.regDate, l: safeT('rem.veh.regDate') },
+                { d: item.techDate, l: safeT('rem.veh.techDate') },
+                { d: item.insuranceDate, l: safeT('rem.veh.insuranceDate') }
+            ].filter(x => x.d);
+            if (dates.length) {
+                const min = dates.reduce((a, b) => {
+                    const da = daysUntilDate(a.d);
+                    const db = daysUntilDate(b.d);
+                    return (db !== null && (da === null || db < da)) ? b : a;
+                });
+                days = daysUntilDate(min.d);
+                subtitle = min.l + ' • ' + formatDaysToHuman(days);
+                accent = urgencyColor(days);
+            }
+            break;
+        }
+        case 'document':
+            title = item.name || item.type;
+            days = daysUntilDate(item.expires);
+            subtitle = safeT('rem.doc.expires') + ' • ' + formatDaysToHuman(days);
+            accent = urgencyColor(days);
+            break;
+        case 'subscription':
+            title = item.name;
+            days = item.active ? daysToBillDay(item.dayOfMonth) : null;
+            subtitle = `${item.amount || 0} ${item.currency || 'RSD'} • ${item.active ? safeT('rem.active') : safeT('rem.inactive')}`;
+            accent = item.active ? urgencyColor(days) : '#6b7280';
+            break;
+        case 'medication':
+            title = item.name + (item.dose ? ' — ' + item.dose : '');
+            days = daysUntilDate(item.endDate);
+            subtitle = `${safeT('rem.med.time.' + (item.time || 'morning'))} • ${safeT('rem.med.freq.' + (item.frequency || 'daily'))}${item.remaining ? ' • ' + item.remaining + ' tbl' : ''}`;
+            accent = urgencyColor(days);
+            break;
+        case 'anniversary':
+            title = item.name;
+            days = daysToAnniversary(item.date);
+            subtitle = formatDaysToHuman(days);
+            accent = urgencyColor(days);
+            break;
+        case 'note':
+            title = item.title;
+            days = item.dueDate ? daysUntilDate(item.dueDate) : null;
+            subtitle = item.description ? item.description.slice(0, 60) : '';
+            accent = item.priority === 'high' ? '#f43f5e' : item.priority === 'medium' ? '#f59e0b' : '#10b981';
+            break;
+    }
+
+    const daysTxt = days !== null ? formatDaysToHuman(days) : '';
+    const daysCol = days !== null ? urgencyColor(days) : '';
+
+    return `
+        <div class="rem-item" onclick="editReminder('${type}', ${item.id})">
+            <div class="rem-item-left">
+                <div class="rem-item-title">${escapeHtml(title)}</div>
+                ${subtitle ? `<div class="rem-item-sub">${escapeHtml(subtitle)}</div>` : ''}
+            </div>
+            ${days !== null ? `<div class="rem-item-days" style="color:${daysCol};">${escapeHtml(daysTxt)}</div>` : ''}
+            <button class="rem-item-delete" onclick="event.stopPropagation();deleteReminderById('${type}', ${item.id})">✕</button>
+        </div>
+    `;
+}
+
+function editReminder(type, id) {
+    const typeToKey = {
+        birthday: REMINDER_KEYS.birthdays,
+        bill: REMINDER_KEYS.bills,
+        vehicle: REMINDER_KEYS.vehicles,
+        document: REMINDER_KEYS.documents,
+        subscription: REMINDER_KEYS.subscriptions,
+        medication: REMINDER_KEYS.medications,
+        anniversary: REMINDER_KEYS.anniversaries,
+        note: REMINDER_KEYS.notes
+    };
+    const key = typeToKey[type];
+    const item = loadReminders(key).find(x => x.id === id);
+    if (!item) return;
+    openReminderForm(type, item);
+}
+
+function deleteReminderById(type, id) {
+    const typeToKey = {
+        birthday: REMINDER_KEYS.birthdays,
+        bill: REMINDER_KEYS.bills,
+        vehicle: REMINDER_KEYS.vehicles,
+        document: REMINDER_KEYS.documents,
+        subscription: REMINDER_KEYS.subscriptions,
+        medication: REMINDER_KEYS.medications,
+        anniversary: REMINDER_KEYS.anniversaries,
+        note: REMINDER_KEYS.notes
+    };
+    const key = typeToKey[type];
+    if (!key) return;
+    showConfirm(safeT('confirm.rem.delete')).then(ok => {
+        if (!ok) return;
+        deleteReminder(key, id);
+        showToast(safeT('toast.rem.deleted'), 'info');
+        renderReminderList(type);
+        updateAppBadge();
+    });
+}
+
+function renderBillsSummary() {
+    const box = el('rem-bills-summary');
+    if (!box) return;
+    const bills = loadReminders('cx_bills');
+    let monthly = 0, yearly = 0;
+    bills.forEach(b => {
+        if (b.paid) return;
+        const amount = b.amount || 0;
+        let m = 0;
+        if (b.period === 'monthly') m = amount;
+        else if (b.period === 'quarterly') m = amount / 3;
+        else if (b.period === 'yearly') m = amount / 12;
+        else m = 0;
+        monthly += m;
+        yearly += m * 12;
+    });
+    if (bills.length === 0) { box.innerHTML = ''; return; }
+    box.innerHTML = `
+        <div class="rem-summary-row">
+            <span>${safeT('rem.total.monthly')}</span>
+            <strong>${money(monthly)} RSD</strong>
+        </div>
+        <div class="rem-summary-row">
+            <span>${safeT('rem.total.yearly')}</span>
+            <strong>${money(yearly)} RSD</strong>
+        </div>
+    `;
+}
+
+function renderSubsSummary() {
+    const box = el('rem-subs-summary');
+    if (!box) return;
+    const subs = loadReminders('cx_subscriptions');
+    let monthly = 0;
+    subs.forEach(s => {
+        if (!s.active) return;
+        const amount = s.amount || 0;
+        if (s.period === 'yearly') monthly += amount / 12;
+        else monthly += amount;
+    });
+    if (subs.length === 0) { box.innerHTML = ''; return; }
+    box.innerHTML = `
+        <div class="rem-summary-row">
+            <span>${safeT('rem.total.monthly')}</span>
+            <strong>${money(monthly)} RSD</strong>
+        </div>
+        <div class="rem-summary-row">
+            <span>${safeT('rem.total.yearly')}</span>
+            <strong>${money(monthly * 12)} RSD</strong>
+        </div>
+    `;
+}
+
+// ============================================================
+// KRAJ DELA 3/4
+// ============================================================// ============================================================
+// ALATIKA — app.js (v4) — DEO 4/4
+// Sve kalkulacije + tuner + valuta + about + init
+// ============================================================
+
+// ============================================================
+// AUTO — Render funkcije
+// ============================================================
 function renderAutoPotrosnja() {
     return `
         <div class="converter-box">
@@ -2592,7 +4036,9 @@ function renderAutoMojAuto() {
     `;
 }
 
-// BIKE
+// ============================================================
+// BIKE — Render funkcije
+// ============================================================
 function renderBikeBrzina() {
     return `
         <div class="converter-box">
@@ -2676,7 +4122,9 @@ function renderBikeTabela() {
     `;
 }
 
-// MONEY
+// ============================================================
+// MONEY — Render funkcije
+// ============================================================
 function renderMoneyPopust() {
     return `
         <div class="converter-box">
@@ -2758,12 +4206,12 @@ function renderMoneyValuta() {
         <div class="converter-box">
             <div class="fx-head">
                 <div class="section-desc" style="margin-bottom: 0;">${safeT('label.money.exchangeList')} — <span id="fx-updated-label">${safeT('label.money.manualEntry')}</span></div>
-                <button class="fx-refresh-btn" onclick="refreshExchangeRates()">${icon('refresh')}</button>
+                <button class="fx-refresh-btn" onclick="refreshExchangeRates()" type="button">${icon('refresh')}</button>
             </div>
             <div class="input-field"><label>${safeT('label.money.amount')}</label><div class="input-wrapper"><input type="number" id="fx-amount" class="custom-input" placeholder="1000" inputmode="decimal" oninput="calculateCurrency()"></div></div>
             <div class="fx-row">
                 <div class="input-field fx-col"><label>${safeT('label.money.fromCurrency')}</label><select id="fx-from" class="custom-input" onchange="calculateCurrency()"></select></div>
-                <button class="fx-swap-btn" onclick="swapCurrencies()">${icon('swap')}</button>
+                <button class="fx-swap-btn" onclick="swapCurrencies()" type="button">${icon('swap')}</button>
                 <div class="input-field fx-col"><label>${safeT('label.money.toCurrency')}</label><select id="fx-to" class="custom-input" onchange="calculateCurrency()"></select></div>
             </div>
             ${calcButton('btn.calculate', 'calculateCurrency()')}
@@ -2808,7 +4256,9 @@ function renderMoneyNapojnica() {
     `;
 }
 
-// MEASURES
+// ============================================================
+// MEASURES — Render funkcije
+// ============================================================
 function measureTab(prefix, labelKey, units, fromDefault = '', toDefault = '') {
     const fromOpts = units.map(u => ({ value: u.v, text: safeT(u.tKey), sel: u.v === fromDefault }));
     const toOpts = units.map(u => ({ value: u.v, text: safeT(u.tKey), sel: u.v === toDefault }));
@@ -2900,7 +4350,204 @@ function renderMeasuresTemp() {
 function renderMeasuresProcenat() { return renderMoneyProcenat(); }
 
 // ============================================================
-// KALKULACIJE (skraćeno radi dužine — sve glavne funkcije)
+// HEALTH — Render funkcije
+// ============================================================
+function renderHealthBMI() {
+    return `<div class="converter-box">${sectionDescKey('desc.health.bmi')}${inputField('label.health.weight', 'health-weight', 'kg', 'placeholder="70"')}${inputField('label.health.height', 'health-height', 'cm', 'placeholder="175"')}${inputField('label.health.ageOptional', 'health-bmi-age', '', 'placeholder="30"')}${calcButton('btn.calculate', 'calculateBMI()')}</div>${resultCard('health-bmi-result-box', 'scale', 'label.health.yourBmi', 'res-bmi-val', '', 'ZDRAVLJE', 'label.health.bmi')}${statsRow('health-bmi-stats-row', [['label.health.category', 'stat-bmi-category', '—']])}`;
+}
+function renderHealthIdealna() {
+    return `<div class="converter-box">${sectionDescKey('desc.health.idealWeight')}${selectField('label.health.gender', 'health-gender', [{ value: 'male', text: safeT('option.health.male') }, { value: 'female', text: safeT('option.health.female') }])}${inputField('label.health.height', 'health-ideal-height', 'cm', 'placeholder="175"')}${calcButton('btn.calculate', 'calculateIdealWeight()')}</div>${resultCard('health-ideal-result-box', 'target', 'label.health.idealWeight', 'res-ideal-weight', 'kg', 'ZDRAVLJE', 'label.health.idealWeight')}${statsRow('health-ideal-stats-row', [['label.health.healthyRange', 'stat-ideal-range', '—']])}`;
+}
+function renderHealthBMR() {
+    return `<div class="converter-box">${sectionDescKey('desc.health.bmr')}${selectField('label.health.gender', 'bmr-gender', [{ value: 'male', text: safeT('option.health.male') }, { value: 'female', text: safeT('option.health.female') }])}${inputField('label.health.weight', 'bmr-weight', 'kg', 'placeholder="70"')}${inputField('label.health.height', 'bmr-height', 'cm', 'placeholder="175"')}${inputField('label.health.age', 'bmr-age', '', 'placeholder="30"')}${selectField('label.health.activityLevel', 'bmr-activity', [{ value: '1.2', text: safeT('option.health.sedentary') }, { value: '1.375', text: safeT('option.health.lightActivity') }, { value: '1.55', text: safeT('option.health.moderateActivity') }, { value: '1.725', text: safeT('option.health.highActivity') }])}${calcButton('btn.calculate', 'calculateBMR()')}</div>${resultCard('bmr-result-box', 'flame', 'label.health.dailyNeeds', 'res-bmr-val', 'kcal', 'ZDRAVLJE', 'label.health.bmrFull')}${statsRow('bmr-stats-row', [['label.health.basalMetabolism', 'stat-bmr-base', '0 kcal']])}`;
+}
+function renderHealthPuls() {
+    return `<div class="converter-box">${sectionDescKey('desc.health.pulse')}${inputField('label.health.age', 'hr-age', '', 'placeholder="30"')}${calcButton('btn.calculate', 'calculateHeartRate()')}</div>${resultCard('hr-result-box', 'heartPulse', 'label.health.maxPulse', 'res-hr-max', 'BPM', 'ZDRAVLJE', 'label.health.pulseFull')}<div id="hr-zones-wrap" class="hr-zones" style="display:none;"><div class="hr-zone-item"><span class="hr-zone-name">${safeT('zone.easy')}</span><strong id="hr-zone-1">—</strong></div><div class="hr-zone-item"><span class="hr-zone-name">${safeT('zone.fatBurn')}</span><strong id="hr-zone-2">—</strong></div><div class="hr-zone-item"><span class="hr-zone-name">${safeT('zone.cardio')}</span><strong id="hr-zone-3">—</strong></div><div class="hr-zone-item"><span class="hr-zone-name">${safeT('zone.intense')}</span><strong id="hr-zone-4">—</strong></div><div class="hr-zone-item"><span class="hr-zone-name">${safeT('zone.maximum')}</span><strong id="hr-zone-5">—</strong></div></div>`;
+}
+function renderHealthTrcanje() {
+    return `<div class="converter-box">${sectionDescKey('desc.health.running')}${inputField('label.health.distance', 'run-distance', 'km', 'placeholder="5"')}${inputField('label.health.timeMin', 'run-min', 'min', 'placeholder="25"')}${inputField('label.health.timeSec', 'run-sec', 'sec', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateRunning()')}</div>${resultCard('run-result-box', 'run', 'label.health.pace', 'res-run-pace', '/km', 'ZDRAVLJE', 'label.health.running')}${statsRow('run-stats-row', [['label.health.avgSpeed', 'stat-run-speed', '0 km/h'], ['label.health.totalTime', 'stat-run-total', '0']])}`;
+}
+function renderHealthBikeFit() {
+    return `<div class="converter-box">${sectionDescKey('desc.health.bikeFit')}${inputField('label.health.distance', 'fitbike-distance', 'km', 'placeholder="20"')}${inputField('label.health.timeMin', 'fitbike-min', 'min', 'placeholder="60"')}${inputField('label.health.riderWeight', 'fitbike-weight', 'kg', 'placeholder="75"')}${calcButton('btn.calculate', 'calculateBikeFitness()')}</div>${resultCard('fitbike-result-box', 'bike', 'label.health.avgSpeed', 'res-fitbike-speed', 'km/h', 'ZDRAVLJE', 'label.health.bikeFitFull')}${statsRow('fitbike-stats-row', [['label.health.caloriesEstimated', 'stat-fitbike-cal', '0 kcal']])}`;
+}
+function renderHealth1RM() {
+    return `<div class="converter-box">${sectionDescKey('desc.health.rm1')}${inputField('label.health.weight', 'rm1-weight', 'kg', 'placeholder="80"')}${inputField('label.health.reps', 'rm1-reps', '', 'placeholder="5"')}${calcButton('btn.calculate', 'calculate1RM()')}</div>${resultCard('rm1-result-box', 'dumbbell', 'label.health.rm1Estimate', 'res-rm1-val', 'kg', 'ZDRAVLJE', 'label.health.rm1')}${statsRow('rm1-stats-row', [['label.health.rm1_90', 'stat-rm1-90', '—'], ['label.health.rm1_80', 'stat-rm1-80', '—']])}`;
+}
+function renderHealthVolume() {
+    return `<div class="converter-box">${sectionDescKey('desc.health.volume')}${inputField('label.health.weight', 'vol-weight', 'kg', 'placeholder="60"')}${inputField('label.health.reps', 'vol-reps', '', 'placeholder="10"')}${inputField('label.health.sets', 'vol-sets', '', 'placeholder="3"')}${calcButton('btn.calculate', 'calculateWorkoutVolume()')}</div>${resultCard('vol-result-box', 'activity', 'label.health.totalVolume', 'res-vol-val', 'kg', 'ZDRAVLJE', 'label.health.volumeShort')}`;
+}
+
+// ============================================================
+// TIME — Render funkcije
+// ============================================================
+const SR_DAYS = ['nedelja', 'ponedeljak', 'utorak', 'sreda', 'četvrtak', 'petak', 'subota'];
+const SR_MONTHS = ['januar', 'februar', 'mart', 'april', 'maj', 'jun', 'jul', 'avgust', 'septembar', 'oktobar', 'novembar', 'decembar'];
+const EN_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const EN_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function getDaysArr() { return currentLang === 'en' ? EN_DAYS : SR_DAYS; }
+function getMonthsArr() { return currentLang === 'en' ? EN_MONTHS : SR_MONTHS; }
+function parseDate(value) {
+    if (!value) return null;
+    const parts = value.split('-').map(Number);
+    if (parts.length !== 3) return null;
+    return new Date(parts[0], parts[1] - 1, parts[2]);
+}
+
+function renderTimeKonverter() {
+    const units = [
+        { v: 'seconds', k: 'option.time.seconds' }, { v: 'minutes', k: 'option.time.minutes' },
+        { v: 'hours', k: 'option.time.hours' }, { v: 'days', k: 'option.time.days' },
+        { v: 'weeks', k: 'option.time.weeks' }, { v: 'months', k: 'option.time.months' },
+        { v: 'years', k: 'option.time.years' }
+    ];
+    return `
+        <div class="converter-box">
+            ${inputField('label.time.value', 'time-value', '', 'placeholder="0"')}
+            <div class="input-field"><label>${safeT('label.time.fromUnit')}</label><select id="time-from" class="custom-input">${units.map(u => `<option value="${u.v}">${safeT(u.k)}</option>`).join('')}</select></div>
+            <div class="swap-icon-container"><button class="swap-btn" onclick="swapInputs('time-from', 'time-to'); convertTimeUnits();">${safeT('btn.swap')}</button></div>
+            <div class="input-field"><label>${safeT('label.time.toUnit')}</label><select id="time-to" class="custom-input">${units.map((u, i) => `<option value="${u.v}"${i === 1 ? ' selected' : ''}>${safeT(u.k)}</option>`).join('')}</select></div>
+            ${calcButton('btn.calculate', 'convertTimeUnits()')}
+        </div>
+        <div id="result-time-conv-box" class="result-card-green" style="display: none;">
+            <div class="res-left"><div class="pump-icon">${icon('hourglass')}</div><div><div class="res-label">${safeT('label.time.conversionResult')}</div><h3 id="res-time-conv-val" class="res-text">—</h3></div></div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-time-conv-val', '', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Konverzija" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Konverzija" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+    `;
+}
+function renderTimeRazlika() {
+    return `
+        <div class="converter-box">
+            ${dateTripleField('label.time.startDate', 'start-date')}
+            ${dateTripleField('label.time.endDate', 'end-date')}
+            ${calcButton('btn.calculate', 'calculateDateDifference()')}
+        </div>
+        <div id="result-date-box" class="result-card-green" style="display: none;">
+            <div class="res-left"><div class="pump-icon">${icon('calendarDays')}</div><div><div class="res-label">${safeT('label.time.difference')}</div><h3 id="res-date-val" class="res-text">—</h3></div></div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-date-val', '', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Razlika datuma" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Razlika datuma" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+    `;
+}
+function renderTimePomeraj() {
+    return `
+        <div class="converter-box">
+            ${dateTripleField('label.time.startDate', 'shift-date')}
+            ${inputField('label.time.daysCount', 'shift-days', '', 'placeholder="30"')}
+            <div class="input-field"><label>${safeT('label.time.operation')}</label><select id="shift-op" class="custom-input"><option value="add">${safeT('option.time.addDays')}</option><option value="sub">${safeT('option.time.subtractDays')}</option></select></div>
+            ${calcButton('btn.calculate', 'calculateDateShift()')}
+        </div>
+        <div id="shift-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left"><div class="pump-icon">${icon('calendarPlus')}</div><div><div class="res-label">${safeT('label.time.newDate')}</div><h3 id="res-shift-val" class="res-text">—</h3></div></div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-shift-val', '', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Pomeraj" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Pomeraj" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+    `;
+}
+function renderTimeGodine() {
+    return `
+        <div class="converter-box">
+            ${dateTripleField('label.time.birthDate', 'birth-date')}
+            ${calcButton('btn.calculate', 'calculateAge()')}
+        </div>
+        <div id="age-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left"><div class="pump-icon">${icon('cake')}</div><div><div class="res-label">${safeT('label.time.years')}</div><h2><span id="res-age-years">0</span> <small>${safeT('label.time.years')}</small></h2></div></div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-age-years', '', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Godine" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Godine" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+        ${statsRow('age-stats-row', [['label.time.detailed', 'stat-age-detail', '—'], ['label.time.nextBirthday', 'stat-age-next', '—']])}
+    `;
+}
+function renderTimeDan() {
+    return `
+        <div class="converter-box">
+            ${dateTripleField('label.time.date', 'dayofweek-date')}
+            ${calcButton('btn.calculate', 'calculateDayOfWeek()')}
+        </div>
+        <div id="dayofweek-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left"><div class="pump-icon">${icon('calendar')}</div><div><div class="res-label">${safeT('label.time.dayOfWeek')}</div><h3 id="res-day-name" class="res-text">—</h3></div></div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-day-name', '', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Dan" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Dan" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+        ${statsRow('dayofweek-stats-row', [['label.time.date', 'stat-day-date', '—']])}
+    `;
+}
+function renderTimeRadni() {
+    return `
+        <div class="converter-box">
+            ${dateTripleField('label.time.startDate', 'workdays-start')}
+            ${dateTripleField('label.time.endDate', 'workdays-end')}
+            ${calcButton('btn.calculate', 'calculateWorkdays()')}
+        </div>
+        <div id="workdays-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left"><div class="pump-icon">${icon('briefcaseSm')}</div><div><div class="res-label">${safeT('label.time.workdays')}</div><h2><span id="res-workdays-val">0</span></h2></div></div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-workdays-val', '', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Radni dani" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Radni dani" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+        ${statsRow('workdays-stats-row', [['label.time.totalDays', 'stat-workdays-total', '0'], ['label.time.weekendDays', 'stat-workdays-weekend', '0']])}
+    `;
+}
+
+// ============================================================
+// SHOPPING — Render funkcije
+// ============================================================
+function renderShopUnit() {
+    return `<div class="converter-box">${sectionDescKey('desc.shop.unitPrice')}${inputField('label.shop.totalPrice', 'unit-price', 'RSD', 'placeholder="250"')}${inputField('label.shop.quantity', 'unit-qty', '', 'placeholder="1"')}${selectField('label.shop.unit', 'unit-type', [{ value: 'kg', text: 'kg' }, { value: 'g100', text: '100g' }, { value: 'L', text: 'L' }, { value: 'ml100', text: '100ml' }, { value: 'kom', text: 'kom' }, { value: 'm', text: 'm' }])}${calcButton('btn.calculate', 'calculateUnitPrice()')}</div><div id="unit-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('barcode')}</div><div><div class="res-label">${safeT('label.shop.pricePerUnit')}</div><h2><span id="res-unit-price">0</span> <small id="res-unit-label">RSD/kg</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-unit-price', 'res-unit-label', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Cena po jedinici" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Cena po jedinici" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>`;
+}
+function renderShopCompare() {
+    return `<div class="converter-box">${sectionDescKey('desc.shop.compare')}<div class="compare-group"><div class="compare-title">${safeT('label.shop.productA')}</div>${inputField('label.shop.price', 'cmp-a-price', 'RSD', 'placeholder="200"')}${inputField('label.shop.quantity', 'cmp-a-qty', '', 'placeholder="1"')}${selectField('label.shop.unit', 'cmp-a-unit', [{ value: 'kg', text: 'kg' }, { value: 'g', text: 'g' }, { value: 'L', text: 'L' }, { value: 'ml', text: 'ml' }, { value: 'kom', text: 'kom' }])}</div><div class="compare-group"><div class="compare-title">${safeT('label.shop.productB')}</div>${inputField('label.shop.price', 'cmp-b-price', 'RSD', 'placeholder="180"')}${inputField('label.shop.quantity', 'cmp-b-qty', '', 'placeholder="0.9"')}${selectField('label.shop.unit', 'cmp-b-unit', [{ value: 'kg', text: 'kg' }, { value: 'g', text: 'g' }, { value: 'L', text: 'L' }, { value: 'ml', text: 'ml' }, { value: 'kom', text: 'kom' }])}</div>${calcButton('btn.calculate', 'calculateCompare()')}</div><div id="compare-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('scale')}</div><div><div class="res-label">${safeT('label.shop.compareResult')}</div><h3 id="res-cmp-winner" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-cmp-winner', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Poređenje" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Poređenje" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('compare-stats-row', [['label.shop.productA', 'stat-cmp-a', '0'], ['label.shop.productB', 'stat-cmp-b', '0'], ['label.shop.difference', 'stat-cmp-diff', '0%']])}`;
+}
+function renderShopPromo() {
+    return `<div class="converter-box">${sectionDescKey('desc.shop.promo')}${selectField('label.shop.promoType', 'promo-type', [{ value: '2plus1', text: safeT('option.shop.promo2plus1') }, { value: '3plus1', text: safeT('option.shop.promo3plus1') }, { value: 'second', text: safeT('option.shop.promoSecond') }])}${inputField('label.shop.pricePerPiece', 'promo-price', 'RSD', 'placeholder="200"')}${inputField('label.shop.secondDiscount', 'promo-second-pct', '%', 'placeholder="50"')}${calcButton('btn.calculate', 'calculatePromo()')}</div>${resultCard('promo-result-box', 'gift', 'label.shop.effectiveUnitPrice', 'res-promo-unit', 'RSD', 'KUPOVINA', 'label.shop.promoShort')}${statsRow('promo-stats-row', [['label.shop.youPay', 'stat-promo-total', '0 RSD'], ['label.shop.youGet', 'stat-promo-qty', '0'], ['label.shop.savings', 'stat-promo-save', '0 RSD']])}`;
+}
+function renderShopLista() {
+    return `<div class="converter-box"><div class="lista-head"><div class="section-desc" style="margin:0;">${safeT('desc.shop.list')}</div><button class="lista-clear-btn" onclick="clearShoppingList()">${safeT('btn.clearWholeList')}</button></div>${inputFieldText('label.shop.itemName', 'lista-name', 'npr. Mleko')}${inputFieldText('label.shop.qtyOptional', 'lista-qty', 'npr. 2L')}${inputField('label.shop.estimatedPrice', 'lista-price', 'RSD', 'placeholder="120"')}${calcButton('btn.shop.addItem', 'addShoppingItem()')}</div><div id="lista-box" class="converter-box" style="display:none;"><div class="lista-head"><div class="lista-progress" id="lista-progress">0 / 0</div><button class="lista-clear-btn" onclick="clearBoughtItems()">${safeT('btn.clearBought')}</button></div><div id="lista-items"></div><div class="lista-total"><div class="lista-total-left"><div class="lista-total-label">${safeT('label.shop.total')}</div><div class="lista-total-value" id="lista-total">0 RSD</div></div><div class="lista-total-right"><div class="lista-total-label">${safeT('label.shop.remaining')}</div><div class="lista-total-value" id="lista-remaining">0 RSD</div></div></div></div>`;
+}
+function renderShopBudzet() {
+    return `<div class="converter-box">${sectionDescKey('desc.shop.budget')}${inputField('label.shop.totalBudget', 'budzet-total', 'RSD', 'placeholder="30000"')}${selectField('label.shop.period', 'budzet-period', [{ value: '7', text: safeT('option.shop.week') }, { value: '14', text: safeT('option.shop.twoWeeks') }, { value: '30', text: safeT('option.shop.month') }])}${inputField('label.shop.alreadySpent', 'budzet-spent', 'RSD', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateBudget()')}</div>${resultCard('budzet-result-box', 'calendarSm', 'label.shop.dailyLimit', 'res-budzet-daily', 'RSD', 'KUPOVINA', 'label.shop.budgetShort')}${statsRow('budzet-stats-row', [['label.shop.untilEndOfPeriod', 'stat-budzet-left', '0 RSD'], ['label.shop.daysCount', 'stat-budzet-days', '0'], ['label.shop.dailyUntilEnd', 'stat-budzet-recalc', '0 RSD']])}`;
+}
+function renderShopRate() {
+    return `<div class="converter-box">${sectionDescKey('desc.shop.rate')}${inputField('label.shop.regularPrice', 'rate-cena', 'RSD', 'placeholder="120000"')}${inputField('label.shop.installmentsCount', 'rate-br', '', 'placeholder="24"')}${inputField('label.shop.cashPrice', 'rate-kes', 'RSD', 'placeholder="110000"')}${inputField('label.shop.annualInflation', 'rate-infl', '%', 'placeholder="5"')}${calcButton('btn.calculate', 'calculateRates()')}</div><div id="rate-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('creditCard')}</div><div><div class="res-label">${safeT('label.shop.moreCostEffective')}</div><h3 id="res-rate-winner" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-rate-winner', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Rate" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Rate" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('rate-stats-row', [['label.shop.monthlyPayment', 'stat-rate-monthly', '0 RSD'], ['label.shop.totalOnInstallments', 'stat-rate-total', '0 RSD'], ['label.shop.cashSavings', 'stat-rate-saving', '0 RSD']])}`;
+}
+function renderShopKartice() {
+    return `<div class="converter-box">${sectionDescKey('desc.shop.card')}${inputField('label.shop.price', 'kart-cena', 'RSD', 'placeholder="10000"')}${inputField('label.shop.cashDiscount', 'kart-popust', '%', 'placeholder="5"')}${inputField('label.shop.deferredFee', 'kart-naknada', '%', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateCardVsCash()')}</div><div id="kart-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('banknote')}</div><div><div class="res-label">${safeT('label.shop.moreCostEffective')}</div><h3 id="res-kart-winner" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-kart-winner', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Kartica" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Kartica" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('kart-stats-row', [['label.shop.cash', 'stat-kart-kes', '0 RSD'], ['label.shop.card', 'stat-kart-kart', '0 RSD'], ['label.shop.difference', 'stat-kart-diff', '0 RSD']])}`;
+}
+function renderShopLitar() {
+    return `<div class="converter-box">${sectionDescKey('desc.shop.perLiter')}${inputField('label.shop.packagePrice', 'litar-cena', 'RSD', 'placeholder="180"')}${inputField('label.shop.packageVolume', 'litar-qty', '', 'placeholder="1"')}${selectField('label.shop.unit', 'litar-unit', [{ value: 'L', text: 'L' }, { value: 'ml', text: 'ml' }, { value: 'dl', text: 'dL' }])}${calcButton('btn.calculate', 'calculatePerLiter()')}</div>${resultCard('litar-result-box', 'droplets', 'label.shop.pricePerLiter', 'res-litar-val', 'RSD', 'KUPOVINA', 'label.shop.perLiterShort')}${statsRow('litar-stats-row', [['label.shop.pricePerDl', 'stat-litar-dl', '0 RSD'], ['label.shop.pricePer100ml', 'stat-litar-ml100', '0 RSD']])}`;
+}
+function renderShopOsoba() {
+    return `<div class="converter-box">${sectionDescKey('desc.shop.perPerson')}${inputField('label.shop.totalCost', 'osoba-total', 'RSD', 'placeholder="6000"')}${inputField('label.money.peopleCount', 'osoba-br', '', 'value="4"')}${inputField('label.shop.daysCount', 'osoba-dana', '', 'value="1"')}${calcButton('btn.calculate', 'calculatePerPerson()')}</div>${resultCard('osoba-result-box', 'users', 'label.shop.costPerPerson', 'res-osoba-val', 'RSD', 'KUPOVINA', 'label.shop.perPersonShort')}${statsRow('osoba-stats-row', [['label.shop.perPersonDaily', 'stat-osoba-dan', '0 RSD'], ['label.shop.totalDaily', 'stat-osoba-ukupno', '0 RSD']])}`;
+}
+function renderShopIsplati() {
+    return `<div class="converter-box">${sectionDescKey('desc.shop.worthTrip')}${inputField('label.shop.savingsPerItem', 'isplati-usteda', 'RSD', 'placeholder="200"')}${inputField('label.shop.itemsCount', 'isplati-br', '', 'value="5"')}${inputField('label.shop.oneWayDistance', 'isplati-dist', 'km', 'placeholder="20"')}${inputField('label.shop.carConsumption', 'isplati-potrosnja', 'L/100km', 'value="7"')}${inputField('label.shop.fuelPrice', 'isplati-gorivo', 'RSD', 'value="180"')}${calcButton('btn.calculate', 'calculateWorthTrip()')}</div><div id="isplati-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('target')}</div><div><div class="res-label">${safeT('label.shop.worthIt')}</div><h3 id="res-isplati-verdict" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-isplati-verdict', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Isplati" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Isplati" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('isplati-stats-row', [['label.shop.savings', 'stat-isplati-usteda', '0 RSD'], ['label.shop.tripCost', 'stat-isplati-trosak', '0 RSD'], ['label.shop.net', 'stat-isplati-neto', '0 RSD']])}`;
+}
+function renderShopRacuni() {
+    return `<div class="converter-box">${sectionDescKey('desc.shop.receipts')}<div class="compare-group"><div class="compare-title">${safeT('label.shop.receiptA')}</div>${inputField('label.shop.totalPrice', 'rac-a-total', 'RSD', 'placeholder="5000"')}${inputField('label.shop.itemsCount', 'rac-a-items', '', 'placeholder="20"')}</div><div class="compare-group"><div class="compare-title">${safeT('label.shop.receiptB')}</div>${inputField('label.shop.totalPrice', 'rac-b-total', 'RSD', 'placeholder="4500"')}${inputField('label.shop.itemsCount', 'rac-b-items', '', 'placeholder="18"')}</div>${calcButton('btn.calculate', 'calculateReceipts()')}</div><div id="racuni-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('receipt')}</div><div><div class="res-label">${safeT('label.shop.receiptCompare')}</div><h3 id="res-rac-winner" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-rac-winner', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Računi" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Računi" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('racuni-stats-row', [['label.shop.averageA', 'stat-rac-a', '0 RSD'], ['label.shop.averageB', 'stat-rac-b', '0 RSD'], ['label.shop.difference', 'stat-rac-diff', '0%']])}`;
+}
+function renderShopRasipanje() {
+    return `<div class="converter-box">${sectionDescKey('desc.shop.mealCost')}${inputField('label.shop.groceryPrice', 'rasip-cena', 'RSD', 'placeholder="500"')}${inputField('label.shop.mealsCount', 'rasip-porcija', '', 'placeholder="4"')}${inputField('label.shop.wastePercent', 'rasip-bacanje', '%', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateMealCost()')}</div>${resultCard('rasip-result-box', 'packageSm', 'label.shop.costPerMeal', 'res-rasip-val', 'RSD', 'KUPOVINA', 'label.shop.perMealShort')}${statsRow('rasip-stats-row', [['label.shop.withoutWaste', 'stat-rasip-base', '0 RSD'], ['label.shop.wasteCost', 'stat-rasip-waste', '0 RSD']])}`;
+}
+
+// ============================================================
+// KALKULACIJE — AUTO
 // ============================================================
 function calculateAuto() {
     const dist = num('distance'), fuel = num('fuel');
@@ -2921,8 +4568,13 @@ function calculateService() {
     const nextServiceKm = lastService + interval;
     const remainingKm = nextServiceKm - currentKm;
     const lbl = el('res-service-label'), km = el('res-service-km');
-    if (remainingKm >= 0) { if (lbl) lbl.innerText = safeT('label.auto.nextService'); if (km) km.innerText = fmt(remainingKm, 0); }
-    else { if (lbl) lbl.innerText = safeT('label.auto.serviceOverdue'); if (km) km.innerText = fmt(-remainingKm, 0); }
+    if (remainingKm >= 0) {
+        if (lbl) lbl.innerText = safeT('label.auto.nextService');
+        if (km) km.innerText = fmt(remainingKm, 0);
+    } else {
+        if (lbl) lbl.innerText = safeT('label.auto.serviceOverdue');
+        if (km) km.innerText = fmt(-remainingKm, 0);
+    }
     const sn = el('stat-service-next'); if (sn) sn.innerText = fmt(nextServiceKm, 0) + ' km';
     show('service-result-box'); show('service-stats-row');
 }
@@ -2979,8 +4631,12 @@ function calculateRoadTrip() {
     const rl = el('stat-road-liters'); if (rl) rl.innerText = fmt(liters, 1) + ' L';
     show('road-result-box'); show('road-stats-row');
 }
-function loadAutoProfile() { try { return JSON.parse(localStorage.getItem('cx_auto_profile')) || {}; } catch (e) { return {}; } }
-function saveAutoProfileData(p) { try { localStorage.setItem('cx_auto_profile', JSON.stringify(p)); } catch (e) {} }
+function loadAutoProfile() {
+    try { return JSON.parse(localStorage.getItem('cx_auto_profile')) || {}; } catch (e) { return {}; }
+}
+function saveAutoProfileData(p) {
+    try { localStorage.setItem('cx_auto_profile', JSON.stringify(p)); } catch (e) {}
+}
 function daysUntil(dateStr) {
     if (!dateStr) return null;
     const target = parseDate(dateStr);
@@ -3027,6 +4683,9 @@ function saveAutoProfile() {
     } catch (e) {}
 }
 
+// ============================================================
+// KALKULACIJE — BICIKL
+// ============================================================
 function calculateBike() {
     const front = num('bike-front'), rear = num('bike-rear'), cadence = num('bike-cadence'), wheelInch = num('bike-wheel-inch');
     if (!front || !rear || !cadence || !wheelInch) { showToast(safeT('toast.error.enterFour'), 'error'); return; }
@@ -3056,10 +4715,22 @@ function calculateBikeFrame() {
     const type = el('bike-frame-type') ? el('bike-frame-type').value : 'mtb';
     if (!height) { showToast(safeT('toast.error.enterHeight'), 'error'); return; }
     let main, unit, alt;
-    if (type === 'mtb') { const inch = height * 0.1; main = inch; unit = safeT('unit.inch'); alt = fmt(inch * 2.54, 0) + ' cm'; }
-    else { const cm = height * 0.31; main = cm; unit = 'cm'; alt = fmt(cm / 2.54, 1) + ' ' + safeT('unit.inch'); }
+    if (type === 'mtb') {
+        const inch = height * 0.1;
+        main = inch;
+        unit = safeT('unit.inch');
+        alt = fmt(inch * 2.54, 0) + ' cm';
+    } else {
+        const cm = height * 0.31;
+        main = cm;
+        unit = 'cm';
+        alt = fmt(cm / 2.54, 1) + ' ' + safeT('unit.inch');
+    }
     let sizeLabel;
-    if (height < 165) sizeLabel = 'S'; else if (height < 178) sizeLabel = 'M'; else if (height < 188) sizeLabel = 'L'; else sizeLabel = 'XL';
+    if (height < 165) sizeLabel = 'S';
+    else if (height < 178) sizeLabel = 'M';
+    else if (height < 188) sizeLabel = 'L';
+    else sizeLabel = 'XL';
     const fs = el('res-bike-frame-size'); if (fs) fs.innerText = fmt(main, 1);
     const fu = el('res-bike-frame-unit'); if (fu) fu.innerText = unit;
     const fl = el('stat-frame-label'); if (fl) fl.innerText = sizeLabel;
@@ -3098,6 +4769,9 @@ function calculateGearTable() {
     vibrate(15);
 }
 
+// ============================================================
+// KALKULACIJE — MONEY
+// ============================================================
 function calculateMoney() {
     const price = num('money-price'), discount = num('money-discount');
     if (!price || discount === null || discount < 0 || discount > 100) { showToast(safeT('toast.error.enterPriceDiscount'), 'error'); return; }
@@ -3113,8 +4787,11 @@ function calculatePDV() {
     if (!amount) { showToast(safeT('toast.error.enterAmount'), 'error'); return; }
     if (rate === null) rate = 20;
     let base, tax, total;
-    if (type === 'add') { base = amount; tax = base * (rate / 100); total = base + tax; }
-    else { total = amount; base = total / (1 + rate / 100); tax = total - base; }
+    if (type === 'add') {
+        base = amount; tax = base * (rate / 100); total = base + tax;
+    } else {
+        total = amount; base = total / (1 + rate / 100); tax = total - base;
+    }
     const pt = el('res-pdv-total'); if (pt) pt.innerText = money(total);
     const pb = el('stat-pdv-base'); if (pb) pb.innerText = money(base) + ' RSD';
     const px = el('stat-pdv-tax'); if (px) px.innerText = money(tax) + ' RSD';
@@ -3133,7 +4810,8 @@ function calculateLoan() {
     const totalReturn = monthly * months;
     const totalInterest = totalReturn - amount;
     const lm = el('res-loan-monthly'); if (lm) lm.innerText = money(monthly);
-    const lmu = el('res-loan-monthly-unit'); if (lmu) lmu.innerText = currency + '/' + safeT('unit.month');
+    const lmu = el('res-loan-monthly-unit');
+    if (lmu) lmu.innerText = currency + '/' + safeT('unit.month');
     const li = el('stat-loan-interest'); if (li) li.innerText = money(totalInterest) + ' ' + currency;
     const lt = el('stat-loan-total'); if (lt) lt.innerText = money(totalReturn) + ' ' + currency;
     show('loan-result-box'); show('loan-stats-row');
@@ -3196,484 +4874,7 @@ function calculateTip() {
 }
 
 // ============================================================
-// VALUTA
-// ============================================================
-const CURRENCIES = [
-    { code: 'RSD', name: 'Srpski dinar', flag: '🇷🇸', rate: 1 },
-    { code: 'EUR', name: 'Evro', flag: '🇪🇺', rate: 117.20 },
-    { code: 'USD', name: 'Američki dolar', flag: '🇺🇸', rate: 108.50 },
-    { code: 'GBP', name: 'Britanska funta', flag: '🇬🇧', rate: 137.80 },
-    { code: 'CHF', name: 'Švajcarski franak', flag: '🇨🇭', rate: 122.40 },
-    { code: 'JPY', name: 'Japanski jen', flag: '🇯🇵', rate: 0.72 },
-    { code: 'CNY', name: 'Kineski juan', flag: '🇨🇳', rate: 14.95 },
-    { code: 'RUB', name: 'Ruska rublja', flag: '🇷🇺', rate: 1.18 },
-    { code: 'TRY', name: 'Turska lira', flag: '🇹🇷', rate: 3.15 },
-    { code: 'BAM', name: 'Konvertibilna marka', flag: '🇧🇦', rate: 59.90 },
-    { code: 'HRK', name: 'Hrvatska kuna', flag: '🇭🇷', rate: 15.55 },
-    { code: 'MKD', name: 'Makedonski denar', flag: '🇲🇰', rate: 1.90 },
-    { code: 'ALL', name: 'Albanski lek', flag: '🇦🇱', rate: 1.14 },
-    { code: 'BGN', name: 'Bugarski lev', flag: '🇧🇬', rate: 59.95 },
-    { code: 'RON', name: 'Rumunski lej', flag: '🇷🇴', rate: 23.55 },
-    { code: 'HUF', name: 'Mađarska forinta', flag: '🇭🇺', rate: 0.30 },
-    { code: 'PLN', name: 'Poljski zlot', flag: '🇵🇱', rate: 26.85 },
-    { code: 'CZK', name: 'Češka kruna', flag: '🇨🇿', rate: 4.68 },
-    { code: 'SEK', name: 'Švedska kruna', flag: '🇸🇪', rate: 10.35 },
-    { code: 'NOK', name: 'Norveška kruna', flag: '🇳🇴', rate: 9.90 },
-    { code: 'DKK', name: 'Danska kruna', flag: '🇩🇰', rate: 15.70 },
-    { code: 'CAD', name: 'Kanadski dolar', flag: '🇨🇦', rate: 78.60 },
-    { code: 'AUD', name: 'Australijski dolar', flag: '🇦🇺', rate: 71.40 },
-    { code: 'NZD', name: 'Novozelandski dolar', flag: '🇳🇿', rate: 65.20 },
-    { code: 'KRW', name: 'Južnokorejski von', flag: '🇰🇷', rate: 0.079 },
-    { code: 'INR', name: 'Indijska rupija', flag: '🇮🇳', rate: 1.29 },
-    { code: 'BRL', name: 'Brazilski real', flag: '🇧🇷', rate: 19.10 },
-    { code: 'MXN', name: 'Meksički pezos', flag: '🇲🇽', rate: 5.60 },
-    { code: 'ZAR', name: 'Južnoafrički rand', flag: '🇿🇦', rate: 5.95 },
-    { code: 'AED', name: 'Dirham UAE', flag: '🇦🇪', rate: 29.55 }
-];
-const FX_STORAGE_KEY = 'cx_fx_rates_v3';
-function getFxLastUpdate() {
-    try { const raw = JSON.parse(localStorage.getItem(FX_STORAGE_KEY)); if (raw && raw.updated) return raw.updated; } catch (e) {}
-    return null;
-}
-function loadFxRates() {
-    try {
-        const raw = JSON.parse(localStorage.getItem(FX_STORAGE_KEY));
-        if (raw && raw.rates && typeof raw.rates === 'object') {
-            CURRENCIES.forEach(c => {
-                if (typeof raw.rates[c.code] === 'number' && raw.rates[c.code] > 0) c.rate = raw.rates[c.code];
-            });
-        }
-    } catch (e) {}
-}
-function saveFxRates() {
-    try {
-        const rates = {};
-        CURRENCIES.forEach(c => { rates[c.code] = c.rate; });
-        localStorage.setItem(FX_STORAGE_KEY, JSON.stringify({ rates, updated: Date.now() }));
-    } catch (e) {}
-}
-function formatFxUpdated(ts) {
-    if (!ts) return currentLang === 'en' ? 'not refreshed' : 'nije osveženo';
-    const diffMin = Math.round((new Date() - new Date(ts)) / 60000);
-    if (diffMin < 1) return currentLang === 'en' ? 'just now' : 'upravo sad';
-    if (diffMin < 60) return (currentLang === 'en' ? '' : 'pre ') + diffMin + (currentLang === 'en' ? ' min ago' : ' min');
-    const diffH = Math.round(diffMin / 60);
-    if (diffH < 24) return (currentLang === 'en' ? '' : 'pre ') + diffH + (currentLang === 'en' ? 'h ago' : 'h');
-    return (currentLang === 'en' ? '' : 'pre ') + Math.floor(diffH / 24) + (currentLang === 'en' ? 'd ago' : ' d.');
-}
-async function refreshExchangeRates(silent = false) {
-    const btn = document.querySelector('.fx-refresh-btn');
-    if (btn) btn.classList.add('spinning');
-    setTimeout(() => { if (btn) btn.classList.remove('spinning'); }, 700);
-    if (!silent) showToast(currentLang === 'en' ? 'Refreshing rates...' : 'Osvežavam kurseve...', 'info', 1500);
-    try {
-        const res = await fetch('https://open.er-api.com/v6/latest/RSD', { cache: 'no-store' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        if (!data || data.result !== 'success' || !data.rates) throw new Error('Neispravan');
-        CURRENCIES.forEach(c => {
-            if (c.code === 'RSD') { c.rate = 1; return; }
-            const rate = data.rates[c.code];
-            if (typeof rate === 'number' && rate > 0) c.rate = Number((1 / rate).toFixed(4));
-        });
-        saveFxRates(); populateCurrencySelects(); renderFxList(); updateFxUpdatedLabel(); calculateCurrency();
-        if (!silent) { showToast(currentLang === 'en' ? 'Rates refreshed' : 'Kursevi osveženi', 'success', 2000); vibrate(20); }
-    } catch (e) {
-        if (!silent) showToast(currentLang === 'en' ? 'Error refreshing rates' : 'Greška pri osvežavanju', 'error', 2500);
-    }
-}
-function populateCurrencySelects() {
-    const fromSel = el('fx-from'), toSel = el('fx-to');
-    if (!fromSel || !toSel) return;
-    const prevFrom = fromSel.value || 'RSD', prevTo = toSel.value || 'EUR';
-    fromSel.innerHTML = ''; toSel.innerHTML = '';
-    CURRENCIES.forEach(c => {
-        const o1 = document.createElement('option');
-        o1.value = c.code; o1.textContent = `${c.flag} ${c.code} — ${c.name}`; fromSel.appendChild(o1);
-        const o2 = document.createElement('option');
-        o2.value = c.code; o2.textContent = `${c.flag} ${c.code} — ${c.name}`; toSel.appendChild(o2);
-    });
-    fromSel.value = prevFrom || 'RSD'; toSel.value = prevTo || 'EUR';
-}
-function renderFxList() {
-    const list = el('fx-list'); if (!list) return;
-    list.innerHTML = '';
-    CURRENCIES.forEach(c => {
-        const item = document.createElement('div');
-        item.className = 'fx-list-item'; item.dataset.code = c.code;
-        item.innerHTML = `<div class="fx-flag">${c.flag}</div><div class="fx-list-info"><div class="fx-code">${c.code}</div><div class="fx-name">${c.name}</div></div><div class="fx-value">${fmt(c.rate, 4)}<small>RSD</small></div>`;
-        item.addEventListener('click', () => {
-            const toSel = el('fx-to');
-            if (toSel) { toSel.value = c.code; calculateCurrency(); }
-        });
-        list.appendChild(item);
-    });
-}
-function updateFxUpdatedLabel() {
-    const label = el('fx-updated-label'); if (!label) return;
-    const ts = getFxLastUpdate();
-    label.textContent = ts ? ((currentLang === 'en' ? 'updated ' : 'osveženo ') + formatFxUpdated(ts)) : safeT('label.money.manualEntry');
-}
-function swapCurrencies() {
-    const fromSel = el('fx-from'), toSel = el('fx-to');
-    if (!fromSel || !toSel) return;
-    const tmp = fromSel.value; fromSel.value = toSel.value; toSel.value = tmp;
-    calculateCurrency(); vibrate(10);
-}
-function getCurrencyByCode(code) { return CURRENCIES.find(c => c.code === code); }
-function calculateCurrency() {
-    const amount = num('fx-amount');
-    const fromSel = el('fx-from'), toSel = el('fx-to');
-    if (!fromSel || !toSel) return;
-    const fromCur = getCurrencyByCode(fromSel.value), toCur = getCurrencyByCode(toSel.value);
-    const info = el('fx-rate-info');
-    if (info && fromCur && toCur) info.innerHTML = `1 ${fromCur.code} = <strong>${fmt(fromCur.rate / toCur.rate, 4)}</strong> ${toCur.code}`;
-    if (!amount) { hide('fx-result-box'); return; }
-    if (!fromCur || !toCur) return;
-    const result = (amount * fromCur.rate) / toCur.rate;
-    const fv = el('res-fx-val'), fu = el('res-fx-unit');
-    if (fv) fv.innerText = toCur.rate >= 50 ? money(result) : fmt(result, 2);
-    if (fu) fu.innerText = toCur.code;
-    show('fx-result-box');
-}
-
-// ============================================================
-// ZDRAVLJE
-// ============================================================
-function renderHealthBMI() {
-    return `<div class="converter-box">${inputField('label.health.weight','health-weight','kg','placeholder="70"')}${inputField('label.health.height','health-height','cm','placeholder="175"')}${inputField('label.health.ageOptional','health-bmi-age','','placeholder="30"')}${calcButton('btn.calculate','calculateBMI()')}</div>${resultCard('health-bmi-result-box','scale','label.health.yourBmi','res-bmi-val','','ZDRAVLJE','label.health.bmi')}${statsRow('health-bmi-stats-row',[['label.health.category','stat-bmi-category','—']])}`;
-}
-function renderHealthIdealna() {
-    return `<div class="converter-box">${selectField('label.health.gender','health-gender',[{value:'male',text:safeT('option.health.male')},{value:'female',text:safeT('option.health.female')}])}${inputField('label.health.height','health-ideal-height','cm','placeholder="175"')}${calcButton('btn.calculate','calculateIdealWeight()')}</div>${resultCard('health-ideal-result-box','target','label.health.idealWeight','res-ideal-weight','kg','ZDRAVLJE','label.health.idealWeight')}${statsRow('health-ideal-stats-row',[['label.health.healthyRange','stat-ideal-range','—']])}`;
-}
-function renderHealthBMR() {
-    return `<div class="converter-box">${selectField('label.health.gender','bmr-gender',[{value:'male',text:safeT('option.health.male')},{value:'female',text:safeT('option.health.female')}])}${inputField('label.health.weight','bmr-weight','kg','placeholder="70"')}${inputField('label.health.height','bmr-height','cm','placeholder="175"')}${inputField('label.health.age','bmr-age','','placeholder="30"')}${selectField('label.health.activityLevel','bmr-activity',[{value:'1.2',text:safeT('option.health.sedentary')},{value:'1.375',text:safeT('option.health.lightActivity')},{value:'1.55',text:safeT('option.health.moderateActivity')},{value:'1.725',text:safeT('option.health.highActivity')}])}${calcButton('btn.calculate','calculateBMR()')}</div>${resultCard('bmr-result-box','flame','label.health.dailyNeeds','res-bmr-val','kcal','ZDRAVLJE','label.health.bmrFull')}${statsRow('bmr-stats-row',[['label.health.basalMetabolism','stat-bmr-base','0 kcal']])}`;
-}
-function renderHealthPuls() {
-    return `<div class="converter-box">${inputField('label.health.age','hr-age','','placeholder="30"')}${calcButton('btn.calculate','calculateHeartRate()')}</div>${resultCard('hr-result-box','heartPulse','label.health.maxPulse','res-hr-max','BPM','ZDRAVLJE','label.health.pulseFull')}<div id="hr-zones-wrap" class="hr-zones" style="display:none;"><div class="hr-zone-item"><span class="hr-zone-name">${safeT('zone.easy')}</span><strong id="hr-zone-1">—</strong></div><div class="hr-zone-item"><span class="hr-zone-name">${safeT('zone.fatBurn')}</span><strong id="hr-zone-2">—</strong></div><div class="hr-zone-item"><span class="hr-zone-name">${safeT('zone.cardio')}</span><strong id="hr-zone-3">—</strong></div><div class="hr-zone-item"><span class="hr-zone-name">${safeT('zone.intense')}</span><strong id="hr-zone-4">—</strong></div><div class="hr-zone-item"><span class="hr-zone-name">${safeT('zone.maximum')}</span><strong id="hr-zone-5">—</strong></div></div>`;
-}
-function renderHealthTrcanje() {
-    return `<div class="converter-box">${inputField('label.health.distance','run-distance','km','placeholder="5"')}${inputField('label.health.timeMin','run-min','min','placeholder="25"')}${inputField('label.health.timeSec','run-sec','sec','placeholder="0"')}${calcButton('btn.calculate','calculateRunning()')}</div>${resultCard('run-result-box','run','label.health.pace','res-run-pace','/km','ZDRAVLJE','label.health.running')}${statsRow('run-stats-row',[['label.health.avgSpeed','stat-run-speed','0 km/h'],['label.health.totalTime','stat-run-total','0']])}`;
-}
-function renderHealthBikeFit() {
-    return `<div class="converter-box">${inputField('label.health.distance','fitbike-distance','km','placeholder="20"')}${inputField('label.health.timeMin','fitbike-min','min','placeholder="60"')}${inputField('label.health.riderWeight','fitbike-weight','kg','placeholder="75"')}${calcButton('btn.calculate','calculateBikeFitness()')}</div>${resultCard('fitbike-result-box','bike','label.health.avgSpeed','res-fitbike-speed','km/h','ZDRAVLJE','label.health.bikeFitFull')}${statsRow('fitbike-stats-row',[['label.health.caloriesEstimated','stat-fitbike-cal','0 kcal']])}`;
-}
-function renderHealth1RM() {
-    return `<div class="converter-box">${inputField('label.health.weight','rm1-weight','kg','placeholder="80"')}${inputField('label.health.reps','rm1-reps','','placeholder="5"')}${calcButton('btn.calculate','calculate1RM()')}</div>${resultCard('rm1-result-box','dumbbell','label.health.rm1Estimate','res-rm1-val','kg','ZDRAVLJE','label.health.rm1')}${statsRow('rm1-stats-row',[['label.health.rm1_90','stat-rm1-90','—'],['label.health.rm1_80','stat-rm1-80','—']])}`;
-}
-function renderHealthVolume() {
-    return `<div class="converter-box">${inputField('label.health.weight','vol-weight','kg','placeholder="60"')}${inputField('label.health.reps','vol-reps','','placeholder="10"')}${inputField('label.health.sets','vol-sets','','placeholder="3"')}${calcButton('btn.calculate','calculateWorkoutVolume()')}</div>${resultCard('vol-result-box','activity','label.health.totalVolume','res-vol-val','kg','ZDRAVLJE','label.health.volumeShort')}`;
-}
-
-function calculateBMI() {
-    const weight = num('health-weight'), heightCm = num('health-height'), age = num('health-bmi-age');
-    if (!weight || !heightCm) { showToast(safeT('toast.error.enterWeightHeight'), 'error'); return; }
-    const bmi = weight / Math.pow(heightCm / 100, 2);
-    let categoryKey;
-    if (age !== null && age < 18) categoryKey = 'label.health.underageBmi';
-    else if (bmi < 18.5) categoryKey = 'label.health.underweight';
-    else if (bmi < 25) categoryKey = 'label.health.normalWeight';
-    else if (bmi < 30) categoryKey = 'label.health.overweight';
-    else categoryKey = 'label.health.obese';
-    const bv = el('res-bmi-val'); if (bv) bv.innerText = fmt(bmi, 1);
-    const bc = el('stat-bmi-category'); if (bc) bc.innerText = safeT(categoryKey);
-    show('health-bmi-result-box'); show('health-bmi-stats-row');
-}
-function calculateIdealWeight() {
-    const height = num('health-ideal-height');
-    const gender = el('health-gender') ? el('health-gender').value : 'male';
-    if (!height) { showToast(safeT('toast.error.enterHeight'), 'error'); return; }
-    const inchesOver = Math.max(0, (height - 152.4) / 2.54);
-    const ideal = (gender === 'male' ? 50 : 45.5) + (2.3 * inchesOver);
-    const heightM = height / 100;
-    const iw = el('res-ideal-weight'); if (iw) iw.innerText = fmt(ideal, 1);
-    const ir = el('stat-ideal-range'); if (ir) ir.innerText = fmt(18.5 * heightM * heightM, 1) + ' – ' + fmt(24.9 * heightM * heightM, 1) + ' kg';
-    show('health-ideal-result-box'); show('health-ideal-stats-row');
-}
-function calculateBMR() {
-    const weight = num('bmr-weight'), height = num('bmr-height'), age = num('bmr-age');
-    const gender = el('bmr-gender') ? el('bmr-gender').value : 'male';
-    const activity = el('bmr-activity') ? parseFloat(el('bmr-activity').value) : 1.375;
-    if (!weight || !height || !age) { showToast(safeT('toast.error.enterAll'), 'error'); return; }
-    let bmr = (10 * weight) + (6.25 * height) - (5 * age) + (gender === 'male' ? 5 : -161);
-    const bv = el('res-bmr-val'); if (bv) bv.innerText = fmt(bmr * activity, 0);
-    const bb = el('stat-bmr-base'); if (bb) bb.innerText = fmt(bmr, 0) + ' kcal';
-    show('bmr-result-box'); show('bmr-stats-row');
-}
-function calculateHeartRate() {
-    const age = num('hr-age');
-    if (!age) { showToast(safeT('toast.error.enterAge'), 'error'); return; }
-    const max = 220 - age;
-    const zones = [[0.5, 0.6], [0.6, 0.7], [0.7, 0.8], [0.8, 0.9], [0.9, 1.0]];
-    const hm = el('res-hr-max'); if (hm) hm.innerText = fmt(max, 0);
-    show('hr-result-box');
-    zones.forEach((z, i) => {
-        const ze = el(`hr-zone-${i + 1}`);
-        if (ze) ze.innerText = `${Math.round(max * z[0])}–${Math.round(max * z[1])}`;
-    });
-    const zw = el('hr-zones-wrap'); if (zw) zw.style.display = 'flex';
-}
-function calculateRunning() {
-    const distance = num('run-distance'), min = num('run-min') || 0, sec = num('run-sec') || 0;
-    if (!distance) { showToast(safeT('toast.error.enterDistance'), 'error'); return; }
-    const totalMinutes = min + (sec / 60);
-    if (totalMinutes === 0) { showToast(safeT('toast.error.enterTime'), 'error'); return; }
-    const paceMin = totalMinutes / distance;
-    const paceMinWhole = Math.floor(paceMin), paceSec = Math.round((paceMin - paceMinWhole) * 60);
-    const rp = el('res-run-pace'); if (rp) rp.innerText = `${paceMinWhole}:${String(paceSec).padStart(2, '0')}`;
-    const rs = el('stat-run-speed'); if (rs) rs.innerText = fmt(distance / (totalMinutes / 60), 2) + ' km/h';
-    const rt = el('stat-run-total'); if (rt) rt.innerText = `${min}min ${sec}s`;
-    show('run-result-box'); show('run-stats-row');
-}
-function calculateBikeFitness() {
-    const distance = num('fitbike-distance'), minutes = num('fitbike-min'), weight = num('fitbike-weight');
-    if (!distance || !minutes || !weight) { showToast(safeT('toast.error.enterAll'), 'error'); return; }
-    const hours = minutes / 60, speed = distance / hours;
-    let met = 8.0;
-    if (speed < 15) met = 6.0; else if (speed < 20) met = 8.0; else if (speed < 25) met = 10.0; else met = 12.0;
-    const fs = el('res-fitbike-speed'); if (fs) fs.innerText = fmt(speed, 2);
-    const fc = el('stat-fitbike-cal'); if (fc) fc.innerText = fmt(met * weight * hours, 0) + ' kcal';
-    show('fitbike-result-box'); show('fitbike-stats-row');
-}
-function calculate1RM() {
-    const weight = num('rm1-weight'), reps = num('rm1-reps');
-    if (!weight || !reps || reps < 1 || reps > 15) { showToast(safeT('toast.error.enterWeightReps'), 'error'); return; }
-    const rm = weight * (1 + reps / 30);
-    const rv = el('res-rm1-val'); if (rv) rv.innerText = fmt(rm, 1);
-    const r90 = el('stat-rm1-90'); if (r90) r90.innerText = fmt(rm * 0.9, 1) + ' kg';
-    const r80 = el('stat-rm1-80'); if (r80) r80.innerText = fmt(rm * 0.8, 1) + ' kg';
-    show('rm1-result-box'); show('rm1-stats-row');
-}
-function calculateWorkoutVolume() {
-    const weight = num('vol-weight'), reps = num('vol-reps'), sets = num('vol-sets');
-    if (!weight || !reps || !sets) { showToast(safeT('toast.error.enterAll'), 'error'); return; }
-    const vv = el('res-vol-val'); if (vv) vv.innerText = money(weight * reps * sets);
-    show('vol-result-box');
-}
-
-// ============================================================
-// VREME I DATUMI
-// ============================================================
-function parseDate(value) {
-    if (!value) return null;
-    const parts = value.split('-').map(Number);
-    if (parts.length !== 3) return null;
-    return new Date(parts[0], parts[1] - 1, parts[2]);
-}
-const SR_DAYS = ['nedelja', 'ponedeljak', 'utorak', 'sreda', 'četvrtak', 'petak', 'subota'];
-const SR_MONTHS = ['januar', 'februar', 'mart', 'april', 'maj', 'jun', 'jul', 'avgust', 'septembar', 'oktobar', 'novembar', 'decembar'];
-const EN_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const EN_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-function getDaysArr() { return currentLang === 'en' ? EN_DAYS : SR_DAYS; }
-function getMonthsArr() { return currentLang === 'en' ? EN_MONTHS : SR_MONTHS; }
-
-function renderTimeKonverter() {
-    const units = [
-        { v: 'seconds', k: 'option.time.seconds' }, { v: 'minutes', k: 'option.time.minutes' },
-        { v: 'hours', k: 'option.time.hours' }, { v: 'days', k: 'option.time.days' },
-        { v: 'weeks', k: 'option.time.weeks' }, { v: 'months', k: 'option.time.months' },
-        { v: 'years', k: 'option.time.years' }
-    ];
-    return `
-        <div class="converter-box">
-            ${inputField('label.time.value','time-value','','placeholder="0"')}
-            <div class="input-field"><label>${safeT('label.time.fromUnit')}</label><select id="time-from" class="custom-input">${units.map(u => `<option value="${u.v}">${safeT(u.k)}</option>`).join('')}</select></div>
-            <div class="swap-icon-container"><button class="swap-btn" onclick="swapInputs('time-from','time-to'); convertTimeUnits();">${safeT('btn.swap')}</button></div>
-            <div class="input-field"><label>${safeT('label.time.toUnit')}</label><select id="time-to" class="custom-input">${units.map((u, i) => `<option value="${u.v}"${i === 1 ? ' selected' : ''}>${safeT(u.k)}</option>`).join('')}</select></div>
-            ${calcButton('btn.calculate','convertTimeUnits()')}
-        </div>
-        <div id="result-time-conv-box" class="result-card-green" style="display: none;">
-            <div class="res-left"><div class="pump-icon">${icon('hourglass')}</div><div><div class="res-label">${safeT('label.time.conversionResult')}</div><h3 id="res-time-conv-val" class="res-text">—</h3></div></div>
-            <div class="res-actions">
-                <button class="copy-btn" onclick="copyResult('res-time-conv-val','', event)">${safeT('result.copy')}</button>
-                <button class="copy-btn" data-category="VREME" data-label="Konverzija" onclick="saveHistory(this)">${safeT('result.save')}</button>
-                <button class="copy-btn" data-category="VREME" data-label="Konverzija" onclick="shareResult(this)">${safeT('result.share')}</button>
-            </div>
-        </div>
-    `;
-}
-function renderTimeRazlika() {
-    return `
-        <div class="converter-box">
-            ${dateTripleField('label.time.startDate','start-date')}
-            ${dateTripleField('label.time.endDate','end-date')}
-            ${calcButton('btn.calculate','calculateDateDifference()')}
-        </div>
-        <div id="result-date-box" class="result-card-green" style="display: none;">
-            <div class="res-left"><div class="pump-icon">${icon('calendarDays')}</div><div><div class="res-label">${safeT('label.time.difference')}</div><h3 id="res-date-val" class="res-text">—</h3></div></div>
-            <div class="res-actions">
-                <button class="copy-btn" onclick="copyResult('res-date-val','', event)">${safeT('result.copy')}</button>
-                <button class="copy-btn" data-category="VREME" data-label="Razlika datuma" onclick="saveHistory(this)">${safeT('result.save')}</button>
-                <button class="copy-btn" data-category="VREME" data-label="Razlika datuma" onclick="shareResult(this)">${safeT('result.share')}</button>
-            </div>
-        </div>
-    `;
-}
-function renderTimePomeraj() {
-    return `
-        <div class="converter-box">
-            ${dateTripleField('label.time.startDate','shift-date')}
-            ${inputField('label.time.daysCount','shift-days','','placeholder="30"')}
-            <div class="input-field"><label>${safeT('label.time.operation')}</label><select id="shift-op" class="custom-input"><option value="add">${safeT('option.time.addDays')}</option><option value="sub">${safeT('option.time.subtractDays')}</option></select></div>
-            ${calcButton('btn.calculate','calculateDateShift()')}
-        </div>
-        <div id="shift-result-box" class="result-card-green" style="display: none;">
-            <div class="res-left"><div class="pump-icon">${icon('calendarPlus')}</div><div><div class="res-label">${safeT('label.time.newDate')}</div><h3 id="res-shift-val" class="res-text">—</h3></div></div>
-            <div class="res-actions">
-                <button class="copy-btn" onclick="copyResult('res-shift-val','', event)">${safeT('result.copy')}</button>
-                <button class="copy-btn" data-category="VREME" data-label="Pomeraj" onclick="saveHistory(this)">${safeT('result.save')}</button>
-                <button class="copy-btn" data-category="VREME" data-label="Pomeraj" onclick="shareResult(this)">${safeT('result.share')}</button>
-            </div>
-        </div>
-    `;
-}
-function renderTimeGodine() {
-    return `
-        <div class="converter-box">
-            ${dateTripleField('label.time.birthDate','birth-date')}
-            ${calcButton('btn.calculate','calculateAge()')}
-        </div>
-        <div id="age-result-box" class="result-card-green" style="display: none;">
-            <div class="res-left"><div class="pump-icon">${icon('cake')}</div><div><div class="res-label">${safeT('label.time.years')}</div><h2><span id="res-age-years">0</span> <small>${safeT('label.time.years')}</small></h2></div></div>
-            <div class="res-actions">
-                <button class="copy-btn" onclick="copyResult('res-age-years','', event)">${safeT('result.copy')}</button>
-                <button class="copy-btn" data-category="VREME" data-label="Godine" onclick="saveHistory(this)">${safeT('result.save')}</button>
-                <button class="copy-btn" data-category="VREME" data-label="Godine" onclick="shareResult(this)">${safeT('result.share')}</button>
-            </div>
-        </div>
-        ${statsRow('age-stats-row',[['label.time.detailed','stat-age-detail','—'],['label.time.nextBirthday','stat-age-next','—']])}
-    `;
-}
-function renderTimeDan() {
-    return `
-        <div class="converter-box">
-            ${dateTripleField('label.time.date','dayofweek-date')}
-            ${calcButton('btn.calculate','calculateDayOfWeek()')}
-        </div>
-        <div id="dayofweek-result-box" class="result-card-green" style="display: none;">
-            <div class="res-left"><div class="pump-icon">${icon('calendar')}</div><div><div class="res-label">${safeT('label.time.dayOfWeek')}</div><h3 id="res-day-name" class="res-text">—</h3></div></div>
-            <div class="res-actions">
-                <button class="copy-btn" onclick="copyResult('res-day-name','', event)">${safeT('result.copy')}</button>
-                <button class="copy-btn" data-category="VREME" data-label="Dan" onclick="saveHistory(this)">${safeT('result.save')}</button>
-                <button class="copy-btn" data-category="VREME" data-label="Dan" onclick="shareResult(this)">${safeT('result.share')}</button>
-            </div>
-        </div>
-        ${statsRow('dayofweek-stats-row',[['label.time.date','stat-day-date','—']])}
-    `;
-}
-function renderTimeRadni() {
-    return `
-        <div class="converter-box">
-            ${dateTripleField('label.time.startDate','workdays-start')}
-            ${dateTripleField('label.time.endDate','workdays-end')}
-            ${calcButton('btn.calculate','calculateWorkdays()')}
-        </div>
-        <div id="workdays-result-box" class="result-card-green" style="display: none;">
-            <div class="res-left"><div class="pump-icon">${icon('briefcaseSm')}</div><div><div class="res-label">${safeT('label.time.workdays')}</div><h2><span id="res-workdays-val">0</span></h2></div></div>
-            <div class="res-actions">
-                <button class="copy-btn" onclick="copyResult('res-workdays-val','', event)">${safeT('result.copy')}</button>
-                <button class="copy-btn" data-category="VREME" data-label="Radni dani" onclick="saveHistory(this)">${safeT('result.save')}</button>
-                <button class="copy-btn" data-category="VREME" data-label="Radni dani" onclick="shareResult(this)">${safeT('result.share')}</button>
-            </div>
-        </div>
-        ${statsRow('workdays-stats-row',[['label.time.totalDays','stat-workdays-total','0'],['label.time.weekendDays','stat-workdays-weekend','0']])}
-    `;
-}
-function calculateDateDifference() {
-    const startVal = getTripleDate('start-date'), endVal = getTripleDate('end-date');
-    if (!startVal || !endVal) { showToast(safeT('toast.error.enterBothDates'), 'error'); return; }
-    let startDate = parseDate(startVal), endDate = parseDate(endVal);
-    if (startDate > endDate) { const t = startDate; startDate = endDate; endDate = t; }
-    let years = endDate.getFullYear() - startDate.getFullYear();
-    let months = endDate.getMonth() - startDate.getMonth();
-    let days = endDate.getDate() - startDate.getDate();
-    if (days < 0) { months--; days += new Date(endDate.getFullYear(), endDate.getMonth(), 0).getDate(); }
-    if (months < 0) { years--; months += 12; }
-    const totalDays = Math.round((endDate - startDate) / 86400000);
-    const dv = el('res-date-val');
-    if (dv) {
-        if (currentLang === 'en') dv.innerHTML = `${years} yr, ${months} mo, ${days} d<br>(${safeT('label.time.total')} ${fmt(totalDays, 0)} d)`;
-        else dv.innerHTML = `${years} god, ${months} mes, ${days} dana<br>(ukupno ${fmt(totalDays, 0)} dana)`;
-    }
-    show('result-date-box');
-}
-function calculateDateShift() {
-    const startVal = getTripleDate('shift-date'), days = num('shift-days');
-    const op = el('shift-op') ? el('shift-op').value : 'add';
-    if (!startVal || days === null) { showToast(safeT('toast.error.enterDateDays'), 'error'); return; }
-    const date = parseDate(startVal);
-    date.setDate(date.getDate() + (op === 'sub' ? -Math.abs(days) : Math.abs(days)));
-    const sv = el('res-shift-val');
-    const daysArr = getDaysArr();
-    const monthsArr = getMonthsArr();
-    if (sv) sv.innerText = `${date.getDate()}. ${monthsArr[date.getMonth()]} ${date.getFullYear()}. (${daysArr[date.getDay()]})`;
-    show('shift-result-box');
-}
-function calculateAge() {
-    const birthVal = getTripleDate('birth-date');
-    if (!birthVal) { showToast(safeT('toast.error.enterBirthDate'), 'error'); return; }
-    const birth = parseDate(birthVal);
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    if (birth > today) { showToast(safeT('toast.error.futureDate'), 'error'); return; }
-    let years = today.getFullYear() - birth.getFullYear();
-    let months = today.getMonth() - birth.getMonth();
-    let days = today.getDate() - birth.getDate();
-    if (days < 0) { months--; days += new Date(today.getFullYear(), today.getMonth(), 0).getDate(); }
-    if (months < 0) { years--; months += 12; }
-    const ay = el('res-age-years'); if (ay) ay.innerText = years;
-    const ad = el('stat-age-detail');
-    if (ad) ad.innerText = currentLang === 'en' ? `${months} mo, ${days} d` : `${months} mes, ${days} d.`;
-    const nextBday = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
-    if (nextBday < today) nextBday.setFullYear(today.getFullYear() + 1);
-    const daysToBday = Math.round((nextBday - today) / 86400000);
-    const an = el('stat-age-next');
-    if (an) an.innerText = daysToBday === 0 ? safeT('label.time.todayBirthday') : safeT('label.time.in') + ' ' + daysToBday + ' ' + safeT('unit.daysShort');
-    show('age-result-box'); show('age-stats-row');
-}
-function calculateDayOfWeek() {
-    const val = getTripleDate('dayofweek-date');
-    if (!val) { showToast(safeT('toast.error.enterDate'), 'error'); return; }
-    const date = parseDate(val);
-    const daysArr = getDaysArr();
-    const monthsArr = getMonthsArr();
-    const dn = el('res-day-name');
-    if (dn) dn.innerText = daysArr[date.getDay()].charAt(0).toUpperCase() + daysArr[date.getDay()].slice(1);
-    const dd = el('stat-day-date');
-    if (dd) dd.innerText = `${date.getDate()}. ${monthsArr[date.getMonth()]} ${date.getFullYear()}.`;
-    show('dayofweek-result-box'); show('dayofweek-stats-row');
-}
-function calculateWorkdays() {
-    const startVal = getTripleDate('workdays-start'), endVal = getTripleDate('workdays-end');
-    if (!startVal || !endVal) { showToast(safeT('toast.error.enterBothDates'), 'error'); return; }
-    let start = parseDate(startVal), end = parseDate(endVal);
-    if (start > end) { const tmp = start; start = end; end = tmp; }
-    let workdays = 0, weekend = 0, total = 0;
-    const cur = new Date(start);
-    while (cur <= end) {
-        const day = cur.getDay();
-        if (day === 0 || day === 6) weekend++; else workdays++;
-        total++; cur.setDate(cur.getDate() + 1);
-    }
-    const wv = el('res-workdays-val'); if (wv) wv.innerText = fmt(workdays, 0);
-    const wt = el('stat-workdays-total'); if (wt) wt.innerText = fmt(total, 0);
-    const ww = el('stat-workdays-weekend'); if (ww) ww.innerText = fmt(weekend, 0);
-    show('workdays-result-box'); show('workdays-stats-row');
-}
-const TIME_SECONDS = { seconds: 1, minutes: 60, hours: 3600, days: 86400, weeks: 604800, months: 2592000, years: 31536000 };
-const TIME_LABELS_KEY = { seconds: 'unit.secShort', minutes: 'unit.minShort', hours: 'unit.h', days: 'unit.daysShort', weeks: 'unit.weeksShort', months: 'unit.monthsShort', years: 'unit.yearsShort' };
-function convertTimeUnits() {
-    const val = num('time-value');
-    const from = el('time-from') ? el('time-from').value : 'hours';
-    const to = el('time-to') ? el('time-to').value : 'minutes';
-    if (val === null) { showToast(safeT('toast.error.enterValue'), 'error'); return; }
-    const result = val * TIME_SECONDS[from] / TIME_SECONDS[to];
-    const tv = el('res-time-conv-val');
-    if (tv) tv.innerText = `${fmt(result)} ${safeT(TIME_LABELS_KEY[to])}`;
-    show('result-time-conv-box');
-}
-
-// ============================================================
-// MERE
+// KALKULACIJE — MERE
 // ============================================================
 const LENGTH_FACTORS = { m: 1, km: 1000, cm: 0.01, mm: 0.001, ft: 0.3048, in: 0.0254 };
 const LENGTH_LABELS = { m: 'm', km: 'km', cm: 'cm', mm: 'mm', ft: 'ft', in: 'in' };
@@ -3798,45 +4999,193 @@ function calculateMoneyPercent2() {
 }
 
 // ============================================================
-// KUPOVINA
+// KALKULACIJE — ZDRAVLJE
 // ============================================================
-function renderShopUnit() {
-    return `<div class="converter-box">${sectionDescKey('desc.shop.unitPrice')}${inputField('label.shop.totalPrice','unit-price','RSD','placeholder="250"')}${inputField('label.shop.quantity','unit-qty','','placeholder="1"')}${selectField('label.shop.unit','unit-type',[{value:'kg',text:'kg'},{value:'g100',text:'100g'},{value:'L',text:'L'},{value:'ml100',text:'100ml'},{value:'kom',text:'kom'},{value:'m',text:'m'}])}${calcButton('btn.calculate','calculateUnitPrice()')}</div><div id="unit-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('barcode')}</div><div><div class="res-label">${safeT('label.shop.pricePerUnit')}</div><h2><span id="res-unit-price">0</span> <small id="res-unit-label">RSD/kg</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-unit-price','res-unit-label', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Cena po jedinici" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Cena po jedinici" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>`;
+function calculateBMI() {
+    const weight = num('health-weight'), heightCm = num('health-height'), age = num('health-bmi-age');
+    if (!weight || !heightCm) { showToast(safeT('toast.error.enterWeightHeight'), 'error'); return; }
+    const bmi = weight / Math.pow(heightCm / 100, 2);
+    let categoryKey;
+    if (age !== null && age < 18) categoryKey = 'label.health.underageBmi';
+    else if (bmi < 18.5) categoryKey = 'label.health.underweight';
+    else if (bmi < 25) categoryKey = 'label.health.normalWeight';
+    else if (bmi < 30) categoryKey = 'label.health.overweight';
+    else categoryKey = 'label.health.obese';
+    const bv = el('res-bmi-val'); if (bv) bv.innerText = fmt(bmi, 1);
+    const bc = el('stat-bmi-category'); if (bc) bc.innerText = safeT(categoryKey);
+    show('health-bmi-result-box'); show('health-bmi-stats-row');
 }
-function renderShopCompare() {
-    return `<div class="converter-box">${sectionDescKey('desc.shop.compare')}<div class="compare-group"><div class="compare-title">${safeT('label.shop.productA')}</div>${inputField('label.shop.price','cmp-a-price','RSD','placeholder="200"')}${inputField('label.shop.quantity','cmp-a-qty','','placeholder="1"')}${selectField('label.shop.unit','cmp-a-unit',[{value:'kg',text:'kg'},{value:'g',text:'g'},{value:'L',text:'L'},{value:'ml',text:'ml'},{value:'kom',text:'kom'}])}</div><div class="compare-group"><div class="compare-title">${safeT('label.shop.productB')}</div>${inputField('label.shop.price','cmp-b-price','RSD','placeholder="180"')}${inputField('label.shop.quantity','cmp-b-qty','','placeholder="0.9"')}${selectField('label.shop.unit','cmp-b-unit',[{value:'kg',text:'kg'},{value:'g',text:'g'},{value:'L',text:'L'},{value:'ml',text:'ml'},{value:'kom',text:'kom'}])}</div>${calcButton('btn.calculate','calculateCompare()')}</div><div id="compare-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('scale')}</div><div><div class="res-label">${safeT('label.shop.compareResult')}</div><h3 id="res-cmp-winner" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-cmp-winner','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Poređenje" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Poređenje" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('compare-stats-row',[['label.shop.productA','stat-cmp-a','0'],['label.shop.productB','stat-cmp-b','0'],['label.shop.difference','stat-cmp-diff','0%']])}`;
+function calculateIdealWeight() {
+    const height = num('health-ideal-height');
+    const gender = el('health-gender') ? el('health-gender').value : 'male';
+    if (!height) { showToast(safeT('toast.error.enterHeight'), 'error'); return; }
+    const inchesOver = Math.max(0, (height - 152.4) / 2.54);
+    const ideal = (gender === 'male' ? 50 : 45.5) + (2.3 * inchesOver);
+    const heightM = height / 100;
+    const iw = el('res-ideal-weight'); if (iw) iw.innerText = fmt(ideal, 1);
+    const ir = el('stat-ideal-range'); if (ir) ir.innerText = fmt(18.5 * heightM * heightM, 1) + ' – ' + fmt(24.9 * heightM * heightM, 1) + ' kg';
+    show('health-ideal-result-box'); show('health-ideal-stats-row');
 }
-function renderShopPromo() {
-    return `<div class="converter-box">${sectionDescKey('desc.shop.promo')}${selectField('label.shop.promoType','promo-type',[{value:'2plus1',text:safeT('option.shop.promo2plus1')},{value:'3plus1',text:safeT('option.shop.promo3plus1')},{value:'second',text:safeT('option.shop.promoSecond')}])}${inputField('label.shop.pricePerPiece','promo-price','RSD','placeholder="200"')}${inputField('label.shop.secondDiscount','promo-second-pct','%','placeholder="50"')}${calcButton('btn.calculate','calculatePromo()')}</div>${resultCard('promo-result-box','gift','label.shop.effectiveUnitPrice','res-promo-unit','RSD','KUPOVINA','label.shop.promoShort')}${statsRow('promo-stats-row',[['label.shop.youPay','stat-promo-total','0 RSD'],['label.shop.youGet','stat-promo-qty','0'],['label.shop.savings','stat-promo-save','0 RSD']])}`;
+function calculateBMR() {
+    const weight = num('bmr-weight'), height = num('bmr-height'), age = num('bmr-age');
+    const gender = el('bmr-gender') ? el('bmr-gender').value : 'male';
+    const activity = el('bmr-activity') ? parseFloat(el('bmr-activity').value) : 1.375;
+    if (!weight || !height || !age) { showToast(safeT('toast.error.enterAll'), 'error'); return; }
+    let bmr = (10 * weight) + (6.25 * height) - (5 * age) + (gender === 'male' ? 5 : -161);
+    const bv = el('res-bmr-val'); if (bv) bv.innerText = fmt(bmr * activity, 0);
+    const bb = el('stat-bmr-base'); if (bb) bb.innerText = fmt(bmr, 0) + ' kcal';
+    show('bmr-result-box'); show('bmr-stats-row');
 }
-function renderShopLista() {
-    return `<div class="converter-box"><div class="lista-head"><div class="section-desc" style="margin:0;">${safeT('desc.shop.list')}</div><button class="lista-clear-btn" onclick="clearShoppingList()">${safeT('btn.clearWholeList')}</button></div>${inputFieldText('label.shop.itemName','lista-name','npr. Mleko')}${inputFieldText('label.shop.qtyOptional','lista-qty','npr. 2L')}${inputField('label.shop.estimatedPrice','lista-price','RSD','placeholder="120"')}${calcButton('btn.shop.addItem','addShoppingItem()')}</div><div id="lista-box" class="converter-box" style="display:none;"><div class="lista-head"><div class="lista-progress" id="lista-progress">0 / 0</div><button class="lista-clear-btn" onclick="clearBoughtItems()">${safeT('btn.clearBought')}</button></div><div id="lista-items"></div><div class="lista-total"><div class="lista-total-left"><div class="lista-total-label">${safeT('label.shop.total')}</div><div class="lista-total-value" id="lista-total">0 RSD</div></div><div class="lista-total-right"><div class="lista-total-label">${safeT('label.shop.remaining')}</div><div class="lista-total-value" id="lista-remaining">0 RSD</div></div></div></div>`;
+function calculateHeartRate() {
+    const age = num('hr-age');
+    if (!age) { showToast(safeT('toast.error.enterAge'), 'error'); return; }
+    const max = 220 - age;
+    const zones = [[0.5, 0.6], [0.6, 0.7], [0.7, 0.8], [0.8, 0.9], [0.9, 1.0]];
+    const hm = el('res-hr-max'); if (hm) hm.innerText = fmt(max, 0);
+    show('hr-result-box');
+    zones.forEach((z, i) => {
+        const ze = el(`hr-zone-${i + 1}`);
+        if (ze) ze.innerText = `${Math.round(max * z[0])}–${Math.round(max * z[1])}`;
+    });
+    const zw = el('hr-zones-wrap'); if (zw) zw.style.display = 'flex';
 }
-function renderShopBudzet() {
-    return `<div class="converter-box">${sectionDescKey('desc.shop.budget')}${inputField('label.shop.totalBudget','budzet-total','RSD','placeholder="30000"')}${selectField('label.shop.period','budzet-period',[{value:'7',text:safeT('option.shop.week')},{value:'14',text:safeT('option.shop.twoWeeks')},{value:'30',text:safeT('option.shop.month')}])}${inputField('label.shop.alreadySpent','budzet-spent','RSD','placeholder="0"')}${calcButton('btn.calculate','calculateBudget()')}</div>${resultCard('budzet-result-box','calendarSm','label.shop.dailyLimit','res-budzet-daily','RSD','KUPOVINA','label.shop.budgetShort')}${statsRow('budzet-stats-row',[['label.shop.untilEndOfPeriod','stat-budzet-left','0 RSD'],['label.shop.daysCount','stat-budzet-days','0'],['label.shop.dailyUntilEnd','stat-budzet-recalc','0 RSD']])}`;
+function calculateRunning() {
+    const distance = num('run-distance'), min = num('run-min') || 0, sec = num('run-sec') || 0;
+    if (!distance) { showToast(safeT('toast.error.enterDistance'), 'error'); return; }
+    const totalMinutes = min + (sec / 60);
+    if (totalMinutes === 0) { showToast(safeT('toast.error.enterTime'), 'error'); return; }
+    const paceMin = totalMinutes / distance;
+    const paceMinWhole = Math.floor(paceMin), paceSec = Math.round((paceMin - paceMinWhole) * 60);
+    const rp = el('res-run-pace'); if (rp) rp.innerText = `${paceMinWhole}:${String(paceSec).padStart(2, '0')}`;
+    const rs = el('stat-run-speed'); if (rs) rs.innerText = fmt(distance / (totalMinutes / 60), 2) + ' km/h';
+    const rt = el('stat-run-total'); if (rt) rt.innerText = `${min}min ${sec}s`;
+    show('run-result-box'); show('run-stats-row');
 }
-function renderShopRate() {
-    return `<div class="converter-box">${sectionDescKey('desc.shop.rate')}${inputField('label.shop.regularPrice','rate-cena','RSD','placeholder="120000"')}${inputField('label.shop.installmentsCount','rate-br','','placeholder="24"')}${inputField('label.shop.cashPrice','rate-kes','RSD','placeholder="110000"')}${inputField('label.shop.annualInflation','rate-infl','%','placeholder="5"')}${calcButton('btn.calculate','calculateRates()')}</div><div id="rate-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('creditCard')}</div><div><div class="res-label">${safeT('label.shop.moreCostEffective')}</div><h3 id="res-rate-winner" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-rate-winner','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Rate" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Rate" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('rate-stats-row',[['label.shop.monthlyPayment','stat-rate-monthly','0 RSD'],['label.shop.totalOnInstallments','stat-rate-total','0 RSD'],['label.shop.cashSavings','stat-rate-saving','0 RSD']])}`;
+function calculateBikeFitness() {
+    const distance = num('fitbike-distance'), minutes = num('fitbike-min'), weight = num('fitbike-weight');
+    if (!distance || !minutes || !weight) { showToast(safeT('toast.error.enterAll'), 'error'); return; }
+    const hours = minutes / 60, speed = distance / hours;
+    let met = 8.0;
+    if (speed < 15) met = 6.0; else if (speed < 20) met = 8.0; else if (speed < 25) met = 10.0; else met = 12.0;
+    const fs = el('res-fitbike-speed'); if (fs) fs.innerText = fmt(speed, 2);
+    const fc = el('stat-fitbike-cal'); if (fc) fc.innerText = fmt(met * weight * hours, 0) + ' kcal';
+    show('fitbike-result-box'); show('fitbike-stats-row');
 }
-function renderShopKartice() {
-    return `<div class="converter-box">${sectionDescKey('desc.shop.card')}${inputField('label.shop.price','kart-cena','RSD','placeholder="10000"')}${inputField('label.shop.cashDiscount','kart-popust','%','placeholder="5"')}${inputField('label.shop.deferredFee','kart-naknada','%','placeholder="0"')}${calcButton('btn.calculate','calculateCardVsCash()')}</div><div id="kart-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('banknote')}</div><div><div class="res-label">${safeT('label.shop.moreCostEffective')}</div><h3 id="res-kart-winner" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-kart-winner','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Kartica" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Kartica" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('kart-stats-row',[['label.shop.cash','stat-kart-kes','0 RSD'],['label.shop.card','stat-kart-kart','0 RSD'],['label.shop.difference','stat-kart-diff','0 RSD']])}`;
+function calculate1RM() {
+    const weight = num('rm1-weight'), reps = num('rm1-reps');
+    if (!weight || !reps || reps < 1 || reps > 15) { showToast(safeT('toast.error.enterWeightReps'), 'error'); return; }
+    const rm = weight * (1 + reps / 30);
+    const rv = el('res-rm1-val'); if (rv) rv.innerText = fmt(rm, 1);
+    const r90 = el('stat-rm1-90'); if (r90) r90.innerText = fmt(rm * 0.9, 1) + ' kg';
+    const r80 = el('stat-rm1-80'); if (r80) r80.innerText = fmt(rm * 0.8, 1) + ' kg';
+    show('rm1-result-box'); show('rm1-stats-row');
 }
-function renderShopLitar() {
-    return `<div class="converter-box">${sectionDescKey('desc.shop.perLiter')}${inputField('label.shop.packagePrice','litar-cena','RSD','placeholder="180"')}${inputField('label.shop.packageVolume','litar-qty','','placeholder="1"')}${selectField('label.shop.unit','litar-unit',[{value:'L',text:'L'},{value:'ml',text:'ml'},{value:'dl',text:'dL'}])}${calcButton('btn.calculate','calculatePerLiter()')}</div>${resultCard('litar-result-box','droplets','label.shop.pricePerLiter','res-litar-val','RSD','KUPOVINA','label.shop.perLiterShort')}${statsRow('litar-stats-row',[['label.shop.pricePerDl','stat-litar-dl','0 RSD'],['label.shop.pricePer100ml','stat-litar-ml100','0 RSD']])}`;
-}
-function renderShopOsoba() {
-    return `<div class="converter-box">${sectionDescKey('desc.shop.perPerson')}${inputField('label.shop.totalCost','osoba-total','RSD','placeholder="6000"')}${inputField('label.money.peopleCount','osoba-br','','value="4"')}${inputField('label.shop.daysCount','osoba-dana','','value="1"')}${calcButton('btn.calculate','calculatePerPerson()')}</div>${resultCard('osoba-result-box','users','label.shop.costPerPerson','res-osoba-val','RSD','KUPOVINA','label.shop.perPersonShort')}${statsRow('osoba-stats-row',[['label.shop.perPersonDaily','stat-osoba-dan','0 RSD'],['label.shop.totalDaily','stat-osoba-ukupno','0 RSD']])}`;
-}
-function renderShopIsplati() {
-    return `<div class="converter-box">${sectionDescKey('desc.shop.worthTrip')}${inputField('label.shop.savingsPerItem','isplati-usteda','RSD','placeholder="200"')}${inputField('label.shop.itemsCount','isplati-br','','value="5"')}${inputField('label.shop.oneWayDistance','isplati-dist','km','placeholder="20"')}${inputField('label.shop.carConsumption','isplati-potrosnja','L/100km','value="7"')}${inputField('label.shop.fuelPrice','isplati-gorivo','RSD','value="180"')}${calcButton('btn.calculate','calculateWorthTrip()')}</div><div id="isplati-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('target')}</div><div><div class="res-label">${safeT('label.shop.worthIt')}</div><h3 id="res-isplati-verdict" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-isplati-verdict','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Isplati" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Isplati" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('isplati-stats-row',[['label.shop.savings','stat-isplati-usteda','0 RSD'],['label.shop.tripCost','stat-isplati-trosak','0 RSD'],['label.shop.net','stat-isplati-neto','0 RSD']])}`;
-}
-function renderShopRacuni() {
-    return `<div class="converter-box">${sectionDescKey('desc.shop.receipts')}<div class="compare-group"><div class="compare-title">${safeT('label.shop.receiptA')}</div>${inputField('label.shop.totalPrice','rac-a-total','RSD','placeholder="5000"')}${inputField('label.shop.itemsCount','rac-a-items','','placeholder="20"')}</div><div class="compare-group"><div class="compare-title">${safeT('label.shop.receiptB')}</div>${inputField('label.shop.totalPrice','rac-b-total','RSD','placeholder="4500"')}${inputField('label.shop.itemsCount','rac-b-items','','placeholder="18"')}</div>${calcButton('btn.calculate','calculateReceipts()')}</div><div id="racuni-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('receipt')}</div><div><div class="res-label">${safeT('label.shop.receiptCompare')}</div><h3 id="res-rac-winner" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-rac-winner','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Računi" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Računi" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('racuni-stats-row',[['label.shop.averageA','stat-rac-a','0 RSD'],['label.shop.averageB','stat-rac-b','0 RSD'],['label.shop.difference','stat-rac-diff','0%']])}`;
-}
-function renderShopRasipanje() {
-    return `<div class="converter-box">${sectionDescKey('desc.shop.mealCost')}${inputField('label.shop.groceryPrice','rasip-cena','RSD','placeholder="500"')}${inputField('label.shop.mealsCount','rasip-porcija','','placeholder="4"')}${inputField('label.shop.wastePercent','rasip-bacanje','%','placeholder="0"')}${calcButton('btn.calculate','calculateMealCost()')}</div>${resultCard('rasip-result-box','packageSm','label.shop.costPerMeal','res-rasip-val','RSD','KUPOVINA','label.shop.perMealShort')}${statsRow('rasip-stats-row',[['label.shop.withoutWaste','stat-rasip-base','0 RSD'],['label.shop.wasteCost','stat-rasip-waste','0 RSD']])}`;
+function calculateWorkoutVolume() {
+    const weight = num('vol-weight'), reps = num('vol-reps'), sets = num('vol-sets');
+    if (!weight || !reps || !sets) { showToast(safeT('toast.error.enterAll'), 'error'); return; }
+    const vv = el('res-vol-val'); if (vv) vv.innerText = money(weight * reps * sets);
+    show('vol-result-box');
 }
 
+// ============================================================
+// KALKULACIJE — VREME
+// ============================================================
+function calculateDateDifference() {
+    const startVal = getTripleDate('start-date'), endVal = getTripleDate('end-date');
+    if (!startVal || !endVal) { showToast(safeT('toast.error.enterBothDates'), 'error'); return; }
+    let startDate = parseDate(startVal), endDate = parseDate(endVal);
+    if (startDate > endDate) { const t = startDate; startDate = endDate; endDate = t; }
+    let years = endDate.getFullYear() - startDate.getFullYear();
+    let months = endDate.getMonth() - startDate.getMonth();
+    let days = endDate.getDate() - startDate.getDate();
+    if (days < 0) { months--; days += new Date(endDate.getFullYear(), endDate.getMonth(), 0).getDate(); }
+    if (months < 0) { years--; months += 12; }
+    const totalDays = Math.round((endDate - startDate) / 86400000);
+    const dv = el('res-date-val');
+    if (dv) {
+        if (currentLang === 'en') dv.innerHTML = `${years} yr, ${months} mo, ${days} d<br>(${safeT('label.time.total')} ${fmt(totalDays, 0)} d)`;
+        else dv.innerHTML = `${years} god, ${months} mes, ${days} dana<br>(ukupno ${fmt(totalDays, 0)} dana)`;
+    }
+    show('result-date-box');
+}
+function calculateDateShift() {
+    const startVal = getTripleDate('shift-date'), days = num('shift-days');
+    const op = el('shift-op') ? el('shift-op').value : 'add';
+    if (!startVal || days === null) { showToast(safeT('toast.error.enterDateDays'), 'error'); return; }
+    const date = parseDate(startVal);
+    date.setDate(date.getDate() + (op === 'sub' ? -Math.abs(days) : Math.abs(days)));
+    const sv = el('res-shift-val');
+    const daysArr = getDaysArr();
+    const monthsArr = getMonthsArr();
+    if (sv) sv.innerText = `${date.getDate()}. ${monthsArr[date.getMonth()]} ${date.getFullYear()}. (${daysArr[date.getDay()]})`;
+    show('shift-result-box');
+}
+function calculateAge() {
+    const birthVal = getTripleDate('birth-date');
+    if (!birthVal) { showToast(safeT('toast.error.enterBirthDate'), 'error'); return; }
+    const birth = parseDate(birthVal);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (birth > today) { showToast(safeT('toast.error.futureDate'), 'error'); return; }
+    let years = today.getFullYear() - birth.getFullYear();
+    let months = today.getMonth() - birth.getMonth();
+    let days = today.getDate() - birth.getDate();
+    if (days < 0) { months--; days += new Date(today.getFullYear(), today.getMonth(), 0).getDate(); }
+    if (months < 0) { years--; months += 12; }
+    const ay = el('res-age-years'); if (ay) ay.innerText = years;
+    const ad = el('stat-age-detail');
+    if (ad) ad.innerText = currentLang === 'en' ? `${months} mo, ${days} d` : `${months} mes, ${days} d.`;
+    const nextBday = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
+    if (nextBday < today) nextBday.setFullYear(today.getFullYear() + 1);
+    const daysToBday = Math.round((nextBday - today) / 86400000);
+    const an = el('stat-age-next');
+    if (an) an.innerText = daysToBday === 0 ? safeT('label.time.todayBirthday') : safeT('label.time.in') + ' ' + daysToBday + ' ' + safeT('unit.daysShort');
+    show('age-result-box'); show('age-stats-row');
+}
+function calculateDayOfWeek() {
+    const val = getTripleDate('dayofweek-date');
+    if (!val) { showToast(safeT('toast.error.enterDate'), 'error'); return; }
+    const date = parseDate(val);
+    const daysArr = getDaysArr();
+    const monthsArr = getMonthsArr();
+    const dn = el('res-day-name');
+    if (dn) dn.innerText = daysArr[date.getDay()].charAt(0).toUpperCase() + daysArr[date.getDay()].slice(1);
+    const dd = el('stat-day-date');
+    if (dd) dd.innerText = `${date.getDate()}. ${monthsArr[date.getMonth()]} ${date.getFullYear()}.`;
+    show('dayofweek-result-box'); show('dayofweek-stats-row');
+}
+function calculateWorkdays() {
+    const startVal = getTripleDate('workdays-start'), endVal = getTripleDate('workdays-end');
+    if (!startVal || !endVal) { showToast(safeT('toast.error.enterBothDates'), 'error'); return; }
+    let start = parseDate(startVal), end = parseDate(endVal);
+    if (start > end) { const tmp = start; start = end; end = tmp; }
+    let workdays = 0, weekend = 0, total = 0;
+    const cur = new Date(start);
+    while (cur <= end) {
+        const day = cur.getDay();
+        if (day === 0 || day === 6) weekend++; else workdays++;
+        total++; cur.setDate(cur.getDate() + 1);
+    }
+    const wv = el('res-workdays-val'); if (wv) wv.innerText = fmt(workdays, 0);
+    const wt = el('stat-workdays-total'); if (wt) wt.innerText = fmt(total, 0);
+    const ww = el('stat-workdays-weekend'); if (ww) ww.innerText = fmt(weekend, 0);
+    show('workdays-result-box'); show('workdays-stats-row');
+}
+const TIME_SECONDS = { seconds: 1, minutes: 60, hours: 3600, days: 86400, weeks: 604800, months: 2592000, years: 31536000 };
+const TIME_LABELS_KEY = { seconds: 'unit.secShort', minutes: 'unit.minShort', hours: 'unit.h', days: 'unit.daysShort', weeks: 'unit.weeksShort', months: 'unit.monthsShort', years: 'unit.yearsShort' };
+function convertTimeUnits() {
+    const val = num('time-value');
+    const from = el('time-from') ? el('time-from').value : 'hours';
+    const to = el('time-to') ? el('time-to').value : 'minutes';
+    if (val === null) { showToast(safeT('toast.error.enterValue'), 'error'); return; }
+    const result = val * TIME_SECONDS[from] / TIME_SECONDS[to];
+    const tv = el('res-time-conv-val');
+    if (tv) tv.innerText = `${fmt(result)} ${safeT(TIME_LABELS_KEY[to])}`;
+    show('result-time-conv-box');
+}
+
+// ============================================================
+// KALKULACIJE — SHOPPING
+// ============================================================
 function calculateUnitPrice() {
     const price = num('unit-price'), qty = num('unit-qty');
     const type = el('unit-type') ? el('unit-type').value : 'kg';
@@ -3889,20 +5238,33 @@ function calculatePromo() {
     const ps = el('stat-promo-save'); if (ps) ps.innerText = money(saved) + ' RSD';
     show('promo-result-box'); show('promo-stats-row');
 }
-function loadShoppingList() { try { const raw = JSON.parse(localStorage.getItem('cx_shopping_list_v1')); if (Array.isArray(raw)) return raw; } catch (e) {} return []; }
-function saveShoppingList(list) { try { localStorage.setItem('cx_shopping_list_v1', JSON.stringify(list)); } catch (e) {} }
+function loadShoppingList() {
+    try { const raw = JSON.parse(localStorage.getItem('cx_shopping_list_v1')); if (Array.isArray(raw)) return raw; } catch (e) {}
+    return [];
+}
+function saveShoppingList(list) {
+    try { localStorage.setItem('cx_shopping_list_v1', JSON.stringify(list)); } catch (e) {}
+}
 function addShoppingItem() {
     const nameEl = el('lista-name'), qtyEl = el('lista-qty'), priceEl = el('lista-price');
     if (!nameEl) return;
     const name = nameEl.value.trim();
     if (!name) { showToast(safeT('toast.error.enterItemName'), 'error'); return; }
     const list = loadShoppingList();
-    list.push({ id: Date.now() + Math.random(), name, qty: qtyEl ? qtyEl.value.trim() : '', price: priceEl ? (parseNum(priceEl.value) || 0) : 0, bought: false, date: Date.now() });
-    saveShoppingList(list); renderShoppingList();
+    list.push({
+        id: Date.now() + Math.random(), name,
+        qty: qtyEl ? qtyEl.value.trim() : '',
+        price: priceEl ? (parseNum(priceEl.value) || 0) : 0,
+        bought: false, date: Date.now()
+    });
+    saveShoppingList(list);
+    renderShoppingList();
     nameEl.value = '';
     if (qtyEl) qtyEl.value = '';
     if (priceEl) priceEl.value = '';
-    showToast(safeT('toast.itemAdded'), 'success', 1400); vibrate(15); nameEl.focus();
+    showToast(safeT('toast.itemAdded'), 'success', 1400);
+    vibrate(15);
+    nameEl.focus();
 }
 function toggleShoppingItem(id) {
     const list = loadShoppingList();
@@ -3950,16 +5312,27 @@ function renderShoppingList() {
         const row = document.createElement('div');
         row.className = 'lista-item' + (item.bought ? ' bought' : '');
         const check = document.createElement('button');
-        check.className = 'lista-check'; check.textContent = item.bought ? '✓' : '';
+        check.className = 'lista-check';
+        check.textContent = item.bought ? '✓' : '';
         check.addEventListener('click', () => toggleShoppingItem(item.id));
-        const info = document.createElement('div'); info.className = 'lista-item-info';
-        const nameEl = document.createElement('div'); nameEl.className = 'lista-item-name'; nameEl.textContent = item.name; info.appendChild(nameEl);
-        if (item.qty) { const q = document.createElement('div'); q.className = 'lista-item-qty'; q.textContent = item.qty; info.appendChild(q); }
+        const info = document.createElement('div');
+        info.className = 'lista-item-info';
+        const nameEl = document.createElement('div');
+        nameEl.className = 'lista-item-name';
+        nameEl.textContent = item.name;
+        info.appendChild(nameEl);
+        if (item.qty) {
+            const q = document.createElement('div');
+            q.className = 'lista-item-qty';
+            q.textContent = item.qty;
+            info.appendChild(q);
+        }
         const priceEl = document.createElement('div');
         priceEl.className = 'lista-item-price';
         priceEl.textContent = item.price > 0 ? money(item.price) + ' RSD' : '—';
         const removeBtn = document.createElement('button');
-        removeBtn.className = 'lista-item-remove'; removeBtn.textContent = '✕';
+        removeBtn.className = 'lista-item-remove';
+        removeBtn.textContent = '✕';
         removeBtn.addEventListener('click', () => removeShoppingItem(item.id));
         row.appendChild(check); row.appendChild(info); row.appendChild(priceEl); row.appendChild(removeBtn);
         itemsWrap.appendChild(row);
@@ -4061,58 +5434,60 @@ function calculateMealCost() {
     const sb = el('stat-rasip-base'); if (sb) sb.innerText = money(base) + ' RSD';
     const sw = el('stat-rasip-waste'); if (sw) sw.innerText = money(waste) + ' RSD';
     show('rasip-result-box'); show('rasip-stats-row');
-}
-
-// ============================================================
-// GRAĐEVINA (skraćeno — samo render + glavne kalkulacije)
+}// ============================================================
+// HOMECALC — Render funkcije
 // ============================================================
 let openingsData = { paint: [], tile: [], block: [], board: [] };
+
 function renderHomePovrsina() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.area')}${selectField('label.home.shape','shape-type',[{value:'rect',text:safeT('option.home.rectangle')},{value:'square',text:safeT('option.home.square')},{value:'circle',text:safeT('option.home.circle')},{value:'triangle',text:safeT('option.home.triangle')}],'rect')}<div id="shape-rect-inputs">${inputField('label.home.length','shape-a','m','placeholder="5"')}${inputField('label.home.width','shape-b','m','placeholder="3"')}</div><div id="shape-square-inputs" style="display:none;">${inputField('label.home.side','shape-side','m','placeholder="4"')}</div><div id="shape-circle-inputs" style="display:none;">${inputField('label.home.diameter','shape-diameter','m','placeholder="4"')}</div><div id="shape-triangle-inputs" style="display:none;">${inputField('label.home.base','shape-base','m','placeholder="6"')}${inputField('label.home.height','shape-height','m','placeholder="4"')}</div>${calcButton('btn.calculate','calculateShapeArea()')}</div>${resultCard('shape-result-box','square','label.home.area','res-shape-area','m²','GRAĐEVINA','label.home.area')}`;
+    return `<div class="converter-box">${sectionDescKey('desc.home.area')}${selectField('label.home.shape', 'shape-type', [{ value: 'rect', text: safeT('option.home.rectangle') }, { value: 'square', text: safeT('option.home.square') }, { value: 'circle', text: safeT('option.home.circle') }, { value: 'triangle', text: safeT('option.home.triangle') }], 'rect')}<div id="shape-rect-inputs">${inputField('label.home.length', 'shape-a', 'm', 'placeholder="5"')}${inputField('label.home.width', 'shape-b', 'm', 'placeholder="3"')}</div><div id="shape-square-inputs" style="display:none;">${inputField('label.home.side', 'shape-side', 'm', 'placeholder="4"')}</div><div id="shape-circle-inputs" style="display:none;">${inputField('label.home.diameter', 'shape-diameter', 'm', 'placeholder="4"')}</div><div id="shape-triangle-inputs" style="display:none;">${inputField('label.home.base', 'shape-base', 'm', 'placeholder="6"')}${inputField('label.home.height', 'shape-height', 'm', 'placeholder="4"')}</div>${calcButton('btn.calculate', 'calculateShapeArea()')}</div>${resultCard('shape-result-box', 'square', 'label.home.area', 'res-shape-area', 'm²', 'GRAĐEVINA', 'label.home.area')}`;
 }
 function renderHomeBlokovi() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.blocks')}${inputField('label.home.wallLength','block-wall-l','m','placeholder="10"')}${inputField('label.home.wallHeight','block-wall-h','m','placeholder="2.8"')}${inputField('label.home.blockDimensions','block-l','cm','placeholder="25"')}${inputField('label.home.blockDimensions','block-h','cm','placeholder="19"')}${inputField('label.home.pricePerPiece','block-price','RSD','placeholder="0"')}${calcButton('btn.calculate','calculateBlocks()')}</div>${resultCard('blocks-result-box','bricks','label.home.blocksNeeded','res-blocks-count','','GRAĐEVINA','Blokovi')}${statsRow('blocks-stats-row',[['label.home.netArea','stat-blocks-area','0 m²'],['label.home.totalPrice','stat-blocks-price','—']])}`;
+    return `<div class="converter-box">${sectionDescKey('desc.home.blocks')}${inputField('label.home.wallLength', 'block-wall-l', 'm', 'placeholder="10"')}${inputField('label.home.wallHeight', 'block-wall-h', 'm', 'placeholder="2.8"')}${inputField('label.home.blockDimensions', 'block-l', 'cm', 'placeholder="25"')}${inputField('label.home.blockDimensions', 'block-h', 'cm', 'placeholder="19"')}${inputField('label.home.pricePerPiece', 'block-price', 'RSD', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateBlocks()')}</div>${resultCard('blocks-result-box', 'bricks', 'label.home.blocksNeeded', 'res-blocks-count', '', 'GRAĐEVINA', 'Blokovi')}${statsRow('blocks-stats-row', [['label.home.netArea', 'stat-blocks-area', '0 m²'], ['label.home.totalPrice', 'stat-blocks-price', '—']])}`;
 }
 function renderHomeTable() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.boards')}${inputField('label.home.surfaceLength','board-wall-l','m','placeholder="10"')}${inputField('label.home.surfaceHeight','board-wall-h','m','placeholder="2.8"')}${inputField('label.home.boardDimensions','board-l','cm','placeholder="125"')}${inputField('label.home.boardDimensions','board-w','cm','placeholder="250"')}${inputField('label.home.reserve','board-reserve','%','placeholder="10"')}${calcButton('btn.calculate','calculateBoards()')}</div>${resultCard('boards-result-box','board','label.home.boardsNeeded','res-boards-count','','GRAĐEVINA','Table')}${statsRow('boards-stats-row',[['label.home.netArea','stat-boards-area','0 m²'],['label.home.boardArea','stat-boards-single','0 m²']])}`;
+    return `<div class="converter-box">${sectionDescKey('desc.home.boards')}${inputField('label.home.surfaceLength', 'board-wall-l', 'm', 'placeholder="10"')}${inputField('label.home.surfaceHeight', 'board-wall-h', 'm', 'placeholder="2.8"')}${inputField('label.home.boardDimensions', 'board-l', 'cm', 'placeholder="125"')}${inputField('label.home.boardDimensions', 'board-w', 'cm', 'placeholder="250"')}${inputField('label.home.reserve', 'board-reserve', '%', 'placeholder="10"')}${calcButton('btn.calculate', 'calculateBoards()')}</div>${resultCard('boards-result-box', 'board', 'label.home.boardsNeeded', 'res-boards-count', '', 'GRAĐEVINA', 'Table')}${statsRow('boards-stats-row', [['label.home.netArea', 'stat-boards-area', '0 m²'], ['label.home.boardArea', 'stat-boards-single', '0 m²']])}`;
 }
 function renderHomeCrep() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.roofTiles')}${inputField('label.home.roofArea','crep-area','m²','placeholder="100"')}${inputField('label.home.tilesPerM2','crep-per-m2','','placeholder="15.5"')}${inputField('label.home.reserve','crep-reserve','%','placeholder="5"')}${calcButton('btn.calculate','calculateCrep()')}</div>${resultCard('crep-result-box','home','label.home.tilesNeeded','res-crep-count','','GRAĐEVINA','Crep')}${statsRow('crep-stats-row',[['label.home.withoutReserve','stat-crep-base','0']])}`;
+    return `<div class="converter-box">${sectionDescKey('desc.home.roofTiles')}${inputField('label.home.roofArea', 'crep-area', 'm²', 'placeholder="100"')}${inputField('label.home.tilesPerM2', 'crep-per-m2', '', 'placeholder="15.5"')}${inputField('label.home.reserve', 'crep-reserve', '%', 'placeholder="5"')}${calcButton('btn.calculate', 'calculateCrep()')}</div>${resultCard('crep-result-box', 'home', 'label.home.tilesNeeded', 'res-crep-count', '', 'GRAĐEVINA', 'Crep')}${statsRow('crep-stats-row', [['label.home.withoutReserve', 'stat-crep-base', '0']])}`;
 }
 function renderHomeBeton() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.concrete')}${inputField('label.home.length','beton-l','m','placeholder="5"')}${inputField('label.home.width','beton-w','m','placeholder="3"')}${inputField('label.home.thickness','beton-h','m','placeholder="0.2"')}${calcButton('btn.calculate','calculateConcrete()')}</div>${resultCard('beton-result-box','building','label.home.concreteNeeded','res-beton-m3','m³','GRAĐEVINA','Beton')}`;
+    return `<div class="converter-box">${sectionDescKey('desc.home.concrete')}${inputField('label.home.length', 'beton-l', 'm', 'placeholder="5"')}${inputField('label.home.width', 'beton-w', 'm', 'placeholder="3"')}${inputField('label.home.thickness', 'beton-h', 'm', 'placeholder="0.2"')}${calcButton('btn.calculate', 'calculateConcrete()')}</div>${resultCard('beton-result-box', 'building', 'label.home.concreteNeeded', 'res-beton-m3', 'm³', 'GRAĐEVINA', 'Beton')}`;
 }
 function renderHomeTemelj() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.foundation')}${inputField('label.home.length','temelj-l','m','placeholder="10"')}${inputField('label.home.width','temelj-w','m','placeholder="0.6"')}${inputField('label.home.depthHeight','temelj-h','m','placeholder="0.8"')}${calcButton('btn.calculate','calculateFoundation()')}</div>${resultCard('temelj-result-box','layers','label.home.concreteNeeded','res-temelj-m3','m³','GRAĐEVINA','Temelj')}${statsRow('temelj-stats-row',[['label.home.rebar12mm','stat-temelj-arma','0 kg'],['label.home.cement25kg','stat-temelj-cement','0']])}`;
+    return `<div class="converter-box">${sectionDescKey('desc.home.foundation')}${inputField('label.home.length', 'temelj-l', 'm', 'placeholder="10"')}${inputField('label.home.width', 'temelj-w', 'm', 'placeholder="0.6"')}${inputField('label.home.depthHeight', 'temelj-h', 'm', 'placeholder="0.8"')}${calcButton('btn.calculate', 'calculateFoundation()')}</div>${resultCard('temelj-result-box', 'layers', 'label.home.concreteNeeded', 'res-temelj-m3', 'm³', 'GRAĐEVINA', 'Temelj')}${statsRow('temelj-stats-row', [['label.home.rebar12mm', 'stat-temelj-arma', '0 kg'], ['label.home.cement25kg', 'stat-temelj-cement', '0']])}`;
 }
 function renderHomeFarbanje() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.painting')}${inputField('label.home.wallLength','paint-width','m','placeholder="10"')}${inputField('label.home.wallHeight','paint-height','m','placeholder="2.8"')}${inputField('label.home.wallCount','paint-walls','','placeholder="4"')}${inputField('label.home.paintCoverage','paint-coverage','m²/L','placeholder="10"')}${calcButton('btn.calculate','calculatePaint()')}</div>${resultCard('paint-result-box','paint','label.home.paintNeeded','res-paint-liters','L','GRAĐEVINA','Farbanje')}${statsRow('paint-stats-row',[['label.home.totalArea','stat-paint-area','0 m²'],['label.home.openingsDeducted','stat-paint-openings','0 m²']])}`;
+    return `<div class="converter-box">${sectionDescKey('desc.home.painting')}${inputField('label.home.wallLength', 'paint-width', 'm', 'placeholder="10"')}${inputField('label.home.wallHeight', 'paint-height', 'm', 'placeholder="2.8"')}${inputField('label.home.wallCount', 'paint-walls', '', 'placeholder="4"')}${inputField('label.home.paintCoverage', 'paint-coverage', 'm²/L', 'placeholder="10"')}${calcButton('btn.calculate', 'calculatePaint()')}</div>${resultCard('paint-result-box', 'paint', 'label.home.paintNeeded', 'res-paint-liters', 'L', 'GRAĐEVINA', 'Farbanje')}${statsRow('paint-stats-row', [['label.home.totalArea', 'stat-paint-area', '0 m²'], ['label.home.openingsDeducted', 'stat-paint-openings', '0 m²']])}`;
 }
 function renderHomePlocice() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.tiles')}${inputField('label.home.roomLength','tile-room-l','m','placeholder="4"')}${inputField('label.home.roomWidth','tile-room-w','m','placeholder="3"')}${inputField('label.home.tileLength','tile-l','cm','placeholder="30"')}${inputField('label.home.tileWidth','tile-w','cm','placeholder="30"')}${inputField('label.home.reserve','tile-reserve','%','placeholder="10"')}${calcButton('btn.calculate','calculateTiles()')}</div>${resultCard('tiles-result-box','tiles','label.home.tiles','res-tiles-count','','GRAĐEVINA','Pločice')}${statsRow('tiles-stats-row',[['label.home.netArea','stat-tiles-area','0 m²'],['label.home.withoutReserve','stat-tiles-nores','0']])}`;
+    return `<div class="converter-box">${sectionDescKey('desc.home.tiles')}${inputField('label.home.roomLength', 'tile-room-l', 'm', 'placeholder="4"')}${inputField('label.home.roomWidth', 'tile-room-w', 'm', 'placeholder="3"')}${inputField('label.home.tileLength', 'tile-l', 'cm', 'placeholder="30"')}${inputField('label.home.tileWidth', 'tile-w', 'cm', 'placeholder="30"')}${inputField('label.home.reserve', 'tile-reserve', '%', 'placeholder="10"')}${calcButton('btn.calculate', 'calculateTiles()')}</div>${resultCard('tiles-result-box', 'tiles', 'label.home.tiles', 'res-tiles-count', '', 'GRAĐEVINA', 'Pločice')}${statsRow('tiles-stats-row', [['label.home.netArea', 'stat-tiles-area', '0 m²'], ['label.home.withoutReserve', 'stat-tiles-nores', '0']])}`;
 }
 function renderHomeLaminat() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.laminate')}${inputField('label.home.roomLength','lam-room-l','m','placeholder="5"')}${inputField('label.home.roomWidth','lam-room-w','m','placeholder="4"')}${inputField('label.home.packageArea','lam-pack','m²','placeholder="2.5"')}${inputField('label.home.reserve','lam-reserve','%','placeholder="10"')}${calcButton('btn.calculate','calculateLaminate()')}</div>${resultCard('laminate-result-box','layers','label.home.packagesNeeded','res-lam-packs','','GRAĐEVINA','Laminat')}${statsRow('laminate-stats-row',[['label.home.totalArea','stat-lam-area','0 m²']])}`;
+    return `<div class="converter-box">${sectionDescKey('desc.home.laminate')}${inputField('label.home.roomLength', 'lam-room-l', 'm', 'placeholder="5"')}${inputField('label.home.roomWidth', 'lam-room-w', 'm', 'placeholder="4"')}${inputField('label.home.packageArea', 'lam-pack', 'm²', 'placeholder="2.5"')}${inputField('label.home.reserve', 'lam-reserve', '%', 'placeholder="10"')}${calcButton('btn.calculate', 'calculateLaminate()')}</div>${resultCard('laminate-result-box', 'layers', 'label.home.packagesNeeded', 'res-lam-packs', '', 'GRAĐEVINA', 'Laminat')}${statsRow('laminate-stats-row', [['label.home.totalArea', 'stat-lam-area', '0 m²']])}`;
 }
 function renderHomeMalter() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.mortar')}${inputField('label.home.plasterArea','malter-area','m²','placeholder="50"')}${inputField('label.home.mortarThickness','malter-thickness','cm','placeholder="2"')}${selectField('label.home.ratio','malter-ratio',[{value:'1:3',text:'1:3'},{value:'1:4',text:'1:4'},{value:'1:5',text:'1:5'}],'1:4')}${calcButton('btn.calculate','calculateMortar()')}</div><div id="malter-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('flask')}</div><div><div class="res-label">${safeT('label.home.materialsNeeded')}</div><h3 id="res-malter-text" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-malter-text','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Malter" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Malter" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('malter-stats-row',[['label.home.cement','stat-malter-cement','0 kg'],['label.home.sand','stat-malter-sand','0 kg'],['label.home.water','stat-malter-water','0 L']])}`;
+    return `<div class="converter-box">${sectionDescKey('desc.home.mortar')}${inputField('label.home.plasterArea', 'malter-area', 'm²', 'placeholder="50"')}${inputField('label.home.mortarThickness', 'malter-thickness', 'cm', 'placeholder="2"')}${selectField('label.home.ratio', 'malter-ratio', [{ value: '1:3', text: '1:3' }, { value: '1:4', text: '1:4' }, { value: '1:5', text: '1:5' }], '1:4')}${calcButton('btn.calculate', 'calculateMortar()')}</div><div id="malter-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('flask')}</div><div><div class="res-label">${safeT('label.home.materialsNeeded')}</div><h3 id="res-malter-text" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-malter-text', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Malter" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Malter" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('malter-stats-row', [['label.home.cement', 'stat-malter-cement', '0 kg'], ['label.home.sand', 'stat-malter-sand', '0 kg'], ['label.home.water', 'stat-malter-water', '0 L']])}`;
 }
 function renderHomeGips() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.gypsum')}${inputField('label.home.surfaceArea','gips-area','m²','placeholder="30"')}${selectField('label.home.layers','gips-layers',[{value:'1',text:'1'},{value:'2',text:'2'}],'1')}${calcButton('btn.calculate','calculateGypsum()')}</div><div id="gips-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('wall')}</div><div><div class="res-label">${safeT('label.home.materialsNeeded')}</div><h3 id="res-gips-text" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-gips-text','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Gips" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Gips" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('gips-stats-row',[['label.home.sheets','stat-gips-sheets','0'],['label.home.profiles','stat-gips-profiles','0'],['label.home.screws','stat-gips-screws','0']])}`;
+    return `<div class="converter-box">${sectionDescKey('desc.home.gypsum')}${inputField('label.home.surfaceArea', 'gips-area', 'm²', 'placeholder="30"')}${selectField('label.home.layers', 'gips-layers', [{ value: '1', text: '1' }, { value: '2', text: '2' }], '1')}${calcButton('btn.calculate', 'calculateGypsum()')}</div><div id="gips-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('wall')}</div><div><div class="res-label">${safeT('label.home.materialsNeeded')}</div><h3 id="res-gips-text" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-gips-text', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Gips" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Gips" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('gips-stats-row', [['label.home.sheets', 'stat-gips-sheets', '0'], ['label.home.profiles', 'stat-gips-profiles', '0'], ['label.home.screws', 'stat-gips-screws', '0']])}`;
 }
 function renderHomeHidro() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.waterproofing')}${inputField('label.home.surfaceArea','hidro-area','m²','placeholder="30"')}${selectField('label.home.waterproofingType','hidro-type',[{value:'folija',text:safeT('option.home.pvcFoil')},{value:'premaz',text:safeT('option.home.coating')},{value:'traka',text:safeT('option.home.tape')}])}${inputField('label.home.reserve','hidro-reserve','%','placeholder="10"')}${calcButton('btn.calculate','calculateHydro()')}</div><div id="hidro-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('droplet')}</div><div><div class="res-label">${safeT('label.home.materialsNeeded')}</div><h3 id="res-hidro-text" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-hidro-text','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Hidro" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Hidro" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>`;
+    return `<div class="converter-box">${sectionDescKey('desc.home.waterproofing')}${inputField('label.home.surfaceArea', 'hidro-area', 'm²', 'placeholder="30"')}${selectField('label.home.waterproofingType', 'hidro-type', [{ value: 'folija', text: safeT('option.home.pvcFoil') }, { value: 'premaz', text: safeT('option.home.coating') }, { value: 'traka', text: safeT('option.home.tape') }])}${inputField('label.home.reserve', 'hidro-reserve', '%', 'placeholder="10"')}${calcButton('btn.calculate', 'calculateHydro()')}</div><div id="hidro-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('droplet')}</div><div><div class="res-label">${safeT('label.home.materialsNeeded')}</div><h3 id="res-hidro-text" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-hidro-text', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Hidro" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Hidro" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>`;
 }
 function renderHomeElektro() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.electrical')}${inputField('label.home.outlets','elektro-outlets','','placeholder="10"')}${inputField('label.home.switches','elektro-switches','','placeholder="5"')}${inputField('label.home.cableLength','elektro-cable','m','placeholder="100"')}${calcButton('btn.calculate','calculateElectro()')}</div><div id="elektro-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('plug')}</div><div><div class="res-label">${safeT('label.home.totalMaterials')}</div><h3 id="res-elektro-text" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-elektro-text','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Elektro" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Elektro" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('elektro-stats-row',[['label.home.outlets','stat-elektro-out','0'],['label.home.switches','stat-elektro-sw','0'],['label.home.cables','stat-elektro-cab','0 m']])}`;
+    return `<div class="converter-box">${sectionDescKey('desc.home.electrical')}${inputField('label.home.outlets', 'elektro-outlets', '', 'placeholder="10"')}${inputField('label.home.switches', 'elektro-switches', '', 'placeholder="5"')}${inputField('label.home.cableLength', 'elektro-cable', 'm', 'placeholder="100"')}${calcButton('btn.calculate', 'calculateElectro()')}</div><div id="elektro-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('plug')}</div><div><div class="res-label">${safeT('label.home.totalMaterials')}</div><h3 id="res-elektro-text" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-elektro-text', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Elektro" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Elektro" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('elektro-stats-row', [['label.home.outlets', 'stat-elektro-out', '0'], ['label.home.switches', 'stat-elektro-sw', '0'], ['label.home.cables', 'stat-elektro-cab', '0 m']])}`;
 }
 function renderHomeStolarija() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.joinery')}${inputField('label.home.pieces','stolarija-qty','','placeholder="5"')}${inputField('label.home.avgWidth','stolarija-w','m','placeholder="1.2"')}${inputField('label.home.avgHeight','stolarija-h','m','placeholder="1.5"')}${calcButton('btn.calculate','calculateJoinery()')}</div>${resultCard('stolarija-result-box','door','label.home.totalJoineryArea','res-stolarija-m2','m²','GRAĐEVINA','Stolarija')}`;
+    return `<div class="converter-box">${sectionDescKey('desc.home.joinery')}${inputField('label.home.pieces', 'stolarija-qty', '', 'placeholder="5"')}${inputField('label.home.avgWidth', 'stolarija-w', 'm', 'placeholder="1.2"')}${inputField('label.home.avgHeight', 'stolarija-h', 'm', 'placeholder="1.5"')}${calcButton('btn.calculate', 'calculateJoinery()')}</div>${resultCard('stolarija-result-box', 'door', 'label.home.totalJoineryArea', 'res-stolarija-m2', 'm²', 'GRAĐEVINA', 'Stolarija')}`;
 }
 function renderHomeUniverzalno() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.universal')}${inputFieldText('label.home.materialName','univ-name',safeT('placeholder.material'))}${inputField('label.quantity','univ-qty','','placeholder="10"')}${inputField('label.price','univ-price','RSD','placeholder="500"')}${calcButton('btn.calculate','calculateUniversal()')}</div>${resultCard('univ-result-box','calculator','label.total','res-univ-total','RSD','GRAĐEVINA','Univerzalno')}`;
+    return `<div class="converter-box">${sectionDescKey('desc.home.universal')}${inputFieldText('label.home.materialName', 'univ-name', safeT('placeholder.material'))}${inputField('label.quantity', 'univ-qty', '', 'placeholder="10"')}${inputField('label.price', 'univ-price', 'RSD', 'placeholder="500"')}${calcButton('btn.calculate', 'calculateUniversal()')}</div>${resultCard('univ-result-box', 'calculator', 'label.total', 'res-univ-total', 'RSD', 'GRAĐEVINA', 'Univerzalno')}`;
 }
 
+// ============================================================
+// KALKULACIJE — HOMECALC
+// ============================================================
 function addOpening(type) { openingsData[type].push({ name: '', w: 0, h: 0 }); renderOpenings(type); vibrate(15); }
 function removeOpening(type, idx) { openingsData[type].splice(idx, 1); renderOpenings(type); vibrate(10); }
 function updateOpening(type, idx, field, value) {
@@ -4127,24 +5502,39 @@ function renderOpenings(type) {
     list.innerHTML = '';
     if (!openingsData[type].length) {
         const empty = document.createElement('div');
-        empty.className = 'opening-empty'; empty.textContent = safeT('label.home.noOpenings'); list.appendChild(empty); return;
+        empty.className = 'opening-empty';
+        empty.textContent = safeT('label.home.noOpenings');
+        list.appendChild(empty); return;
     }
     openingsData[type].forEach((op, idx) => {
         const item = document.createElement('div');
         item.className = 'opening-item';
-        const n = document.createElement('input'); n.type = 'text'; n.placeholder = safeT('placeholder.name'); n.value = op.name || '';
+        const n = document.createElement('input');
+        n.type = 'text';
+        n.placeholder = safeT('placeholder.name');
+        n.value = op.name || '';
         n.oninput = e => updateOpening(type, idx, 'name', e.target.value);
-        const w = document.createElement('input'); w.type = 'text'; w.inputMode = 'decimal'; w.placeholder = safeT('placeholder.widthShort'); w.value = op.w || '';
+        const w = document.createElement('input');
+        w.type = 'text'; w.inputMode = 'decimal';
+        w.placeholder = safeT('placeholder.widthShort');
+        w.value = op.w || '';
         w.oninput = e => updateOpening(type, idx, 'w', e.target.value);
-        const h = document.createElement('input'); h.type = 'text'; h.inputMode = 'decimal'; h.placeholder = safeT('placeholder.heightShort'); h.value = op.h || '';
+        const h = document.createElement('input');
+        h.type = 'text'; h.inputMode = 'decimal';
+        h.placeholder = safeT('placeholder.heightShort');
+        h.value = op.h || '';
         h.oninput = e => updateOpening(type, idx, 'h', e.target.value);
-        const r = document.createElement('button'); r.className = 'opening-remove'; r.textContent = '✕';
+        const r = document.createElement('button');
+        r.className = 'opening-remove';
+        r.textContent = '✕';
         r.onclick = () => removeOpening(type, idx);
         item.appendChild(n); item.appendChild(w); item.appendChild(h); item.appendChild(r);
         list.appendChild(item);
     });
 }
-function getOpeningsArea(type) { return openingsData[type].reduce((sum, op) => sum + ((op.w || 0) * (op.h || 0)), 0); }
+function getOpeningsArea(type) {
+    return openingsData[type].reduce((sum, op) => sum + ((op.w || 0) * (op.h || 0)), 0);
+}
 function toggleShapeInputs() {
     const type = el('shape-type') ? el('shape-type').value : 'rect';
     ['rect', 'square', 'circle', 'triangle'].forEach(t => {
@@ -4160,10 +5550,12 @@ function calculateShapeArea() {
         if (!a || !b) { showToast(safeT('toast.error.enterLengthWidth'), 'error'); return; }
         area = a * b;
     } else if (type === 'square') {
-        const s = num('shape-side'); if (!s) { showToast(safeT('toast.error.enterSide'), 'error'); return; }
+        const s = num('shape-side');
+        if (!s) { showToast(safeT('toast.error.enterSide'), 'error'); return; }
         area = s * s;
     } else if (type === 'circle') {
-        const d = num('shape-diameter'); if (!d) { showToast(safeT('toast.error.enterDiameter'), 'error'); return; }
+        const d = num('shape-diameter');
+        if (!d) { showToast(safeT('toast.error.enterDiameter'), 'error'); return; }
         area = Math.PI * Math.pow(d / 2, 2);
     } else {
         const b = num('shape-base'), h = num('shape-height');
@@ -4320,63 +5712,55 @@ function calculateUniversal() {
 }
 
 // ============================================================
-// KUHINJA, STRUJA, POSAO, MUZIKA (skraćeno)
+// KITCHEN — Render funkcije
 // ============================================================
-function renderKitchenKasike() { return `<div class="converter-box">${inputField('label.kitchen.value','spoon-val','','placeholder="1"')}${selectField('label.kitchen.ingredient','spoon-ingredient',[{value:'secer',text:safeT('option.kitchen.sugar')},{value:'brasno',text:safeT('option.kitchen.flour')},{value:'so',text:safeT('option.kitchen.salt')}])}${calcButton('btn.calculate','calculateSpoon()')}</div><div id="spoon-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('spoon')}</div><div><div class="res-label">${safeT('label.kitchen.approxWeight')}</div><h2><span id="res-spoon-val">0</span> <small id="res-spoon-unit">g</small></h2></div></div></div>`; }
-function renderKitchenCase() { return `<div class="converter-box">${inputField('label.kitchen.value','cup-val','','placeholder="1"')}${selectField('label.kitchen.cupType','cup-type',[{value:'standard',text:'200ml'},{value:'velika',text:'250ml'},{value:'mala',text:'150ml'}])}${calcButton('btn.calculate','calculateCupConversion()')}</div><div id="cup-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('glassWater')}</div><div><div class="res-label">${safeT('label.kitchen.value')}</div><h2><span id="res-cup-val">0</span> <small id="res-cup-unit">ml</small></h2></div></div></div>`; }
-function renderKitchenOstalo() { return `<div class="converter-box">${inputField('label.kitchen.measureCount','other-qty','','placeholder="1"')}${selectField('label.kitchen.measure','other-type',[{value:'prstohvat',text:safeT('option.kitchen.pinch')},{value:'prst',text:safeT('option.kitchen.finger')},{value:'saka',text:safeT('option.kitchen.handful')}])}${calcButton('btn.calculate','calculateOtherMeasure()')}</div><div id="other-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('utensils')}</div><div><div class="res-label">${safeT('label.kitchen.approxWeight')}</div><h2><span id="res-other-g">0</span> <small>g</small></h2></div></div></div>`; }
-function renderKitchenPecenje() { return `<div class="converter-box">${inputField('label.kitchen.value','oven-val','','placeholder="180"')}${selectField('label.kitchen.fromUnit','oven-from',[{value:'c',text:'°C'},{value:'f',text:'°F'},{value:'gas',text:'Gas'}])}${selectField('label.kitchen.toUnit','oven-to',[{value:'f',text:'°F'},{value:'c',text:'°C'},{value:'gas',text:'Gas'}])}${calcButton('btn.calculate','calculateOven()')}</div><div id="oven-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('oven')}</div><div><div class="res-label">${safeT('result.label')}</div><h2><span id="res-oven-val">0</span> <small id="res-oven-unit">°F</small></h2></div></div></div>`; }
-function renderKitchenPorcije() { return `<div class="converter-box">${inputField('label.kitchen.originalPortions','portion-orig','','placeholder="4"')}${inputField('label.kitchen.desiredPortions','portion-want','','placeholder="6"')}${inputField('label.kitchen.ingredientQty','portion-qty','','placeholder="200"')}${calcButton('btn.calculate','calculatePortion()')}</div><div id="portion-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('utensils')}</div><div><div class="res-label">${safeT('label.kitchen.qtyNeeded')}</div><h2><span id="res-portion-val">0</span> <small id="res-portion-unit">g</small></h2></div></div></div>`; }
-function renderKitchenKafa() { return `<div class="converter-box">${inputField('label.kitchen.cupsCount','drink-cups','','placeholder="2"')}${selectField('label.kitchen.drinkType','drink-type',[{value:'kafa_turska',text:safeT('option.kitchen.turkishCoffee')},{value:'kafa_espreso',text:safeT('option.kitchen.espresso')},{value:'caj_kesica',text:safeT('option.kitchen.teaBag')}])}${calcButton('btn.calculate','calculateDrink()')}</div><div id="drink-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('coffee')}</div><div><div class="res-label">${safeT('label.kitchen.coffeeNeeded')}</div><h2><span id="res-drink-val">0</span> <small id="res-drink-unit">g</small></h2></div></div></div>`; }
+function renderKitchenKasike() {
+    return `<div class="converter-box">${sectionDescKey('desc.kitchen.spoons')}${inputField('label.kitchen.value', 'spoon-val', '', 'placeholder="1"')}${selectField('label.kitchen.ingredient', 'spoon-ingredient', [{ value: 'secer', text: safeT('option.kitchen.sugar') }, { value: 'brasno', text: safeT('option.kitchen.flour') }, { value: 'so', text: safeT('option.kitchen.salt') }])}${calcButton('btn.calculate', 'calculateSpoon()')}</div><div id="spoon-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('spoon')}</div><div><div class="res-label">${safeT('label.kitchen.approxWeight')}</div><h2><span id="res-spoon-val">0</span> <small id="res-spoon-unit">g</small></h2></div></div></div>`;
+}
+function renderKitchenCase() {
+    return `<div class="converter-box">${sectionDescKey('desc.kitchen.cups')}${inputField('label.kitchen.value', 'cup-val', '', 'placeholder="1"')}${selectField('label.kitchen.cupType', 'cup-type', [{ value: 'standard', text: '200ml' }, { value: 'velika', text: '250ml' }, { value: 'mala', text: '150ml' }])}${calcButton('btn.calculate', 'calculateCupConversion()')}</div><div id="cup-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('glassWater')}</div><div><div class="res-label">${safeT('label.kitchen.value')}</div><h2><span id="res-cup-val">0</span> <small id="res-cup-unit">ml</small></h2></div></div></div>`;
+}
+function renderKitchenOstalo() {
+    return `<div class="converter-box">${sectionDescKey('desc.kitchen.other')}${inputField('label.kitchen.measureCount', 'other-qty', '', 'placeholder="1"')}${selectField('label.kitchen.measure', 'other-type', [{ value: 'prstohvat', text: safeT('option.kitchen.pinch') }, { value: 'prst', text: safeT('option.kitchen.finger') }, { value: 'saka', text: safeT('option.kitchen.handful') }])}${calcButton('btn.calculate', 'calculateOtherMeasure()')}</div><div id="other-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('utensils')}</div><div><div class="res-label">${safeT('label.kitchen.approxWeight')}</div><h2><span id="res-other-g">0</span> <small>g</small></h2></div></div></div>`;
+}
+function renderKitchenPecenje() {
+    return `<div class="converter-box">${sectionDescKey('desc.kitchen.baking')}${inputField('label.kitchen.value', 'oven-val', '', 'placeholder="180"')}${selectField('label.kitchen.fromUnit', 'oven-from', [{ value: 'c', text: '°C' }, { value: 'f', text: '°F' }, { value: 'gas', text: 'Gas' }])}${selectField('label.kitchen.toUnit', 'oven-to', [{ value: 'f', text: '°F' }, { value: 'c', text: '°C' }, { value: 'gas', text: 'Gas' }])}${calcButton('btn.calculate', 'calculateOven()')}</div><div id="oven-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('oven')}</div><div><div class="res-label">${safeT('result.label')}</div><h2><span id="res-oven-val">0</span> <small id="res-oven-unit">°F</small></h2></div></div></div>`;
+}
+function renderKitchenPorcije() {
+    return `<div class="converter-box">${sectionDescKey('desc.kitchen.portions')}${inputField('label.kitchen.originalPortions', 'portion-orig', '', 'placeholder="4"')}${inputField('label.kitchen.desiredPortions', 'portion-want', '', 'placeholder="6"')}${inputField('label.kitchen.ingredientQty', 'portion-qty', '', 'placeholder="200"')}${calcButton('btn.calculate', 'calculatePortion()')}</div><div id="portion-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('utensils')}</div><div><div class="res-label">${safeT('label.kitchen.qtyNeeded')}</div><h2><span id="res-portion-val">0</span> <small id="res-portion-unit">g</small></h2></div></div></div>`;
+}
+function renderKitchenKafa() {
+    return `<div class="converter-box">${sectionDescKey('desc.kitchen.coffee')}${inputField('label.kitchen.cupsCount', 'drink-cups', '', 'placeholder="2"')}${selectField('label.kitchen.drinkType', 'drink-type', [{ value: 'kafa_turska', text: safeT('option.kitchen.turkishCoffee') }, { value: 'kafa_espreso', text: safeT('option.kitchen.espresso') }, { value: 'caj_kesica', text: safeT('option.kitchen.teaBag') }])}${calcButton('btn.calculate', 'calculateDrink()')}</div><div id="drink-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('coffee')}</div><div><div class="res-label">${safeT('label.kitchen.coffeeNeeded')}</div><h2><span id="res-drink-val">0</span> <small id="res-drink-unit">g</small></h2></div></div></div>`;
+}
 
+// ============================================================
+// KALKULACIJE — KITCHEN
+// ============================================================
 const SPOON_GRAMS = { secer: 20, brasno: 10, so: 25, kakao: 8, med: 25, ulje: 15, mleko: 15, pirinac: 20, ovsene: 8, griz: 15 };
 function calculateSpoon() {
     const ing = el('spoon-ingredient') ? el('spoon-ingredient').value : 'secer';
     const val = num('spoon-val');
-    const from = el('spoon-from') ? el('spoon-from').value : 'kasika';
-    const to = el('spoon-to') ? el('spoon-to').value : 'gram';
     if (val === null) { showToast(safeT('toast.error.enterValue'), 'error'); return; }
-    const gPerSpoon = ing === 'custom' ? (num('spoon-custom-g') || 20) : (SPOON_GRAMS[ing] || 20);
-    const smallSpoonG = gPerSpoon / 3;
-    let grams;
-    if (from === 'kasika') grams = val * gPerSpoon;
-    else if (from === 'kasika_mala') grams = val * smallSpoonG;
-    else grams = val;
-    let result, unit;
-    if (to === 'gram') { result = grams; unit = 'g'; }
-    else if (to === 'kasika') { result = grams / gPerSpoon; unit = safeT('option.kitchen.tablespoonShort'); }
-    else { result = grams / smallSpoonG; unit = safeT('option.kitchen.teaspoonShort'); }
-    const sv = el('res-spoon-val'); if (sv) sv.innerText = fmt(result, 2);
-    const su = el('res-spoon-unit'); if (su) su.innerText = unit;
+    const gPerSpoon = SPOON_GRAMS[ing] || 20;
+    const sv = el('res-spoon-val'); if (sv) sv.innerText = fmt(val * gPerSpoon, 2);
+    const su = el('res-spoon-unit'); if (su) su.innerText = 'g';
     show('spoon-result-box');
 }
-const CUP_ML = { standard: 200, velika: 250, mala: 150, solja: 150, solja_caj: 250 };
+const CUP_ML = { standard: 200, velika: 250, mala: 150 };
 function calculateCupConversion() {
     const type = el('cup-type') ? el('cup-type').value : 'standard';
     const val = num('cup-val');
-    const from = el('cup-from') ? el('cup-from').value : 'casa';
-    const to = el('cup-to') ? el('cup-to').value : 'ml';
     if (val === null) { showToast(safeT('toast.error.enterValue'), 'error'); return; }
-    const mlPerCup = type === 'custom' ? (num('cup-custom-ml') || 200) : (CUP_ML[type] || 200);
-    let ml;
-    if (from === 'casa') ml = val * mlPerCup;
-    else if (from === 'l') ml = val * 1000;
-    else if (from === 'dl') ml = val * 100;
-    else ml = val;
-    let result, unit;
-    if (to === 'ml') { result = ml; unit = 'ml'; }
-    else if (to === 'l') { result = ml / 1000; unit = 'L'; }
-    else if (to === 'dl') { result = ml / 100; unit = 'dL'; }
-    else { result = ml / mlPerCup; unit = safeT('option.kitchen.cupShort'); }
-    const cv = el('res-cup-val'); if (cv) cv.innerText = fmt(result, 2);
-    const cu = el('res-cup-unit'); if (cu) cu.innerText = unit;
+    const mlPerCup = CUP_ML[type] || 200;
+    const cv = el('res-cup-val'); if (cv) cv.innerText = fmt(val * mlPerCup, 0);
+    const cu = el('res-cup-unit'); if (cu) cu.innerText = 'ml';
     show('cup-result-box');
 }
 function calculateOtherMeasure() {
     const type = el('other-type') ? el('other-type').value : 'prstohvat';
     const qty = num('other-qty');
     if (!qty) { showToast(safeT('toast.error.enterCount'), 'error'); return; }
-    const gramsPer = { prstohvat: 0.5, prst: 2, saka: 50, kolut: 10, kocka: 5 };
+    const gramsPer = { prstohvat: 0.5, prst: 2, saka: 50 };
     const og = el('res-other-g'); if (og) og.innerText = fmt(qty * (gramsPer[type] || 1), 1);
     show('other-result-box');
 }
@@ -4387,12 +5771,20 @@ function calculateOven() {
     if (val === null) { showToast(safeT('toast.error.enterValue'), 'error'); return; }
     let celsius;
     if (from === 'f') celsius = (val - 32) * 5 / 9;
-    else if (from === 'gas') { const gasToC = { 1: 140, 2: 150, 3: 170, 4: 180, 5: 190, 6: 200, 7: 220, 8: 230, 9: 240 }; celsius = gasToC[Math.round(val)] || 180; }
+    else if (from === 'gas') {
+        const gasToC = { 1: 140, 2: 150, 3: 170, 4: 180, 5: 190, 6: 200, 7: 220, 8: 230, 9: 240 };
+        celsius = gasToC[Math.round(val)] || 180;
+    }
     else celsius = val;
     let result, unit;
     if (to === 'c') { result = celsius; unit = '°C'; }
     else if (to === 'f') { result = (celsius * 9 / 5) + 32; unit = '°F'; }
-    else { const cToGas = [[135, 1], [145, 1.5], [155, 2], [165, 2.5], [175, 3], [185, 4], [195, 5], [205, 6], [215, 6.5], [225, 7], [235, 8], [245, 9]]; let closest = 4; for (const [c, g] of cToGas) { if (celsius <= c) { closest = g; break; } } result = closest; unit = 'Gas'; }
+    else {
+        const cToGas = [[135, 1], [145, 1.5], [155, 2], [165, 2.5], [175, 3], [185, 4], [195, 5], [205, 6], [215, 6.5], [225, 7], [235, 8], [245, 9]];
+        let closest = 4;
+        for (const [c, g] of cToGas) { if (celsius <= c) { closest = g; break; } }
+        result = closest; unit = 'Gas';
+    }
     const ov = el('res-oven-val'); if (ov) ov.innerText = fmt(result, 0);
     const ou = el('res-oven-unit'); if (ou) ou.innerText = unit;
     show('oven-result-box');
@@ -4404,7 +5796,11 @@ function calculatePortion() {
     const pv = el('res-portion-val'); if (pv) pv.innerText = fmt(qty * factor, 2);
     show('portion-result-box');
 }
-const DRINK_DEFAULTS = { kafa_turska: { val: 1, unitKey: 'unit.teaspoon' }, kafa_espreso: { val: 7, unitKey: 'unit.g' }, kafa_filter: { val: 10, unitKey: 'unit.g' }, caj_list: { val: 2, unitKey: 'unit.g' }, caj_kesica: { val: 1, unitKey: 'unit.teabag' } };
+const DRINK_DEFAULTS = {
+    kafa_turska: { val: 1, unitKey: 'unit.teaspoon' },
+    kafa_espreso: { val: 7, unitKey: 'unit.g' },
+    caj_kesica: { val: 1, unitKey: 'unit.teabag' }
+};
 function calculateDrink() {
     const type = el('drink-type') ? el('drink-type').value : 'kafa_turska';
     const cups = num('drink-cups');
@@ -4415,20 +5811,49 @@ function calculateDrink() {
     show('drink-result-box');
 }
 
-// STRUJA
-function renderPowerUredjaj() { return `<div class="converter-box">${sectionDescKey('desc.power.device')}${inputField('label.power.powerWatts','power-watts','W','placeholder="1000"')}${inputField('label.power.hoursPerDay','power-hours','h','placeholder="2"')}${inputField('label.power.electricityPrice','power-price','RSD/kWh','value="12"')}${calcButton('btn.calculate','calculatePower()')}</div>${resultCard('power-result-box','zap','label.power.monthlyCost','res-power-month','RSD','STRUJA','label.power.deviceUsage')}${statsRow('power-stats-row',[['label.power.daily','stat-power-day','0 RSD'],['label.power.yearly','stat-power-year','0 RSD'],['label.power.kwhPerMonth','stat-power-kwh','0']])}`; }
-function renderPowerVise() { return `<div class="converter-box">${sectionDescKey('desc.power.multipleDevices')}${inputFieldText('label.power.deviceName','dev-name','npr. Bojler')}${inputField('label.power.powerWatts','dev-watts','W','placeholder="2000"')}${inputField('label.power.hoursPerDay','dev-hours','h','placeholder="2"')}${calcButton('btn.power.addDevice','addPowerDevice()')}</div><div class="converter-box"><div class="section-desc">${safeT('label.power.device')}:</div><div id="power-devices-list"></div></div>${resultCard('power-multi-result-box','plug2','label.power.totalMonthly','res-power-total','RSD','STRUJA','label.power.multipleDevicesShort')}${statsRow('power-multi-stats-row',[['label.power.devicesCount','stat-power-count','0'],['label.power.totalKwhMonth','stat-power-total-kwh','0']])}`; }
-function renderPowerWatt() { return `<div class="converter-box">${sectionDescKey('desc.power.wattAmps')}${selectField('label.power.phaseType','watt-phase',[{value:'1',text:safeT('option.power.singlePhase')},{value:'3',text:safeT('option.power.threePhase')}])}${selectField('label.power.conversionDirection','watt-dir',[{value:'w-to-a',text:safeT('option.power.powerToCurrent')},{value:'a-to-w',text:safeT('option.power.currentToPower')}])}${inputField('label.power.value','watt-val','','placeholder="2000"')}${inputField('label.power.voltage','watt-volt','V','value="230"')}${inputField('label.power.powerFactor','watt-cosfi','','value="0.95"')}${calcButton('btn.calculate','calculateWattAmps()')}</div><div id="watt-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('battery')}</div><div><div class="res-label">${safeT('result.label')}</div><h2><span id="res-watt-val">0</span> <small id="res-watt-unit">A</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-watt-val','res-watt-unit', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="STRUJA" data-label="W-A" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="STRUJA" data-label="W-A" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('watt-stats-row',[['label.power.power','stat-watt-w','0 W'],['label.power.current','stat-watt-a','0 A'],['label.power.recommendedFuse','stat-watt-osig','0 A']])}`; }
-function renderPowerFaktura() { return `<div class="converter-box">${sectionDescKey('desc.power.bill')}${inputField('label.power.highTariffUsage','fakt-visa','kWh','placeholder="200"')}${inputField('label.power.lowTariffUsage','fakt-niza','kWh','placeholder="100"')}${inputField('label.power.highTariffPrice','fakt-cena-visa','RSD','value="12"')}${inputField('label.power.lowTariffPrice','fakt-cena-niza','RSD','value="6"')}${inputField('label.power.fixedPart','fakt-fiksni','RSD','value="0"')}${calcButton('btn.calculate','calculateBill()')}</div>${resultCard('fakt-result-box','trending','label.power.totalToPay','res-fakt-total','RSD','STRUJA','label.power.bill')}${statsRow('fakt-stats-row',[['label.power.highTariff','stat-fakt-visa','0 RSD'],['label.power.lowTariff','stat-fakt-niza','0 RSD'],['label.power.totalKwh','stat-fakt-kwh','0']])}`; }
-function renderPowerKabl() { return `<div class="converter-box">${sectionDescKey('desc.power.cable')}${inputField('label.power.loadCurrent','kabl-amps','A','placeholder="16"')}${inputField('label.power.cableLength','kabl-len','m','placeholder="20"')}${inputField('label.power.voltage','kabl-volt','V','value="230"')}${selectField('label.power.cableType','kabl-type',[{value:'bakr',text:safeT('option.power.copper')},{value:'alu',text:safeT('option.power.aluminum')}])}${calcButton('btn.calculate','calculateCable()')}</div><div id="kabl-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('cable')}</div><div><div class="res-label">${safeT('label.power.recommendedSection')}</div><h2><span id="res-kabl-mm2">0</span> <small>mm²</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-kabl-mm2','mm²', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="STRUJA" data-label="Kabl" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="STRUJA" data-label="Kabl" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('kabl-stats-row',[['label.power.fuse','stat-kabl-osig','0 A'],['label.power.dropPercent','stat-kabl-pad','0 %'],['label.power.material','stat-kabl-mat','—']])}`; }
-function renderPowerPadNapona() { return `<div class="converter-box">${sectionDescKey('desc.power.voltageDrop')}${inputField('label.power.loadCurrent','pad-amps','A','placeholder="16"')}${inputField('label.power.cableLengthOneWay','pad-len','m','placeholder="20"')}${inputField('label.power.cableSection','pad-mm2','mm²','placeholder="2.5"')}${inputField('label.power.voltage','pad-volt','V','value="230"')}${selectField('label.power.material','pad-mat',[{value:'0.0178',text:safeT('option.power.copperRho')},{value:'0.0282',text:safeT('option.power.aluminumRho')}])}${calcButton('btn.calculate','calculateVoltageDrop()')}</div><div id="pad-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('zap')}</div><div><div class="res-label">${safeT('label.power.voltageDrop')}</div><h2><span id="res-pad-volt">0</span> <small>V</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-pad-volt','V', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="STRUJA" data-label="Pad napona" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="STRUJA" data-label="Pad napona" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('pad-stats-row',[['label.power.dropPercent','stat-pad-pct','0 %'],['label.power.voltageAtEnd','stat-pad-end','0 V'],['label.power.rating','stat-pad-ok','—']])}`; }
-function renderPowerOsigurac() { return `<div class="converter-box">${sectionDescKey('desc.power.fuse')}${inputField('label.power.devicePower','osig-watt','W','placeholder="2000"')}${inputField('label.power.voltage','osig-volt','V','value="230"')}${selectField('label.power.consumerType','osig-tip',[{value:'1',text:safeT('option.power.ohmic')},{value:'3',text:safeT('option.power.inductive')},{value:'5',text:safeT('option.power.largeMotor')}])}${selectField('label.power.characteristic','osig-char',[{value:'B',text:safeT('option.power.charB')},{value:'C',text:safeT('option.power.charC')},{value:'D',text:safeT('option.power.charD')}])}${calcButton('btn.calculate','calculateFuse()')}</div><div id="osig-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('shield')}</div><div><div class="res-label">${safeT('label.power.recommendedFuse')}</div><h2><span id="res-osig-val">0</span> <small>A</small> <span id="res-osig-char" style="font-size:0.9rem; color: #34d399;">C</span></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-osig-val','A', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="STRUJA" data-label="Osigurač" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="STRUJA" data-label="Osigurač" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('osig-stats-row',[['label.power.workingCurrent','stat-osig-radna','0 A'],['label.power.startingCurrent','stat-osig-start','0 A'],['label.power.minCableSection','stat-osig-kabl','0 mm²']])}`; }
-function renderPowerTrofazna() { return `<div class="converter-box">${sectionDescKey('desc.power.threePhase')}${selectField('label.power.known','trofaz-poz',[{value:'snaga',text:safeT('label.power.power')+' (kW)'},{value:'struja',text:safeT('label.power.current')+' (A)'}])}${inputField('label.power.value','trofaz-val','','placeholder="10"')}${inputField('label.power.lineVoltage','trofaz-volt','V','value="400"')}${inputField('label.power.powerFactor','trofaz-cosfi','','value="0.9"')}${calcButton('btn.calculate','calculateThreePhase()')}</div><div id="trofaz-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('chart')}</div><div><div class="res-label">${safeT('result.label')}</div><h2><span id="res-trofaz-val">0</span> <small id="res-trofaz-unit">A</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-trofaz-val','res-trofaz-unit', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="STRUJA" data-label="Trofazna" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="STRUJA" data-label="Trofazna" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('trofaz-stats-row',[['label.power.power','stat-trofaz-kw','0 kW'],['label.power.currentPerPhase','stat-trofaz-a','0 A'],['label.power.totalCurrent','stat-trofaz-tot','0 A']])}`; }
-function renderPowerOsvetljenje() { return `<div class="converter-box">${sectionDescKey('desc.power.lighting')}${inputField('label.power.roomLength','osv-l','m','placeholder="5"')}${inputField('label.power.roomWidth','osv-w','m','placeholder="4"')}${inputField('label.power.ceilingHeight','osv-h','m','value="2.6"')}${selectField('label.power.roomType','osv-tip',[{value:'50',text:safeT('option.power.bathroom')},{value:'100',text:safeT('option.power.bedroom')},{value:'150',text:safeT('option.power.livingRoom')},{value:'300',text:safeT('option.power.kitchen')},{value:'500',text:safeT('option.power.office')}])}${inputField('label.power.bulbPower','osv-watt','W','value="10"')}${calcButton('btn.calculate','calculateLighting()')}</div>${resultCard('osv-result-box','lightbulb','label.power.lumensNeeded','res-osv-lumen','lm','STRUJA','label.power.lightingShort')}${statsRow('osv-stats-row',[['label.home.totalArea','stat-osv-pov','0 m²'],['label.power.bulbsCount','stat-osv-br','0'],['label.power.totalPower','stat-osv-w','0 W']])}`; }
-function renderPowerGrejac() { return `<div class="converter-box">${sectionDescKey('desc.power.heater')}${inputField('label.power.heaterPower','grej-watt','W','placeholder="2000"')}${inputField('label.power.waterAmount','grej-litar','L','placeholder="80"')}${inputField('label.power.startTemp','grej-t1','°C','value="15"')}${inputField('label.power.desiredTemp','grej-t2','°C','value="60"')}${inputField('label.power.price','grej-cena','RSD/kWh','value="12"')}${calcButton('btn.calculate','calculateHeater()')}</div>${resultCard('grej-result-box','thermometer2','label.power.heatingTime','res-grej-vreme','min','STRUJA','label.power.heaterShort')}${statsRow('grej-stats-row',[['label.power.energy','stat-grej-kwh','0 kWh'],['label.power.price','stat-grej-cena','0 RSD'],['label.power.energyKj','stat-grej-kj','0 kJ']])}`; }
-function renderPowerBaterije() { return `<div class="converter-box">${sectionDescKey('desc.power.battery')}${inputField('label.power.batteryVoltage','bat-volt','V','value="12"')}${inputField('label.power.capacity','bat-ah','Ah','placeholder="100"')}${inputField('label.power.load','bat-watt','W','placeholder="50"')}${inputField('label.power.depthOfDischarge','bat-dod','%','value="80"')}${calcButton('btn.calculate','calculateBattery()')}</div>${resultCard('bat-result-box','battery','label.power.batteryLife','res-bat-time','h','STRUJA','label.power.batteryShort')}${statsRow('bat-stats-row',[['label.power.capacity','stat-bat-wh','0 Wh'],['label.power.usefulEnergy','stat-bat-wh-use','0 Wh'],['label.power.current','stat-bat-amp','0 A']])}`; }
-function renderPowerKelvin() { return `<div class="converter-box">${sectionDescKey('desc.power.kelvin')}${selectField('label.power.recommendedLightTemp','kel-tip',[{value:'2700',text:safeT('option.power.kelvin2700')},{value:'3000',text:safeT('option.power.kelvin3000')},{value:'4000',text:safeT('option.power.kelvin4000')},{value:'5000',text:safeT('option.power.kelvin5000')},{value:'6500',text:safeT('option.power.kelvin6500')}],'4000')}${inputField('label.power.bulbPower','kel-watt','W','value="10"')}${calcButton('btn.calculate','calculateKelvin()')}</div><div id="kel-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('flashlight')}</div><div><div class="res-label">${safeT('label.power.kelvinShort')}</div><h2><span id="res-kel-val">0</span> <small>K</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-kel-val','K', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="STRUJA" data-label="Kelvin" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="STRUJA" data-label="Kelvin" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('kel-stats-row',[['label.power.description','stat-kel-desc','—'],['label.power.approxLumens','stat-kel-lum','0 lm']])}`; }
+// ============================================================
+// POWER — Render funkcije
+// ============================================================
+function renderPowerUredjaj() {
+    return `<div class="converter-box">${sectionDescKey('desc.power.device')}${inputField('label.power.powerWatts', 'power-watts', 'W', 'placeholder="1000"')}${inputField('label.power.hoursPerDay', 'power-hours', 'h', 'placeholder="2"')}${inputField('label.power.electricityPrice', 'power-price', 'RSD/kWh', 'value="12"')}${calcButton('btn.calculate', 'calculatePower()')}</div>${resultCard('power-result-box', 'zap', 'label.power.monthlyCost', 'res-power-month', 'RSD', 'STRUJA', 'label.power.deviceUsage')}${statsRow('power-stats-row', [['label.power.daily', 'stat-power-day', '0 RSD'], ['label.power.yearly', 'stat-power-year', '0 RSD'], ['label.power.kwhPerMonth', 'stat-power-kwh', '0']])}`;
+}
+function renderPowerVise() {
+    return `<div class="converter-box">${sectionDescKey('desc.power.multipleDevices')}${inputFieldText('label.power.deviceName', 'dev-name', 'npr. Bojler')}${inputField('label.power.powerWatts', 'dev-watts', 'W', 'placeholder="2000"')}${inputField('label.power.hoursPerDay', 'dev-hours', 'h', 'placeholder="2"')}${calcButton('btn.power.addDevice', 'addPowerDevice()')}</div><div class="converter-box"><div class="section-desc">${safeT('label.power.device')}:</div><div id="power-devices-list"></div></div>${resultCard('power-multi-result-box', 'plug2', 'label.power.totalMonthly', 'res-power-total', 'RSD', 'STRUJA', 'label.power.multipleDevicesShort')}${statsRow('power-multi-stats-row', [['label.power.devicesCount', 'stat-power-count', '0'], ['label.power.totalKwhMonth', 'stat-power-total-kwh', '0']])}`;
+}
+function renderPowerWatt() {
+    return `<div class="converter-box">${sectionDescKey('desc.power.wattAmps')}${selectField('label.power.phaseType', 'watt-phase', [{ value: '1', text: safeT('option.power.singlePhase') }, { value: '3', text: safeT('option.power.threePhase') }])}${selectField('label.power.conversionDirection', 'watt-dir', [{ value: 'w-to-a', text: safeT('option.power.powerToCurrent') }, { value: 'a-to-w', text: safeT('option.power.currentToPower') }])}${inputField('label.power.value', 'watt-val', '', 'placeholder="2000"')}${inputField('label.power.voltage', 'watt-volt', 'V', 'value="230"')}${inputField('label.power.powerFactor', 'watt-cosfi', '', 'value="0.95"')}${calcButton('btn.calculate', 'calculateWattAmps()')}</div><div id="watt-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('battery')}</div><div><div class="res-label">${safeT('result.label')}</div><h2><span id="res-watt-val">0</span> <small id="res-watt-unit">A</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-watt-val', 'res-watt-unit', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="STRUJA" data-label="W-A" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="STRUJA" data-label="W-A" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('watt-stats-row', [['label.power.power', 'stat-watt-w', '0 W'], ['label.power.current', 'stat-watt-a', '0 A'], ['label.power.recommendedFuse', 'stat-watt-osig', '0 A']])}`;
+}
+function renderPowerFaktura() {
+    return `<div class="converter-box">${sectionDescKey('desc.power.bill')}${inputField('label.power.highTariffUsage', 'fakt-visa', 'kWh', 'placeholder="200"')}${inputField('label.power.lowTariffUsage', 'fakt-niza', 'kWh', 'placeholder="100"')}${inputField('label.power.highTariffPrice', 'fakt-cena-visa', 'RSD', 'value="12"')}${inputField('label.power.lowTariffPrice', 'fakt-cena-niza', 'RSD', 'value="6"')}${inputField('label.power.fixedPart', 'fakt-fiksni', 'RSD', 'value="0"')}${calcButton('btn.calculate', 'calculateBill()')}</div>${resultCard('fakt-result-box', 'trending', 'label.power.totalToPay', 'res-fakt-total', 'RSD', 'STRUJA', 'label.power.bill')}${statsRow('fakt-stats-row', [['label.power.highTariff', 'stat-fakt-visa', '0 RSD'], ['label.power.lowTariff', 'stat-fakt-niza', '0 RSD'], ['label.power.totalKwh', 'stat-fakt-kwh', '0']])}`;
+}
+function renderPowerKabl() {
+    return `<div class="converter-box">${sectionDescKey('desc.power.cable')}${inputField('label.power.loadCurrent', 'kabl-amps', 'A', 'placeholder="16"')}${inputField('label.power.cableLength', 'kabl-len', 'm', 'placeholder="20"')}${inputField('label.power.voltage', 'kabl-volt', 'V', 'value="230"')}${selectField('label.power.cableType', 'kabl-type', [{ value: 'bakr', text: safeT('option.power.copper') }, { value: 'alu', text: safeT('option.power.aluminum') }])}${calcButton('btn.calculate', 'calculateCable()')}</div><div id="kabl-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('cable')}</div><div><div class="res-label">${safeT('label.power.recommendedSection')}</div><h2><span id="res-kabl-mm2">0</span> <small>mm²</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-kabl-mm2', 'mm²', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="STRUJA" data-label="Kabl" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="STRUJA" data-label="Kabl" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('kabl-stats-row', [['label.power.fuse', 'stat-kabl-osig', '0 A'], ['label.power.dropPercent', 'stat-kabl-pad', '0 %'], ['label.power.material', 'stat-kabl-mat', '—']])}`;
+}
+function renderPowerPadNapona() {
+    return `<div class="converter-box">${sectionDescKey('desc.power.voltageDrop')}${inputField('label.power.loadCurrent', 'pad-amps', 'A', 'placeholder="16"')}${inputField('label.power.cableLengthOneWay', 'pad-len', 'm', 'placeholder="20"')}${inputField('label.power.cableSection', 'pad-mm2', 'mm²', 'placeholder="2.5"')}${inputField('label.power.voltage', 'pad-volt', 'V', 'value="230"')}${selectField('label.power.material', 'pad-mat', [{ value: '0.0178', text: safeT('option.power.copperRho') }, { value: '0.0282', text: safeT('option.power.aluminumRho') }])}${calcButton('btn.calculate', 'calculateVoltageDrop()')}</div><div id="pad-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('zap')}</div><div><div class="res-label">${safeT('label.power.voltageDrop')}</div><h2><span id="res-pad-volt">0</span> <small>V</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-pad-volt', 'V', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="STRUJA" data-label="Pad napona" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="STRUJA" data-label="Pad napona" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('pad-stats-row', [['label.power.dropPercent', 'stat-pad-pct', '0 %'], ['label.power.voltageAtEnd', 'stat-pad-end', '0 V'], ['label.power.rating', 'stat-pad-ok', '—']])}`;
+}
+function renderPowerOsigurac() {
+    return `<div class="converter-box">${sectionDescKey('desc.power.fuse')}${inputField('label.power.devicePower', 'osig-watt', 'W', 'placeholder="2000"')}${inputField('label.power.voltage', 'osig-volt', 'V', 'value="230"')}${selectField('label.power.consumerType', 'osig-tip', [{ value: '1', text: safeT('option.power.ohmic') }, { value: '3', text: safeT('option.power.inductive') }, { value: '5', text: safeT('option.power.largeMotor') }])}${selectField('label.power.characteristic', 'osig-char', [{ value: 'B', text: safeT('option.power.charB') }, { value: 'C', text: safeT('option.power.charC') }, { value: 'D', text: safeT('option.power.charD') }])}${calcButton('btn.calculate', 'calculateFuse()')}</div><div id="osig-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('shield')}</div><div><div class="res-label">${safeT('label.power.recommendedFuse')}</div><h2><span id="res-osig-val">0</span> <small>A</small> <span id="res-osig-char" style="font-size:0.9rem; color: #34d399;">C</span></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-osig-val', 'A', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="STRUJA" data-label="Osigurač" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="STRUJA" data-label="Osigurač" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('osig-stats-row', [['label.power.workingCurrent', 'stat-osig-radna', '0 A'], ['label.power.startingCurrent', 'stat-osig-start', '0 A'], ['label.power.minCableSection', 'stat-osig-kabl', '0 mm²']])}`;
+}
+function renderPowerTrofazna() {
+    return `<div class="converter-box">${sectionDescKey('desc.power.threePhase')}${selectField('label.power.known', 'trofaz-poz', [{ value: 'snaga', text: safeT('label.power.power') + ' (kW)' }, { value: 'struja', text: safeT('label.power.current') + ' (A)' }])}${inputField('label.power.value', 'trofaz-val', '', 'placeholder="10"')}${inputField('label.power.lineVoltage', 'trofaz-volt', 'V', 'value="400"')}${inputField('label.power.powerFactor', 'trofaz-cosfi', '', 'value="0.9"')}${calcButton('btn.calculate', 'calculateThreePhase()')}</div><div id="trofaz-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('chart')}</div><div><div class="res-label">${safeT('result.label')}</div><h2><span id="res-trofaz-val">0</span> <small id="res-trofaz-unit">A</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-trofaz-val', 'res-trofaz-unit', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="STRUJA" data-label="Trofazna" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="STRUJA" data-label="Trofazna" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('trofaz-stats-row', [['label.power.power', 'stat-trofaz-kw', '0 kW'], ['label.power.currentPerPhase', 'stat-trofaz-a', '0 A'], ['label.power.totalCurrent', 'stat-trofaz-tot', '0 A']])}`;
+}
+function renderPowerOsvetljenje() {
+    return `<div class="converter-box">${sectionDescKey('desc.power.lighting')}${inputField('label.power.roomLength', 'osv-l', 'm', 'placeholder="5"')}${inputField('label.power.roomWidth', 'osv-w', 'm', 'placeholder="4"')}${inputField('label.power.ceilingHeight', 'osv-h', 'm', 'value="2.6"')}${selectField('label.power.roomType', 'osv-tip', [{ value: '50', text: safeT('option.power.bathroom') }, { value: '100', text: safeT('option.power.bedroom') }, { value: '150', text: safeT('option.power.livingRoom') }, { value: '300', text: safeT('option.power.kitchen') }, { value: '500', text: safeT('option.power.office') }])}${inputField('label.power.bulbPower', 'osv-watt', 'W', 'value="10"')}${calcButton('btn.calculate', 'calculateLighting()')}</div>${resultCard('osv-result-box', 'lightbulb', 'label.power.lumensNeeded', 'res-osv-lumen', 'lm', 'STRUJA', 'label.power.lightingShort')}${statsRow('osv-stats-row', [['label.home.totalArea', 'stat-osv-pov', '0 m²'], ['label.power.bulbsCount', 'stat-osv-br', '0'], ['label.power.totalPower', 'stat-osv-w', '0 W']])}`;
+}
+function renderPowerGrejac() {
+    return `<div class="converter-box">${sectionDescKey('desc.power.heater')}${inputField('label.power.heaterPower', 'grej-watt', 'W', 'placeholder="2000"')}${inputField('label.power.waterAmount', 'grej-litar', 'L', 'placeholder="80"')}${inputField('label.power.startTemp', 'grej-t1', '°C', 'value="15"')}${inputField('label.power.desiredTemp', 'grej-t2', '°C', 'value="60"')}${inputField('label.power.price', 'grej-cena', 'RSD/kWh', 'value="12"')}${calcButton('btn.calculate', 'calculateHeater()')}</div>${resultCard('grej-result-box', 'thermometer2', 'label.power.heatingTime', 'res-grej-vreme', 'min', 'STRUJA', 'label.power.heaterShort')}${statsRow('grej-stats-row', [['label.power.energy', 'stat-grej-kwh', '0 kWh'], ['label.power.price', 'stat-grej-cena', '0 RSD'], ['label.power.energyKj', 'stat-grej-kj', '0 kJ']])}`;
+}
+function renderPowerBaterije() {
+    return `<div class="converter-box">${sectionDescKey('desc.power.battery')}${inputField('label.power.batteryVoltage', 'bat-volt', 'V', 'value="12"')}${inputField('label.power.capacity', 'bat-ah', 'Ah', 'placeholder="100"')}${inputField('label.power.load', 'bat-watt', 'W', 'placeholder="50"')}${inputField('label.power.depthOfDischarge', 'bat-dod', '%', 'value="80"')}${calcButton('btn.calculate', 'calculateBattery()')}</div>${resultCard('bat-result-box', 'battery', 'label.power.batteryLife', 'res-bat-time', 'h', 'STRUJA', 'label.power.batteryShort')}${statsRow('bat-stats-row', [['label.power.capacity', 'stat-bat-wh', '0 Wh'], ['label.power.usefulEnergy', 'stat-bat-wh-use', '0 Wh'], ['label.power.current', 'stat-bat-amp', '0 A']])}`;
+}
+function renderPowerKelvin() {
+    return `<div class="converter-box">${sectionDescKey('desc.power.kelvin')}${selectField('label.power.recommendedLightTemp', 'kel-tip', [{ value: '2700', text: safeT('option.power.kelvin2700') }, { value: '3000', text: safeT('option.power.kelvin3000') }, { value: '4000', text: safeT('option.power.kelvin4000') }, { value: '5000', text: safeT('option.power.kelvin5000') }, { value: '6500', text: safeT('option.power.kelvin6500') }], '4000')}${inputField('label.power.bulbPower', 'kel-watt', 'W', 'value="10"')}${calcButton('btn.calculate', 'calculateKelvin()')}</div><div id="kel-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('flashlight')}</div><div><div class="res-label">${safeT('label.power.kelvinShort')}</div><h2><span id="res-kel-val">0</span> <small>K</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-kel-val', 'K', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="STRUJA" data-label="Kelvin" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="STRUJA" data-label="Kelvin" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('kel-stats-row', [['label.power.description', 'stat-kel-desc', '—'], ['label.power.approxLumens', 'stat-kel-lum', '0 lm']])}`;
+}
 
+// ============================================================
+// KALKULACIJE — POWER
+// ============================================================
 function calculatePower() {
     const watts = num('power-watts'), hours = num('power-hours'), price = num('power-price') || 12;
     if (!watts || !hours) { showToast(safeT('toast.error.enterPowerHours'), 'error'); return; }
@@ -4442,17 +5867,26 @@ function calculatePower() {
 }
 let powerDevices = [];
 try { const saved = JSON.parse(localStorage.getItem('cx_power_devices')); if (Array.isArray(saved)) powerDevices = saved; } catch (e) {}
-function savePowerDevices() { try { localStorage.setItem('cx_power_devices', JSON.stringify(powerDevices)); } catch (e) {} }
+function savePowerDevices() {
+    try { localStorage.setItem('cx_power_devices', JSON.stringify(powerDevices)); } catch (e) {}
+}
 function renderPowerDevices() {
-    const list = el('power-devices-list'); if (!list) return;
+    const list = el('power-devices-list');
+    if (!list) return;
     list.innerHTML = '';
-    if (!powerDevices.length) { list.innerHTML = '<p class="section-desc" style="text-align:center; padding:10px;">' + safeT('label.power.noDevices') + '</p>'; return; }
+    if (!powerDevices.length) {
+        list.innerHTML = '<p class="section-desc" style="text-align:center; padding:10px;">' + safeT('label.power.noDevices') + '</p>';
+        return;
+    }
     powerDevices.forEach((dev, idx) => {
         const row = document.createElement('div');
         row.className = 'power-device-item';
         row.innerHTML = `<div class="power-device-info"><div class="power-device-name">${escapeHtml(dev.name || safeT('label.power.device') + ' ' + (idx + 1))}</div><div class="power-device-detail">${dev.watts}W × ${dev.hours}h/${safeT('unit.day')}</div></div><button class="power-device-remove">✕</button>`;
         row.querySelector('.power-device-remove').addEventListener('click', () => {
-            powerDevices.splice(idx, 1); savePowerDevices(); renderPowerDevices(); updatePowerTotal();
+            powerDevices.splice(idx, 1);
+            savePowerDevices();
+            renderPowerDevices();
+            updatePowerTotal();
         });
         list.appendChild(row);
     });
@@ -4462,7 +5896,8 @@ function updatePowerTotal() {
     let totalMonth = 0, totalKwh = 0;
     powerDevices.forEach(dev => {
         const kwhMonth = ((dev.watts * dev.hours) / 1000) * 30;
-        totalKwh += kwhMonth; totalMonth += kwhMonth * (dev.price || 12);
+        totalKwh += kwhMonth;
+        totalMonth += kwhMonth * (dev.price || 12);
     });
     const pt = el('res-power-total'); if (pt) pt.innerText = money(totalMonth);
     const pc = el('stat-power-count'); if (pc) pc.innerText = powerDevices.length;
@@ -4475,7 +5910,9 @@ function addPowerDevice() {
     const watts = num('dev-watts'), hours = num('dev-hours'), price = num('dev-price') || 12;
     if (!watts || !hours) { showToast(safeT('toast.error.enterPowerHours'), 'error'); return; }
     powerDevices.push({ name, watts, hours, price });
-    savePowerDevices(); renderPowerDevices(); updatePowerTotal();
+    savePowerDevices();
+    renderPowerDevices();
+    updatePowerTotal();
     if (nameEl) nameEl.value = '';
     if (el('dev-watts')) el('dev-watts').value = '';
     if (el('dev-hours')) el('dev-hours').value = '';
@@ -4490,8 +5927,15 @@ function calculateWattAmps() {
     if (val === null) { hide('watt-result-box'); hide('watt-stats-row'); return; }
     const sqrt3 = Math.sqrt(3);
     let result, unit, powerW, amps;
-    if (dir === 'w-to-a') { powerW = val; amps = phases === 3 ? powerW / (sqrt3 * volts * cosfi) : powerW / (volts * cosfi); result = amps; unit = 'A'; }
-    else { amps = val; powerW = phases === 3 ? sqrt3 * volts * amps * cosfi : volts * amps * cosfi; result = powerW; unit = 'W'; }
+    if (dir === 'w-to-a') {
+        powerW = val;
+        amps = phases === 3 ? powerW / (sqrt3 * volts * cosfi) : powerW / (volts * cosfi);
+        result = amps; unit = 'A';
+    } else {
+        amps = val;
+        powerW = phases === 3 ? sqrt3 * volts * amps * cosfi : volts * amps * cosfi;
+        result = powerW; unit = 'W';
+    }
     const fuses = [6, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125];
     const recommendedFuse = fuses.find(f => f >= amps * 1.1) || 125;
     const rv = el('res-watt-val'); if (rv) rv.innerText = fmt(result, 2);
@@ -4516,7 +5960,9 @@ function calculateCable() {
     const amps = num('kabl-amps'), len = num('kabl-len'), volts = num('kabl-volt') || 230;
     const isCopper = !el('kabl-type') || el('kabl-type').value === 'bakr';
     if (!amps || !len) { showToast(safeT('toast.error.enterCurrentLength'), 'error'); return; }
-    const ampacity = isCopper ? { 1.5: 14, 2.5: 20, 4: 26, 6: 34, 10: 46, 16: 62, 25: 80, 35: 100, 50: 125 } : { 2.5: 15, 4: 20, 6: 26, 10: 36, 16: 48, 25: 62, 35: 78, 50: 96 };
+    const ampacity = isCopper
+        ? { 1.5: 14, 2.5: 20, 4: 26, 6: 34, 10: 46, 16: 62, 25: 80, 35: 100, 50: 125 }
+        : { 2.5: 15, 4: 20, 6: 26, 10: 36, 16: 48, 25: 62, 35: 78, 50: 96 };
     const rho = isCopper ? 0.0178 : 0.0282;
     const sections = Object.keys(ampacity).map(Number).sort((a, b) => a - b);
     let chosen = null;
@@ -4570,8 +6016,15 @@ function calculateThreePhase() {
     if (val === null) { showToast(safeT('toast.error.enterValue'), 'error'); return; }
     const sqrt3 = Math.sqrt(3);
     let result, unit, powerKw, amps;
-    if (poz === 'snaga') { powerKw = val; amps = (powerKw * 1000) / (sqrt3 * volts * cosfi); result = amps; unit = 'A'; }
-    else { amps = val; powerKw = (sqrt3 * volts * amps * cosfi) / 1000; result = powerKw; unit = 'kW'; }
+    if (poz === 'snaga') {
+        powerKw = val;
+        amps = (powerKw * 1000) / (sqrt3 * volts * cosfi);
+        result = amps; unit = 'A';
+    } else {
+        amps = val;
+        powerKw = (sqrt3 * volts * amps * cosfi) / 1000;
+        result = powerKw; unit = 'kW';
+    }
     const rv = el('res-trofaz-val'); if (rv) rv.innerText = fmt(result, 2);
     const ru = el('res-trofaz-unit'); if (ru) ru.innerText = unit;
     const sk = el('stat-trofaz-kw'); if (sk) sk.innerText = fmt(powerKw, 2) + ' kW';
@@ -4586,7 +6039,8 @@ function calculateLighting() {
     if (!l || !w) { showToast(safeT('toast.error.enterRoomDims'), 'error'); return; }
     const area = l * w;
     let heightFactor = 1;
-    if (h > 3) heightFactor = 1 + (h - 3) * 0.15; else if (h > 2.7) heightFactor = 1.05;
+    if (h > 3) heightFactor = 1 + (h - 3) * 0.15;
+    else if (h > 2.7) heightFactor = 1.05;
     const lumens = area * lux * heightFactor;
     const brojSijalica = Math.max(1, Math.ceil((lumens / 100) / wattEl));
     const rv = el('res-osv-lumen'); if (rv) rv.innerText = fmt(lumens, 0);
@@ -4632,16 +6086,37 @@ function calculateKelvin() {
     show('kel-result-box'); show('kel-stats-row');
 }
 
-// POSAO
-function renderWorkVreme() { return `<div class="converter-box">${sectionDescKey('desc.work.time')}<div class="input-field"><label>${safeT('label.work.startTime')}</label><div class="input-wrapper"><input type="time" id="work-start" class="custom-input"></div></div><div class="input-field"><label>${safeT('label.work.endTime')}</label><div class="input-wrapper"><input type="time" id="work-end" class="custom-input"></div></div>${inputField('label.work.breakDuration','work-break','min','value="30"')}${selectField('label.work.dayType','work-day-type',[{value:'workday',text:safeT('option.work.workday')},{value:'weekend',text:safeT('option.work.weekend')},{value:'holiday',text:safeT('option.work.holiday')}])}${calcButton('btn.calculate','calculateWorkTime()')}</div><div id="worktime-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('timer')}</div><div><div class="res-label">${safeT('label.work.totalWorkTime')}</div><h2><span id="res-worktime">0</span></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-worktime','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="POSAO" data-label="Radno vreme" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="POSAO" data-label="Radno vreme" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('worktime-stats-row',[['label.work.withoutBreak','stat-worktime-raw','0'],['label.work.decimal','stat-worktime-dec','0 h'],['label.work.multiplier','stat-worktime-mult','100%']])}`; }
-function renderWorkSatnica() { return `<div class="converter-box">${sectionDescKey('desc.work.hourly')}${inputField('label.work.netSalary','work-salary','RSD','placeholder="80000"')}${inputField('label.work.monthlyHours','work-hours','','value="176"')}${selectField('label.work.calcType','work-rate-type',[{value:'monthly',text:safeT('option.work.monthly')},{value:'yearly',text:safeT('option.work.yearly')}])}${calcButton('btn.calculate','calculateHourlyRate()')}</div>${resultCard('hourly-result-box','dollarSign','label.work.hourlyRate','res-hourly-rate','RSD','POSAO','label.work.hourly')}${statsRow('hourly-stats-row',[['label.work.daily8h','stat-hourly-day','0 RSD'],['label.work.weekly40h','stat-hourly-week','0 RSD'],['label.work.perMinute','stat-hourly-min','0 RSD']])}`; }
-function renderWorkPlata() { return `<div class="converter-box">${sectionDescKey('desc.work.salary')}${selectField('label.work.calcType','plata-type',[{value:'neto-to-bruto',text:safeT('option.work.netToGross')},{value:'bruto-to-neto',text:safeT('option.work.grossToNet')}])}${inputField('label.work.amount','plata-amount','RSD','placeholder="80000"')}${calcButton('btn.calculate','calculateSalary()')}</div><div id="plata-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('banknote')}</div><div><div class="res-label" id="plata-result-label">${safeT('label.work.netSalaryLabel')}</div><h2><span id="res-plata-val">0</span> <small>RSD</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-plata-val','RSD', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="POSAO" data-label="Plata" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="POSAO" data-label="Plata" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('plata-stats-row',[['label.work.pensionContribution','stat-plata-pio','0 RSD'],['label.work.healthContribution','stat-plata-zdr','0 RSD'],['label.work.tax','stat-plata-porez','0 RSD']])}`; }
-function renderWorkOdmor() { return `<div class="converter-box">${sectionDescKey('desc.work.vacation')}${inputField('label.work.totalVacationDays','odmor-total','','value="20"')}${inputField('label.work.usedDays','odmor-used','','value="5"')}${inputField('label.work.avgDailyEarning','odmor-daily','RSD','placeholder="3000"')}${calcButton('btn.calculate','calculateVacation()')}</div>${resultCard('odmor-result-box','calendar','label.work.remainingDays','res-odmor-left','','POSAO','label.work.vacationShort')}${statsRow('odmor-stats-row',[['label.work.used','stat-odmor-used','0'],['label.work.vacationPay','stat-odmor-pay','0 RSD']])}`; }
-function renderWorkNocni() { return `<div class="converter-box">${sectionDescKey('desc.work.night')}${inputField('label.work.nightHours','nocni-hours','h','placeholder="8"')}${inputField('label.work.hourlyRate','nocni-rate','RSD','placeholder="500"')}${selectField('label.work.increase','nocni-mult',[{value:'1.26',text:'26%'},{value:'1.35',text:'35%'},{value:'1.5',text:'50%'}])}${calcButton('btn.calculate','calculateNightWork()')}</div>${resultCard('nocni-result-box','moon','label.work.nightEarning','res-nocni-total','RSD','POSAO','label.work.nightShort')}${statsRow('nocni-stats-row',[['label.work.baseEarning','stat-nocni-base','0 RSD'],['label.work.increase','stat-nocni-bonus','0 RSD']])}`; }
-function renderWorkPrekovremeno() { return `<div class="converter-box">${sectionDescKey('desc.work.overtime')}${inputField('label.work.overtimeHours','prek-hours','h','placeholder="4"')}${inputField('label.work.hourlyRate','prek-rate','RSD','placeholder="500"')}${calcButton('btn.calculate','calculateOvertime()')}</div>${resultCard('prek-result-box','activity','label.work.totalEarning','res-prek-total','RSD','POSAO','label.work.overtimeShort')}${statsRow('prek-stats-row',[['label.work.first2h','stat-prek-first','0 RSD'],['label.work.rest50','stat-prek-rest','0 RSD']])}`; }
-function renderWorkPutni() { return `<div class="converter-box">${sectionDescKey('desc.work.travel')}${inputField('label.work.tripDays','putni-days','','value="3"')}${inputField('label.work.dailyAllowance','putni-daily','RSD','placeholder="2000"')}${inputField('label.work.fuelCost','putni-fuel','RSD','placeholder="0"')}${inputField('label.work.accommodationCost','putni-hotel','RSD','placeholder="0"')}${calcButton('btn.calculate','calculateTravelExpenses()')}</div>${resultCard('putni-result-box','car','label.work.totalTravelCosts','res-putni-total','RSD','POSAO','label.work.travelShort')}${statsRow('putni-stats-row',[['label.work.allowances','stat-putni-daily-total','0 RSD'],['label.work.fuelCost','stat-putni-fuel-total','0 RSD'],['label.work.accommodation','stat-putni-hotel-total','0 RSD']])}`; }
-function renderWorkBonusi() { return `<div class="converter-box">${sectionDescKey('desc.work.bonuses')}${inputField('label.work.monthsForBonus','bonus-months','','value="12"')}${inputField('label.work.avgMonthlySalary','bonus-salary','RSD','placeholder="80000"')}${inputField('label.work.thirteenthSalary','bonus-13th','RSD','placeholder="0"')}${inputField('label.work.vacationAllowance','bonus-regres','RSD','placeholder="0"')}${inputField('label.work.mealAllowance','bonus-meal','RSD','placeholder="0"')}${calcButton('btn.calculate','calculateBonuses()')}</div>${resultCard('bonus-result-box','gift','label.work.totalBonuses','res-bonus-total','RSD','POSAO','label.work.bonusesShort')}${statsRow('bonus-stats-row',[['label.work.bonusesByMonths','stat-bonus-months-total','0 RSD'],['label.work.annualTotal','stat-bonus-yearly','0 RSD']])}`; }
+// ============================================================
+// WORK — Render funkcije
+// ============================================================
+function renderWorkVreme() {
+    return `<div class="converter-box">${sectionDescKey('desc.work.time')}<div class="input-field"><label>${safeT('label.work.startTime')}</label><div class="input-wrapper"><input type="time" id="work-start" class="custom-input"></div></div><div class="input-field"><label>${safeT('label.work.endTime')}</label><div class="input-wrapper"><input type="time" id="work-end" class="custom-input"></div></div>${inputField('label.work.breakDuration', 'work-break', 'min', 'value="30"')}${selectField('label.work.dayType', 'work-day-type', [{ value: 'workday', text: safeT('option.work.workday') }, { value: 'weekend', text: safeT('option.work.weekend') }, { value: 'holiday', text: safeT('option.work.holiday') }])}${calcButton('btn.calculate', 'calculateWorkTime()')}</div><div id="worktime-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('timer')}</div><div><div class="res-label">${safeT('label.work.totalWorkTime')}</div><h2><span id="res-worktime">0</span></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-worktime', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="POSAO" data-label="Radno vreme" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="POSAO" data-label="Radno vreme" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('worktime-stats-row', [['label.work.withoutBreak', 'stat-worktime-raw', '0'], ['label.work.decimal', 'stat-worktime-dec', '0 h'], ['label.work.multiplier', 'stat-worktime-mult', '100%']])}`;
+}
+function renderWorkSatnica() {
+    return `<div class="converter-box">${sectionDescKey('desc.work.hourly')}${inputField('label.work.netSalary', 'work-salary', 'RSD', 'placeholder="80000"')}${inputField('label.work.monthlyHours', 'work-hours', '', 'value="176"')}${selectField('label.work.calcType', 'work-rate-type', [{ value: 'monthly', text: safeT('option.work.monthly') }, { value: 'yearly', text: safeT('option.work.yearly') }])}${calcButton('btn.calculate', 'calculateHourlyRate()')}</div>${resultCard('hourly-result-box', 'dollarSign', 'label.work.hourlyRate', 'res-hourly-rate', 'RSD', 'POSAO', 'label.work.hourly')}${statsRow('hourly-stats-row', [['label.work.daily8h', 'stat-hourly-day', '0 RSD'], ['label.work.weekly40h', 'stat-hourly-week', '0 RSD'], ['label.work.perMinute', 'stat-hourly-min', '0 RSD']])}`;
+}
+function renderWorkPlata() {
+    return `<div class="converter-box">${sectionDescKey('desc.work.salary')}${selectField('label.work.calcType', 'plata-type', [{ value: 'neto-to-bruto', text: safeT('option.work.netToGross') }, { value: 'bruto-to-neto', text: safeT('option.work.grossToNet') }])}${inputField('label.work.amount', 'plata-amount', 'RSD', 'placeholder="80000"')}${calcButton('btn.calculate', 'calculateSalary()')}</div><div id="plata-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('banknote')}</div><div><div class="res-label" id="plata-result-label">${safeT('label.work.netSalaryLabel')}</div><h2><span id="res-plata-val">0</span> <small>RSD</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-plata-val', 'RSD', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="POSAO" data-label="Plata" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="POSAO" data-label="Plata" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('plata-stats-row', [['label.work.pensionContribution', 'stat-plata-pio', '0 RSD'], ['label.work.healthContribution', 'stat-plata-zdr', '0 RSD'], ['label.work.tax', 'stat-plata-porez', '0 RSD']])}`;
+}
+function renderWorkOdmor() {
+    return `<div class="converter-box">${sectionDescKey('desc.work.vacation')}${inputField('label.work.totalVacationDays', 'odmor-total', '', 'value="20"')}${inputField('label.work.usedDays', 'odmor-used', '', 'value="5"')}${inputField('label.work.avgDailyEarning', 'odmor-daily', 'RSD', 'placeholder="3000"')}${calcButton('btn.calculate', 'calculateVacation()')}</div>${resultCard('odmor-result-box', 'calendar', 'label.work.remainingDays', 'res-odmor-left', '', 'POSAO', 'label.work.vacationShort')}${statsRow('odmor-stats-row', [['label.work.used', 'stat-odmor-used', '0'], ['label.work.vacationPay', 'stat-odmor-pay', '0 RSD']])}`;
+}
+function renderWorkNocni() {
+    return `<div class="converter-box">${sectionDescKey('desc.work.night')}${inputField('label.work.nightHours', 'nocni-hours', 'h', 'placeholder="8"')}${inputField('label.work.hourlyRate', 'nocni-rate', 'RSD', 'placeholder="500"')}${selectField('label.work.increase', 'nocni-mult', [{ value: '1.26', text: '26%' }, { value: '1.35', text: '35%' }, { value: '1.5', text: '50%' }])}${calcButton('btn.calculate', 'calculateNightWork()')}</div>${resultCard('nocni-result-box', 'moon', 'label.work.nightEarning', 'res-nocni-total', 'RSD', 'POSAO', 'label.work.nightShort')}${statsRow('nocni-stats-row', [['label.work.baseEarning', 'stat-nocni-base', '0 RSD'], ['label.work.increase', 'stat-nocni-bonus', '0 RSD']])}`;
+}
+function renderWorkPrekovremeno() {
+    return `<div class="converter-box">${sectionDescKey('desc.work.overtime')}${inputField('label.work.overtimeHours', 'prek-hours', 'h', 'placeholder="4"')}${inputField('label.work.hourlyRate', 'prek-rate', 'RSD', 'placeholder="500"')}${calcButton('btn.calculate', 'calculateOvertime()')}</div>${resultCard('prek-result-box', 'activity', 'label.work.totalEarning', 'res-prek-total', 'RSD', 'POSAO', 'label.work.overtimeShort')}${statsRow('prek-stats-row', [['label.work.first2h', 'stat-prek-first', '0 RSD'], ['label.work.rest50', 'stat-prek-rest', '0 RSD']])}`;
+}
+function renderWorkPutni() {
+    return `<div class="converter-box">${sectionDescKey('desc.work.travel')}${inputField('label.work.tripDays', 'putni-days', '', 'value="3"')}${inputField('label.work.dailyAllowance', 'putni-daily', 'RSD', 'placeholder="2000"')}${inputField('label.work.fuelCost', 'putni-fuel', 'RSD', 'placeholder="0"')}${inputField('label.work.accommodationCost', 'putni-hotel', 'RSD', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateTravelExpenses()')}</div>${resultCard('putni-result-box', 'car', 'label.work.totalTravelCosts', 'res-putni-total', 'RSD', 'POSAO', 'label.work.travelShort')}${statsRow('putni-stats-row', [['label.work.allowances', 'stat-putni-daily-total', '0 RSD'], ['label.work.fuelCost', 'stat-putni-fuel-total', '0 RSD'], ['label.work.accommodation', 'stat-putni-hotel-total', '0 RSD']])}`;
+}
+function renderWorkBonusi() {
+    return `<div class="converter-box">${sectionDescKey('desc.work.bonuses')}${inputField('label.work.monthsForBonus', 'bonus-months', '', 'value="12"')}${inputField('label.work.avgMonthlySalary', 'bonus-salary', 'RSD', 'placeholder="80000"')}${inputField('label.work.thirteenthSalary', 'bonus-13th', 'RSD', 'placeholder="0"')}${inputField('label.work.vacationAllowance', 'bonus-regres', 'RSD', 'placeholder="0"')}${inputField('label.work.mealAllowance', 'bonus-meal', 'RSD', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateBonuses()')}</div>${resultCard('bonus-result-box', 'gift', 'label.work.totalBonuses', 'res-bonus-total', 'RSD', 'POSAO', 'label.work.bonusesShort')}${statsRow('bonus-stats-row', [['label.work.bonusesByMonths', 'stat-bonus-months-total', '0 RSD'], ['label.work.annualTotal', 'stat-bonus-yearly', '0 RSD']])}`;
+}
 
+// ============================================================
+// KALKULACIJE — WORK
+// ============================================================
 function calculateWorkTime() {
     const start = el('work-start') ? el('work-start').value : '';
     const end = el('work-end') ? el('work-end').value : '';
@@ -4656,7 +6131,8 @@ function calculateWorkTime() {
     const totalMinutes = Math.max(0, rawMinutes - breakMin);
     const hours = Math.floor(totalMinutes / 60), minutes = totalMinutes % 60;
     let multLabel = '100%';
-    if (dayType === 'weekend') multLabel = '110%'; else if (dayType === 'holiday') multLabel = '150%';
+    if (dayType === 'weekend') multLabel = '110%';
+    else if (dayType === 'holiday') multLabel = '150%';
     const rw = el('res-worktime'); if (rw) rw.innerText = `${hours}h ${minutes}min`;
     const wr = el('stat-worktime-raw'); if (wr) wr.innerText = `${Math.floor(rawMinutes / 60)}h ${rawMinutes % 60}min`;
     const wd = el('stat-worktime-dec'); if (wd) wd.innerText = fmt(totalMinutes / 60, 2) + ' h';
@@ -4687,7 +6163,8 @@ function calculateSalary() {
         porez = Math.max(0, bruto - pio - zdr - nez - NEOPOREZIVO) * POREZ;
         neto = bruto - pio - zdr - nez - porez;
     } else {
-        neto = amount; bruto = neto / 0.65;
+        neto = amount;
+        bruto = neto / 0.65;
         for (let i = 0; i < 10; i++) {
             pio = bruto * PIO; zdr = bruto * ZDR; nez = bruto * NEZ;
             porez = Math.max(0, bruto - pio - zdr - nez - NEOPOREZIVO) * POREZ;
@@ -4699,8 +6176,13 @@ function calculateSalary() {
         porez = Math.max(0, bruto - pio - zdr - nez - NEOPOREZIVO) * POREZ;
     }
     const label = el('plata-result-label'), val = el('res-plata-val');
-    if (type === 'bruto-to-neto') { if (label) label.innerText = safeT('label.work.netSalaryLabel'); if (val) val.innerText = money(neto); }
-    else { if (label) label.innerText = safeT('label.work.grossSalaryLabel'); if (val) val.innerText = money(bruto); }
+    if (type === 'bruto-to-neto') {
+        if (label) label.innerText = safeT('label.work.netSalaryLabel');
+        if (val) val.innerText = money(neto);
+    } else {
+        if (label) label.innerText = safeT('label.work.grossSalaryLabel');
+        if (val) val.innerText = money(bruto);
+    }
     const sp = el('stat-plata-pio'); if (sp) sp.innerText = money(pio) + ' RSD';
     const sz = el('stat-plata-zdr'); if (sz) sz.innerText = money(zdr) + ' RSD';
     const spo = el('stat-plata-porez'); if (spo) spo.innerText = money(porez) + ' RSD';
@@ -4753,7 +6235,9 @@ function calculateBonuses() {
     show('bonus-result-box'); show('bonus-stats-row');
 }
 
-// MUZIKA
+// ============================================================
+// MUSIC — Render funkcije
+// ============================================================
 const NOTES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const SCALE_INTERVALS = {
     major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10], harmonic_minor: [0, 2, 3, 5, 7, 8, 11],
@@ -4783,9 +6267,15 @@ function transposeChord(chord, steps) {
 function populateNoteSelects() {
     const selects = ['trans-orig', 'trans-new', 'scale-root', 'chord-root', 'kapo-orig', 'int-note1', 'int-note2', 'freq-note'];
     selects.forEach(id => {
-        const sel = el(id); if (!sel) return;
+        const sel = el(id);
+        if (!sel) return;
         sel.innerHTML = '';
-        NOTES_SHARP.forEach(n => { const opt = document.createElement('option'); opt.value = n; opt.textContent = n; sel.appendChild(opt); });
+        NOTES_SHARP.forEach(n => {
+            const opt = document.createElement('option');
+            opt.value = n;
+            opt.textContent = n;
+            sel.appendChild(opt);
+        });
     });
     if (el('trans-orig')) el('trans-orig').value = 'C';
     if (el('trans-new')) el('trans-new').value = 'D';
@@ -4796,6 +6286,7 @@ function populateNoteSelects() {
     if (el('int-note2')) el('int-note2').value = 'G';
     if (el('freq-note')) el('freq-note').value = 'A';
 }
+
 function renderMusicStimer() {
     return `
         <div class="converter-box">
@@ -4831,7 +6322,7 @@ function renderMusicStimer() {
                 <div class="tuner-big-note" id="tuner-detected-note">—</div>
                 <div class="tuner-target-info" id="tuner-target-info"></div>
                 <div class="tuner-detected-freq" id="tuner-detected-freq">— Hz</div>
-                
+
                 <div class="tuner-gauge-wrap">
                     <div class="tuner-gauge-labels">
                         <span class="tuner-gauge-label">−50</span>
@@ -4865,16 +6356,37 @@ function renderMusicStimer() {
     `;
 }
 
-function renderMusicTranspozicija() { return `<div class="converter-box">${sectionDescKey('desc.music.transpose')}<div class="input-field"><label>${safeT('label.music.originalKey')}</label><select id="trans-orig" class="custom-input"></select></div><div class="input-field"><label>${safeT('label.music.newKey')}</label><select id="trans-new" class="custom-input"></select></div>${inputFieldText('label.music.enterChords','trans-chords','npr. C G Am F')}${calcButton('btn.calculate','calculateTranspose()')}</div><div id="trans-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('musicNote')}</div><div><div class="res-label">${safeT('label.music.transposedChords')}</div><h3 id="res-trans-chords" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-trans-chords','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Transpozicija" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Transpozicija" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('trans-stats-row',[['label.music.shift','stat-trans-steps','0']])}`; }
-function renderMusicLestvice() { return `<div class="converter-box">${sectionDescKey('desc.music.scales')}<div class="input-field"><label>${safeT('label.music.rootNote')}</label><select id="scale-root" class="custom-input"></select></div><div class="input-field"><label>${safeT('label.music.scaleType')}</label><select id="scale-type" class="custom-input"><option value="major">${safeT('option.music.major')}</option><option value="minor">${safeT('option.music.naturalMinor')}</option><option value="harmonic_minor">${safeT('option.music.harmonicMinor')}</option><option value="pentatonic_major">${safeT('option.music.pentatonicMajor')}</option><option value="pentatonic_minor">${safeT('option.music.pentatonicMinor')}</option><option value="blues">${safeT('option.music.blues')}</option></select></div>${calcButton('btn.calculate','calculateScale()')}</div><div id="scale-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('piano')}</div><div><div class="res-label">${safeT('label.music.notesInScale')}</div><h3 id="res-scale-notes" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-scale-notes','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Lestvica" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Lestvica" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('scale-stats-row',[['label.music.notesCount','stat-scale-count','0'],['label.music.intervals','stat-scale-intervals','—']])}`; }
-function renderMusicAkordi() { return `<div class="converter-box">${sectionDescKey('desc.music.chords')}<div class="input-field"><label>${safeT('label.music.rootNote')}</label><select id="chord-root" class="custom-input"></select></div><div class="input-field"><label>${safeT('label.music.chordType')}</label><select id="chord-type" class="custom-input"><option value="major">${safeT('option.music.majorChord')}</option><option value="minor">${safeT('option.music.minorChord')}</option><option value="7">${safeT('option.music.dominant7')}</option><option value="maj7">${safeT('option.music.major7')}</option><option value="min7">${safeT('option.music.minor7')}</option><option value="dim">${safeT('option.music.dim')}</option><option value="aug">${safeT('option.music.aug')}</option></select></div>${calcButton('btn.calculate','calculateChord()')}</div><div id="chord-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('guitar')}</div><div><div class="res-label">${safeT('label.music.chordNotes')}</div><h3 id="res-chord-notes" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-chord-notes','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Akord" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Akord" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('chord-stats-row',[['label.music.formula','stat-chord-formula','—']])}`; }
-function renderMusicKapo() { return `<div class="converter-box">${sectionDescKey('desc.music.capo')}<div class="input-field"><label>${safeT('label.music.originalSongKey')}</label><select id="kapo-orig" class="custom-input"></select></div>${inputField('label.music.capoFret','kapo-fret','','placeholder="0"')}${calcButton('btn.calculate','calculateKapo()')}</div><div id="kapo-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('mic')}</div><div><div class="res-label">${safeT('label.music.playChordsIn')}</div><h2><span id="res-kapo-key">C</span></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-kapo-key','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Kapo" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Kapo" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('kapo-stats-row',[['label.music.soundsInKey','stat-kapo-sound','C']])}`; }
-function renderMusicTempo() { return `<div class="converter-box">${sectionDescKey('desc.music.tempo')}<div class="input-field"><label>${safeT('label.music.fromUnit')}</label><select id="tempo-from" class="custom-input"><option value="bpm">BPM</option><option value="ms">ms</option></select></div>${inputField('label.music.value','tempo-val','','placeholder="120"')}<div class="input-field"><label>${safeT('label.music.noteForDelay')}</label><select id="tempo-note" class="custom-input"><option value="1">1/1</option><option value="2">1/2</option><option value="4">1/4</option><option value="8" selected>1/8</option><option value="16">1/16</option></select></div>${calcButton('btn.calculate','calculateTempo()')}</div><div id="tempo-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('timer')}</div><div><div class="res-label">${safeT('result.label')}</div><h2><span id="res-tempo-val">0</span> <small id="res-tempo-unit">ms</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-tempo-val','res-tempo-unit', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Tempo" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Tempo" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>`; }
-function renderMusicIntervali() { return `<div class="converter-box">${sectionDescKey('desc.music.intervals')}<div class="input-field"><label>${safeT('label.music.firstNote')}</label><select id="int-note1" class="custom-input"></select></div><div class="input-field"><label>${safeT('label.music.secondNote')}</label><select id="int-note2" class="custom-input"></select></div>${calcButton('btn.calculate','calculateInterval()')}</div><div id="int-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('sliders')}</div><div><div class="res-label">${safeT('label.music.interval')}</div><h3 id="res-int-name" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-int-name','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Interval" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Interval" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('int-stats-row',[['label.music.semitonesCount','stat-int-semitones','0'],['label.music.type','stat-int-type','—']])}`; }
-function renderMusicMetronom() { return `<div class="converter-box">${sectionDescKey('desc.music.metronome')}${inputField('label.music.bpm','metro-bpm','BPM','value="120"')}<div class="input-field"><label>${safeT('label.music.beatUnit')}</label><select id="metro-beat" class="custom-input"><option value="2">2/4</option><option value="3">3/4</option><option value="4" selected>4/4</option><option value="6">6/8</option></select></div><button class="calc-btn-main" id="metro-btn" onclick="toggleMetronome()">${safeT('btn.startMetronome')}</button></div>${resultCard('metro-result-box','drum','label.music.tempo','res-metro-val','BPM','MUZIKA','label.music.metronomeShort')}${statsRow('metro-stats-row',[['label.music.totalBeats','stat-metro-count','0'],['label.music.beat','stat-metro-takt','1 / 4']])}`; }
-function renderMusicFrekvencije() { return `<div class="converter-box">${sectionDescKey('desc.music.frequencies')}<div class="input-field"><label>${safeT('label.music.note')}</label><select id="freq-note" class="custom-input"></select></div>${inputField('label.music.octave','freq-octave','','value="4"')}${calcButton('btn.calculate','calculateFrequency()')}</div>${resultCard('freq-result-box','waves','label.music.frequencyHz','res-freq-val','Hz','MUZIKA','label.music.frequencyShort')}${statsRow('freq-stats-row',[['label.music.note','stat-freq-note','—']])}`; }
-function renderMusicDetektor() { return `<div class="converter-box">${sectionDescKey('desc.music.detector')}${inputField('label.music.frequencyHz','detect-freq','Hz','placeholder="440"')}${calcButton('btn.calculate','calculateDetectNote()')}</div><div id="detect-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('musicNote')}</div><div><div class="res-label">${safeT('label.music.nearestNote')}</div><h2><span id="res-detect-note">—</span></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-detect-note','', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Detektor" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Detektor" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('detect-stats-row',[['label.music.deviation','stat-detect-offset','0 Hz'],['label.music.octave','stat-detect-octave','0']])}`; }
+function renderMusicTranspozicija() {
+    return `<div class="converter-box">${sectionDescKey('desc.music.transpose')}<div class="input-field"><label>${safeT('label.music.originalKey')}</label><select id="trans-orig" class="custom-input"></select></div><div class="input-field"><label>${safeT('label.music.newKey')}</label><select id="trans-new" class="custom-input"></select></div>${inputFieldText('label.music.enterChords', 'trans-chords', 'npr. C G Am F')}${calcButton('btn.calculate', 'calculateTranspose()')}</div><div id="trans-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('musicNote')}</div><div><div class="res-label">${safeT('label.music.transposedChords')}</div><h3 id="res-trans-chords" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-trans-chords', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Transpozicija" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Transpozicija" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('trans-stats-row', [['label.music.shift', 'stat-trans-steps', '0']])}`;
+}
+function renderMusicLestvice() {
+    return `<div class="converter-box">${sectionDescKey('desc.music.scales')}<div class="input-field"><label>${safeT('label.music.rootNote')}</label><select id="scale-root" class="custom-input"></select></div><div class="input-field"><label>${safeT('label.music.scaleType')}</label><select id="scale-type" class="custom-input"><option value="major">${safeT('option.music.major')}</option><option value="minor">${safeT('option.music.naturalMinor')}</option><option value="harmonic_minor">${safeT('option.music.harmonicMinor')}</option><option value="pentatonic_major">${safeT('option.music.pentatonicMajor')}</option><option value="pentatonic_minor">${safeT('option.music.pentatonicMinor')}</option><option value="blues">${safeT('option.music.blues')}</option></select></div>${calcButton('btn.calculate', 'calculateScale()')}</div><div id="scale-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('piano')}</div><div><div class="res-label">${safeT('label.music.notesInScale')}</div><h3 id="res-scale-notes" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-scale-notes', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Lestvica" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Lestvica" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('scale-stats-row', [['label.music.notesCount', 'stat-scale-count', '0'], ['label.music.intervals', 'stat-scale-intervals', '—']])}`;
+}
+function renderMusicAkordi() {
+    return `<div class="converter-box">${sectionDescKey('desc.music.chords')}<div class="input-field"><label>${safeT('label.music.rootNote')}</label><select id="chord-root" class="custom-input"></select></div><div class="input-field"><label>${safeT('label.music.chordType')}</label><select id="chord-type" class="custom-input"><option value="major">${safeT('option.music.majorChord')}</option><option value="minor">${safeT('option.music.minorChord')}</option><option value="7">${safeT('option.music.dominant7')}</option><option value="maj7">${safeT('option.music.major7')}</option><option value="min7">${safeT('option.music.minor7')}</option><option value="dim">${safeT('option.music.dim')}</option><option value="aug">${safeT('option.music.aug')}</option></select></div>${calcButton('btn.calculate', 'calculateChord()')}</div><div id="chord-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('guitar')}</div><div><div class="res-label">${safeT('label.music.chordNotes')}</div><h3 id="res-chord-notes" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-chord-notes', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Akord" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Akord" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('chord-stats-row', [['label.music.formula', 'stat-chord-formula', '—']])}`;
+}
+function renderMusicKapo() {
+    return `<div class="converter-box">${sectionDescKey('desc.music.capo')}<div class="input-field"><label>${safeT('label.music.originalSongKey')}</label><select id="kapo-orig" class="custom-input"></select></div>${inputField('label.music.capoFret', 'kapo-fret', '', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateKapo()')}</div><div id="kapo-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('mic')}</div><div><div class="res-label">${safeT('label.music.playChordsIn')}</div><h2><span id="res-kapo-key">C</span></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-kapo-key', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Kapo" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Kapo" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('kapo-stats-row', [['label.music.soundsInKey', 'stat-kapo-sound', 'C']])}`;
+}
+function renderMusicTempo() {
+    return `<div class="converter-box">${sectionDescKey('desc.music.tempo')}<div class="input-field"><label>${safeT('label.music.fromUnit')}</label><select id="tempo-from" class="custom-input"><option value="bpm">BPM</option><option value="ms">ms</option></select></div>${inputField('label.music.value', 'tempo-val', '', 'placeholder="120"')}<div class="input-field"><label>${safeT('label.music.noteForDelay')}</label><select id="tempo-note" class="custom-input"><option value="1">1/1</option><option value="2">1/2</option><option value="4">1/4</option><option value="8" selected>1/8</option><option value="16">1/16</option></select></div>${calcButton('btn.calculate', 'calculateTempo()')}</div><div id="tempo-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('timer')}</div><div><div class="res-label">${safeT('result.label')}</div><h2><span id="res-tempo-val">0</span> <small id="res-tempo-unit">ms</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-tempo-val', 'res-tempo-unit', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Tempo" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Tempo" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>`;
+}
+function renderMusicIntervali() {
+    return `<div class="converter-box">${sectionDescKey('desc.music.intervals')}<div class="input-field"><label>${safeT('label.music.firstNote')}</label><select id="int-note1" class="custom-input"></select></div><div class="input-field"><label>${safeT('label.music.secondNote')}</label><select id="int-note2" class="custom-input"></select></div>${calcButton('btn.calculate', 'calculateInterval()')}</div><div id="int-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('sliders')}</div><div><div class="res-label">${safeT('label.music.interval')}</div><h3 id="res-int-name" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-int-name', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Interval" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Interval" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('int-stats-row', [['label.music.semitonesCount', 'stat-int-semitones', '0'], ['label.music.type', 'stat-int-type', '—']])}`;
+}
+function renderMusicMetronom() {
+    return `<div class="converter-box">${sectionDescKey('desc.music.metronome')}${inputField('label.music.bpm', 'metro-bpm', 'BPM', 'value="120"')}<div class="input-field"><label>${safeT('label.music.beatUnit')}</label><select id="metro-beat" class="custom-input"><option value="2">2/4</option><option value="3">3/4</option><option value="4" selected>4/4</option><option value="6">6/8</option></select></div><button class="calc-btn-main" id="metro-btn" onclick="toggleMetronome()">${safeT('btn.startMetronome')}</button></div>${resultCard('metro-result-box', 'drum', 'label.music.tempo', 'res-metro-val', 'BPM', 'MUZIKA', 'label.music.metronomeShort')}${statsRow('metro-stats-row', [['label.music.totalBeats', 'stat-metro-count', '0'], ['label.music.beat', 'stat-metro-takt', '1 / 4']])}`;
+}
+function renderMusicFrekvencije() {
+    return `<div class="converter-box">${sectionDescKey('desc.music.frequencies')}<div class="input-field"><label>${safeT('label.music.note')}</label><select id="freq-note" class="custom-input"></select></div>${inputField('label.music.octave', 'freq-octave', '', 'value="4"')}${calcButton('btn.calculate', 'calculateFrequency()')}</div>${resultCard('freq-result-box', 'waves', 'label.music.frequencyHz', 'res-freq-val', 'Hz', 'MUZIKA', 'label.music.frequencyShort')}${statsRow('freq-stats-row', [['label.music.note', 'stat-freq-note', '—']])}`;
+}
+function renderMusicDetektor() {
+    return `<div class="converter-box">${sectionDescKey('desc.music.detector')}${inputField('label.music.frequencyHz', 'detect-freq', 'Hz', 'placeholder="440"')}${calcButton('btn.calculate', 'calculateDetectNote()')}</div><div id="detect-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('musicNote')}</div><div><div class="res-label">${safeT('label.music.nearestNote')}</div><h2><span id="res-detect-note">—</span></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-detect-note', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Detektor" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Detektor" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('detect-stats-row', [['label.music.deviation', 'stat-detect-offset', '0 Hz'], ['label.music.octave', 'stat-detect-octave', '0']])}`;
+}
 
+// ============================================================
+// KALKULACIJE — MUSIC
+// ============================================================
 function calculateTranspose() {
     const orig = el('trans-orig') ? el('trans-orig').value : 'C';
     const newKey = el('trans-new') ? el('trans-new').value : 'D';
@@ -4954,7 +6466,9 @@ function toggleMetronome() {
         const bpm = parseInt(el('metro-bpm').value) || 120;
         const beatUnit = el('metro-beat') ? parseInt(el('metro-beat').value) : 4;
         if (bpm < 30 || bpm > 300) { showToast(safeT('toast.error.bpmRange'), 'error'); return; }
-        metronomeState.running = true; metronomeState.beat = 0; metronomeState.totalBeats = 0;
+        metronomeState.running = true;
+        metronomeState.beat = 0;
+        metronomeState.totalBeats = 0;
         if (btn) { btn.textContent = safeT('btn.stopMetronome'); btn.classList.add('active'); }
         tickMetronome(beatUnit);
         metronomeState.intervalId = setInterval(() => tickMetronome(beatUnit), 60000 / bpm);
@@ -4975,12 +6489,16 @@ function tickMetronome(beatUnit) {
         if (ctx) {
             try {
                 const t2 = ctx.currentTime;
-                const osc = ctx.createOscillator(); const gain = ctx.createGain();
-                osc.type = 'square'; osc.frequency.setValueAtTime(isFirst ? 1500 : 900, t2);
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(isFirst ? 1500 : 900, t2);
                 gain.gain.setValueAtTime(isFirst ? 0.15 : 0.08, t2);
                 gain.gain.exponentialRampToValueAtTime(0.0001, t2 + 0.05);
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.start(t2); osc.stop(t2 + 0.06);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(t2);
+                osc.stop(t2 + 0.06);
             } catch (e) {}
         }
     }
@@ -5018,7 +6536,7 @@ function calculateDetectNote() {
 }
 
 // ============================================================
-// ŠTIMER
+// ŠTIMER — Instrumenti
 // ============================================================
 const TUNER_INSTRUMENTS = {
     'guitar-standard': { strings: [
@@ -5031,29 +6549,64 @@ const TUNER_INSTRUMENTS = {
         { note: 'D', octave: 3, freq: 146.83 }, { note: 'G', octave: 3, freq: 196.00 },
         { note: 'B', octave: 3, freq: 246.94 }, { note: 'E', octave: 4, freq: 329.63 }
     ]},
+    'guitar-halfdown': { strings: [
+        { note: 'D#', octave: 2, freq: 77.78 }, { note: 'G#', octave: 2, freq: 103.83 },
+        { note: 'C#', octave: 3, freq: 138.59 }, { note: 'F#', octave: 3, freq: 185.00 },
+        { note: 'A#', octave: 3, freq: 233.08 }, { note: 'D#', octave: 4, freq: 311.13 }
+    ]},
     'bass-4': { strings: [
         { note: 'E', octave: 1, freq: 41.20 }, { note: 'A', octave: 1, freq: 55.00 },
         { note: 'D', octave: 2, freq: 73.42 }, { note: 'G', octave: 2, freq: 98.00 }
+    ]},
+    'bass-5': { strings: [
+        { note: 'B', octave: 0, freq: 30.87 }, { note: 'E', octave: 1, freq: 41.20 },
+        { note: 'A', octave: 1, freq: 55.00 }, { note: 'D', octave: 2, freq: 73.42 },
+        { note: 'G', octave: 2, freq: 98.00 }
     ]},
     'ukulele-soprano': { strings: [
         { note: 'G', octave: 4, freq: 392.00 }, { note: 'C', octave: 4, freq: 261.63 },
         { note: 'E', octave: 4, freq: 329.63 }, { note: 'A', octave: 4, freq: 440.00 }
     ]},
+    'ukulele-baritone': { strings: [
+        { note: 'D', octave: 3, freq: 146.83 }, { note: 'G', octave: 3, freq: 196.00 },
+        { note: 'B', octave: 3, freq: 246.94 }, { note: 'E', octave: 4, freq: 329.63 }
+    ]},
     'violin': { strings: [
         { note: 'G', octave: 3, freq: 196.00 }, { note: 'D', octave: 4, freq: 293.66 },
         { note: 'A', octave: 4, freq: 440.00 }, { note: 'E', octave: 5, freq: 659.25 }
+    ]},
+    'cello': { strings: [
+        { note: 'C', octave: 2, freq: 65.41 }, { note: 'G', octave: 2, freq: 98.00 },
+        { note: 'D', octave: 3, freq: 146.83 }, { note: 'A', octave: 3, freq: 220.00 }
+    ]},
+    'mandolin': { strings: [
+        { note: 'G', octave: 3, freq: 196.00 }, { note: 'D', octave: 4, freq: 293.66 },
+        { note: 'A', octave: 4, freq: 440.00 }, { note: 'E', octave: 5, freq: 659.25 }
+    ]},
+    'banjo': { strings: [
+        { note: 'G', octave: 4, freq: 392.00 }, { note: 'D', octave: 3, freq: 146.83 },
+        { note: 'G', octave: 3, freq: 196.00 }, { note: 'B', octave: 3, freq: 246.94 },
+        { note: 'D', octave: 4, freq: 293.66 }
+    ]},
+    'kontrabas': { strings: [
+        { note: 'E', octave: 1, freq: 41.20 }, { note: 'A', octave: 1, freq: 55.00 },
+        { note: 'D', octave: 2, freq: 73.42 }, { note: 'G', octave: 2, freq: 98.00 }
     ]}
 };
+
 let tunerOscillator = null, tunerGain = null;
 let micStream = null, micAnalyser = null, micSource = null, micRunning = false, micRafId = null;
+
 function getA4() {
     const v = el('tuner-a4') ? parseNum(el('tuner-a4').value) : 440;
     return (v && v > 0) ? v : 440;
 }
 function renderTunerStrings() {
-    const sel = el('tuner-instrument'); if (!sel) return;
+    const sel = el('tuner-instrument');
+    if (!sel) return;
     const inst = TUNER_INSTRUMENTS[sel.value];
-    const wrap = el('tuner-strings'); if (!wrap || !inst) return;
+    const wrap = el('tuner-strings');
+    if (!wrap || !inst) return;
     const ratio = getA4() / 440;
     wrap.innerHTML = '';
     inst.strings.forEach((s, i) => {
@@ -5074,7 +6627,12 @@ function renderTunerStrings() {
 function playTunerTone(freq, btn) {
     try {
         const isActive = btn && btn.classList.contains('active');
-        if (isActive) { stopTunerTone(); const s = el('tuner-status'); if (s) s.style.display = 'none'; return; }
+        if (isActive) {
+            stopTunerTone();
+            const s = el('tuner-status');
+            if (s) s.style.display = 'none';
+            return;
+        }
         if (!audioCtx) audioCtx = getAudio();
         if (!audioCtx) return;
         if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -5085,15 +6643,19 @@ function playTunerTone(freq, btn) {
         tunerOscillator.frequency.value = freq;
         tunerGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
         tunerGain.gain.exponentialRampToValueAtTime(0.25, audioCtx.currentTime + 0.05);
-        tunerOscillator.connect(tunerGain); tunerGain.connect(audioCtx.destination);
+        tunerOscillator.connect(tunerGain);
+        tunerGain.connect(audioCtx.destination);
         tunerOscillator.start();
         const status = el('tuner-status');
         if (status) {
             status.style.display = 'block';
-            const nd = el('tuner-note-display'); if (nd) nd.textContent = btn.querySelector('.ts-note').textContent;
-            const fd = el('tuner-freq-display'); if (fd) fd.textContent = freq.toFixed(2) + ' Hz';
+            const nd = el('tuner-note-display');
+            if (nd) nd.textContent = btn.querySelector('.ts-note').textContent;
+            const fd = el('tuner-freq-display');
+            if (fd) fd.textContent = freq.toFixed(2) + ' Hz';
         }
-        const sb = el('tuner-stop-btn'); if (sb) sb.style.display = 'block';
+        const sb = el('tuner-stop-btn');
+        if (sb) sb.style.display = 'block';
         document.querySelectorAll('.tuner-string-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         vibrate(10);
@@ -5105,17 +6667,17 @@ function stopTunerTone() {
             tunerGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.05);
             tunerOscillator.stop(audioCtx.currentTime + 0.1);
         } catch (e) {}
-        tunerOscillator = null; tunerGain = null;
+        tunerOscillator = null;
+        tunerGain = null;
     }
-    const sb = el('tuner-stop-btn'); if (sb) sb.style.display = 'none';
+    const sb = el('tuner-stop-btn');
+    if (sb) sb.style.display = 'none';
     document.querySelectorAll('.tuner-string-btn').forEach(b => b.classList.remove('active'));
 }
 
 // ============================================================
-// MIKROFON — funkcije za detekciju tona
+// MIKROFON — YIN integracija
 // ============================================================
-
-
 async function toggleTunerMic() {
     const btn = el('tuner-mic-btn');
     if (micRunning) {
@@ -5132,14 +6694,21 @@ async function toggleTunerMic() {
         if (audioCtx.state === 'suspended') await audioCtx.resume();
 
         micStream = await navigator.mediaDevices.getUserMedia({
-            audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+            audio: {
+                echoCancellation: false,
+                noiseSuppression: false,
+                autoGainControl: false,
+                channelCount: 1
+            }
         });
         micSource = audioCtx.createMediaStreamSource(micStream);
         micAnalyser = audioCtx.createAnalyser();
-        micAnalyser.fftSize = 4096;
-        micAnalyser.smoothingTimeConstant = 0.6;
+        micAnalyser.fftSize = 8192;
+        micAnalyser.smoothingTimeConstant = 0.5;
         micSource.connect(micAnalyser);
         micRunning = true;
+
+        resetPitchSmoothing();
 
         if (btn) {
             btn.textContent = '⏹ ' + safeT('btn.stopMic');
@@ -5165,6 +6734,7 @@ function stopTunerMic() {
     }
     micSource = null;
     micAnalyser = null;
+    resetPitchSmoothing();
     const r = el('tuner-mic-result');
     if (r) r.style.display = 'none';
 }
@@ -5173,18 +6743,50 @@ function micLoop() {
     if (!micRunning || !micAnalyser) return;
     const buffer = new Float32Array(micAnalyser.fftSize);
     micAnalyser.getFloatTimeDomainData(buffer);
-    const freq = autoCorrelate(buffer, audioCtx.sampleRate);
-    if (freq > 0) {
-        updateTunerDisplay(freq);
-    } else {
-        const dn = el('tuner-detected-note');
-        if (dn) dn.textContent = '—';
-        const df = el('tuner-detected-freq');
-        if (df) df.textContent = '— Hz';
+
+    // YIN algoritam
+    let freq = yinPitchDetect(buffer, audioCtx.sampleRate, {
+        threshold: 0.12,
+        minFreq: 60,
+        maxFreq: 1500
+    });
+
+    // Fallback na autoCorrelate
+    if (freq <= 0 && typeof autoCorrelate === 'function') {
+        freq = autoCorrelate(buffer, audioCtx.sampleRate);
     }
+
+    if (freq > 0) {
+        const smoothed = smoothPitch(freq);
+        if (smoothed > 0) {
+            updateTunerDisplay(smoothed);
+        } else {
+            showTunerNoSignal();
+        }
+    } else {
+        showTunerNoSignal();
+    }
+
     micRafId = requestAnimationFrame(micLoop);
 }
 
+function showTunerNoSignal() {
+    const dn = el('tuner-detected-note');
+    if (dn) dn.textContent = '—';
+    const df = el('tuner-detected-freq');
+    if (df) df.textContent = '— Hz';
+    const marker = el('tuner-cents-marker');
+    if (marker) marker.style.left = '50%';
+    const cl = el('tuner-cents-label');
+    if (cl) {
+        cl.textContent = '0 cents';
+        cl.classList.remove('ok', 'close', 'far');
+    }
+}
+
+// ============================================================
+// STARI autoCorrelate — fallback
+// ============================================================
 function autoCorrelate(buffer, sampleRate) {
     const SIZE = buffer.length;
     let rms = 0;
@@ -5224,7 +6826,6 @@ function autoCorrelate(buffer, sampleRate) {
 // ============================================================
 // TUNER — Detekcija note i prikaz skale
 // ============================================================
-
 function updateTunerDisplay(freq) {
     const nearest = findNearestString(freq);
     if (!nearest) return;
@@ -5236,7 +6837,7 @@ function updateTunerDisplay(freq) {
 
     const ti = el('tuner-target-info');
     if (ti) {
-                const statusText = Math.abs(cents) < 3 ? safeT('label.music.tunerInTune') :
+        const statusText = Math.abs(cents) < 3 ? safeT('label.music.tunerInTune') :
                           (Math.abs(cents) < 15 ? safeT('label.music.tunerClose') : safeT('label.music.tunerOut'));
         ti.textContent = `${safeT('label.music.string')} ${index + 1} • ${statusText}`;
         ti.classList.remove('ok', 'close', 'far');
@@ -5293,6 +6894,209 @@ function findNearestString(freq) {
 }
 
 // ============================================================
+// VALUTA (FX)
+// ============================================================
+const CURRENCIES = [
+    { code: 'RSD', name: 'Srpski dinar', flag: '🇷🇸', rate: 1 },
+    { code: 'EUR', name: 'Evro', flag: '🇪🇺', rate: 117.20 },
+    { code: 'USD', name: 'Američki dolar', flag: '🇺🇸', rate: 108.50 },
+    { code: 'GBP', name: 'Britanska funta', flag: '🇬🇧', rate: 137.80 },
+    { code: 'CHF', name: 'Švajcarski franak', flag: '🇨🇭', rate: 122.40 },
+    { code: 'JPY', name: 'Japanski jen', flag: '🇯🇵', rate: 0.72 },
+    { code: 'CNY', name: 'Kineski juan', flag: '🇨🇳', rate: 14.95 },
+    { code: 'RUB', name: 'Ruska rublja', flag: '🇷🇺', rate: 1.18 },
+    { code: 'TRY', name: 'Turska lira', flag: '🇹🇷', rate: 3.15 },
+    { code: 'BAM', name: 'Konvertibilna marka', flag: '🇧🇦', rate: 59.90 },
+    { code: 'HRK', name: 'Hrvatska kuna', flag: '🇭🇷', rate: 15.55 },
+    { code: 'MKD', name: 'Makedonski denar', flag: '🇲🇰', rate: 1.90 },
+    { code: 'ALL', name: 'Albanski lek', flag: '🇦🇱', rate: 1.14 },
+    { code: 'BGN', name: 'Bugarski lev', flag: '🇧🇬', rate: 59.95 },
+    { code: 'RON', name: 'Rumunski lej', flag: '🇷🇴', rate: 23.55 },
+    { code: 'HUF', name: 'Mađarska forinta', flag: '🇭🇺', rate: 0.30 },
+    { code: 'PLN', name: 'Poljski zlot', flag: '🇵🇱', rate: 26.85 },
+    { code: 'CZK', name: 'Češka kruna', flag: '🇨🇿', rate: 4.68 },
+    { code: 'SEK', name: 'Švedska kruna', flag: '🇸🇪', rate: 10.35 },
+    { code: 'NOK', name: 'Norveška kruna', flag: '🇳🇴', rate: 9.90 },
+    { code: 'DKK', name: 'Danska kruna', flag: '🇩🇰', rate: 15.70 },
+    { code: 'CAD', name: 'Kanadski dolar', flag: '🇨🇦', rate: 78.60 },
+    { code: 'AUD', name: 'Australijski dolar', flag: '🇦🇺', rate: 71.40 },
+    { code: 'NZD', name: 'Novozelandski dolar', flag: '🇳🇿', rate: 65.20 },
+    { code: 'KRW', name: 'Južnokorejski von', flag: '🇰🇷', rate: 0.079 },
+    { code: 'INR', name: 'Indijska rupija', flag: '🇮🇳', rate: 1.29 },
+    { code: 'BRL', name: 'Brazilski real', flag: '🇧🇷', rate: 19.10 },
+    { code: 'MXN', name: 'Meksički pezos', flag: '🇲🇽', rate: 5.60 },
+    { code: 'ZAR', name: 'Južnoafrički rand', flag: '🇿🇦', rate: 5.95 },
+    { code: 'AED', name: 'Dirham UAE', flag: '🇦🇪', rate: 29.55 }
+];
+const FX_STORAGE_KEY = 'cx_fx_rates_v3';
+
+function getFxLastUpdate() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(FX_STORAGE_KEY));
+        if (raw && raw.updated) return raw.updated;
+    } catch (e) {}
+    return null;
+}
+function loadFxRates() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(FX_STORAGE_KEY));
+        if (raw && raw.rates && typeof raw.rates === 'object') {
+            CURRENCIES.forEach(c => {
+                if (typeof raw.rates[c.code] === 'number' && raw.rates[c.code] > 0) c.rate = raw.rates[c.code];
+            });
+        }
+    } catch (e) {}
+}
+function saveFxRates() {
+    try {
+        const rates = {};
+        CURRENCIES.forEach(c => { rates[c.code] = c.rate; });
+        localStorage.setItem(FX_STORAGE_KEY, JSON.stringify({ rates, updated: Date.now() }));
+    } catch (e) {}
+}
+function formatFxUpdated(ts) {
+    if (!ts) return currentLang === 'en' ? 'not refreshed' : 'nije osveženo';
+    const diffMin = Math.round((new Date() - new Date(ts)) / 60000);
+    if (diffMin < 1) return currentLang === 'en' ? 'just now' : 'upravo sad';
+    if (diffMin < 60) return (currentLang === 'en' ? '' : 'pre ') + diffMin + (currentLang === 'en' ? ' min ago' : ' min');
+    const diffH = Math.round(diffMin / 60);
+    if (diffH < 24) return (currentLang === 'en' ? '' : 'pre ') + diffH + (currentLang === 'en' ? 'h ago' : 'h');
+    return (currentLang === 'en' ? '' : 'pre ') + Math.floor(diffH / 24) + (currentLang === 'en' ? 'd ago' : ' d.');
+}
+async function refreshExchangeRates(silent = false) {
+    const btn = document.querySelector('.fx-refresh-btn');
+    if (btn) btn.classList.add('spinning');
+    setTimeout(() => { if (btn) btn.classList.remove('spinning'); }, 700);
+    if (!silent) showToast(currentLang === 'en' ? 'Refreshing rates...' : 'Osvežavam kurseve...', 'info', 1500);
+    try {
+        const res = await fetch('https://open.er-api.com/v6/latest/RSD', { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (!data || data.result !== 'success' || !data.rates) throw new Error('Neispravan');
+        CURRENCIES.forEach(c => {
+            if (c.code === 'RSD') { c.rate = 1; return; }
+            const rate = data.rates[c.code];
+            if (typeof rate === 'number' && rate > 0) c.rate = Number((1 / rate).toFixed(4));
+        });
+        saveFxRates();
+        populateCurrencySelects();
+        renderFxList();
+        updateFxUpdatedLabel();
+        calculateCurrency();
+        if (!silent) {
+            showToast(currentLang === 'en' ? 'Rates refreshed' : 'Kursevi osveženi', 'success', 2000);
+            vibrate(20);
+        }
+    } catch (e) {
+        if (!silent) showToast(currentLang === 'en' ? 'Error refreshing rates' : 'Greška pri osvežavanju', 'error', 2500);
+    }
+}
+function populateCurrencySelects() {
+    const fromSel = el('fx-from'), toSel = el('fx-to');
+    if (!fromSel || !toSel) return;
+    const prevFrom = fromSel.value || 'RSD', prevTo = toSel.value || 'EUR';
+    fromSel.innerHTML = '';
+    toSel.innerHTML = '';
+    CURRENCIES.forEach(c => {
+        const o1 = document.createElement('option');
+        o1.value = c.code;
+        o1.textContent = `${c.flag} ${c.code} — ${c.name}`;
+        fromSel.appendChild(o1);
+        const o2 = document.createElement('option');
+        o2.value = c.code;
+        o2.textContent = `${c.flag} ${c.code} — ${c.name}`;
+        toSel.appendChild(o2);
+    });
+    fromSel.value = prevFrom || 'RSD';
+    toSel.value = prevTo || 'EUR';
+}
+function renderFxList() {
+    const list = el('fx-list');
+    if (!list) return;
+    list.innerHTML = '';
+    CURRENCIES.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'fx-list-item';
+        item.dataset.code = c.code;
+        item.innerHTML = `<div class="fx-flag">${c.flag}</div><div class="fx-list-info"><div class="fx-code">${c.code}</div><div class="fx-name">${c.name}</div></div><div class="fx-value">${fmt(c.rate, 4)}<small>RSD</small></div>`;
+        item.addEventListener('click', () => {
+            const toSel = el('fx-to');
+            if (toSel) { toSel.value = c.code; calculateCurrency(); }
+        });
+        list.appendChild(item);
+    });
+}
+function updateFxUpdatedLabel() {
+    const label = el('fx-updated-label');
+    if (!label) return;
+    const ts = getFxLastUpdate();
+    label.textContent = ts ? ((currentLang === 'en' ? 'updated ' : 'osveženo ') + formatFxUpdated(ts)) : safeT('label.money.manualEntry');
+}
+function swapCurrencies() {
+    const fromSel = el('fx-from'), toSel = el('fx-to');
+    if (!fromSel || !toSel) return;
+    const tmp = fromSel.value;
+    fromSel.value = toSel.value;
+    toSel.value = tmp;
+    calculateCurrency();
+    vibrate(10);
+}
+function getCurrencyByCode(code) { return CURRENCIES.find(c => c.code === code); }
+function calculateCurrency() {
+    const amount = num('fx-amount');
+    const fromSel = el('fx-from'), toSel = el('fx-to');
+    if (!fromSel || !toSel) return;
+    const fromCur = getCurrencyByCode(fromSel.value), toCur = getCurrencyByCode(toSel.value);
+    const info = el('fx-rate-info');
+    if (info && fromCur && toCur) info.innerHTML = `1 ${fromCur.code} = <strong>${fmt(fromCur.rate / toCur.rate, 4)}</strong> ${toCur.code}`;
+    if (!amount) { hide('fx-result-box'); return; }
+    if (!fromCur || !toCur) return;
+    const result = (amount * fromCur.rate) / toCur.rate;
+    const fv = el('res-fx-val'), fu = el('res-fx-unit');
+    if (fv) fv.innerText = toCur.rate >= 50 ? money(result) : fmt(result, 2);
+    if (fu) fu.innerText = toCur.code;
+    show('fx-result-box');
+}
+
+// ============================================================
+// O APLIKACIJI
+// ============================================================
+const APP_VERSION = '1.0';
+const APP_DATE_SR = 'Oktobar 2026';
+const APP_DATE_EN = 'October 2026';
+
+function openAboutModal() {
+    const modal = el('about-modal');
+    if (!modal) return;
+
+    const setText = (id, key) => {
+        const e = el(id);
+        if (e) e.textContent = safeT(key);
+    };
+    setText('about-modal-title', 'about.title');
+    setText('about-what-title', 'about.whatTitle');
+    setText('about-what-text', 'about.whatText');
+    setText('about-thanks-title', 'about.thanksTitle');
+    setText('about-thanks-text', 'about.thanksText');
+    setText('about-author-title', 'about.authorTitle');
+    setText('about-author-text', 'about.author');
+    setText('about-github-text', 'about.github');
+    setText('about-footer-text', 'about.footer');
+
+    const desc = el('about-description');
+    if (desc) desc.textContent = safeT('about.description');
+
+    const ver = el('about-version');
+    if (ver) ver.textContent = `v${APP_VERSION} • ${currentLang === 'en' ? APP_DATE_EN : APP_DATE_SR}`;
+
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+    vibrate(15);
+    playTick(0, 1400, 0.06, 0.02);
+    try { history.pushState({ modal: 'about' }, '', ''); } catch (e) {}
+}
+
+// ============================================================
 // INIT
 // ============================================================
 function initApp() {
@@ -5323,6 +7127,23 @@ function initApp() {
     try { loadFxRates(); } catch (e) {}
     try { restoreInputsFor(document); } catch (e) {}
 
+    // PWA Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('SW registered', reg.scope))
+                .catch(err => console.warn('SW registration failed', err));
+        });
+    }
+
+    // Inicijalni badge
+    setTimeout(() => { updateAppBadge(); }, 500);
+    // Badge hint (prvi put)
+    setTimeout(() => { maybeShowBadgeHint(); }, 1200);
+
+    // Badge refresh svakih sat vremena
+    setInterval(updateAppBadge, 60 * 60 * 1000);
+
     setTimeout(() => {
         const splash = el('splash-screen');
         if (splash) {
@@ -5331,7 +7152,6 @@ function initApp() {
         }
     }, 500);
 
-    // Sigurno postavljanje naslova
     if (typeof t === 'function') {
         document.title = t('app.title');
     }
@@ -5357,6 +7177,26 @@ function refreshUIText() {
 
         const btnEditQuick = el('btn-edit-quick');
         if (btnEditQuick) btnEditQuick.textContent = safeT('section.edit');
+
+        // Svi alati — edit dugme
+        const btnEditAll = el('btn-edit-all-tools');
+        if (btnEditAll) btnEditAll.textContent = allToolsEditMode ? safeT('section.allTools.cancel') : safeT('section.allTools.edit');
+
+        // Tools hint
+        const toolsHintTitle = el('tools-hint-title');
+        if (toolsHintTitle) toolsHintTitle.textContent = safeT('section.allTools.hint.title');
+        const toolsHintText = el('tools-hint-text');
+        if (toolsHintText) toolsHintText.textContent = safeT('section.allTools.hint.text');
+        const toolsHintBtn = el('tools-hint-btn');
+        if (toolsHintBtn) toolsHintBtn.textContent = safeT('section.allTools.hint.btn');
+
+        // Badge hint
+        const badgeHintTitle = el('badge-hint-title');
+        if (badgeHintTitle) badgeHintTitle.textContent = safeT('rem.badge.hint.title');
+        const badgeHintText = el('badge-hint-text');
+        if (badgeHintText) badgeHintText.textContent = safeT('rem.badge.hint.text');
+        const badgeHintBtn = el('badge-hint-btn');
+        if (badgeHintBtn) badgeHintBtn.textContent = safeT('rem.badge.hint.btn');
 
         const favEmpty = el('favorites-empty');
         if (favEmpty) favEmpty.innerHTML = safeT('section.favoritesEmpty');
@@ -5389,6 +7229,12 @@ function refreshUIText() {
         if (settingsLanguageSub) settingsLanguageSub.textContent = safeT('settings.language.desc');
         const settingsOffline = el('settings-offline-text');
         if (settingsOffline) settingsOffline.textContent = safeT('settings.offline');
+
+        // O aplikaciji
+        const aboutTitle = el('about-title');
+        if (aboutTitle) aboutTitle.textContent = safeT('about.title');
+        const aboutSub = el('about-sub');
+        if (aboutSub) aboutSub.textContent = safeT('about.subtitle');
 
         // Istorija
         const historyTitle = el('history-title');
@@ -5453,3 +7299,7 @@ if (document.readyState === 'loading') {
 } else {
     initApp();
 }
+
+// ============================================================
+// KRAJ app.js
+// ============================================================
