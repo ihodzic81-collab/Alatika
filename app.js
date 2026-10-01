@@ -494,6 +494,11 @@ function openCalc(categoryId, tabId) {
         }, 50);
     }
 
+        if (categoryId === 'music') {
+        setTimeout(() => {
+            try { populateNoteSelects(); } catch (e) { console.warn('populateNoteSelects:', e); }
+        }, 50);
+    }
     try { history.pushState({ modal: 'calc', category: categoryId, tab: tabId }, '', ''); } catch (e) {}
 
     try { maybeShowFavHint(); } catch (e) {}
