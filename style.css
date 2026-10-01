@@ -348,7 +348,7 @@ body.modal-open { overflow: hidden; }
                 border-color 0.18s ease,
                 box-shadow 0.25s ease;
     box-shadow: var(--shadow-card);
-    position: relative; overflow: hidden; isolation: isolate;
+    position: relative; overflow: visible; isolation: isolate;
 }
 .quick-tool::before {
     content: ''; position: absolute;
@@ -359,6 +359,7 @@ body.modal-open { overflow: hidden; }
         transparent 55%
     );
     pointer-events: none; z-index: 0; opacity: 0.8;
+    clip-path: inset(0 round 18px);
 }
 .quick-tool > * { position: relative; z-index: 1; }
 .quick-tool:hover {
@@ -497,7 +498,7 @@ body.modal-open { overflow: hidden; }
                 border-color 0.18s ease,
                 box-shadow 0.25s ease;
     box-shadow: var(--shadow-card);
-    position: relative; overflow: hidden; isolation: isolate;
+    position: relative; overflow: visible; isolation: isolate;
 }
 .all-tool::before {
     content: ''; position: absolute;
@@ -508,6 +509,7 @@ body.modal-open { overflow: hidden; }
         transparent 55%
     );
     pointer-events: none; z-index: 0; opacity: 0.7;
+    clip-path: inset(0 round 16px);
 }
 .all-tool > * { position: relative; z-index: 1; }
 .all-tool:hover {
