@@ -413,6 +413,9 @@ function openCategory(categoryId) {
     playTick(0, 1400, 0.06, 0.02);
 
     try { history.pushState({ modal: 'category', category: categoryId }, '', ''); } catch (e) {}
+        // Sakrij tools hint kada se otvori modal
+    const toolsHint = el('tools-hint');
+    if (toolsHint) toolsHint.style.display = 'none';
 }
 
 function openCategoryBack(categoryId) {
@@ -500,6 +503,9 @@ function openCalc(categoryId, tabId) {
         }, 50);
     }
     try { history.pushState({ modal: 'calc', category: categoryId, tab: tabId }, '', ''); } catch (e) {}
+        // Sakrij tools hint kada se otvori modal
+    const toolsHintCalc = el('tools-hint');
+    if (toolsHintCalc) toolsHintCalc.style.display = 'none';
 
     try { maybeShowFavHint(); } catch (e) {}
 }
@@ -545,8 +551,8 @@ function closeAllModals() {
 }
 
 // ================= BRZI ALATI =================
-const QUICK_TOOLS_KEY = 'cx_quick_tools_v1';
-const DEFAULT_QUICK_TOOLS = ['weather', 'money', 'measures', 'shopping'];
+const QUICK_TOOLS_KEY = 'cx_quick_tools_v2';
+const DEFAULT_QUICK_TOOLS = ['podsetnici', 'money', 'weather', 'measures'];
 const MAX_QUICK_TOOLS = 4;
 
 function getQuickTools() {
@@ -762,7 +768,17 @@ function toggleCategoryHidden(id) {
 function toggleAllToolsEditMode() {
     allToolsEditMode = !allToolsEditMode;
     const btn = el('btn-edit-all-tools');
-    if (btn) btn.textContent = allToolsEditMode ? safeT('section.allTools.cancel') : safeT('section.allTools.edit');
+    if (btn) btn.textContent = allToolsEditMode ? safeT('section.allTools.save') : safeT('section.allTools.edit');
+    
+    const hint = el('all-tools-edit-hint');
+    if (hint) {
+        if (allToolsEditMode) {
+            hint.style.display = 'block';
+        } else {
+            hint.style.display = 'none';
+        }
+    }
+    
     renderAllTools();
     vibrate(15);
 }
@@ -771,6 +787,8 @@ function saveAllToolsLayout() {
     allToolsEditMode = false;
     const btn = el('btn-edit-all-tools');
     if (btn) btn.textContent = safeT('section.allTools.edit');
+    const hint = el('all-tools-edit-hint');
+    if (hint) hint.style.display = 'none';
     renderAllTools();
     showToast(safeT('section.allTools.saved'), 'success');
     vibrate(20);
@@ -1380,6 +1398,16 @@ function openScreen(screenId, direction = 'right') {
             try { renderAllTools(); } catch (e) {}
             try { updateAppBadge(); } catch (e) {}
         }
+                    // Ponovo prikaži tools hint kada se vrati na home (ako nije dismissed)
+        if (screenId === 'home-screen') {
+            try {
+                if (localStorage.getItem('cx_hint_dismissed_tools') !== '1') {
+                    const hint = el('tools-hint');
+                    if (hint) hint.style.display = 'flex';
+                }
+            } catch (e) {}
+        }
+        
         if (screenId === 'history-screen') { renderHistory(); renderUsageStats(); }
         if (direction !== 'left' && screenId !== 'home-screen') {
             try { history.pushState({ screen: screenId }, '', ''); } catch (e) {}
