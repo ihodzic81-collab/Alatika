@@ -7,7 +7,7 @@ const TRANSLATIONS = {
         // ============ UI OPŠTE ============
         'app.title': 'Alatika — Mali alat za velika računanja',
         'app.subtitle': 'Mali alat za velika računanja',
-        'app.search.placeholder': 'Šta želiš da izračunaš?',
+        'app.search.placeholder': 'Brza pretraga...',
         'app.footer': 'Alatika — mali alat za velika računanja',
 
         // ============ SEKCIJE ============
@@ -25,8 +25,7 @@ const TRANSLATIONS = {
         'section.allTools.hidden': 'Sakriveno',
         'section.allTools.saved': 'Raspored sačuvan',
         'section.allTools.reset.done': 'Vraćeno na podrazumevano',
-        'section.allTools.hint.title': 'Prilagodi svoje alate',
-        'section.allTools.hint.text': 'Ovde možeš da sakriješ alate koje ne koristiš i da promeniš njihov redosled. Klikni "Izmeni" da počneš.',
+        'section.allTools.hint.text': 'Ovde možeš da sakriješ alate koje ne koristiš i da promeniš njihov redosled. Klikni "Izmeni", pa zadrži prstom na ikonu i prevuci na željeno mesto.',
         'section.allTools.hint.btn': 'Razumem',
         'section.allTools.dragHint': 'Prevuci za promenu redosleda • Klikni ✕ za skrivanje',
 
@@ -110,8 +109,8 @@ const TRANSLATIONS = {
         'about.title': 'O aplikaciji',
         'about.subtitle': 'Verzija, autor, zahvalnice',
         'about.whatTitle': 'Šta je Alatika',
-        'about.whatText': 'Alatika je mali alat za velika računanja — napravljena da ti svakodnevne stvari budu jednostavnije. Radi bez interneta, bez reklama, bez registracije. Sve je na tvom telefonu.',
-        'about.description': 'Alatika je nastala iz želje da se svakodnevne stvari olakšaju — da ti sve bude na jednom mestu, bez reklama, bez registracije, bez interneta. Od kalkulacija za kuću, auto, posao, do podsetnika za račune, rođendane i dokumente. Napravljena je da pomogne — tebi, tvojoj porodici, prijateljima. Jednostavna, brza, i uvek pri ruci. Nadam se da će ti koristiti bar upola koliko je meni koristila dok sam je pravio.',
+        'about.whatText': 'Alatika je mali alat za velike stvari — napravljena da ti svakodnevne obaveze budu jednostavnije. Optimizovana za brzinu i lakoću korišćenja — sve na dohvat ruke.',
+        'about.description': 'Alatika je nastala iz želje da se svakodnevne obaveze olakšaju — da ti sve bude na jednom mestu, brzo i jednostavno. Od kalkulacija za kuću, auto, posao, do podsetnika za račune, rođendane i dokumente. Napravljena je da pomogne — tebi, tvojoj porodici, prijateljima. Optimizovana za brzinu i lakoću korišćenja, uvek pri ruci. Nadam se da će ti koristiti bar upola koliko je meni koristila dok sam je pravio.',
         'about.thanksTitle': 'Zahvalnice',
         'about.thanksText': 'Zahvaljujem se porodici i prijateljima na podršci.',
         'about.authorTitle': 'Autor',
@@ -1680,7 +1679,7 @@ const TRANSLATIONS = {
         // ============ UI GENERAL ============
         'app.title': 'Alatika — Small tool for big calculations',
         'app.subtitle': 'Small tool for big calculations',
-        'app.search.placeholder': 'What do you want to calculate?',
+        'app.search.placeholder': 'Quick search...',
         'app.footer': 'Alatika — small tool for big calculations',
 
         // ============ SECTIONS ============
@@ -1783,8 +1782,8 @@ const TRANSLATIONS = {
         'about.title': 'About',
         'about.subtitle': 'Version, author, thanks',
         'about.whatTitle': 'What is Alatika',
-        'about.whatText': 'Alatika is a small tool for big calculations — made to make your everyday things simpler. Works without internet, without ads, without registration. Everything is on your phone.',
-        'about.description': 'Alatika was created from a desire to make everyday things easier — to have everything in one place, without ads, without registration, without internet. From calculations for home, car, work, to reminders for bills, birthdays and documents. It\'s made to help — you, your family, friends. Simple, fast, and always at hand. I hope it helps you at least half as much as it helped me while making it.',
+        'about.whatText': 'Alatika is a small tool for big things — made to make your everyday tasks simpler. Optimized for speed and ease of use — everything within reach.',
+        'about.description': 'Alatika was created from a desire to make everyday tasks easier — to have everything in one place, fast and simple. From calculations for home, car, work, to reminders for bills, birthdays and documents. It\'s made to help — you, your family, friends. Optimized for speed and ease of use, always at hand. I hope it helps you at least half as much as it helped me while making it.',
         'about.thanksTitle': 'Thanks',
         'about.thanksText': 'Thanks to my family and friends for their support.',
         'about.authorTitle': 'Author',
