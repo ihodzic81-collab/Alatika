@@ -3217,34 +3217,90 @@ function renderRemindersNotes() {
     `;
 }
 
-// ================= NOVO: RATE TAB u PODSETNICIMA =================
+// Prikaz svih grupa rata u Podsetnicima (jedina funkcija sa ovim imenom)
 function renderRemindersRate() {
-    return `
+    // Prvo vrati HTML koji sadrži kontejner
+    const html = `
         <div class="converter-box">
             <div class="section-desc">${safeT('tab.podsetnici.rate')}</div>
             <div id="rem-rate-list" class="rem-rate-list"></div>
         </div>
     `;
+
+    // Zatim, koristi setTimeout da popuniš kontejner nakon što se HTML ubaci u DOM
+    setTimeout(() => {
+        const box = el('rem-rate-list');
+        if (!box) return;
+
+        const groups = loadInstallmentGroups();
+
+        if (!groups.length) {
+            box.innerHTML = `
+                <div class="rate-empty">
+                    <div class="rate-empty-icon">💳</div>
+                    <div>${safeT('label.rate.noInstallments')}</div>
+                    <div style="margin-top: 8px; font-size: 0.8rem;">${safeT('label.rate.noInstallmentsHint')}</div>
+                </div>
+            `;
+            return;
+        }
+
+        const sortedGroups = [...groups].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+        let html = '';
+        sortedGroups.forEach(group => {
+            const paidCount = (group.installments || []).filter(i => i.paid).length;
+            const totalCount = (group.installments || []).length;
+            const totalAmount = (group.installments || []).reduce((sum, i) => sum + (i.amount || 0), 0);
+            const isDone = paidCount >= totalCount;
+            const progress = totalCount > 0 ? (paidCount / totalCount) * 100 : 0;
+
+            html += `
+                <div class="rate-group" data-group-id="${escapeHtml(group.id)}">
+                    <div class="rate-group-head">
+                        <div>
+                            <div class="rate-group-title">${escapeHtml(group.description || safeT('label.rate.installment'))}</div>
+                            <div class="rate-group-sub">${totalCount} ${safeT('unit.monthsShort')} • ${totalAmount.toLocaleString('sr-RS')} RSD</div>
+                        </div>
+                        <div class="rate-group-badge ${isDone ? 'done' : ''}">
+                            ${isDone ? '✓ ' + safeT('label.rate.paid') : paidCount + ' / ' + totalCount}
+                        </div>
+                    </div>
+                    <div class="rate-progress-wrap" style="margin: 0 0 10px 0; padding: 10px 12px;">
+                        <div class="rate-progress-head" style="margin-bottom: 6px; font-size: 0.72rem;">
+                            <span class="rate-progress-label">${safeT('label.rate.progress')}</span>
+                            <span class="rate-progress-count">${paidCount} / ${totalCount}</span>
+                        </div>
+                        <div class="rate-progress-bar">
+                            <div class="rate-progress-fill" style="width: ${progress}%;"></div>
+                        </div>
+                    </div>
+                    <div class="rate-table-wrap" style="max-height: 250px;">
+                        ${(group.installments || []).map((inst, idx) => `
+                            <div class="rate-item ${inst.paid ? 'rate-item-paid' : ''}">
+                                <button class="rate-item-check" onclick="toggleInstallmentPaidFromReminders('${escapeHtml(group.id)}', ${idx})" title="${inst.paid ? safeT('label.rate.markUnpaid') : safeT('label.rate.markPaid')}">
+                                    ${inst.paid ? '✓' : ''}
+                                </button>
+                                <div class="rate-item-number">${safeT('label.rate.rate')} ${inst.number}/${totalCount}</div>
+                                <div class="rate-item-date">${escapeHtml(inst.date || '—')}</div>
+                                <div class="rate-item-amount">${(inst.amount || 0).toLocaleString('sr-RS')} RSD</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="rate-actions" style="margin-top: 10px; flex-direction: row;">
+                        <button class="rate-action-btn rate-action-danger" style="flex: 1;" onclick="deleteInstallmentGroup('${escapeHtml(group.id)}')">
+                            ${safeT('label.rate.deleteAll')}
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+
+        box.innerHTML = html;
+    }, 0);
+
+    return html;
 }
-
-// Prikaz svih grupa rata u Podsetnicima
-function renderRemindersRate() {
-    const box = el('rem-rate-list');
-    if (!box) return;
-
-    const groups = loadInstallmentGroups();
-
-    if (!groups.length) {
-        box.innerHTML = `
-            <div class="rate-empty">
-                <div class="rate-empty-icon">💳</div>
-                <div>${safeT('label.rate.noInstallments')}</div>
-                <div style="margin-top: 8px; font-size: 0.8rem;">${safeT('label.rate.noInstallmentsHint')}</div>
-            </div>
-        `;
-        return;
-    }
-
     // Sortiraj grupe po datumu kreiranja (najnovije prvo)
     const sortedGroups = [...groups].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
