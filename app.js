@@ -518,7 +518,9 @@ function openCalc(categoryId, tabId) {
     // Podsetnici
     if (categoryId === 'podsetnici') {
         setTimeout(() => {
-            if (tabId === 'danas') renderRemindersDashboard();
+            if (tabId === 'danas') {
+                renderRemindersHistoryList();
+            }
             if (tabId === 'rodjendani') renderReminderList('birthday');
             if (tabId === 'racuni') renderReminderList('bill');
             if (tabId === 'vozila') { renderReminderList('vehicle'); renderReminderList('document'); }
