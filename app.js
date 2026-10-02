@@ -2014,6 +2014,81 @@ function setupInputPersistence() {
         persistInput(target);
     }, true);
 }
+// ================= ARHIVA =================
+const ARCHIVE_KEY = 'cx_archive';
+const ARCHIVE_AUTO_CLEANUP_KEY = 'cx_archive_auto_cleanup';
+const ARCHIVE_MAX_AGE_DAYS = 730; // 2 godine
+
+function loadArchive() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(ARCHIVE_KEY));
+        if (Array.isArray(raw)) return raw;
+    } catch (e) {}
+    return [];
+}
+
+function saveArchive(list) {
+    try { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(list)); } catch (e) {}
+}
+
+function archiveItem(item) {
+    const archive = loadArchive();
+    if (item.originalId) {
+        const exists = archive.find(a => a.originalId === item.originalId && a.originalType === item.originalType);
+        if (exists) return exists;
+    }
+    const newItem = {
+        id: 'arch_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        originalType: item.originalType || 'unknown',
+        originalId: item.originalId || '',
+        category: item.category || 'Ostalo',
+        title: item.title || 'Stavka',
+        subtitle: item.subtitle || '',
+        amount: item.amount || 0,
+        currency: item.currency || 'RSD',
+        icon: item.icon || 'check',
+        color: item.color || '#10b981',
+        completedAt: Date.now(),
+        completedDate: new Date().toISOString().slice(0, 10)
+    };
+    archive.unshift(newItem);
+    saveArchive(archive.slice(0, 500));
+    return newItem;
+}
+
+function removeFromArchive(id) {
+    let archive = loadArchive();
+    archive = archive.filter(a => a.id !== id);
+    saveArchive(archive);
+}
+
+function getArchiveAutoCleanupSetting() {
+    try {
+        const v = localStorage.getItem(ARCHIVE_AUTO_CLEANUP_KEY);
+        if (v === null) return true;
+        return v === '1';
+    } catch (e) { return true; }
+}
+
+function setArchiveAutoCleanupSetting(enabled) {
+    try { localStorage.setItem(ARCHIVE_AUTO_CLEANUP_KEY, enabled ? '1' : '0'); } catch (e) {}
+}
+
+function runArchiveAutoCleanup() {
+    if (!getArchiveAutoCleanupSetting()) return;
+    try {
+        const archive = loadArchive();
+        const cutoff = Date.now() - (ARCHIVE_MAX_AGE_DAYS * 86400000);
+        const cleaned = archive.filter(item => {
+            const t = item.completedAt || 0;
+            return t >= cutoff;
+        });
+        if (cleaned.length !== archive.length) {
+            saveArchive(cleaned);
+            console.log('Arhiva: obrisano ' + (archive.length - cleaned.length) + ' starih stavki.');
+        }
+    } catch (e) {}
+}
 
 // ============================================================
 // KRAJ DELA 1/4
@@ -7387,6 +7462,9 @@ function openAboutModal() {
 // INIT
 // ============================================================
 function initApp() {
+        // Inicijalizuj archive settings (mora posle definicije funkcije)
+    try { settings.archiveAutoCleanup = getArchiveAutoCleanupSetting(); } catch (e) {}
+    
     try {
         const savedTheme = localStorage.getItem('cx_theme');
         if (savedTheme === 'light' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches)) {
