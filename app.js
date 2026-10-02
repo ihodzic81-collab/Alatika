@@ -3350,7 +3350,7 @@ function getAllReminderItems() {
             title: b.name || 'Rođendan',
             subtitle: b.note || '',
             dueDate: b.date,
-            isDone: false,
+            isDone: !!b.done,
             icon: 'cake',
             color: '#ec4899',
             raw: b
@@ -3366,7 +3366,7 @@ function getAllReminderItems() {
             title: b.name || 'Račun',
             subtitle: (b.amount ? b.amount + ' ' + (b.currency || 'RSD') : ''),
             dueDate: null,
-            isDone: b.paid || false,
+            isDone: !!b.paid,
             icon: 'receipt',
             color: '#10b981',
             raw: b
@@ -3382,7 +3382,7 @@ function getAllReminderItems() {
             title: (v.name || 'Vozilo') + ' — Registracija',
             subtitle: v.plate || '',
             dueDate: v.regDate,
-            isDone: false,
+            isDone: !!v.done,
             icon: 'car',
             color: '#f43f5e',
             raw: v
@@ -3394,7 +3394,7 @@ function getAllReminderItems() {
             title: (v.name || 'Vozilo') + ' — Tehnički',
             subtitle: v.plate || '',
             dueDate: v.techDate,
-            isDone: false,
+            isDone: !!v.done,
             icon: 'wrench',
             color: '#f43f5e',
             raw: v
@@ -3410,7 +3410,7 @@ function getAllReminderItems() {
             title: d.name || 'Dokument',
             subtitle: '',
             dueDate: d.expires,
-            isDone: false,
+            isDone: !!d.done,
             icon: 'clipboard',
             color: '#8b5cf6',
             raw: d
@@ -3442,7 +3442,7 @@ function getAllReminderItems() {
             title: m.name || 'Lek',
             subtitle: m.dose || '',
             dueDate: m.endDate,
-            isDone: false,
+            isDone: !!m.done,
             icon: 'heartPulse',
             color: '#ec4899',
             raw: m
@@ -3458,7 +3458,7 @@ function getAllReminderItems() {
             title: a.name || 'Godišnjica',
             subtitle: a.note || '',
             dueDate: a.date,
-            isDone: false,
+            isDone: !!a.done,
             icon: 'gift',
             color: '#a855f7',
             raw: a
@@ -3474,7 +3474,7 @@ function getAllReminderItems() {
             title: n.title || 'Napomena',
             subtitle: n.description || '',
             dueDate: n.dueDate,
-            isDone: n.done || false,
+            isDone: !!n.done,
             icon: 'clipboard',
             color: '#f59e0b',
             raw: n
@@ -3483,7 +3483,6 @@ function getAllReminderItems() {
     
     return items;
 }
-
 // Popuni dropdown za godine
 function populateYearDropdown(items) {
     const yearSelect = el('rem-history-year');
@@ -3646,7 +3645,7 @@ async function shareReminderFromHistory(type, category, id) {
 // Označi kao završeno / vrati u aktivne
 function toggleDoneFromHistory(type, category, id) {
     const key = getReminderStorageKey(type);
-    if (!key) return;
+    if (!key) { showToast('Nepoznat tip', 'error'); return; }
     
     let realId = id;
     if (type === 'vehicle-reg' || type === 'vehicle-tech') {
@@ -3655,11 +3654,11 @@ function toggleDoneFromHistory(type, category, id) {
     
     const list = loadReminders(key);
     const idx = list.findIndex(x => String(x.id) === String(realId));
-    if (idx === -1) return;
+    if (idx === -1) { showToast('Podsetnik nije pronađen', 'error'); return; }
     
     const item = list[idx];
     
-    // Toggle završeno
+    // Toggle završeno — po tipu
     if (type === 'bill') {
         item.paid = !item.paid;
     } else if (type === 'subscription') {
@@ -3667,13 +3666,18 @@ function toggleDoneFromHistory(type, category, id) {
     } else if (type === 'note') {
         item.done = !item.done;
     } else {
-        // Ostali tipovi nemaju "done" status — dodaj ga
+        // Za sve ostale tipove (birthday, vehicle, document, medication, anniversary)
         item.done = !item.done;
     }
     
     saveReminders(key, list);
     
-    const isNowDone = item.paid || item.done || (type === 'subscription' && !item.active);
+    // Odredi novi status
+    let isNowDone = false;
+    if (type === 'bill') isNowDone = item.paid;
+    else if (type === 'subscription') isNowDone = !item.active;
+    else isNowDone = !!item.done;
+    
     showToast(isNowDone ? 'Označeno kao završeno' : 'Vraćeno u aktivne', 'success', 1500);
     vibrate(20);
     playTick(0, 1500, 0.08, 0.03);
