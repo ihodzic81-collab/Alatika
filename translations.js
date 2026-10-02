@@ -1,5 +1,5 @@
 // ============================================================
-// ALATIKA — translations.js (v4 — kompletno SR + EN)
+// ALATIKA — translations.js (v5 — sa Rate tabom)
 // ============================================================
 
 const TRANSLATIONS = {
@@ -138,7 +138,15 @@ const TRANSLATIONS = {
         // ============ PODSETNICI — TABOVI ============
         'tab.podsetnici.danas': 'Istorija',
         'tab.podsetnici.rate': 'Rate',
-                // Istorija podsetnika
+        'tab.podsetnici.rodjendani': 'Rođendani',
+        'tab.podsetnici.racuni': 'Računi',
+        'tab.podsetnici.vozila': 'Vozila i dokumenti',
+        'tab.podsetnici.pretplate': 'Pretplate',
+        'tab.podsetnici.lekivi': 'Lekovi',
+        'tab.podsetnici.godisnjice': 'Godišnjice',
+        'tab.podsetnici.napomene': 'Napomene',
+
+        // Istorija podsetnika
         'rem.history.search': 'Pretraži podsetnike...',
         'rem.history.filter.all': 'Sve',
         'rem.history.filter.active': 'Aktivni',
@@ -158,13 +166,6 @@ const TRANSLATIONS = {
         'rem.history.edit': 'Uredi',
         'rem.history.share': 'Podeli',
         'rem.history.delete': 'Obriši',
-        'tab.podsetnici.rodjendani': 'Rođendani',
-        'tab.podsetnici.racuni': 'Računi',
-        'tab.podsetnici.vozila': 'Vozila i dokumenti',
-        'tab.podsetnici.pretplate': 'Pretplate',
-        'tab.podsetnici.lekivi': 'Lekovi',
-        'tab.podsetnici.godisnjice': 'Godišnjice',
-        'tab.podsetnici.napomene': 'Napomene',
 
         // ============ PODSETNICI — DASHBOARD ============
         'rem.dashboard.title': 'Pregled danas',
@@ -591,6 +592,9 @@ const TRANSLATIONS = {
         'toast.listCleared': 'Lista obrisana.',
         'toast.deviceAdded': 'Uređaj dodat.',
         'toast.micError': 'Greška pri pristupu mikrofonu.',
+        'toast.rate.saved': 'Rate su sačuvane.',
+        'toast.rate.deleted': 'Rate su obrisane.',
+        'toast.rate.allPaid': 'Sve rate su plaćene.',
 
         // ============ CONFIRM ============
         'confirm.title': 'Potvrda',
@@ -600,6 +604,7 @@ const TRANSLATIONS = {
         'confirm.clearFuelHistory': 'Obrisati istoriju potrošnje goriva?',
         'confirm.clearBought': 'Obrisati {0} kupljenih stavki?',
         'confirm.clearList': 'Obrisati celu listu za kupovinu?',
+        'confirm.rate.delete': 'Obrisati sve rate?',
 
         // ============ REZULTATI ============
         'result.label': 'Rezultat',
@@ -873,6 +878,47 @@ const TRANSLATIONS = {
         'label.money.tipAmount': 'Iznos napojnice',
         'label.money.tip': 'Napojnica',
         'label.money.totalToPay': 'Ukupno za platiti',
+
+        // ============ RATE (INSTALLMENTS) ============
+        'label.rate.startAmount': 'Početna suma',
+        'label.rate.count': 'Broj rata',
+        'label.rate.firstDate': 'Datum prve rate',
+        'label.rate.period': 'Period plaćanja',
+        'label.rate.period.monthly': 'Mesečno',
+        'label.rate.period.biweekly': 'Dvonedeljno',
+        'label.rate.period.weekly': 'Nedeljno',
+        'label.rate.interest': 'Godišnja kamata',
+        'label.rate.description': 'Opis (opciono)',
+        'label.rate.descriptionPlaceholder': 'npr. Kupovina televizora',
+        'label.rate.perInstallment': 'Iznos po rati',
+        'label.rate.totalPayment': 'Ukupno za plaćanje',
+        'label.rate.totalInterest': 'Ukupna kamata',
+        'label.rate.saveReminders': 'Sačuvaj sve rate kao podsetnike',
+        'label.rate.markAllPaid': 'Označi sve kao plaćeno',
+        'label.rate.deleteAll': 'Obriši sve rate',
+        'label.rate.progress': 'Plaćeno',
+        'label.rate.remaining': 'Preostalo',
+        'label.rate.installment': 'Rata',
+        'label.rate.noInstallments': 'Još nema sačuvanih rata.',
+        'label.rate.noInstallmentsHint': 'Koristi kalkulator u kategoriji Novac da napraviš rate.',
+        'label.rate.markPaid': 'Označi kao plaćeno',
+        'label.rate.markUnpaid': 'Označi kao neplaćeno',
+        'label.rate.savedAsReminders': 'Rate su sačuvane kao podsetnici.',
+        'label.rate.alreadySaved': 'Ove rate su već sačuvane kao podsetnici.',
+        'label.rate.deleteConfirm': 'Obrisati sve rate? Ova akcija se ne može poništiti.',
+        'label.rate.markAllPaidConfirm': 'Označiti sve rate kao plaćene?',
+        'label.rate.allPaid': 'Sve rate su označene kao plaćene.',
+        'label.rate.deleted': 'Sve rate su obrisane.',
+        'label.rate.rate': 'Rata',
+        'label.rate.of': 'od',
+        'label.rate.date': 'Datum',
+        'label.rate.amount': 'Iznos',
+        'label.rate.balance': 'Ostatak',
+        'label.rate.status': 'Status',
+        'label.rate.paid': 'Plaćeno',
+        'label.rate.unpaid': 'Neplaćeno',
+        'label.rate.groupActive': 'Aktivne rate',
+        'label.rate.groupDone': 'Završene rate',
 
         // ============ LABELS — MERE ============
         'label.measures.value': 'Vrednost',
@@ -1832,8 +1878,16 @@ const TRANSLATIONS = {
 
         // ============ REMINDERS — TABS ============
         'tab.podsetnici.danas': 'History',
-        'tab.podsetnici.rate': 'Installments', 
-                // Reminders History
+        'tab.podsetnici.rate': 'Installments',
+        'tab.podsetnici.rodjendani': 'Birthdays',
+        'tab.podsetnici.racuni': 'Bills',
+        'tab.podsetnici.vozila': 'Vehicles & docs',
+        'tab.podsetnici.pretplate': 'Subscriptions',
+        'tab.podsetnici.lekivi': 'Medications',
+        'tab.podsetnici.godisnjice': 'Anniversaries',
+        'tab.podsetnici.napomene': 'Notes',
+
+        // Reminders History
         'rem.history.search': 'Search reminders...',
         'rem.history.filter.all': 'All',
         'rem.history.filter.active': 'Active',
@@ -1853,13 +1907,6 @@ const TRANSLATIONS = {
         'rem.history.edit': 'Edit',
         'rem.history.share': 'Share',
         'rem.history.delete': 'Delete',
-        'tab.podsetnici.rodjendani': 'Birthdays',
-        'tab.podsetnici.racuni': 'Bills',
-        'tab.podsetnici.vozila': 'Vehicles & docs',
-        'tab.podsetnici.pretplate': 'Subscriptions',
-        'tab.podsetnici.lekivi': 'Medications',
-        'tab.podsetnici.godisnjice': 'Anniversaries',
-        'tab.podsetnici.napomene': 'Notes',
 
         // ============ REMINDERS — DASHBOARD ============
         'rem.dashboard.title': 'Today\'s overview',
@@ -2001,6 +2048,7 @@ const TRANSLATIONS = {
         // ============ MONEY TABS ============
         'tab.money.popust': 'Discount',
         'tab.money.pdv': 'VAT',
+        'tab.money.rate': 'Installments',
         'tab.money.procenat': 'Percentage',
         'tab.money.kredit': 'Loan',
         'tab.money.valuta': 'Exchange rates',
@@ -2285,6 +2333,9 @@ const TRANSLATIONS = {
         'toast.listCleared': 'List cleared.',
         'toast.deviceAdded': 'Device added.',
         'toast.micError': 'Error accessing microphone.',
+        'toast.rate.saved': 'Installments saved.',
+        'toast.rate.deleted': 'Installments deleted.',
+        'toast.rate.allPaid': 'All installments paid.',
 
         // ============ CONFIRM ============
         'confirm.title': 'Confirmation',
@@ -2294,6 +2345,7 @@ const TRANSLATIONS = {
         'confirm.clearFuelHistory': 'Clear fuel consumption history?',
         'confirm.clearBought': 'Clear {0} bought items?',
         'confirm.clearList': 'Clear the whole shopping list?',
+        'confirm.rate.delete': 'Delete all installments?',
 
         // ============ RESULTS ============
         'result.label': 'Result',
@@ -2567,6 +2619,47 @@ const TRANSLATIONS = {
         'label.money.tipAmount': 'Tip amount',
         'label.money.tip': 'Tip',
         'label.money.totalToPay': 'Total to pay',
+
+        // ============ INSTALLMENTS (RATE) ============
+        'label.rate.startAmount': 'Starting amount',
+        'label.rate.count': 'Number of installments',
+        'label.rate.firstDate': 'First installment date',
+        'label.rate.period': 'Payment period',
+        'label.rate.period.monthly': 'Monthly',
+        'label.rate.period.biweekly': 'Biweekly',
+        'label.rate.period.weekly': 'Weekly',
+        'label.rate.interest': 'Annual interest',
+        'label.rate.description': 'Description (optional)',
+        'label.rate.descriptionPlaceholder': 'e.g. TV purchase',
+        'label.rate.perInstallment': 'Amount per installment',
+        'label.rate.totalPayment': 'Total payment',
+        'label.rate.totalInterest': 'Total interest',
+        'label.rate.saveReminders': 'Save all installments as reminders',
+        'label.rate.markAllPaid': 'Mark all as paid',
+        'label.rate.deleteAll': 'Delete all installments',
+        'label.rate.progress': 'Paid',
+        'label.rate.remaining': 'Remaining',
+        'label.rate.installment': 'Installment',
+        'label.rate.noInstallments': 'No saved installments yet.',
+        'label.rate.noInstallmentsHint': 'Use the calculator in the Money category to create installments.',
+        'label.rate.markPaid': 'Mark as paid',
+        'label.rate.markUnpaid': 'Mark as unpaid',
+        'label.rate.savedAsReminders': 'Installments saved as reminders.',
+        'label.rate.alreadySaved': 'These installments are already saved as reminders.',
+        'label.rate.deleteConfirm': 'Delete all installments? This action cannot be undone.',
+        'label.rate.markAllPaidConfirm': 'Mark all installments as paid?',
+        'label.rate.allPaid': 'All installments marked as paid.',
+        'label.rate.deleted': 'All installments deleted.',
+        'label.rate.rate': 'Installment',
+        'label.rate.of': 'of',
+        'label.rate.date': 'Date',
+        'label.rate.amount': 'Amount',
+        'label.rate.balance': 'Balance',
+        'label.rate.status': 'Status',
+        'label.rate.paid': 'Paid',
+        'label.rate.unpaid': 'Unpaid',
+        'label.rate.groupActive': 'Active installments',
+        'label.rate.groupDone': 'Completed installments',
 
         // ============ LABELS — MEASURES ============
         'label.measures.value': 'Value',
