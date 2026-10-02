@@ -186,7 +186,7 @@ const CATEGORIES = {
         icon: 'bell',
         accent: '#f59e0b',
         tabs: [
-            { id: 'danas', name: 'Danas', icon: 'sunrise', render: renderRemindersToday },
+            { id: 'danas', name: 'Istorija', icon: 'clipboard', render: renderRemindersHistory },
             { id: 'rodjendani', name: 'Rođendani', icon: 'cake', render: renderRemindersBirthdays },
             { id: 'racuni', name: 'Računi', icon: 'receipt', render: renderRemindersBills },
             { id: 'vozila', name: 'Vozila i dokumenti', icon: 'car', render: renderRemindersVehicles },
