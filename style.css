@@ -1845,9 +1845,13 @@ input[type="text"].custom-input::placeholder {
     background: var(--card-active);
 }
 .rem-history-item.rem-item-done {
-    opacity: 0.6;
+    opacity: 0.75;
     background: color-mix(in srgb, var(--card-bg) 60%, var(--bg-color));
     filter: grayscale(0.7);
+}
+.rem-history-item.rem-item-done .rem-action-toggle {
+    filter: grayscale(0) !important;
+    opacity: 1 !important;
 }
 .rem-history-item.rem-item-done .rem-history-title {
     text-decoration: line-through;
@@ -1962,10 +1966,18 @@ input[type="text"].custom-input::placeholder {
     transform: scale(1.15);
 }
 .rem-action-toggle.is-done {
-    color: #10b981;
+    color: #ffffff;
     border-color: #10b981;
-    background: rgba(16, 185, 129, 0.12);
-    box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+    background: #10b981;
+    box-shadow: 
+        0 0 16px rgba(16, 185, 129, 0.5),
+        0 2px 6px rgba(16, 185, 129, 0.4);
+    transform: scale(1.05);
+}
+.rem-action-toggle.is-done svg {
+    stroke: #ffffff;
+    stroke-width: 3;
+    animation: checkPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .rem-action-toggle.is-done svg {
     animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
