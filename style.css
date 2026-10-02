@@ -483,7 +483,12 @@ body.modal-open { overflow: hidden; }
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
 }
-.all-tool-wrap { position: relative; display: flex; }
+.all-tool-wrap {
+    position: relative;
+    display: flex;
+    overflow: visible;
+    z-index: 2;
+}
 .all-tool-wrap .all-tool { flex: 1; width: 100%; }
 
 .all-tool {
