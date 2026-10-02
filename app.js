@@ -3516,7 +3516,6 @@ function populateYearDropdown(items) {
         yearSelect.value = currentValue;
     }
 }
-}
 
 // Prikaz jednog podsetnika u istoriji
 function renderHistoryItem(item) {
