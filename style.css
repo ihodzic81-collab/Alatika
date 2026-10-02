@@ -2215,6 +2215,10 @@ input[type="text"].custom-input::placeholder {
     animation: badgePulse 2s ease-in-out infinite;
     pointer-events: none;
 }
+.category-badge.category-badge-green {
+    background: #10b981;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.5);
+}
 @keyframes badgePulse {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.08); }
