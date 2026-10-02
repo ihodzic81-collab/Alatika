@@ -1923,14 +1923,24 @@ input[type="text"].custom-input::placeholder {
     background: transparent;
     border: 1px solid var(--border-strong);
     color: var(--text-secondary);
-    font-size: 0.85rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s;
+    transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
     padding: 0;
     font-family: inherit;
+}
+.rem-action-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    fill: none;
+    transition: transform 0.2s ease;
+}
+.rem-action-btn:hover svg {
+    transform: scale(1.15);
 }
 .rem-action-btn:hover {
     background: var(--card-active);
@@ -1941,21 +1951,44 @@ input[type="text"].custom-input::placeholder {
 .rem-action-toggle {
     color: var(--text-tertiary);
     border-color: var(--border-strong);
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .rem-action-toggle:hover {
     color: #10b981;
     border-color: #10b981;
     background: rgba(16, 185, 129, 0.1);
 }
-.rem-history-item.rem-item-done .rem-action-toggle {
+.rem-action-toggle:hover svg {
+    transform: scale(1.15);
+}
+.rem-action-toggle.is-done {
     color: #10b981;
     border-color: #10b981;
     background: rgba(16, 185, 129, 0.12);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+}
+.rem-action-toggle.is-done svg {
+    animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes checkPop {
+    0% { transform: scale(0.6) rotate(-20deg); }
+    60% { transform: scale(1.25) rotate(5deg); }
+    100% { transform: scale(1) rotate(0deg); }
 }
 .rem-action-delete:hover {
     color: #f43f5e;
     border-color: #f43f5e;
     background: rgba(244, 63, 94, 0.1);
+}
+.rem-action-edit:hover {
+    color: #6366f1;
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.1);
+}
+.rem-action-share:hover {
+    color: #06b6d4;
+    border-color: #06b6d4;
+    background: rgba(6, 182, 212, 0.1);
 }
 .rem-history-empty {
     text-align: center;
