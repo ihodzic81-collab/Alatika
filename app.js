@@ -1043,13 +1043,25 @@ function updateAppBadge() {
 function updateVisualBadge(count) {
     document.querySelectorAll('.category-badge').forEach(el => el.remove());
     if (count <= 0) return;
-    const cards = document.querySelectorAll('[data-cat-id="podsetnici"]');
-    cards.forEach(card => {
+
+    // Za "Brzi alati" — kartice su .quick-tool
+    const quickTool = document.querySelector('.quick-tool[data-cat-id="podsetnici"]');
+    if (quickTool) {
         const badge = document.createElement('span');
         badge.className = 'category-badge';
         badge.textContent = count > 99 ? '99+' : String(count);
-        card.appendChild(badge);
-    });
+        quickTool.appendChild(badge);
+    }
+
+    // Za "Svi alati" — kartice su .all-tool unutar .all-tool-wrap
+    const allTool = document.querySelector('.all-tool[data-cat-id="podsetnici"]');
+    if (allTool) {
+        const badge = document.createElement('span');
+        badge.className = 'category-badge';
+        badge.textContent = count > 99 ? '99+' : String(count);
+        const wrap = allTool.closest('.all-tool-wrap') || allTool;
+        wrap.appendChild(badge);
+    }
 }
 
 function maybeShowBadgeHint() {
