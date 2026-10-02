@@ -1845,12 +1845,26 @@ input[type="text"].custom-input::placeholder {
     background: var(--card-active);
 }
 .rem-history-item.rem-item-done {
-    opacity: 0.55;
-    background: color-mix(in srgb, var(--card-bg) 70%, var(--bg-color));
+    opacity: 0.6;
+    background: color-mix(in srgb, var(--card-bg) 60%, var(--bg-color));
+    filter: grayscale(0.7);
 }
 .rem-history-item.rem-item-done .rem-history-title {
     text-decoration: line-through;
     color: var(--text-secondary);
+}
+.rem-history-item.rem-item-done .rem-history-sub,
+.rem-history-item.rem-item-done .rem-history-date {
+    color: var(--text-tertiary);
+    text-decoration: line-through;
+}
+.rem-history-item.rem-item-done .rem-history-icon {
+    color: var(--text-tertiary);
+    background: color-mix(in srgb, var(--text-tertiary) 15%, transparent);
+    opacity: 0.7;
+}
+.rem-history-item.rem-item-done .rem-history-icon svg {
+    stroke: var(--text-tertiary);
 }
 .rem-history-icon {
     width: 40px;
@@ -1924,10 +1938,19 @@ input[type="text"].custom-input::placeholder {
     border-color: var(--accent-primary);
 }
 .rem-action-btn:active { transform: scale(0.9); }
+.rem-action-toggle {
+    color: var(--text-tertiary);
+    border-color: var(--border-strong);
+}
 .rem-action-toggle:hover {
     color: #10b981;
     border-color: #10b981;
     background: rgba(16, 185, 129, 0.1);
+}
+.rem-history-item.rem-item-done .rem-action-toggle {
+    color: #10b981;
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.12);
 }
 .rem-action-delete:hover {
     color: #f43f5e;
