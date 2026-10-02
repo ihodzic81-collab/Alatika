@@ -3462,7 +3462,7 @@ function populateYearDropdown(items) {
         years.add(currentYear + i);
     }
     
-    // Dodaj godine iz postojećih podsetnika SAMO ako su >= 2020
+    // Dodaj godine iz postojećih podsetnika — SAMO ako su >= 2020
     items.forEach(item => {
         if (item.dueDate) {
             const year = new Date(item.dueDate).getFullYear();
