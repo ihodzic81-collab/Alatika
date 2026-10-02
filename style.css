@@ -1696,6 +1696,255 @@ input[type="text"].custom-input::placeholder {
 /* ============================================================
    PODSETNICI
    ============================================================ */
+/* ============ ISTORIJA PODSETNIKA ============ */
+.rem-history {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.rem-history-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    box-shadow: var(--shadow-input);
+}
+.rem-search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 11px;
+    padding: 0 12px;
+    transition: border-color 0.18s ease;
+}
+.rem-search-box:focus-within {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+}
+.rem-search-icon {
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    opacity: 0.6;
+}
+.rem-search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 12px 0;
+    min-width: 0;
+}
+.rem-search-input::placeholder {
+    color: var(--text-tertiary);
+    font-weight: 500;
+    opacity: 0.6;
+}
+.rem-filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+}
+.rem-filter-select {
+    background: var(--card-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 10px 8px;
+    color: var(--text-main);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s ease;
+    width: 100%;
+    min-width: 0;
+    text-overflow: ellipsis;
+}
+.rem-filter-select:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+}
+.rem-history-actions-row {
+    display: flex;
+    gap: 8px;
+}
+.rem-action-mini {
+    flex: 1;
+    background: var(--card-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--accent-primary);
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s;
+    font-family: inherit;
+}
+.rem-action-mini:hover { background: var(--card-active); }
+.rem-action-mini:active { transform: scale(0.97); }
+
+.rem-history-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+.rem-stat-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+    box-shadow: var(--shadow-input);
+}
+.rem-stat-value {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--accent-primary);
+    line-height: 1;
+}
+.rem-stat-label {
+    font-size: 0.66rem;
+    color: var(--text-secondary);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    text-align: center;
+}
+
+.rem-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.rem-history-item {
+    display: grid;
+    grid-template-columns: 40px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    background: var(--card-bg);
+    border: 1px solid var(--border-strong);
+    border-left: 4px solid var(--rem-color, var(--accent-primary));
+    border-radius: 12px;
+    padding: 12px;
+    animation: fadeInUp 0.25s ease;
+    transition: opacity 0.2s ease, background 0.15s ease;
+}
+.rem-history-item:hover {
+    background: var(--card-active);
+}
+.rem-history-item.rem-item-done {
+    opacity: 0.55;
+    background: color-mix(in srgb, var(--card-bg) 70%, var(--bg-color));
+}
+.rem-history-item.rem-item-done .rem-history-title {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+}
+.rem-history-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 11px;
+    color: var(--rem-color, var(--accent-primary));
+    background: color-mix(in srgb, var(--rem-color, var(--accent-primary)) 15%, transparent);
+    flex-shrink: 0;
+}
+.rem-history-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+}
+.rem-history-body {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.rem-history-title {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--text-main);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.rem-history-sub {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.rem-history-date {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    font-weight: 700;
+    margin-top: 2px;
+}
+.rem-history-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+.rem-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s;
+    padding: 0;
+    font-family: inherit;
+}
+.rem-action-btn:hover {
+    background: var(--card-active);
+    color: var(--text-main);
+    border-color: var(--accent-primary);
+}
+.rem-action-btn:active { transform: scale(0.9); }
+.rem-action-toggle:hover {
+    color: #10b981;
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+.rem-action-delete:hover {
+    color: #f43f5e;
+    border-color: #f43f5e;
+    background: rgba(244, 63, 94, 0.1);
+}
+.rem-history-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-style: italic;
+    background: var(--card-bg);
+    border: 1px dashed var(--border-strong);
+    border-radius: 12px;
+}
+
 .rem-dashboard { display: flex; flex-direction: column; gap: 16px; }
 .rem-group { display: flex; flex-direction: column; gap: 8px; }
 .rem-group-title {
