@@ -3121,8 +3121,47 @@ function urgencyColor(days) {
 
 // ================= PODSETNICI — Render funkcije =================
 
-function renderRemindersToday() {
-    return `<div class="rem-dashboard" id="rem-dashboard-content"></div>`;
+function renderRemindersHistory() {
+    return `
+        <div class="rem-history">
+            <div class="rem-history-controls">
+                <div class="rem-search-box">
+                    <span class="rem-search-icon">🔍</span>
+                    <input type="text" id="rem-history-search" class="rem-search-input" placeholder="${safeT('rem.history.search')}" oninput="renderRemindersHistoryList()">
+                </div>
+                <div class="rem-filter-row">
+                    <select id="rem-history-filter" class="rem-filter-select" onchange="renderRemindersHistoryList()">
+                        <option value="all">${safeT('rem.history.filter.all')}</option>
+                        <option value="active">${safeT('rem.history.filter.active')}</option>
+                        <option value="done">${safeT('rem.history.filter.done')}</option>
+                    </select>
+                    <select id="rem-history-month" class="rem-filter-select" onchange="renderRemindersHistoryList()">
+                        <option value="all">${safeT('rem.history.allMonths')}</option>
+                        <option value="1">Januar</option>
+                        <option value="2">Februar</option>
+                        <option value="3">Mart</option>
+                        <option value="4">April</option>
+                        <option value="5">Maj</option>
+                        <option value="6">Jun</option>
+                        <option value="7">Jul</option>
+                        <option value="8">Avgust</option>
+                        <option value="9">Septembar</option>
+                        <option value="10">Oktobar</option>
+                        <option value="11">Novembar</option>
+                        <option value="12">Decembar</option>
+                    </select>
+                    <select id="rem-history-year" class="rem-filter-select" onchange="renderRemindersHistoryList()">
+                        <option value="all">${safeT('rem.history.allYears')}</option>
+                    </select>
+                </div>
+                <div class="rem-history-actions-row">
+                    <button class="rem-action-mini" onclick="exportRemindersHistory()" title="${safeT('rem.history.export')}">📥 ${safeT('rem.history.export')}</button>
+                </div>
+            </div>
+            <div id="rem-history-stats" class="rem-history-stats"></div>
+            <div id="rem-history-list" class="rem-history-list"></div>
+        </div>
+    `;
 }
 
 function renderRemindersBirthdays() {
