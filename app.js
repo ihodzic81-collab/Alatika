@@ -1024,42 +1024,9 @@ const BADGE_HINT_KEY = 'cx_hint_dismissed_badge';
 
 function getUrgentRemindersCount() {
     try {
-        let total = 0;
-        const birthdays = loadReminders('cx_birthdays');
-        birthdays.forEach(b => {
-            const days = daysToBirthday(b.date);
-            if (days !== null && days <= 7) total++;
-        });
-        const bills = loadReminders('cx_bills');
-        bills.forEach(b => {
-            if (b.paid) return;
-            const days = daysToBillDay(b.dayOfMonth);
-            if (days !== null && days <= 7) total++;
-        });
-        const vehicles = loadReminders('cx_vehicles');
-        vehicles.forEach(v => {
-            [v.regDate, v.techDate, v.insuranceDate].forEach(d => {
-                const days = daysUntilDate(d);
-                if (days !== null && days <= 7 && days >= -30) total++;
-            });
-        });
-        const docs = loadReminders('cx_documents');
-        docs.forEach(d => {
-            const days = daysUntilDate(d.expires);
-            if (days !== null && days <= 7 && days >= -30) total++;
-        });
-        const anns = loadReminders('cx_anniversaries');
-        anns.forEach(a => {
-            const days = daysToAnniversary(a.date);
-            if (days !== null && days <= 7) total++;
-        });
-        const notes = loadReminders('cx_notes');
-        notes.forEach(n => {
-            if (n.done) return;
-            const days = daysUntilDate(n.dueDate);
-            if (days !== null && days <= 7 && days >= -30) total++;
-        });
-        return total;
+        const items = getAllReminderItems();
+        // Broji samo aktivne (ne završene)
+        return items.filter(i => !i.isDone).length;
     } catch (e) { return 0; }
 }
 
@@ -3492,26 +3459,25 @@ function populateYearDropdown(items) {
     const years = new Set();
     const currentYear = new Date().getFullYear();
     
-    // Dodaj trenutnu godinu + sledećih 20 godina
+    // Dodaj trenutnu godinu + sledećih 20 godina (2026-2046)
     for (let i = 0; i <= 20; i++) {
         years.add(currentYear + i);
     }
     
-    // Dodaj godine iz postojećih podsetnika (ako su van opsega)
+    // Dodaj godine iz postojećih podsetnika SAMO ako su >= 2020
     items.forEach(item => {
         if (item.dueDate) {
             const year = new Date(item.dueDate).getFullYear();
-            if (!isNaN(year)) years.add(year);
+            if (!isNaN(year) && year >= 2020) years.add(year);
         }
     });
     
-    // Sortiraj od najnovije ka starijoj
-    const sortedYears = Array.from(years).sort((a, b) => b - a);
+    // Sortiraj RASTUĆE (2026, 2027, 2028...)
+    const sortedYears = Array.from(years).sort((a, b) => a - b);
     
     yearSelect.innerHTML = `<option value="all">${safeT('rem.history.allYears')}</option>` +
         sortedYears.map(y => `<option value="${y}">${y}</option>`).join('');
     
-    // Vrati prethodno izabranu godinu ako još postoji
     if (currentValue && yearSelect.querySelector(`option[value="${currentValue}"]`)) {
         yearSelect.value = currentValue;
     }
