@@ -335,6 +335,7 @@ body.modal-open { overflow: hidden; }
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
+   overflow: visible;
 }
 .quick-tool {
     background: var(--card-bg);
