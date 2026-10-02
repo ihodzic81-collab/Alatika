@@ -3531,21 +3531,222 @@ function renderHistoryItem(item) {
     `;
 }
 
-// Pomoćne funkcije za akcije (popunjavamo u Koraku 4)
+// Pomoćna funkcija — mapiranje type → storage key
+function getReminderStorageKey(type) {
+    const map = {
+        'birthday': 'cx_birthdays',
+        'bill': 'cx_bills',
+        'vehicle-reg': 'cx_vehicles',
+        'vehicle-tech': 'cx_vehicles',
+        'document': 'cx_documents',
+        'subscription': 'cx_subscriptions',
+        'medication': 'cx_medications',
+        'anniversary': 'cx_anniversaries',
+        'note': 'cx_notes'
+    };
+    return map[type] || null;
+}
+
+// Uredi podsetnik iz istorije
 function editReminderFromHistory(type, category, id) {
-    console.log('edit', type, category, id);
+    const key = getReminderStorageKey(type);
+    if (!key) { showToast('Nepoznat tip', 'error'); return; }
+    
+    // Za vozila — ID može biti "voziloId-reg" ili "voziloId-tech"
+    let realId = id;
+    if (type === 'vehicle-reg' || type === 'vehicle-tech') {
+        realId = id.replace('-reg', '').replace('-tech', '');
+    }
+    
+    const item = loadReminders(key).find(x => String(x.id) === String(realId));
+    if (!item) { showToast('Podsetnik nije pronađen', 'error'); return; }
+    
+    // Mapiranje type → forma tip
+    const typeMap = {
+        'birthday': 'birthday',
+        'bill': 'bill',
+        'vehicle-reg': 'vehicle',
+        'vehicle-tech': 'vehicle',
+        'document': 'document',
+        'subscription': 'subscription',
+        'medication': 'medication',
+        'anniversary': 'anniversary',
+        'note': 'note'
+    };
+    
+    const formType = typeMap[type];
+    if (formType && typeof openReminderForm === 'function') {
+        openReminderForm(formType, item);
+    }
 }
-function shareReminderFromHistory(type, category, id) {
-    console.log('share', type, category, id);
+
+// Podeli podsetnik preko Web Share API
+async function shareReminderFromHistory(type, category, id) {
+    const key = getReminderStorageKey(type);
+    if (!key) return;
+    
+    let realId = id;
+    if (type === 'vehicle-reg' || type === 'vehicle-tech') {
+        realId = id.replace('-reg', '').replace('-tech', '');
+    }
+    
+    const item = loadReminders(key).find(x => String(x.id) === String(realId));
+    if (!item) return;
+    
+    // Napravi tekst za deljenje
+    let title = item.name || item.title || 'Podsetnik';
+    let lines = ['📌 ' + title];
+    
+    if (item.date) lines.push('📅 Datum: ' + item.date);
+    if (item.dueDate) lines.push('📅 Rok: ' + item.dueDate);
+    if (item.amount) lines.push('💰 Iznos: ' + item.amount + ' ' + (item.currency || 'RSD'));
+    if (item.dose) lines.push('💊 Doza: ' + item.dose);
+    if (item.note) lines.push('📝 Napomena: ' + item.note);
+    if (item.description) lines.push('📝 Opis: ' + item.description);
+    if (item.plate) lines.push('🚗 Tablice: ' + item.plate);
+    
+    lines.push('');
+    lines.push('— Poslato iz Alatika aplikacije');
+    
+    const text = lines.join('\n');
+    
+    // Web Share API
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: title,
+                text: text
+            });
+            vibrate(20);
+        } catch (e) {
+            // Korisnik je otkazao share — ne prikazuj grešku
+        }
+    } else {
+        // Fallback — kopiraj u clipboard
+        fallbackCopy(text, () => {
+            showToast('Kopirano u clipboard', 'success', 2000);
+        });
+    }
 }
+
+// Označi kao završeno / vrati u aktivne
 function toggleDoneFromHistory(type, category, id) {
-    console.log('toggle', type, category, id);
+    const key = getReminderStorageKey(type);
+    if (!key) return;
+    
+    let realId = id;
+    if (type === 'vehicle-reg' || type === 'vehicle-tech') {
+        realId = id.replace('-reg', '').replace('-tech', '');
+    }
+    
+    const list = loadReminders(key);
+    const idx = list.findIndex(x => String(x.id) === String(realId));
+    if (idx === -1) return;
+    
+    const item = list[idx];
+    
+    // Toggle završeno
+    if (type === 'bill') {
+        item.paid = !item.paid;
+    } else if (type === 'subscription') {
+        item.active = !item.active;
+    } else if (type === 'note') {
+        item.done = !item.done;
+    } else {
+        // Ostali tipovi nemaju "done" status — dodaj ga
+        item.done = !item.done;
+    }
+    
+    saveReminders(key, list);
+    
+    const isNowDone = item.paid || item.done || (type === 'subscription' && !item.active);
+    showToast(isNowDone ? 'Označeno kao završeno' : 'Vraćeno u aktivne', 'success', 1500);
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+    
+    // Osveži listu
+    renderRemindersHistoryList();
+    updateAppBadge();
 }
-function deleteFromHistory(type, category, id) {
-    console.log('delete', type, category, id);
+
+// Obriši podsetnik iz istorije
+async function deleteFromHistory(type, category, id) {
+    const key = getReminderStorageKey(type);
+    if (!key) return;
+    
+    const ok = await showConfirm(safeT('confirm.rem.delete'));
+    if (!ok) return;
+    
+    let realId = id;
+    if (type === 'vehicle-reg' || type === 'vehicle-tech') {
+        realId = id.replace('-reg', '').replace('-tech', '');
+    }
+    
+    let list = loadReminders(key);
+    list = list.filter(x => String(x.id) !== String(realId));
+    saveReminders(key, list);
+    
+    showToast(safeT('toast.rem.deleted'), 'info', 1500);
+    vibrate(15);
+    
+    // Osveži listu
+    renderRemindersHistoryList();
+    updateAppBadge();
 }
+
+// Export istorije u tekst fajl
 function exportRemindersHistory() {
-    console.log('export');
+    const allItems = getAllReminderItems();
+    if (!allItems.length) {
+        showToast(safeT('rem.history.empty'), 'info');
+        return;
+    }
+    
+    const lines = ['=== ISTORIJA PODSETNIKA ===', 'Datum izvoza: ' + new Date().toLocaleString('sr-RS'), ''];
+    
+    // Aktivni
+    const active = allItems.filter(i => !i.isDone).sort((a, b) => {
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate) - new Date(b.dueDate);
+    });
+    if (active.length) {
+        lines.push('--- AKTIVNI (' + active.length + ') ---');
+        active.forEach(item => {
+            lines.push('• ' + (item.title || ''));
+            if (item.subtitle) lines.push('  ' + item.subtitle);
+            if (item.dueDate) lines.push('  Rok: ' + item.dueDate);
+            lines.push('');
+        });
+    }
+    
+    // Završeni
+    const done = allItems.filter(i => i.isDone);
+    if (done.length) {
+        lines.push('--- ZAVRŠENI (' + done.length + ') ---');
+        done.forEach(item => {
+            lines.push('• ' + (item.title || ''));
+            if (item.subtitle) lines.push('  ' + item.subtitle);
+            if (item.dueDate) lines.push('  Rok: ' + item.dueDate);
+            lines.push('');
+        });
+    }
+    
+    const text = lines.join('\n');
+    
+    // Preuzmi kao fajl
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'alatika-podsetnici-' + new Date().toISOString().slice(0, 10) + '.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showToast('Fajl preuzet', 'success', 2000);
+    vibrate(20);
 }
 
 function renderRemindersDashboard() {
