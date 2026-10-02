@@ -372,6 +372,29 @@ const CATEGORIES = {
     }
 };
 
+// Broj podsetnika u svakom tabu (za badge na tabovima)
+function getTabCount(categoryId, tabId) {
+    if (categoryId !== 'podsetnici') return 0;
+    
+    const counts = {
+        danas: 0,
+        rodjendani: loadReminders('cx_birthdays').length,
+        racuni: loadReminders('cx_bills').length,
+        vozila: loadReminders('cx_vehicles').length + loadReminders('cx_documents').length,
+        pretplate: loadReminders('cx_subscriptions').length,
+        lekivi: loadReminders('cx_medications').length,
+        godisnjice: loadReminders('cx_anniversaries').length,
+        napomene: loadReminders('cx_notes').length
+    };
+    
+    if (tabId === 'danas') {
+        return counts.rodjendani + counts.racuni + counts.vozila + 
+               counts.pretplate + counts.lekivi + counts.godisnjice + counts.napomene;
+    }
+    
+    return counts[tabId] || 0;
+}
+
 // ================= NAVIGACIJA — MODALI =================
 let activeCategory = null;
 let activeTab = null;
@@ -404,6 +427,15 @@ function openCategory(categoryId) {
             <span class="tab-btn-label">${escapeHtml(safeT('tab.' + categoryId + '.' + tab.id))}</span>
         `;
         btn.onclick = () => openCalc(categoryId, tab.id);
+                
+        // Dodaj badge ako ima podsetnika u tabu
+        const count = getTabCount(categoryId, tab.id);
+        if (count > 0) {
+            const badge = document.createElement('span');
+            badge.className = 'tab-badge';
+            badge.textContent = count > 99 ? '99+' : String(count);
+            btn.appendChild(badge);
+        }
         tabBar.appendChild(btn);
     });
 
