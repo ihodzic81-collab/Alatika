@@ -137,6 +137,7 @@ const TRANSLATIONS = {
 
         // ============ PODSETNICI — TABOVI ============
         'tab.podsetnici.danas': 'Istorija',
+        'tab.podsetnici.rate': 'Rate',
                 // Istorija podsetnika
         'rem.history.search': 'Pretraži podsetnike...',
         'rem.history.filter.all': 'Sve',
@@ -305,6 +306,7 @@ const TRANSLATIONS = {
         // ============ MONEY TABOVI ============
         'tab.money.popust': 'Popust',
         'tab.money.pdv': 'PDV',
+        'tab.money.rate': 'Rate',
         'tab.money.procenat': 'Procenat',
         'tab.money.kredit': 'Kredit',
         'tab.money.valuta': 'Kursna lista',
@@ -1830,6 +1832,7 @@ const TRANSLATIONS = {
 
         // ============ REMINDERS — TABS ============
         'tab.podsetnici.danas': 'History',
+        'tab.podsetnici.rate': 'Installments', 
                 // Reminders History
         'rem.history.search': 'Search reminders...',
         'rem.history.filter.all': 'All',
