@@ -3243,6 +3243,311 @@ function renderRemindersNotes() {
 
 // ================= PODSETNICI — Dashboard =================
 
+// Prikaz liste podsetnika u Istoriji (sa filterima)
+function renderRemindersHistoryList() {
+    const listBox = el('rem-history-list');
+    const statsBox = el('rem-history-stats');
+    if (!listBox) return;
+    
+    // Skupi sve podsetnike iz svih kategorija
+    const allItems = getAllReminderItems();
+    
+    // Popuni godine u dropdown-u
+    populateYearDropdown(allItems);
+    
+    // Uzmi filter vrednosti
+    const searchQuery = (el('rem-history-search') ? el('rem-history-search').value : '').toLowerCase().trim();
+    const statusFilter = el('rem-history-filter') ? el('rem-history-filter').value : 'all';
+    const monthFilter = el('rem-history-month') ? el('rem-history-month').value : 'all';
+    const yearFilter = el('rem-history-year') ? el('rem-history-year').value : 'all';
+    
+    // Filtriraj
+    let filtered = allItems.filter(item => {
+        // Status filter
+        if (statusFilter === 'active' && item.isDone) return false;
+        if (statusFilter === 'done' && !item.isDone) return false;
+        
+        // Month filter
+        if (monthFilter !== 'all') {
+            const itemMonth = item.dueDate ? new Date(item.dueDate).getMonth() + 1 : null;
+            if (itemMonth !== parseInt(monthFilter)) return false;
+        }
+        
+        // Year filter
+        if (yearFilter !== 'all') {
+            const itemYear = item.dueDate ? new Date(item.dueDate).getFullYear() : null;
+            if (itemYear !== parseInt(yearFilter)) return false;
+        }
+        
+        // Search filter
+        if (searchQuery) {
+            const name = (item.title || '').toLowerCase();
+            const desc = (item.subtitle || '').toLowerCase();
+            if (!name.includes(searchQuery) && !desc.includes(searchQuery)) return false;
+        }
+        
+        return true;
+    });
+    
+    // Sortiraj po datumu (najbliži prvi, završeni na dnu)
+    filtered.sort((a, b) => {
+        if (a.isDone !== b.isDone) return a.isDone ? 1 : -1;
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate) - new Date(b.dueDate);
+    });
+    
+    // Statistika
+    if (statsBox) {
+        const totalActive = allItems.filter(i => !i.isDone).length;
+        const totalDone = allItems.filter(i => i.isDone).length;
+        const thisMonth = new Date().getMonth();
+        const thisYear = new Date().getFullYear();
+        const doneThisMonth = allItems.filter(i => {
+            if (!i.isDone || !i.dueDate) return false;
+            const d = new Date(i.dueDate);
+            return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+        }).length;
+        
+        statsBox.innerHTML = `
+            <div class="rem-stat-item">
+                <div class="rem-stat-value">${totalActive}</div>
+                <div class="rem-stat-label">${safeT('rem.history.stats.active')}</div>
+            </div>
+            <div class="rem-stat-item">
+                <div class="rem-stat-value">${totalDone}</div>
+                <div class="rem-stat-label">${safeT('rem.history.stats.done')}</div>
+            </div>
+            <div class="rem-stat-item">
+                <div class="rem-stat-value">${doneThisMonth}</div>
+                <div class="rem-stat-label">${safeT('rem.history.stats.thisMonth')}</div>
+            </div>
+        `;
+    }
+    
+    // Prikaz liste
+    if (filtered.length === 0) {
+        listBox.innerHTML = `<div class="rem-history-empty">${searchQuery || statusFilter !== 'all' || monthFilter !== 'all' || yearFilter !== 'all' ? safeT('rem.history.empty.filter') : safeT('rem.history.empty')}</div>`;
+        return;
+    }
+    
+    listBox.innerHTML = filtered.map(item => renderHistoryItem(item)).join('');
+}
+
+// Skupi sve podsetnike iz svih kategorija
+function getAllReminderItems() {
+    const items = [];
+    
+    // Rođendani
+    loadReminders('cx_birthdays').forEach(b => {
+        items.push({
+            id: b.id,
+            type: 'birthday',
+            category: 'birthdays',
+            title: b.name || 'Rođendan',
+            subtitle: b.note || '',
+            dueDate: b.date,
+            isDone: false,
+            icon: 'cake',
+            color: '#ec4899',
+            raw: b
+        });
+    });
+    
+    // Računi
+    loadReminders('cx_bills').forEach(b => {
+        items.push({
+            id: b.id,
+            type: 'bill',
+            category: 'bills',
+            title: b.name || 'Račun',
+            subtitle: (b.amount ? b.amount + ' ' + (b.currency || 'RSD') : ''),
+            dueDate: null,
+            isDone: b.paid || false,
+            icon: 'receipt',
+            color: '#10b981',
+            raw: b
+        });
+    });
+    
+    // Vozila
+    loadReminders('cx_vehicles').forEach(v => {
+        if (v.regDate) items.push({
+            id: v.id + '-reg',
+            type: 'vehicle-reg',
+            category: 'vehicles',
+            title: (v.name || 'Vozilo') + ' — Registracija',
+            subtitle: v.plate || '',
+            dueDate: v.regDate,
+            isDone: false,
+            icon: 'car',
+            color: '#f43f5e',
+            raw: v
+        });
+        if (v.techDate) items.push({
+            id: v.id + '-tech',
+            type: 'vehicle-tech',
+            category: 'vehicles',
+            title: (v.name || 'Vozilo') + ' — Tehnički',
+            subtitle: v.plate || '',
+            dueDate: v.techDate,
+            isDone: false,
+            icon: 'wrench',
+            color: '#f43f5e',
+            raw: v
+        });
+    });
+    
+    // Dokumenti
+    loadReminders('cx_documents').forEach(d => {
+        items.push({
+            id: d.id,
+            type: 'document',
+            category: 'documents',
+            title: d.name || 'Dokument',
+            subtitle: '',
+            dueDate: d.expires,
+            isDone: false,
+            icon: 'clipboard',
+            color: '#8b5cf6',
+            raw: d
+        });
+    });
+    
+    // Pretplate
+    loadReminders('cx_subscriptions').forEach(s => {
+        items.push({
+            id: s.id,
+            type: 'subscription',
+            category: 'subscriptions',
+            title: s.name || 'Pretplata',
+            subtitle: (s.amount ? s.amount + ' ' + (s.currency || 'RSD') : ''),
+            dueDate: null,
+            isDone: !s.active,
+            icon: 'creditCard',
+            color: '#14b8a6',
+            raw: s
+        });
+    });
+    
+    // Lekovi
+    loadReminders('cx_medications').forEach(m => {
+        items.push({
+            id: m.id,
+            type: 'medication',
+            category: 'medications',
+            title: m.name || 'Lek',
+            subtitle: m.dose || '',
+            dueDate: m.endDate,
+            isDone: false,
+            icon: 'heartPulse',
+            color: '#ec4899',
+            raw: m
+        });
+    });
+    
+    // Godišnjice
+    loadReminders('cx_anniversaries').forEach(a => {
+        items.push({
+            id: a.id,
+            type: 'anniversary',
+            category: 'anniversaries',
+            title: a.name || 'Godišnjica',
+            subtitle: a.note || '',
+            dueDate: a.date,
+            isDone: false,
+            icon: 'gift',
+            color: '#a855f7',
+            raw: a
+        });
+    });
+    
+    // Napomene
+    loadReminders('cx_notes').forEach(n => {
+        items.push({
+            id: n.id,
+            type: 'note',
+            category: 'notes',
+            title: n.title || 'Napomena',
+            subtitle: n.description || '',
+            dueDate: n.dueDate,
+            isDone: n.done || false,
+            icon: 'clipboard',
+            color: '#f59e0b',
+            raw: n
+        });
+    });
+    
+    return items;
+}
+
+// Popuni dropdown za godine
+function populateYearDropdown(items) {
+    const yearSelect = el('rem-history-year');
+    if (!yearSelect) return;
+    const currentValue = yearSelect.value;
+    
+    const years = new Set();
+    items.forEach(item => {
+        if (item.dueDate) {
+            const year = new Date(item.dueDate).getFullYear();
+            if (!isNaN(year)) years.add(year);
+        }
+    });
+    
+    const sortedYears = Array.from(years).sort((a, b) => b - a);
+    yearSelect.innerHTML = `<option value="all">${safeT('rem.history.allYears')}</option>` +
+        sortedYears.map(y => `<option value="${y}">${y}</option>`).join('');
+    
+    if (currentValue && yearSelect.querySelector(`option[value="${currentValue}"]`)) {
+        yearSelect.value = currentValue;
+    }
+}
+
+// Prikaz jednog podsetnika u istoriji
+function renderHistoryItem(item) {
+    const days = item.dueDate ? daysUntilDate(item.dueDate) : null;
+    const daysTxt = days !== null ? formatDaysToHuman(days) : '';
+    const color = days !== null ? urgencyColor(days) : item.color;
+    
+    const doneClass = item.isDone ? ' rem-item-done' : '';
+    
+    return `
+        <div class="rem-history-item${doneClass}" style="--rem-color: ${color};">
+            <div class="rem-history-icon">${icon(item.icon)}</div>
+            <div class="rem-history-body">
+                <div class="rem-history-title">${escapeHtml(item.title)}</div>
+                ${item.subtitle ? `<div class="rem-history-sub">${escapeHtml(item.subtitle)}</div>` : ''}
+                ${item.dueDate ? `<div class="rem-history-date">📅 ${escapeHtml(item.dueDate)}${daysTxt ? ' • ' + escapeHtml(daysTxt) : ''}</div>` : ''}
+            </div>
+            <div class="rem-history-actions">
+                <button class="rem-action-btn" onclick="editReminderFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${safeT('rem.history.edit')}">✏️</button>
+                <button class="rem-action-btn" onclick="shareReminderFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${safeT('rem.history.share')}">📤</button>
+                <button class="rem-action-btn rem-action-toggle" onclick="toggleDoneFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${item.isDone ? safeT('rem.history.markActive') : safeT('rem.history.markDone')}">${item.isDone ? '↺' : '✅'}</button>
+                <button class="rem-action-btn rem-action-delete" onclick="deleteFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${safeT('rem.history.delete')}">🗑</button>
+            </div>
+        </div>
+    `;
+}
+
+// Pomoćne funkcije za akcije (popunjavamo u Koraku 4)
+function editReminderFromHistory(type, category, id) {
+    console.log('edit', type, category, id);
+}
+function shareReminderFromHistory(type, category, id) {
+    console.log('share', type, category, id);
+}
+function toggleDoneFromHistory(type, category, id) {
+    console.log('toggle', type, category, id);
+}
+function deleteFromHistory(type, category, id) {
+    console.log('delete', type, category, id);
+}
+function exportRemindersHistory() {
+    console.log('export');
+}
+
 function renderRemindersDashboard() {
     const box = el('rem-dashboard-content');
     if (!box) return;
