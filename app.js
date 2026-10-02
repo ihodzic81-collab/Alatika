@@ -3219,7 +3219,6 @@ function renderRemindersNotes() {
 
 // Prikaz svih grupa rata u Podsetnicima (jedina funkcija sa ovim imenom)
 function renderRemindersRate() {
-    // Prvo vrati HTML koji sadrži kontejner
     const html = `
         <div class="converter-box">
             <div class="section-desc">${safeT('tab.podsetnici.rate')}</div>
@@ -3227,7 +3226,6 @@ function renderRemindersRate() {
         </div>
     `;
 
-    // Zatim, koristi setTimeout da popuniš kontejner nakon što se HTML ubaci u DOM
     setTimeout(() => {
         const box = el('rem-rate-list');
         if (!box) return;
@@ -3247,7 +3245,7 @@ function renderRemindersRate() {
 
         const sortedGroups = [...groups].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
-        let html = '';
+        let innerHtml = '';
         sortedGroups.forEach(group => {
             const paidCount = (group.installments || []).filter(i => i.paid).length;
             const totalCount = (group.installments || []).length;
@@ -3255,7 +3253,7 @@ function renderRemindersRate() {
             const isDone = paidCount >= totalCount;
             const progress = totalCount > 0 ? (paidCount / totalCount) * 100 : 0;
 
-            html += `
+            innerHtml += `
                 <div class="rate-group" data-group-id="${escapeHtml(group.id)}">
                     <div class="rate-group-head">
                         <div>
@@ -3296,68 +3294,11 @@ function renderRemindersRate() {
             `;
         });
 
-        box.innerHTML = html;
+        box.innerHTML = innerHtml;
     }, 0);
 
     return html;
 }
-    // Sortiraj grupe po datumu kreiranja (najnovije prvo)
-    const sortedGroups = [...groups].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-
-    let html = '';
-    sortedGroups.forEach(group => {
-        const paidCount = (group.installments || []).filter(i => i.paid).length;
-        const totalCount = (group.installments || []).length;
-        const totalAmount = (group.installments || []).reduce((sum, i) => sum + (i.amount || 0), 0);
-        const paidAmount = (group.installments || []).filter(i => i.paid).reduce((sum, i) => sum + (i.amount || 0), 0);
-        const remainingAmount = totalAmount - paidAmount;
-        const isDone = paidCount >= totalCount;
-        const progress = totalCount > 0 ? (paidCount / totalCount) * 100 : 0;
-
-        html += `
-            <div class="rate-group" data-group-id="${escapeHtml(group.id)}">
-                <div class="rate-group-head">
-                    <div>
-                        <div class="rate-group-title">${escapeHtml(group.description || safeT('label.rate.installment'))}</div>
-                        <div class="rate-group-sub">${totalCount} ${safeT('unit.monthsShort')} • ${totalAmount.toLocaleString('sr-RS')} RSD</div>
-                    </div>
-                    <div class="rate-group-badge ${isDone ? 'done' : ''}">
-                        ${isDone ? '✓ ' + safeT('label.rate.paid') : paidCount + ' / ' + totalCount}
-                    </div>
-                </div>
-                <div class="rate-progress-wrap" style="margin: 0 0 10px 0; padding: 10px 12px;">
-                    <div class="rate-progress-head" style="margin-bottom: 6px; font-size: 0.72rem;">
-                        <span class="rate-progress-label">${safeT('label.rate.progress')}</span>
-                        <span class="rate-progress-count">${paidCount} / ${totalCount}</span>
-                    </div>
-                    <div class="rate-progress-bar">
-                        <div class="rate-progress-fill" style="width: ${progress}%;"></div>
-                    </div>
-                </div>
-                <div class="rate-table-wrap" style="max-height: 250px;">
-                    ${(group.installments || []).map((inst, idx) => `
-                        <div class="rate-item ${inst.paid ? 'rate-item-paid' : ''}">
-                            <button class="rate-item-check" onclick="toggleInstallmentPaidFromReminders('${escapeHtml(group.id)}', ${idx})" title="${inst.paid ? safeT('label.rate.markUnpaid') : safeT('label.rate.markPaid')}">
-                                ${inst.paid ? '✓' : ''}
-                            </button>
-                            <div class="rate-item-number">${safeT('label.rate.rate')} ${inst.number}/${totalCount}</div>
-                            <div class="rate-item-date">${escapeHtml(inst.date || '—')}</div>
-                            <div class="rate-item-amount">${(inst.amount || 0).toLocaleString('sr-RS')} RSD</div>
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="rate-actions" style="margin-top: 10px; flex-direction: row;">
-                    <button class="rate-action-btn rate-action-danger" style="flex: 1;" onclick="deleteInstallmentGroup('${escapeHtml(group.id)}')">
-                        ${safeT('label.rate.deleteAll')}
-                    </button>
-                </div>
-            </div>
-        `;
-    });
-
-    box.innerHTML = html;
-}
-
 // Toggle plaćeno/neplaćeno iz Podsetnika
 function toggleInstallmentPaidFromReminders(groupId, installmentIdx) {
     const groups = loadInstallmentGroups();
