@@ -302,7 +302,13 @@ body.modal-open { overflow: hidden; }
 /* ============================================================
    HOME SECTION
    ============================================================ */
-.home-section { margin-bottom: 26px; }
+.home-section { 
+    margin-bottom: 26px; 
+    overflow: visible;
+}
+#home-normal-content {
+    overflow: visible;
+}
 .section-head {
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 14px; padding: 0 2px;
@@ -352,6 +358,7 @@ body.modal-open { overflow: hidden; }
                 box-shadow 0.25s ease;
     box-shadow: var(--shadow-card);
     position: relative; overflow: visible; isolation: isolate;
+    z-index: 1;
 }
 .quick-tool::before {
     content: ''; position: absolute;
@@ -2217,13 +2224,13 @@ input[type="text"].custom-input::placeholder {
     font-size: 0.7rem; font-weight: 900;
     box-shadow: 0 2px 6px rgba(244, 63, 94, 0.5);
     border: 2px solid var(--bg-color);
-    z-index: 10;
+    z-index: 100; /* PROMENJENO SA 5 NA 100 */
     animation: badgePulse 2s ease-in-out infinite;
     pointer-events: none;
 }
 .category-badge.category-badge-green {
-    background: #10b981;
-    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.5);
+    background: #059669; /* PROMENJENO SA #10b981 NA #059669 — tamnija zelena */
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.5); /* Ažurirana senka da odgovara */
 }
 @keyframes badgePulse {
     0%, 100% { transform: scale(1); }
