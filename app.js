@@ -3491,6 +3491,14 @@ function populateYearDropdown(items) {
     const currentValue = yearSelect.value;
     
     const years = new Set();
+    const currentYear = new Date().getFullYear();
+    
+    // Dodaj trenutnu godinu + sledećih 20 godina
+    for (let i = 0; i <= 20; i++) {
+        years.add(currentYear + i);
+    }
+    
+    // Dodaj godine iz postojećih podsetnika (ako su van opsega)
     items.forEach(item => {
         if (item.dueDate) {
             const year = new Date(item.dueDate).getFullYear();
@@ -3498,13 +3506,17 @@ function populateYearDropdown(items) {
         }
     });
     
+    // Sortiraj od najnovije ka starijoj
     const sortedYears = Array.from(years).sort((a, b) => b - a);
+    
     yearSelect.innerHTML = `<option value="all">${safeT('rem.history.allYears')}</option>` +
         sortedYears.map(y => `<option value="${y}">${y}</option>`).join('');
     
+    // Vrati prethodno izabranu godinu ako još postoji
     if (currentValue && yearSelect.querySelector(`option[value="${currentValue}"]`)) {
         yearSelect.value = currentValue;
     }
+}
 }
 
 // Prikaz jednog podsetnika u istoriji
