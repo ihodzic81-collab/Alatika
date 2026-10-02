@@ -136,7 +136,7 @@ const TRANSLATIONS = {
         'cat.podsetnici': 'Podsetnici',
 
         // ============ PODSETNICI — TABOVI ============
-        'tab.podsetnici.danas': 'Istorija',
+        'tab.podsetnici.arhiva': 'Arhiva',
         'tab.podsetnici.rate': 'Rate',
         'tab.podsetnici.rodjendani': 'Rođendani',
         'tab.podsetnici.racuni': 'Računi',
@@ -1896,7 +1896,7 @@ const TRANSLATIONS = {
         'cat.podsetnici': 'Reminders',
 
         // ============ REMINDERS — TABS ============
-        'tab.podsetnici.danas': 'History',
+        'tab.podsetnici.arhiva': 'Archive',
         'tab.podsetnici.rate': 'Installments',
         'tab.podsetnici.rodjendani': 'Birthdays',
         'tab.podsetnici.racuni': 'Bills',
