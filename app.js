@@ -4019,7 +4019,7 @@ async function deleteFromHistory(type, category, id) {
         const groupId = parts[0];
         const idx = parseInt(parts[1]);
         
-        const ok = await showConfirm('Obrisati ovu ratu?');
+        const ok = await showConfirm(safeT('confirm.rate.delete'));
         if (!ok) return;
         
         const groups = loadInstallmentGroups();
