@@ -27,6 +27,7 @@ const TRANSLATIONS = {
         'section.allTools.reset.done': 'Vraćeno na podrazumevano',
         'section.allTools.hint.text': 'Ovde možeš da sakriješ alate koje ne koristiš i da promeniš njihov redosled. Klikni "Izmeni", pa zadrži prstom na ikonu i prevuci na željeno mesto.',
         'section.allTools.hint.btn': 'Razumem',
+        'section.allTools.hint.title': 'Prilagodi svoje alate',
         'section.allTools.dragHint': 'Prevuci za promenu redosleda • Klikni ✕ za skrivanje',
 
         // ============ MODALI ============
