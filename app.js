@@ -1293,17 +1293,13 @@ function updateAppBadge() {
 }
 
 function updateVisualBadge(count) {
+    // Ukloni sve badge-ove sa glavnih kartica (Brzi alati i Svi alati)
     document.querySelectorAll('.quick-tool[data-badge]').forEach(el => el.removeAttribute('data-badge'));
     document.querySelectorAll('.all-tool[data-badge]').forEach(el => el.removeAttribute('data-badge'));
 
-    if (count <= 0) return;
-    const text = count > 99 ? '99+' : String(count);
-
-    const quickTool = document.querySelector('.quick-tool[data-cat-id="podsetnici"]');
-    if (quickTool) quickTool.setAttribute('data-badge', text);
-
-    const allTool = document.querySelector('.all-tool[data-cat-id="podsetnici"]');
-    if (allTool) allTool.setAttribute('data-badge', text);
+    // NAPOMENA: Badge se više NE prikazuje na glavnoj kartici Podsetnici.
+    // Notifikacije ostaju samo na tabovima unutar modala Podsetnici
+    // (preko funkcije getTabCount koja se poziva u renderCategoryTabs).
 }
 
 function maybeShowBadgeHint() {
