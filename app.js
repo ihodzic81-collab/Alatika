@@ -463,7 +463,50 @@ function openCategory(categoryId) {
 }
 
 function openCategoryBack(categoryId) {
-    openCategory(categoryId);
+    // Ne gura novi history state — samo prikazuje kategoriju
+    const cat = CATEGORIES[categoryId];
+    if (!cat) return;
+    activeCategory = categoryId;
+
+    const modal = el('category-modal');
+    const iconBox = el('category-icon');
+    const titleBox = el('category-title');
+    const tabBar = el('category-tab-bar');
+
+    if (!modal || !iconBox || !titleBox || !tabBar) return;
+
+    modal.style.setProperty('--qt-accent', cat.accent);
+    iconBox.style.setProperty('--qt-accent', cat.accent);
+    iconBox.innerHTML = icon(cat.icon);
+    titleBox.textContent = safeT('cat.' + categoryId);
+
+    tabBar.innerHTML = '';
+    cat.tabs.forEach(tab => {
+        const btn = document.createElement('button');
+        btn.className = 'tab-btn';
+        btn.style.setProperty('--qt-accent', cat.accent);
+        btn.innerHTML = `
+            <span class="tab-btn-icon">${icon(tab.icon)}</span>
+            <span class="tab-btn-label">${escapeHtml(safeT('tab.' + categoryId + '.' + tab.id))}</span>
+        `;
+        btn.onclick = () => openCalc(categoryId, tab.id);
+
+        const count = getTabCount(categoryId, tab.id);
+        if (count > 0) {
+            const badge = document.createElement('span');
+            badge.className = 'tab-badge';
+            badge.textContent = count > 99 ? '99+' : String(count);
+            btn.appendChild(badge);
+        }
+        tabBar.appendChild(btn);
+    });
+
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+    vibrate(15);
+    playTick(0, 1400, 0.06, 0.02);
+    const toolsHint = el('tools-hint');
+    if (toolsHint) toolsHint.style.display = 'none';
 }
 
 function openCalc(categoryId, tabId) {
@@ -1440,6 +1483,16 @@ function goHome() {
 function setupBackButton() {
     try { history.replaceState({ screen: 'home-screen', home: true }, '', ''); } catch (e) {}
     window.addEventListener('popstate', (e) => {
+                // Ako nema više state-ova, uvek idi na home umesto da izađeš iz app-a
+        if (!e.state) {
+            if (currentScreenId !== 'home-screen') {
+                openScreen('home-screen', 'left');
+                try { history.pushState({ screen: 'home-screen', home: true }, '', ''); } catch (err) {}
+            } else {
+                try { history.pushState({ screen: 'home-screen', home: true }, '', ''); } catch (err) {}
+            }
+            return;
+        }
         const calcModal = el('calc-modal');
         const catModal = el('category-modal');
         const editorModal = el('editor-modal');
@@ -1461,27 +1514,29 @@ function setupBackButton() {
             return;
         }
         if (calcModal && calcModal.classList.contains('show')) {
-            calcModal.classList.remove('show');
-            if (activeCategory) {
-                setTimeout(() => openCategoryBack(activeCategory), 100);
-            } else {
-                activeTab = null;
-                setTimeout(() => {
-                    const anyOpen = document.querySelector('.modal.show');
-                    if (!anyOpen) document.body.classList.remove('modal-open');
-                }, 220);
-            }
-            return;
-        }
-        if (catModal && catModal.classList.contains('show')) {
-            catModal.classList.remove('show');
-            activeCategory = null;
-            setTimeout(() => {
-                const anyOpen = document.querySelector('.modal.show');
-                if (!anyOpen) document.body.classList.remove('modal-open');
-            }, 220);
-            return;
-        }
+    calcModal.classList.remove('show');
+    if (activeCategory) {
+        setTimeout(() => openCategoryBack(activeCategory), 100);
+    } else {
+        activeTab = null;
+        setTimeout(() => {
+            const anyOpen = document.querySelector('.modal.show');
+            if (!anyOpen) document.body.classList.remove('modal-open');
+        }, 220);
+    }
+    return;
+}
+if (catModal && catModal.classList.contains('show')) {
+    catModal.classList.remove('show');
+    activeCategory = null;
+    activeTab = null;
+    setTimeout(() => {
+        const anyOpen = document.querySelector('.modal.show');
+        if (!anyOpen) document.body.classList.remove('modal-open');
+    }, 220);
+    // Ne radi ništa — sledeći back ide na home
+    return;
+}
         if (editorModal && editorModal.classList.contains('show')) {
             editorModal.classList.remove('show');
             setTimeout(() => {
@@ -3207,8 +3262,8 @@ function renderRemindersHistory() {
                     </select>
                 </div>
                 <div class="rem-history-actions-row">
-                    <button class="rem-action-mini" onclick="exportRemindersHistory()" title="${safeT('rem.history.export')}">📥 ${safeT('rem.history.export')}</button>
-                </div>
+    <button class="rem-action-mini" onclick="exportRemindersHistory()" title="${safeT('rem.history.export')}">📥 ${safeT('rem.history.export')}</button>
+</div>
             </div>
             <div id="rem-history-stats" class="rem-history-stats"></div>
             <div id="rem-history-list" class="rem-history-list"></div>
@@ -3296,7 +3351,45 @@ function renderRemindersNotes() {
 function renderRemindersRate() {
     const html = `
         <div class="converter-box">
-            <div class="section-desc">${safeT('tab.podsetnici.rate')}</div>
+            <div class="section-desc">Kalkulator rata</div>
+            ${inputField('label.rate.startAmount', 'rem-rate-start', 'RSD', 'placeholder="120000"')}
+            ${inputField('label.rate.count', 'rem-rate-count', '', 'value="12" min="1" max="120"')}
+            ${dateTripleField('label.rate.firstDate', 'rem-rate-first-date')}
+            ${selectField('label.rate.period', 'rem-rate-period', [
+                { value: 'monthly', text: safeT('label.rate.period.monthly') },
+                { value: 'biweekly', text: safeT('label.rate.period.biweekly') },
+                { value: 'weekly', text: safeT('label.rate.period.weekly') }
+            ], 'monthly')}
+            ${inputField('label.rate.interest', 'rem-rate-interest', '%', 'value="0" step="0.1"')}
+            ${inputFieldText('label.rate.description', 'rem-rate-description', safeT('label.rate.descriptionPlaceholder'))}
+            ${calcButton('btn.calculate', 'calculateRemindersInstallments()')}
+        </div>
+        <div id="rem-rate-calc-result-box" style="display: none;">
+            <div class="rate-info-card">
+                <div class="rate-info-row">
+                    <span class="rate-info-label">${safeT('label.rate.perInstallment')}</span>
+                    <span class="rate-info-value accent" id="rem-res-rate-per">0 RSD</span>
+                </div>
+                <div class="rate-info-row">
+                    <span class="rate-info-label">${safeT('label.rate.totalPayment')}</span>
+                    <span class="rate-info-value" id="rem-res-rate-total">0 RSD</span>
+                </div>
+                <div class="rate-info-row">
+                    <span class="rate-info-label">${safeT('label.rate.totalInterest')}</span>
+                    <span class="rate-info-value" id="rem-res-rate-interest">0 RSD</span>
+                </div>
+            </div>
+            <div class="rate-actions">
+                <button class="rate-action-btn rate-action-primary" onclick="saveRemindersInstallments()">
+                    💾 ${safeT('label.rate.saveReminders')}
+                </button>
+            </div>
+            <div class="rate-table-wrap" style="margin-top: 14px;">
+                <div id="rem-rate-table-body"></div>
+            </div>
+        </div>
+        <div class="converter-box">
+            <div class="section-desc">Sačuvane rate</div>
             <div id="rem-rate-list" class="rem-rate-list"></div>
         </div>
     `;
@@ -3312,7 +3405,6 @@ function renderRemindersRate() {
                 <div class="rate-empty">
                     <div class="rate-empty-icon">💳</div>
                     <div>${safeT('label.rate.noInstallments')}</div>
-                    <div style="margin-top: 8px; font-size: 0.8rem;">${safeT('label.rate.noInstallmentsHint')}</div>
                 </div>
             `;
             return;
@@ -3375,6 +3467,110 @@ function renderRemindersRate() {
     return html;
 }
 
+// Nova funkcija za kalkulaciju u Podsetnicima
+let remCurrentInstallmentData = null;
+
+function calculateRemindersInstallments() {
+    const startAmount = num('rem-rate-start');
+    const count = parseInt(num('rem-rate-count')) || 0;
+    const firstDate = getTripleDate('rem-rate-first-date');
+    const period = el('rem-rate-period') ? el('rem-rate-period').value : 'monthly';
+    const interestRate = num('rem-rate-interest') || 0;
+    const description = el('rem-rate-description') ? el('rem-rate-description').value.trim() : '';
+
+    if (!startAmount || startAmount <= 0) { showToast(safeT('toast.error.enterAmount'), 'error'); return; }
+    if (!count || count < 1 || count > 120) { showToast(safeT('toast.error.enterValue'), 'error'); return; }
+    if (!firstDate) { showToast(safeT('toast.error.enterDate'), 'error'); return; }
+
+    let monthlyRate = 0;
+    if (interestRate > 0) {
+        const periodsPerYear = period === 'monthly' ? 12 : (period === 'biweekly' ? 26 : 52);
+        monthlyRate = (interestRate / 100) / periodsPerYear;
+    }
+
+    let perInstallment;
+    if (monthlyRate === 0) {
+        perInstallment = startAmount / count;
+    } else {
+        const factor = Math.pow(1 + monthlyRate, count);
+        perInstallment = (startAmount * monthlyRate * factor) / (factor - 1);
+    }
+    const totalPayment = perInstallment * count;
+    const totalInterest = totalPayment - startAmount;
+
+    const installments = [];
+    const firstDateObj = parseDate(firstDate);
+
+    for (let i = 0; i < count; i++) {
+        const date = new Date(firstDateObj);
+        if (period === 'monthly') date.setMonth(date.getMonth() + i);
+        else if (period === 'biweekly') date.setDate(date.getDate() + i * 14);
+        else date.setDate(date.getDate() + i * 7);
+
+        installments.push({
+            number: i + 1,
+            date: date.toISOString().slice(0, 10),
+            amount: perInstallment,
+            paid: false
+        });
+    }
+
+    remCurrentInstallmentData = {
+        startAmount, count, period, interestRate,
+        description: description || safeT('label.rate.installment'),
+        installments, totalPayment, totalInterest,
+        createdAt: Date.now()
+    };
+
+    const rp = el('rem-res-rate-per'); if (rp) rp.innerText = money(perInstallment) + ' RSD';
+    const rt = el('rem-res-rate-total'); if (rt) rt.innerText = money(totalPayment) + ' RSD';
+    const ri = el('rem-res-rate-interest'); if (ri) ri.innerText = money(totalInterest) + ' RSD';
+
+    const tableBody = el('rem-rate-table-body');
+    if (tableBody) {
+        tableBody.innerHTML = installments.map(inst => `
+            <div class="rate-item">
+                <div class="rate-item-check" style="cursor: default;"></div>
+                <div class="rate-item-number">${safeT('label.rate.rate')} ${inst.number}/${count}</div>
+                <div class="rate-item-date">${inst.date}</div>
+                <div class="rate-item-amount">${money(inst.amount)} RSD</div>
+            </div>
+        `).join('');
+    }
+
+    const box = el('rem-rate-calc-result-box'); if (box) box.style.display = 'block';
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+}
+
+function saveRemindersInstallments() {
+    if (!remCurrentInstallmentData) {
+        showToast('Prvo izračunaj rate', 'error');
+        return;
+    }
+
+    const groups = loadInstallmentGroups();
+    const newGroup = {
+        id: 'inst_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        description: remCurrentInstallmentData.description,
+        startAmount: remCurrentInstallmentData.startAmount,
+        count: remCurrentInstallmentData.count,
+        period: remCurrentInstallmentData.period,
+        interestRate: remCurrentInstallmentData.interestRate,
+        installments: remCurrentInstallmentData.installments.map(i => ({ ...i })),
+        createdAt: Date.now()
+    };
+    groups.push(newGroup);
+    saveInstallmentGroups(groups);
+
+    showToast(safeT('label.rate.savedAsReminders'), 'success', 2500);
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+    updateAppBadge();
+
+    const box = el('rem-rate-calc-result-box'); if (box) box.style.display = 'none';
+    renderRemindersRate();
+}
 function toggleInstallmentPaidFromReminders(groupId, installmentIdx) {
     const groups = loadInstallmentGroups();
     const group = groups.find(g => g.id === groupId);
@@ -3762,7 +3958,8 @@ function toggleDoneFromHistory(type, category, id) {
         const groupId = parts[0];
         const idx = parseInt(parts[1]);
         toggleInstallmentPaidFromReminders(groupId, idx);
-        renderRemindersHistoryList();
+        // Kratka pauza pa refresh liste
+        setTimeout(() => renderRemindersHistoryList(), 100);
         return;
     }
 
@@ -3779,28 +3976,36 @@ function toggleDoneFromHistory(type, category, id) {
     if (idx === -1) { showToast('Podsetnik nije pronađen', 'error'); return; }
 
     const item = list[idx];
+    let wasDone;
 
     if (type === 'bill') {
+        wasDone = !!item.paid;
         item.paid = !item.paid;
     } else if (type === 'subscription') {
+        wasDone = !item.active;
         item.active = !item.active;
     } else {
+        wasDone = !!item.done;
         item.done = !item.done;
     }
 
     saveReminders(key, list);
 
-    let isNowDone = false;
-    if (type === 'bill') isNowDone = item.paid;
-    else if (type === 'subscription') isNowDone = !item.active;
-    else isNowDone = !!item.done;
+    // Poruka
+    if (wasDone) {
+        showToast('Vraćeno u aktivne podsetnike', 'success', 1800);
+    } else {
+        showToast('Označeno kao završeno', 'success', 1800);
+    }
 
-    showToast(isNowDone ? 'Označeno kao završeno' : 'Vraćeno u aktivne', 'success', 1500);
     vibrate(20);
     playTick(0, 1500, 0.08, 0.03);
 
-    renderRemindersHistoryList();
-    updateAppBadge();
+    // Kratka pauza pa refresh
+    setTimeout(() => {
+        renderRemindersHistoryList();
+        updateAppBadge();
+    }, 100);
 }
 
 async function deleteFromHistory(type, category, id) {
@@ -3860,6 +4065,46 @@ function exportRemindersHistory() {
 
     showToast('Fajl preuzet', 'success', 2000);
     vibrate(20);
+}
+async function shareRemindersHistory() {
+    const allItems = getAllReminderItems();
+    const doneItems = allItems.filter(i => i.isDone);
+
+    if (!doneItems.length) {
+        showToast(safeT('rem.history.empty'), 'info');
+        return;
+    }
+
+    const lines = ['📦 ARHIVA PODSETNIKA — Alatika', ''];
+    lines.push('Ukupno završenih: ' + doneItems.length);
+    lines.push('');
+
+    doneItems.slice(0, 30).forEach(item => {
+        lines.push('• ' + (item.title || ''));
+        if (item.subtitle) lines.push('  ' + item.subtitle);
+        if (item.dueDate) lines.push('  Rok: ' + item.dueDate);
+    });
+
+    if (doneItems.length > 30) {
+        lines.push('');
+        lines.push('... i još ' + (doneItems.length - 30) + ' stavki');
+    }
+
+    const text = lines.join('\n');
+
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: 'Arhiva podsetnika — Alatika',
+                text: text
+            });
+            vibrate(20);
+        } catch (e) {}
+    } else {
+        fallbackCopy(text, () => {
+            showToast('Kopirano u clipboard', 'success', 2000);
+        });
+    }
 }
 
 // ================= PODSETNICI — Modal forma =================
