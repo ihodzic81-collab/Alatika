@@ -3785,7 +3785,7 @@ function getAllReminderItems() {
             (group.installments || []).forEach((inst, idx) => {
                 if (!inst.paid) return; // Arhiva = samo plaćene
                 items.push({
-                    id: `${group.id}_${idx}`,
+                    id: `${group.id}|${idx}`,
                     type: 'installment',
                     category: 'installments',
                     title: `${group.description || safeT('label.rate.installment')} — ${safeT('label.rate.rate')} ${inst.number}/${group.installments.length}`,
@@ -3904,7 +3904,7 @@ async function shareReminderFromHistory(type, category, id) {
     const key = getReminderStorageKey(type);
     if (!key) {
         if (type === 'installment') {
-            const parts = id.split('_');
+            const parts = id.split('|');
             const groupId = parts[0];
             const idx = parseInt(parts[1]);
             const groups = loadInstallmentGroups();
@@ -3959,7 +3959,7 @@ async function shareReminderFromHistory(type, category, id) {
 
 function toggleDoneFromHistory(type, category, id) {
     if (type === 'installment') {
-        const parts = id.split('_');
+        const parts = id.split('|');
         const groupId = parts[0];
         const idx = parseInt(parts[1]);
         toggleInstallmentPaidFromReminders(groupId, idx);
