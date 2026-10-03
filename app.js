@@ -3850,7 +3850,6 @@ function renderHistoryItem(item) {
             </div>
             <div class="rem-history-actions">
                 ${item.type !== 'installment' ? `<button class="rem-action-btn rem-action-edit" onclick="editReminderFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${safeT('rem.history.edit')}">${icon('edit')}</button>` : ''}
-                <button class="rem-action-btn rem-action-share" onclick="shareReminderFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${safeT('rem.history.share')}">${icon('share')}</button>
                 <button class="rem-action-btn rem-action-toggle ${item.isDone ? 'is-done' : ''}" onclick="toggleDoneFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${item.isDone ? safeT('rem.history.markActive') : safeT('rem.history.markDone')}">${item.isDone ? icon('refresh') : icon('check')}</button>
                 ${item.type !== 'installment' ? `<button class="rem-action-btn rem-action-delete" onclick="deleteFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${safeT('rem.history.delete')}">${icon('trash')}</button>` : ''}
             </div>
