@@ -1,7 +1,11 @@
 // ============================================================
-// ALATIKA — app.js (v6) — DEO 1/5
+// ALATIKA — app.js (v6) — DEO 1/2
 // Pomoćne, ICONS, CATEGORIES, navigacija, alati, favoriti,
-// pretraga, istorija, toast, confirm, podešavanja, ARHIVA
+// pretraga, istorija, toast, confirm, podešavanja, ARHIVA,
+// VREME, YIN TUNER, RENDER POMOĆNE, PODSETNICI,
+// SVE KALKULACIJE (AUTO, BIKE, MONEY, MEASURES, HEALTH,
+// TIME, SHOPPING, HOMECALC, KITCHEN, POWER, WORK, MUSIC),
+// VALUTA, TAB SETTINGS, GODIŠNJICE, PLOČICE ZIDOVI
 // ============================================================
 
 // ================= POMOĆNE =================
@@ -409,6 +413,201 @@ function getTabCount(categoryId, tabId) {
     return counts[tabId] || 0;
 }
 
+// ============================================================
+// NOVO — PODEŠAVANJE TABOVA PO KATEGORIJI (Faza 1 + 2)
+// ============================================================
+const TABS_LAYOUT_KEY = 'cx_tabs_layout';
+
+function loadTabsLayout() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(TABS_LAYOUT_KEY));
+        if (raw && typeof raw === 'object') return raw;
+    } catch (e) {}
+    return {};
+}
+function saveTabsLayoutStore(obj) {
+    try { localStorage.setItem(TABS_LAYOUT_KEY, JSON.stringify(obj)); } catch (e) {}
+}
+function getCategoryTabsLayout(categoryId) {
+    const all = loadTabsLayout();
+    return all[categoryId] || { order: [], hidden: [] };
+}
+
+let tabsSettingsCategory = null;
+let tabsSettingsDraft = null;
+let tabsDragSrcId = null;
+
+function openTabsSettings() {
+    if (!activeCategory) return;
+    const cat = CATEGORIES[activeCategory];
+    if (!cat) return;
+
+    tabsSettingsCategory = activeCategory;
+    const saved = getCategoryTabsLayout(activeCategory);
+    const order = (saved.order && saved.order.length)
+        ? saved.order.filter(id => cat.tabs.some(t => t.id === id))
+        : cat.tabs.map(t => t.id);
+    cat.tabs.forEach(t => { if (!order.includes(t.id)) order.push(t.id); });
+
+    tabsSettingsDraft = {
+        order: order,
+        hidden: Array.isArray(saved.hidden) ? [...saved.hidden] : []
+    };
+
+    const modal = el('tabs-settings-modal');
+    const title = el('tabs-settings-title');
+    const desc = el('tabs-settings-desc');
+    const resetBtn = el('tabs-settings-reset-btn');
+    const saveBtn = el('tabs-settings-save-btn');
+    const iconBox = el('tabs-settings-icon');
+
+    if (title) title.textContent = safeT('tabs.settings.title');
+    if (desc) desc.textContent = safeT('tabs.settings.desc');
+    if (resetBtn) resetBtn.textContent = safeT('tabs.settings.reset');
+    if (saveBtn) saveBtn.textContent = safeT('tabs.settings.save');
+    if (iconBox) {
+        iconBox.style.setProperty('--qt-accent', cat.accent);
+        iconBox.innerHTML = icon('settings');
+    }
+
+    renderTabsSettingsList();
+
+    if (modal) modal.classList.add('show');
+    document.body.classList.add('modal-open');
+    vibrate(15);
+    playTick(0, 1400, 0.06, 0.02);
+    try { history.pushState({ modal: 'tabs-settings' }, '', ''); } catch (e) {}
+}
+
+function renderTabsSettingsList() {
+    const list = el('tabs-settings-list');
+    if (!list || !tabsSettingsCategory || !tabsSettingsDraft) return;
+    const cat = CATEGORIES[tabsSettingsCategory];
+    if (!cat) return;
+
+    list.innerHTML = '';
+
+    tabsSettingsDraft.order.forEach(tabId => {
+        const tab = cat.tabs.find(t => t.id === tabId);
+        if (!tab) return;
+        const isHidden = tabsSettingsDraft.hidden.includes(tabId);
+
+        const item = document.createElement('div');
+        item.className = 'tabs-settings-item' + (isHidden ? ' hidden-tab' : '');
+        item.dataset.tabId = tabId;
+        item.draggable = true;
+        item.style.setProperty('--qt-accent', cat.accent);
+
+        item.addEventListener('dragstart', handleTabDragStart);
+        item.addEventListener('dragover', handleTabDragOver);
+        item.addEventListener('drop', handleTabDrop);
+        item.addEventListener('dragend', handleTabDragEnd);
+
+        item.innerHTML = `
+            <span class="tabs-settings-handle">⋮⋮</span>
+            <span class="tabs-settings-icon">${icon(tab.icon)}</span>
+            <span class="tabs-settings-name">${escapeHtml(safeT('tab.' + tabsSettingsCategory + '.' + tab.id))}</span>
+            <label class="tabs-settings-check" onclick="event.stopPropagation()">
+                <input type="checkbox" ${isHidden ? '' : 'checked'} data-tab-id="${tabId}">
+                <span class="toggle-slider"></span>
+            </label>
+        `;
+
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        checkbox.addEventListener('change', () => {
+            const idx = tabsSettingsDraft.hidden.indexOf(tabId);
+            if (checkbox.checked) {
+                if (idx !== -1) tabsSettingsDraft.hidden.splice(idx, 1);
+            } else {
+                const visibleCount = tabsSettingsDraft.order.filter(id => !tabsSettingsDraft.hidden.includes(id)).length;
+                if (visibleCount <= 1) {
+                    checkbox.checked = true;
+                    showToast(safeT('tabs.settings.error.minOne'), 'warning', 2000);
+                    vibrate(30);
+                    return;
+                }
+                if (idx === -1) tabsSettingsDraft.hidden.push(tabId);
+            }
+            item.classList.toggle('hidden-tab', !checkbox.checked);
+            vibrate(10);
+            playTick(0, 1300, 0.05, 0.015);
+        });
+
+        list.appendChild(item);
+    });
+}
+
+function handleTabDragStart(e) {
+    tabsDragSrcId = this.dataset.tabId;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', tabsDragSrcId); } catch (err) {}
+}
+function handleTabDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const target = e.currentTarget;
+    if (!target || target.dataset.tabId === tabsDragSrcId) return;
+    target.classList.add('drag-over');
+}
+function handleTabDrop(e) {
+    e.preventDefault();
+    const target = e.currentTarget;
+    target.classList.remove('drag-over');
+    const targetId = target.dataset.tabId;
+    if (!tabsDragSrcId || targetId === tabsDragSrcId) return;
+
+    const order = tabsSettingsDraft.order;
+    const srcIdx = order.indexOf(tabsDragSrcId);
+    const tgtIdx = order.indexOf(targetId);
+    if (srcIdx === -1 || tgtIdx === -1) return;
+    order.splice(srcIdx, 1);
+    order.splice(tgtIdx, 0, tabsDragSrcId);
+    renderTabsSettingsList();
+    vibrate(10);
+    playTick(0, 1300, 0.05, 0.015);
+}
+function handleTabDragEnd() {
+    this.classList.remove('dragging');
+    document.querySelectorAll('.tabs-settings-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+    tabsDragSrcId = null;
+}
+
+function saveTabsLayout() {
+    if (!tabsSettingsCategory || !tabsSettingsDraft) return;
+    const all = loadTabsLayout();
+    all[tabsSettingsCategory] = {
+        order: [...tabsSettingsDraft.order],
+        hidden: [...tabsSettingsDraft.hidden]
+    };
+    saveTabsLayoutStore(all);
+    closeModal('tabs-settings-modal');
+    showToast(safeT('tabs.settings.saved'), 'success', 1800);
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+
+    // Refresh tab bar u pozadini
+    const catId = tabsSettingsCategory;
+    tabsSettingsCategory = null;
+    tabsSettingsDraft = null;
+    if (activeCategory === catId) {
+        openCategoryBack(catId);
+    }
+}
+
+function resetTabsLayout() {
+    if (!tabsSettingsCategory) return;
+    const cat = CATEGORIES[tabsSettingsCategory];
+    if (!cat) return;
+    tabsSettingsDraft = {
+        order: cat.tabs.map(t => t.id),
+        hidden: []
+    };
+    renderTabsSettingsList();
+    showToast(safeT('tabs.settings.reset.done'), 'info', 1800);
+    vibrate(15);
+}
+
 // ================= NAVIGACIJA — MODALI =================
 let activeCategory = null;
 let activeTab = null;
@@ -431,8 +630,35 @@ function openCategory(categoryId) {
     iconBox.innerHTML = icon(cat.icon);
     titleBox.textContent = safeT('cat.' + categoryId);
 
+    renderCategoryTabs(categoryId, tabBar, cat);
+
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+    vibrate(15);
+    playTick(0, 1400, 0.06, 0.02);
+
+    try { history.pushState({ modal: 'category', category: categoryId }, '', ''); } catch (e) {}
+    const toolsHint = el('tools-hint');
+    if (toolsHint) toolsHint.style.display = 'none';
+}
+
+// NOVO — izdvojeno renderovanje tabova (poštuje layout)
+function renderCategoryTabs(categoryId, tabBar, cat) {
+    if (!tabBar || !cat) return;
+    const layout = getCategoryTabsLayout(categoryId);
+    const hidden = layout.hidden || [];
+    const order = layout.order && layout.order.length
+        ? layout.order.filter(id => cat.tabs.some(t => t.id === id))
+        : cat.tabs.map(t => t.id);
+    // Dodaj sve tabove koji nisu u order (bezbednost ako se doda novi tab)
+    cat.tabs.forEach(t => { if (!order.includes(t.id)) order.push(t.id); });
+
     tabBar.innerHTML = '';
-    cat.tabs.forEach(tab => {
+    order.forEach(tabId => {
+        if (hidden.includes(tabId)) return;
+        const tab = cat.tabs.find(t => t.id === tabId);
+        if (!tab) return;
+
         const btn = document.createElement('button');
         btn.className = 'tab-btn';
         btn.style.setProperty('--qt-accent', cat.accent);
@@ -451,19 +677,9 @@ function openCategory(categoryId) {
         }
         tabBar.appendChild(btn);
     });
-
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-    vibrate(15);
-    playTick(0, 1400, 0.06, 0.02);
-
-    try { history.pushState({ modal: 'category', category: categoryId }, '', ''); } catch (e) {}
-    const toolsHint = el('tools-hint');
-    if (toolsHint) toolsHint.style.display = 'none';
 }
 
 function openCategoryBack(categoryId) {
-    // Ne gura novi history state — samo prikazuje kategoriju
     const cat = CATEGORIES[categoryId];
     if (!cat) return;
     activeCategory = categoryId;
@@ -480,26 +696,7 @@ function openCategoryBack(categoryId) {
     iconBox.innerHTML = icon(cat.icon);
     titleBox.textContent = safeT('cat.' + categoryId);
 
-    tabBar.innerHTML = '';
-    cat.tabs.forEach(tab => {
-        const btn = document.createElement('button');
-        btn.className = 'tab-btn';
-        btn.style.setProperty('--qt-accent', cat.accent);
-        btn.innerHTML = `
-            <span class="tab-btn-icon">${icon(tab.icon)}</span>
-            <span class="tab-btn-label">${escapeHtml(safeT('tab.' + categoryId + '.' + tab.id))}</span>
-        `;
-        btn.onclick = () => openCalc(categoryId, tab.id);
-
-        const count = getTabCount(categoryId, tab.id);
-        if (count > 0) {
-            const badge = document.createElement('span');
-            badge.className = 'tab-badge';
-            badge.textContent = count > 99 ? '99+' : String(count);
-            btn.appendChild(badge);
-        }
-        tabBar.appendChild(btn);
-    });
+    renderCategoryTabs(categoryId, tabBar, cat);
 
     modal.classList.add('show');
     document.body.classList.add('modal-open');
@@ -620,6 +817,7 @@ function closeModal(modalId) {
 
     modal.classList.remove('show');
     if (modalId === 'category-modal') activeCategory = null;
+    if (modalId === 'tabs-settings-modal') { tabsSettingsCategory = null; tabsSettingsDraft = null; }
 
     setTimeout(() => {
         const anyOpen = document.querySelector('.modal.show');
@@ -638,6 +836,8 @@ function closeAllModals() {
     document.body.classList.remove('modal-open');
     activeCategory = null;
     activeTab = null;
+    tabsSettingsCategory = null;
+    tabsSettingsDraft = null;
 }
 
 // ================= BRZI ALATI =================
@@ -1483,7 +1683,6 @@ function goHome() {
 function setupBackButton() {
     try { history.replaceState({ screen: 'home-screen', home: true }, '', ''); } catch (e) {}
     window.addEventListener('popstate', (e) => {
-                // Ako nema više state-ova, uvek idi na home umesto da izađeš iz app-a
         if (!e.state) {
             if (currentScreenId !== 'home-screen') {
                 openScreen('home-screen', 'left');
@@ -1499,7 +1698,18 @@ function setupBackButton() {
         const locationModal = el('location-modal');
         const aboutModal = el('about-modal');
         const reminderModal = el('reminder-modal');
+        const tabsSettingsModal = el('tabs-settings-modal');
 
+        if (tabsSettingsModal && tabsSettingsModal.classList.contains('show')) {
+            tabsSettingsModal.classList.remove('show');
+            tabsSettingsCategory = null;
+            tabsSettingsDraft = null;
+            setTimeout(() => {
+                const anyOpen = document.querySelector('.modal.show');
+                if (!anyOpen) document.body.classList.remove('modal-open');
+            }, 220);
+            return;
+        }
         if (reminderModal && reminderModal.classList.contains('show')) {
             reminderModal.classList.remove('show');
             document.body.classList.remove('modal-open');
@@ -1514,29 +1724,28 @@ function setupBackButton() {
             return;
         }
         if (calcModal && calcModal.classList.contains('show')) {
-    calcModal.classList.remove('show');
-    if (activeCategory) {
-        setTimeout(() => openCategoryBack(activeCategory), 100);
-    } else {
-        activeTab = null;
-        setTimeout(() => {
-            const anyOpen = document.querySelector('.modal.show');
-            if (!anyOpen) document.body.classList.remove('modal-open');
-        }, 220);
-    }
-    return;
-}
-if (catModal && catModal.classList.contains('show')) {
-    catModal.classList.remove('show');
-    activeCategory = null;
-    activeTab = null;
-    setTimeout(() => {
-        const anyOpen = document.querySelector('.modal.show');
-        if (!anyOpen) document.body.classList.remove('modal-open');
-    }, 220);
-    // Ne radi ništa — sledeći back ide na home
-    return;
-}
+            calcModal.classList.remove('show');
+            if (activeCategory) {
+                setTimeout(() => openCategoryBack(activeCategory), 100);
+            } else {
+                activeTab = null;
+                setTimeout(() => {
+                    const anyOpen = document.querySelector('.modal.show');
+                    if (!anyOpen) document.body.classList.remove('modal-open');
+                }, 220);
+            }
+            return;
+        }
+        if (catModal && catModal.classList.contains('show')) {
+            catModal.classList.remove('show');
+            activeCategory = null;
+            activeTab = null;
+            setTimeout(() => {
+                const anyOpen = document.querySelector('.modal.show');
+                if (!anyOpen) document.body.classList.remove('modal-open');
+            }, 220);
+            return;
+        }
         if (editorModal && editorModal.classList.contains('show')) {
             editorModal.classList.remove('show');
             setTimeout(() => {
@@ -1782,7 +1991,7 @@ function createRipple(e) {
     setTimeout(() => { if (ripple.parentNode) ripple.remove(); }, 600);
 }
 function setupRipple() {
-    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn, .modal-fav-star, .weather-refresh-btn, .location-gps-btn, .weather-location, .icon-btn-text, .about-row, .all-tools-save-btn, .all-tools-reset-btn';
+    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn, .modal-fav-star, .modal-settings-btn, .weather-refresh-btn, .location-gps-btn, .weather-location, .icon-btn-text, .about-row, .all-tools-save-btn, .all-tools-reset-btn, .tabs-settings-reset-btn, .tabs-settings-save-btn';
     document.addEventListener('pointerdown', (e) => {
         const t = e.target.closest(selector);
         if (t) createRipple({ currentTarget: t, clientX: e.clientX, clientY: e.clientY });
@@ -1816,7 +2025,6 @@ function updateSettingsUI() {
         const langSel = el('settings-language');
         if (langSel) langSel.value = currentLang;
         
-        // Arhiva
         const archiveBtn = el('settings-archive-btn');
         if (archiveBtn) {
             const enabled = getArchiveAutoCleanupSetting();
@@ -2071,7 +2279,7 @@ function setupInputPersistence() {
 // ================= ARHIVA =================
 const ARCHIVE_KEY = 'cx_archive';
 const ARCHIVE_AUTO_CLEANUP_KEY = 'cx_archive_auto_cleanup';
-const ARCHIVE_MAX_AGE_DAYS = 730; // 2 godine
+const ARCHIVE_MAX_AGE_DAYS = 730;
 
 function loadArchive() {
     try {
@@ -2151,13 +2359,10 @@ function runArchiveAutoCleanup() {
             console.log('Arhiva: obrisano ' + (archive.length - cleaned.length) + ' starih stavki.');
         }
     } catch (e) {}
-}
-
-// ============================================================
-// KRAJ DELA 1/5
-// ============================================================// ============================================================
-// ALATIKA — app.js (v6) — DEO 2/5
-// VREME + YIN TUNER + RENDER POMOĆNE
+}// ============================================================
+// ALATIKA — app.js (v6) — DEO 2/2
+// VREME, YIN TUNER, RENDER POMOĆNE, PODSETNICI,
+// SVE KALKULACIJE, VALUTA, INIT
 // ============================================================
 
 // ================= VREME — KONSTANTE =================
@@ -2907,7 +3112,6 @@ function calculateMoonPhase(date) {
 // ============================================================
 // YIN PITCH DETECTION
 // ============================================================
-
 function yinPitchDetect(buffer, sampleRate, options = {}) {
     const threshold = options.threshold || 0.12;
     const minFreq = options.minFreq || 60;
@@ -3106,15 +3310,8 @@ function statsRow(boxId, items) {
 function sectionDescKey(key) { return `<p class="section-desc">${safeT(key)}</p>`; }
 
 // ============================================================
-// KRAJ DELA 2/5
-// ============================================================// ============================================================
-// ALATIKA — app.js (v6) — DEO 3/5
-// PODSETNICI — kompletan sistem (9 tabova + modal + storage)
-// + ARHIVA (preimenovano iz "Istorija")
-// + RATE integracija
+// PODSETNICI — Storage helperi
 // ============================================================
-
-// ================= PODSETNICI — Storage helperi =================
 const REMINDER_KEYS = {
     birthdays: 'cx_birthdays',
     bills: 'cx_bills',
@@ -3162,7 +3359,6 @@ function deleteReminder(key, id) {
 }
 
 // ================= PODSETNICI — Date helperi =================
-
 function daysUntilDate(isoOrDate) {
     if (!isoOrDate) return null;
     const target = parseDate(isoOrDate);
@@ -3227,8 +3423,60 @@ function urgencyColor(days) {
     return '#10b981';
 }
 
-// ================= PODSETNICI — Render funkcije =================
+// NOVO — izračun godina braka za godišnjice
+function yearsSinceDate(isoDate) {
+    if (!isoDate) return null;
+    const parts = isoDate.split('-').map(Number);
+    if (parts.length < 3) return null;
+    const start = new Date(parts[0], parts[1] - 1, parts[2]);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    start.setHours(0, 0, 0, 0);
+    if (start > today) return null;
+    let years = today.getFullYear() - start.getFullYear();
+    let months = today.getMonth() - start.getMonth();
+    let days = today.getDate() - start.getDate();
+    if (days < 0) {
+        months--;
+        days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+    }
+    if (months < 0) { years--; months += 12; }
+    return { years, months, days };
+}
 
+function nextJubileeYears(isoDate) {
+    if (!isoDate) return null;
+    const parts = isoDate.split('-').map(Number);
+    if (parts.length < 3) return null;
+    const start = new Date(parts[0], parts[1] - 1, parts[2]);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    start.setHours(0, 0, 0, 0);
+    if (start > today) return null;
+    const jubilees = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 100];
+    const currentYears = today.getFullYear() - start.getFullYear();
+    let nextJub = jubilees.find(j => j > currentYears);
+    if (!nextJub) nextJub = Math.ceil((currentYears + 1) / 10) * 10;
+    // Datum sledećeg jubileja (isti dan/mesec, te godine)
+    const nextDate = new Date(start.getFullYear() + nextJub, start.getMonth(), start.getDate());
+    const daysUntil = Math.round((nextDate - today) / 86400000);
+    return { years: nextJub, daysUntil };
+}
+
+function isJubileeNow(isoDate) {
+    if (!isoDate) return false;
+    const parts = isoDate.split('-').map(Number);
+    if (parts.length < 3) return false;
+    const start = new Date(parts[0], parts[1] - 1, parts[2]);
+    const today = new Date();
+    const isSameDay = today.getMonth() === start.getMonth() && today.getDate() === start.getDate();
+    if (!isSameDay) return false;
+    const years = today.getFullYear() - start.getFullYear();
+    const jubilees = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 100];
+    return jubilees.includes(years);
+}
+
+// ================= PODSETNICI — Render funkcije =================
 function renderRemindersHistory() {
     return `
         <div class="rem-history">
@@ -3264,7 +3512,8 @@ function renderRemindersHistory() {
                 <div class="rem-history-actions-row">
                     <button class="rem-action-mini" onclick="exportRemindersHistory()" title="${safeT('rem.history.export')}">📥 ${safeT('rem.history.export')}</button>
                     <button class="rem-action-mini" onclick="shareRemindersHistory()" title="Podeli">📤 Podeli</button>
-                </div>            </div>
+                </div>
+            </div>
             <div id="rem-history-stats" class="rem-history-stats"></div>
             <div id="rem-history-list" class="rem-history-list"></div>
         </div>
@@ -3467,7 +3716,6 @@ function renderRemindersRate() {
     return html;
 }
 
-// Nova funkcija za kalkulaciju u Podsetnicima
 let remCurrentInstallmentData = null;
 
 function calculateRemindersInstallments() {
@@ -3584,7 +3832,6 @@ function toggleInstallmentPaidFromReminders(groupId, installmentIdx) {
     vibrate(20);
     playTick(0, 1500, 0.08, 0.03);
 
-    // Osvježi SAMO ono što je trenutno na ekranu
     if (el('rem-history-list')) {
         renderRemindersHistoryList();
     }
@@ -3613,8 +3860,7 @@ async function deleteInstallmentGroup(groupId) {
     updateAppBadge();
 }
 
-// ================= PODSETNICI — Arhiva (prikaz svih završenih) =================
-
+// ================= PODSETNICI — Arhiva =================
 function renderRemindersHistoryList() {
     const listBox = el('rem-history-list');
     const statsBox = el('rem-history-stats');
@@ -3628,7 +3874,6 @@ function renderRemindersHistoryList() {
     const monthFilter = el('rem-history-month') ? el('rem-history-month').value : 'all';
     const yearFilter = el('rem-history-year') ? el('rem-history-year').value : 'all';
 
-    // Filtriraj SAMO završene stavke (arhiva)
     let filtered = allItems.filter(item => {
         if (!item.isDone) return false;
 
@@ -3778,12 +4023,11 @@ function getAllReminderItems() {
         });
     });
 
-    // Rate — samo PLAĆENE (arhiva)
     try {
         const groups = loadInstallmentGroups();
         groups.forEach(group => {
             (group.installments || []).forEach((inst, idx) => {
-                if (!inst.paid) return; // Arhiva = samo plaćene
+                if (!inst.paid) return;
                 items.push({
                     id: `${group.id}|${idx}`,
                     type: 'installment',
@@ -3838,6 +4082,33 @@ function renderHistoryItem(item) {
     const color = days !== null ? urgencyColor(days) : item.color;
     const doneClass = item.isDone ? ' rem-item-done' : '';
 
+    // NOVO — prikaz godina braka za godišnjice
+    let yearsBadge = '';
+    if (item.type === 'anniversary' && item.dueDate) {
+        const ys = yearsSinceDate(item.dueDate);
+        if (ys) {
+            let yearsText = '';
+            if (currentLang === 'en') {
+                yearsText = `${ys.years} ${safeT('rem.ann.yearsPassed')}`;
+                if (ys.months > 0 || ys.days > 0) {
+                    yearsText += `, ${ys.months} ${safeT('rem.ann.monthsShort')}`;
+                    if (ys.days > 0) yearsText += `, ${ys.days} ${safeT('rem.ann.daysShort')}`;
+                }
+            } else {
+                yearsText = `${ys.years} ${safeT('rem.ann.yearsPassed')}`;
+                if (ys.months > 0 || ys.days > 0) {
+                    yearsText += `, ${ys.months} ${safeT('rem.ann.monthsShort')}`;
+                    if (ys.days > 0) yearsText += `, ${ys.days} ${safeT('rem.ann.daysShort')}`;
+                }
+            }
+            yearsBadge += `<div class="rem-years-badge"><span class="years-icon">💍</span>${escapeHtml(safeT('rem.ann.yearsTogether'))}: ${escapeHtml(yearsText)}</div>`;
+        }
+        const jub = nextJubileeYears(item.dueDate);
+        if (jub) {
+            yearsBadge += `<div class="rem-jubilee-badge"><span class="years-icon">🎉</span>${safeT('rem.ann.nextJubilee')}: ${jub.years} ${safeT('rem.ann.years')} — ${safeT('rem.ann.jubileeIn')} ${jub.daysUntil} ${safeT('rem.days')}</div>`;
+        }
+    }
+
     return `
         <div class="rem-history-item${doneClass}" style="--rem-color: ${color};">
             <div class="rem-history-icon">${icon(item.icon)}</div>
@@ -3845,11 +4116,13 @@ function renderHistoryItem(item) {
                 <div class="rem-history-title">${escapeHtml(item.title)}</div>
                 ${item.subtitle ? `<div class="rem-history-sub">${escapeHtml(item.subtitle)}</div>` : ''}
                 ${item.dueDate ? `<div class="rem-history-date">📅 ${escapeHtml(item.dueDate)}${daysTxt ? ' • ' + escapeHtml(daysTxt) : ''}</div>` : ''}
+                ${yearsBadge}
             </div>
             <div class="rem-history-actions">
                 ${item.type !== 'installment' ? `<button class="rem-action-btn rem-action-edit" onclick="editReminderFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${safeT('rem.history.edit')}">${icon('edit')}</button>` : ''}
                 <button class="rem-action-btn rem-action-toggle ${item.isDone ? 'is-done' : ''}" onclick="toggleDoneFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${item.isDone ? safeT('rem.history.markActive') : safeT('rem.history.markDone')}">${item.isDone ? icon('refresh') : icon('check')}</button>
-                <button class="rem-action-btn rem-action-delete" onclick="deleteFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${safeT('rem.history.delete')}">${icon('trash')}</button>            </div>
+                <button class="rem-action-btn rem-action-delete" onclick="deleteFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${safeT('rem.history.delete')}">${icon('trash')}</button>
+            </div>
         </div>
     `;
 }
@@ -3962,7 +4235,6 @@ function toggleDoneFromHistory(type, category, id) {
         const groupId = parts[0];
         const idx = parseInt(parts[1]);
         toggleInstallmentPaidFromReminders(groupId, idx);
-        // Kratka pauza pa refresh liste
         setTimeout(() => renderRemindersHistoryList(), 100);
         return;
     }
@@ -3995,7 +4267,6 @@ function toggleDoneFromHistory(type, category, id) {
 
     saveReminders(key, list);
 
-    // Poruka
     if (wasDone) {
         showToast('Vraćeno u aktivne podsetnike', 'success', 1800);
     } else {
@@ -4005,7 +4276,6 @@ function toggleDoneFromHistory(type, category, id) {
     vibrate(20);
     playTick(0, 1500, 0.08, 0.03);
 
-    // Kratka pauza pa refresh
     setTimeout(() => {
         renderRemindersHistoryList();
         updateAppBadge();
@@ -4013,7 +4283,6 @@ function toggleDoneFromHistory(type, category, id) {
 }
 
 async function deleteFromHistory(type, category, id) {
-    // Poseban slučaj za rate (installment)
     if (type === 'installment') {
         const parts = id.split('|');
         const groupId = parts[0];
@@ -4045,7 +4314,6 @@ async function deleteFromHistory(type, category, id) {
         return;
     }
     
-    // Standardni podsetnici
     const key = getReminderStorageKey(type);
     if (!key) return;
 
@@ -4144,7 +4412,6 @@ async function shareRemindersHistory() {
 }
 
 // ================= PODSETNICI — Modal forma =================
-
 let currentReminderType = null;
 let currentReminderEditId = null;
 
@@ -4256,6 +4523,14 @@ function buildReminderForm(type, item) {
         `,
         anniversary: () => `
             ${inputFieldText('rem.ann.name', 'rem-ann-name', '')}
+            ${selectField('rem.ann.type', 'rem-ann-type', [
+                { value: 'wedding', text: safeT('rem.ann.type.wedding') },
+                { value: 'engagement', text: safeT('rem.ann.type.engagement') },
+                { value: 'firstDate', text: safeT('rem.ann.type.firstDate') },
+                { value: 'firstKiss', text: safeT('rem.ann.type.firstKiss') },
+                { value: 'meeting', text: safeT('rem.ann.type.meeting') },
+                { value: 'custom', text: safeT('rem.ann.type.custom') }
+            ], 'wedding')}
             ${dateTripleField('rem.ann.date', 'rem-ann-date')}
             ${inputField('rem.ann.remindBefore', 'rem-ann-remind', safeT('rem.days'), 'value="3"')}
             <div class="input-field">
@@ -4352,6 +4627,7 @@ function fillReminderForm(type, item) {
                 break;
             case 'anniversary':
                 setV('rem-ann-name', item.name);
+                setV('rem-ann-type', item.annType || 'wedding');
                 setD('rem-ann-date', item.date);
                 setV('rem-ann-remind', item.remindBefore || 3);
                 setC('rem-ann-fav', item.favorite);
@@ -4436,7 +4712,7 @@ function saveReminderForm() {
             const date = getTripleDate('rem-ann-date');
             if (!name) { showToast(safeT('toast.rem.error.name'), 'error'); return; }
             if (!date) { showToast(safeT('toast.rem.error.date'), 'error'); return; }
-            data = { name, date, remindBefore: n('rem-ann-remind') || 3, favorite: c('rem-ann-fav'), note: v('rem-ann-note') };
+            data = { name, annType: v('rem-ann-type') || 'wedding', date, remindBefore: n('rem-ann-remind') || 3, favorite: c('rem-ann-fav'), note: v('rem-ann-note') };
             break;
         }
         case 'note': {
@@ -4498,7 +4774,6 @@ function confirmDeleteReminder() {
 }
 
 // ================= PODSETNICI — Render liste po tipu =================
-
 function renderReminderList(type) {
     const typeToKey = {
         birthday: REMINDER_KEYS.birthdays,
@@ -4610,11 +4885,30 @@ function renderReminderItem(type, item) {
     const daysTxt = days !== null ? formatDaysToHuman(days) : '';
     const daysCol = days !== null ? urgencyColor(days) : '';
 
+    // NOVO — godišnjice: prikaz godina
+    let yearsBadge = '';
+    if (type === 'anniversary' && item.date) {
+        const ys = yearsSinceDate(item.date);
+        if (ys) {
+            let yearsText = `${ys.years} ${safeT('rem.ann.yearsPassed')}`;
+            if (ys.months > 0 || ys.days > 0) {
+                yearsText += `, ${ys.months} ${safeT('rem.ann.monthsShort')}`;
+                if (ys.days > 0) yearsText += `, ${ys.days} ${safeT('rem.ann.daysShort')}`;
+            }
+            yearsBadge = `<div class="rem-years-badge" style="font-size:0.68rem; padding: 3px 8px;"><span class="years-icon">💍</span>${escapeHtml(yearsText)}</div>`;
+        }
+        const jub = nextJubileeYears(item.date);
+        if (jub) {
+            yearsBadge += `<div class="rem-jubilee-badge" style="font-size:0.68rem; padding: 3px 8px;"><span class="years-icon">🎉</span>${jub.years} ${safeT('rem.ann.years')} ${safeT('rem.ann.jubileeIn')} ${jub.daysUntil} ${safeT('rem.days')}</div>`;
+        }
+    }
+
     return `
         <div class="rem-item" onclick="editReminder('${type}', ${item.id})">
             <div class="rem-item-left">
                 <div class="rem-item-title">${escapeHtml(title)}</div>
                 ${subtitle ? `<div class="rem-item-sub">${escapeHtml(subtitle)}</div>` : ''}
+                ${yearsBadge}
             </div>
             ${days !== null ? `<div class="rem-item-days" style="color:${daysCol};">${escapeHtml(daysTxt)}</div>` : ''}
             <button class="rem-item-delete" onclick="event.stopPropagation();deleteReminderById('${type}', ${item.id})">✕</button>
@@ -4732,17 +5026,10 @@ function saveInstallmentGroups(groups) {
 }
 
 // ============================================================
-// KRAJ DELA 3/5
-// ============================================================// ============================================================
-// ALATIKA — app.js (v6) — DEO 4/5
-// SVE KALKULACIJE — Render funkcije + calculate funkcije
-// AUTO, BIKE, MONEY (+Rate), MEASURES, HEALTH, TIME,
-// SHOPPING, HOMECALC, KITCHEN, POWER, WORK, MUSIC
+// SVE KALKULACIJE
 // ============================================================
 
-// ============================================================
-// AUTO — Render funkcije
-// ============================================================
+// ---------- AUTO ----------
 function renderAutoPotrosnja() {
     return `
         <div class="converter-box">
@@ -4849,9 +5136,6 @@ function renderAutoMojAuto() {
     `;
 }
 
-// ============================================================
-// AUTO — Kalkulacije
-// ============================================================
 function calculateAuto() {
     const dist = num('distance'), fuel = num('fuel');
     const price = num('price') || 0;
@@ -4981,9 +5265,7 @@ function saveAutoProfile() {
     } catch (e) {}
 }
 
-// ============================================================
-// BIKE — Render funkcije
-// ============================================================
+// ---------- BIKE ----------
 function renderBikeBrzina() {
     return `
         <div class="converter-box">
@@ -5067,9 +5349,6 @@ function renderBikeTabela() {
     `;
 }
 
-// ============================================================
-// BIKE — Kalkulacije
-// ============================================================
 function calculateBike() {
     const front = num('bike-front'), rear = num('bike-rear'), cadence = num('bike-cadence'), wheelInch = num('bike-wheel-inch');
     if (!front || !rear || !cadence || !wheelInch) { showToast(safeT('toast.error.enterFour'), 'error'); return; }
@@ -5144,9 +5423,7 @@ function calculateGearTable() {
     vibrate(15);
 }
 
-// ============================================================
-// MONEY — Render funkcije
-// ============================================================
+// ---------- MONEY ----------
 function renderMoneyPopust() {
     return `
         <div class="converter-box">
@@ -5320,14 +5597,10 @@ function renderMoneyRate() {
     `;
 }
 
-// Prazna funkcija - renderRateHistory se poziva ali ništa ne radi
 function renderInstallmentsHistory() {
     // Historija rata se prikazuje samo u Podsetnicima → tab Rate
 }
 
-// ============================================================
-// MONEY — Kalkulacije
-// ============================================================
 function calculateMoney() {
     const price = num('money-price'), discount = num('money-discount');
     if (!price || discount === null || discount < 0 || discount > 100) { showToast(safeT('toast.error.enterPriceDiscount'), 'error'); return; }
@@ -5425,9 +5698,7 @@ function calculateTip() {
     show('tip-result-box'); show('tip-stats-row');
 }
 
-// ============================================================
-// RATE (INSTALLMENTS) — Kalkulator
-// ============================================================
+// ---------- RATE (INSTALLMENTS) — kalkulator ----------
 let currentInstallmentData = null;
 
 function calculateInstallments() {
@@ -5539,9 +5810,7 @@ function saveInstallmentsAsReminders() {
     updateAppBadge();
 }
 
-// ============================================================
-// MEASURES — Render funkcije
-// ============================================================
+// ---------- MEASURES ----------
 function measureTab(prefix, labelKey, units, fromDefault = '', toDefault = '') {
     const fromOpts = units.map(u => ({ value: u.v, text: safeT(u.tKey), sel: u.v === fromDefault }));
     const toOpts = units.map(u => ({ value: u.v, text: safeT(u.tKey), sel: u.v === toDefault }));
@@ -5632,9 +5901,6 @@ function renderMeasuresTemp() {
 }
 function renderMeasuresProcenat() { return renderMoneyProcenat(); }
 
-// ============================================================
-// MEASURES — Kalkulacije
-// ============================================================
 const LENGTH_FACTORS = { m: 1, km: 1000, cm: 0.01, mm: 0.001, ft: 0.3048, in: 0.0254 };
 const LENGTH_LABELS = { m: 'm', km: 'km', cm: 'cm', mm: 'mm', ft: 'ft', in: 'in' };
 const WEIGHT_FACTORS = { g: 1, kg: 1000, t: 1000000, lbs: 453.592, oz: 28.3495 };
@@ -5716,9 +5982,7 @@ function calculateMoneyPercent2() {
     show('np2-result-box');
 }
 
-// ============================================================
-// HEALTH — Render funkcije
-// ============================================================
+// ---------- HEALTH ----------
 function renderHealthBMI() {
     return `<div class="converter-box">${sectionDescKey('desc.health.bmi')}${inputField('label.health.weight', 'health-weight', 'kg', 'placeholder="70"')}${inputField('label.health.height', 'health-height', 'cm', 'placeholder="175"')}${inputField('label.health.ageOptional', 'health-bmi-age', '', 'placeholder="30"')}${calcButton('btn.calculate', 'calculateBMI()')}</div>${resultCard('health-bmi-result-box', 'scale', 'label.health.yourBmi', 'res-bmi-val', '', 'ZDRAVLJE', 'label.health.bmi')}${statsRow('health-bmi-stats-row', [['label.health.category', 'stat-bmi-category', '—']])}`;
 }
@@ -5744,9 +6008,6 @@ function renderHealthVolume() {
     return `<div class="converter-box">${sectionDescKey('desc.health.volume')}${inputField('label.health.weight', 'vol-weight', 'kg', 'placeholder="60"')}${inputField('label.health.reps', 'vol-reps', '', 'placeholder="10"')}${inputField('label.health.sets', 'vol-sets', '', 'placeholder="3"')}${calcButton('btn.calculate', 'calculateWorkoutVolume()')}</div>${resultCard('vol-result-box', 'activity', 'label.health.totalVolume', 'res-vol-val', 'kg', 'ZDRAVLJE', 'label.health.volumeShort')}`;
 }
 
-// ============================================================
-// HEALTH — Kalkulacije
-// ============================================================
 function calculateBMI() {
     const weight = num('health-weight'), heightCm = num('health-height'), age = num('health-bmi-age');
     if (!weight || !heightCm) { showToast(safeT('toast.error.enterWeightHeight'), 'error'); return; }
@@ -5833,9 +6094,7 @@ function calculateWorkoutVolume() {
     show('vol-result-box');
 }
 
-// ============================================================
-// TIME — Render funkcije
-// ============================================================
+// ---------- TIME ----------
 const SR_DAYS = ['nedelja', 'ponedeljak', 'utorak', 'sreda', 'četvrtak', 'petak', 'subota'];
 const SR_MONTHS = ['januar', 'februar', 'mart', 'april', 'maj', 'jun', 'jul', 'avgust', 'septembar', 'oktobar', 'novembar', 'decembar'];
 const EN_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -5962,9 +6221,6 @@ function renderTimeRadni() {
     `;
 }
 
-// ============================================================
-// TIME — Kalkulacije
-// ============================================================
 function calculateDateDifference() {
     const startVal = getTripleDate('start-date'), endVal = getTripleDate('end-date');
     if (!startVal || !endVal) { showToast(safeT('toast.error.enterBothDates'), 'error'); return; }
@@ -6058,9 +6314,7 @@ function convertTimeUnits() {
     show('result-time-conv-box');
 }
 
-// ============================================================
-// SHOPPING — Render funkcije
-// ============================================================
+// ---------- SHOPPING ----------
 function renderShopUnit() {
     return `<div class="converter-box">${sectionDescKey('desc.shop.unitPrice')}${inputField('label.shop.totalPrice', 'unit-price', 'RSD', 'placeholder="250"')}${inputField('label.shop.quantity', 'unit-qty', '', 'placeholder="1"')}${selectField('label.shop.unit', 'unit-type', [{ value: 'kg', text: 'kg' }, { value: 'g100', text: '100g' }, { value: 'L', text: 'L' }, { value: 'ml100', text: '100ml' }, { value: 'kom', text: 'kom' }, { value: 'm', text: 'm' }])}${calcButton('btn.calculate', 'calculateUnitPrice()')}</div><div id="unit-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('barcode')}</div><div><div class="res-label">${safeT('label.shop.pricePerUnit')}</div><h2><span id="res-unit-price">0</span> <small id="res-unit-label">RSD/kg</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-unit-price', 'res-unit-label', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Cena po jedinici" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Cena po jedinici" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>`;
 }
@@ -6098,9 +6352,6 @@ function renderShopRasipanje() {
     return `<div class="converter-box">${sectionDescKey('desc.shop.mealCost')}${inputField('label.shop.groceryPrice', 'rasip-cena', 'RSD', 'placeholder="500"')}${inputField('label.shop.mealsCount', 'rasip-porcija', '', 'placeholder="4"')}${inputField('label.shop.wastePercent', 'rasip-bacanje', '%', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateMealCost()')}</div>${resultCard('rasip-result-box', 'packageSm', 'label.shop.costPerMeal', 'res-rasip-val', 'RSD', 'KUPOVINA', 'label.shop.perMealShort')}${statsRow('rasip-stats-row', [['label.shop.withoutWaste', 'stat-rasip-base', '0 RSD'], ['label.shop.wasteCost', 'stat-rasip-waste', '0 RSD']])}`;
 }
 
-// ============================================================
-// SHOPPING — Kalkulacije
-// ============================================================
 function calculateUnitPrice() {
     const price = num('unit-price'), qty = num('unit-qty');
     const type = el('unit-type') ? el('unit-type').value : 'kg';
@@ -6337,9 +6588,7 @@ function calculateMealCost() {
     show('rasip-result-box'); show('rasip-stats-row');
 }
 
-// ============================================================
-// HOMECALC — Render funkcije
-// ============================================================
+// ---------- HOMECALC ----------
 let openingsData = { paint: [], tile: [], block: [], board: [] };
 
 function renderHomePovrsina() {
@@ -6364,7 +6613,61 @@ function renderHomeFarbanje() {
     return `<div class="converter-box">${sectionDescKey('desc.home.painting')}${inputField('label.home.wallLength', 'paint-width', 'm', 'placeholder="10"')}${inputField('label.home.wallHeight', 'paint-height', 'm', 'placeholder="2.8"')}${inputField('label.home.wallCount', 'paint-walls', '', 'placeholder="4"')}${inputField('label.home.paintCoverage', 'paint-coverage', 'm²/L', 'placeholder="10"')}${calcButton('btn.calculate', 'calculatePaint()')}</div>${resultCard('paint-result-box', 'paint', 'label.home.paintNeeded', 'res-paint-liters', 'L', 'GRAĐEVINA', 'Farbanje')}${statsRow('paint-stats-row', [['label.home.totalArea', 'stat-paint-area', '0 m²'], ['label.home.openingsDeducted', 'stat-paint-openings', '0 m²']])}`;
 }
 function renderHomePlocice() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.tiles')}${inputField('label.home.roomLength', 'tile-room-l', 'm', 'placeholder="4"')}${inputField('label.home.roomWidth', 'tile-room-w', 'm', 'placeholder="3"')}${inputField('label.home.tileLength', 'tile-l', 'cm', 'placeholder="30"')}${inputField('label.home.tileWidth', 'tile-w', 'cm', 'placeholder="30"')}${inputField('label.home.reserve', 'tile-reserve', '%', 'placeholder="10"')}${calcButton('btn.calculate', 'calculateTiles()')}</div>${resultCard('tiles-result-box', 'tiles', 'label.home.tiles', 'res-tiles-count', '', 'GRAĐEVINA', 'Pločice')}${statsRow('tiles-stats-row', [['label.home.netArea', 'stat-tiles-area', '0 m²'], ['label.home.withoutReserve', 'stat-tiles-nores', '0']])}`;
+    return `
+        <div class="converter-box">
+            ${sectionDescKey('desc.home.tiles')}
+            <div class="tiles-section">
+                <div class="tiles-section-title">${safeT('tiles.floorSection')}</div>
+                ${inputField('label.home.roomLength', 'tile-room-l', 'm', 'placeholder="4"')}
+                ${inputField('label.home.roomWidth', 'tile-room-w', 'm', 'placeholder="3"')}
+            </div>
+            <div class="tiles-section">
+                <div class="tiles-section-title">
+                    <span>${safeT('tiles.wallsSection')}</span>
+                    <label class="tiles-toggle">
+                        <input type="checkbox" id="tile-walls-enable" onchange="toggleTilesWalls()">
+                        <span>${safeT('tiles.enableWalls')}</span>
+                    </label>
+                </div>
+                <div id="tile-walls-fields" class="tiles-walls-fields" style="display:none;">
+                    ${inputField('tiles.wallLength', 'tile-wall-l', 'm', 'placeholder="4"')}
+                    ${inputField('tiles.wallHeight', 'tile-wall-h', 'm', 'placeholder="2.5"')}
+                    ${inputField('tiles.wallCount', 'tile-wall-n', '', 'value="1" min="1"')}
+                </div>
+            </div>
+            ${inputField('label.home.tileLength', 'tile-l', 'cm', 'placeholder="30"')}
+            ${inputField('label.home.tileWidth', 'tile-w', 'cm', 'placeholder="30"')}
+            ${inputField('label.home.reserve', 'tile-reserve', '%', 'placeholder="10"')}
+            ${calcButton('btn.calculate', 'calculateTiles()')}
+        </div>
+        <div id="tiles-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left">
+                <div class="pump-icon">${icon('tiles')}</div>
+                <div>
+                    <div class="res-label">${safeT('tiles.totalTiles')}</div>
+                    <h2><span id="res-tiles-total">0</span> <small>${safeT('unit.pcsShort')}</small></h2>
+                </div>
+            </div>
+            <div class="tiles-breakdown">
+                <div class="tiles-breakdown-item">
+                    <div class="tiles-breakdown-label">${safeT('tiles.floorTiles')}</div>
+                    <div class="tiles-breakdown-value" id="res-tiles-floor">0</div>
+                    <div class="tiles-breakdown-unit">${safeT('unit.pcsShort')} (${fmt(0,1)} m²)</div>
+                </div>
+                <div class="tiles-breakdown-item">
+                    <div class="tiles-breakdown-label">${safeT('tiles.wallTiles')}</div>
+                    <div class="tiles-breakdown-value accent" id="res-tiles-wall">0</div>
+                    <div class="tiles-breakdown-unit">${safeT('unit.pcsShort')} (${fmt(0,1)} m²)</div>
+                </div>
+            </div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-tiles-total', '${safeT('unit.pcsShort')}', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="GRAĐEVINA" data-label="Pločice" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="GRAĐEVINA" data-label="Pločice" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+        ${statsRow('tiles-stats-row', [['tiles.floorArea', 'stat-tiles-floor-area', '0 m²'], ['tiles.wallsArea', 'stat-tiles-wall-area', '0 m²'], ['tiles.totalArea', 'stat-tiles-total-area', '0 m²']])}
+    `;
 }
 function renderHomeLaminat() {
     return `<div class="converter-box">${sectionDescKey('desc.home.laminate')}${inputField('label.home.roomLength', 'lam-room-l', 'm', 'placeholder="5"')}${inputField('label.home.roomWidth', 'lam-room-w', 'm', 'placeholder="4"')}${inputField('label.home.packageArea', 'lam-pack', 'm²', 'placeholder="2.5"')}${inputField('label.home.reserve', 'lam-reserve', '%', 'placeholder="10"')}${calcButton('btn.calculate', 'calculateLaminate()')}</div>${resultCard('laminate-result-box', 'layers', 'label.home.packagesNeeded', 'res-lam-packs', '', 'GRAĐEVINA', 'Laminat')}${statsRow('laminate-stats-row', [['label.home.totalArea', 'stat-lam-area', '0 m²']])}`;
@@ -6388,9 +6691,6 @@ function renderHomeUniverzalno() {
     return `<div class="converter-box">${sectionDescKey('desc.home.universal')}${inputFieldText('label.home.materialName', 'univ-name', safeT('placeholder.material'))}${inputField('label.quantity', 'univ-qty', '', 'placeholder="10"')}${inputField('label.price', 'univ-price', 'RSD', 'placeholder="500"')}${calcButton('btn.calculate', 'calculateUniversal()')}</div>${resultCard('univ-result-box', 'calculator', 'label.total', 'res-univ-total', 'RSD', 'GRAĐEVINA', 'Univerzalno')}`;
 }
 
-// ============================================================
-// HOMECALC — Kalkulacije
-// ============================================================
 function addOpening(type) { openingsData[type].push({ name: '', w: 0, h: 0 }); renderOpenings(type); vibrate(15); }
 function removeOpening(type, idx) { openingsData[type].splice(idx, 1); renderOpenings(type); vibrate(10); }
 function updateOpening(type, idx, field, value) {
@@ -6430,6 +6730,14 @@ function toggleShapeInputs() {
         if (e) e.style.display = t === type ? 'block' : 'none';
     });
 }
+function toggleTilesWalls() {
+    const enable = el('tile-walls-enable');
+    const fields = el('tile-walls-fields');
+    if (!enable || !fields) return;
+    fields.style.display = enable.checked ? 'flex' : 'none';
+    vibrate(10);
+    playTick(0, 1300, 0.05, 0.015);
+}
 function calculateShapeArea() {
     const type = el('shape-type') ? el('shape-type').value : 'rect';
     let area = 0;
@@ -6452,14 +6760,51 @@ function calculatePaint() {
 function calculateTiles() {
     const roomL = num('tile-room-l'), roomW = num('tile-room-w'), tileL = num('tile-l'), tileW = num('tile-w');
     const reserve = num('tile-reserve') || 0;
+    const wallsEnabled = el('tile-walls-enable') && el('tile-walls-enable').checked;
+
     if (!roomL || !roomW || !tileL || !tileW) { showToast(safeT('toast.error.enterAllDimensions'), 'error'); return; }
-    const netArea = Math.max(0, roomL * roomW - getOpeningsArea('tile'));
+
+    const floorArea = Math.max(0, roomL * roomW - getOpeningsArea('tile'));
+    let wallArea = 0;
+    let wallCount = 0;
+
+    if (wallsEnabled) {
+        const wL = num('tile-wall-l'), wH = num('tile-wall-h'), wN = num('tile-wall-n') || 1;
+        if (wL && wH) {
+            wallArea = wL * wH * wN;
+            wallCount = wN;
+        }
+    }
+
+    const totalArea = floorArea + wallArea;
     const tileArea = (tileL / 100) * (tileW / 100);
-    const tilesBase = netArea / tileArea;
-    const tc = el('res-tiles-count'); if (tc) tc.innerText = Math.ceil(tilesBase * (1 + reserve / 100));
-    const ta = el('stat-tiles-area'); if (ta) ta.innerText = fmt(netArea, 2) + ' m²';
-    const tn = el('stat-tiles-nores'); if (tn) tn.innerText = Math.ceil(tilesBase) + ' ' + safeT('unit.pcsShort');
-    show('tiles-result-box'); show('tiles-stats-row');
+    const factor = 1 + reserve / 100;
+
+    const floorTilesBase = floorArea / tileArea;
+    const wallTilesBase = wallArea / tileArea;
+    const floorTiles = Math.ceil(floorTilesBase * factor);
+    const wallTiles = Math.ceil(wallTilesBase * factor);
+    const totalTiles = floorTiles + wallTiles;
+
+    // Prikaz
+    const tt = el('res-tiles-total'); if (tt) tt.innerText = totalTiles;
+    const tf = el('res-tiles-floor'); if (tf) tf.innerText = floorTiles;
+    const tw = el('res-tiles-wall'); if (tw) tw.innerText = wallTiles;
+
+    // Ažuriraj prikaz površina u breakdown-u
+    const floorUnit = document.querySelector('#res-tiles-floor + .tiles-breakdown-unit') || document.querySelectorAll('.tiles-breakdown-unit')[0];
+    const wallUnit = document.querySelector('#res-tiles-wall + .tiles-breakdown-unit') || document.querySelectorAll('.tiles-breakdown-unit')[1];
+    if (floorUnit) floorUnit.textContent = `${safeT('unit.pcsShort')} (${fmt(floorArea, 1)} m²)`;
+    if (wallUnit) wallUnit.textContent = `${safeT('unit.pcsShort')} (${fmt(wallArea, 1)} m²)`;
+
+    // Stats
+    const sa = el('stat-tiles-floor-area'); if (sa) sa.innerText = fmt(floorArea, 2) + ' m²';
+    const sw = el('stat-tiles-wall-area'); if (sw) sw.innerText = fmt(wallArea, 2) + ' m²';
+    const st = el('stat-tiles-total-area'); if (st) st.innerText = fmt(totalArea, 2) + ' m²';
+
+    // Ako nema zidova, sakrij prikaz zidova u breakdown-u? Ne — ostavljamo vidljivo sa 0
+    show('tiles-result-box');
+    show('tiles-stats-row');
 }
 function calculateLaminate() {
     const roomL = num('lam-room-l'), roomW = num('lam-room-w'), packArea = num('lam-pack'), reserve = num('lam-reserve') || 0;
@@ -6586,9 +6931,7 @@ function calculateUniversal() {
     show('univ-result-box');
 }
 
-// ============================================================
-// KITCHEN — Render funkcije
-// ============================================================
+// ---------- KITCHEN ----------
 function renderKitchenKasike() {
     return `<div class="converter-box">${sectionDescKey('desc.kitchen.spoons')}${inputField('label.kitchen.value', 'spoon-val', '', 'placeholder="1"')}${selectField('label.kitchen.ingredient', 'spoon-ingredient', [{ value: 'secer', text: safeT('option.kitchen.sugar') }, { value: 'brasno', text: safeT('option.kitchen.flour') }, { value: 'so', text: safeT('option.kitchen.salt') }])}${calcButton('btn.calculate', 'calculateSpoon()')}</div><div id="spoon-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('spoon')}</div><div><div class="res-label">${safeT('label.kitchen.approxWeight')}</div><h2><span id="res-spoon-val">0</span> <small id="res-spoon-unit">g</small></h2></div></div></div>`;
 }
@@ -6608,9 +6951,6 @@ function renderKitchenKafa() {
     return `<div class="converter-box">${sectionDescKey('desc.kitchen.coffee')}${inputField('label.kitchen.cupsCount', 'drink-cups', '', 'placeholder="2"')}${selectField('label.kitchen.drinkType', 'drink-type', [{ value: 'kafa_turska', text: safeT('option.kitchen.turkishCoffee') }, { value: 'kafa_espreso', text: safeT('option.kitchen.espresso') }, { value: 'caj_kesica', text: safeT('option.kitchen.teaBag') }])}${calcButton('btn.calculate', 'calculateDrink()')}</div><div id="drink-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('coffee')}</div><div><div class="res-label">${safeT('label.kitchen.coffeeNeeded')}</div><h2><span id="res-drink-val">0</span> <small id="res-drink-unit">g</small></h2></div></div></div>`;
 }
 
-// ============================================================
-// KITCHEN — Kalkulacije
-// ============================================================
 const SPOON_GRAMS = { secer: 20, brasno: 10, so: 25, kakao: 8, med: 25, ulje: 15, mleko: 15, pirinac: 20, ovsene: 8, griz: 15 };
 function calculateSpoon() {
     const ing = el('spoon-ingredient') ? el('spoon-ingredient').value : 'secer';
@@ -6674,9 +7014,7 @@ function calculateDrink() {
     show('drink-result-box');
 }
 
-// ============================================================
-// POWER — Render funkcije
-// ============================================================
+// ---------- POWER ----------
 function renderPowerUredjaj() {
     return `<div class="converter-box">${sectionDescKey('desc.power.device')}${inputField('label.power.powerWatts', 'power-watts', 'W', 'placeholder="1000"')}${inputField('label.power.hoursPerDay', 'power-hours', 'h', 'placeholder="2"')}${inputField('label.power.electricityPrice', 'power-price', 'RSD/kWh', 'value="12"')}${calcButton('btn.calculate', 'calculatePower()')}</div>${resultCard('power-result-box', 'zap', 'label.power.monthlyCost', 'res-power-month', 'RSD', 'STRUJA', 'label.power.deviceUsage')}${statsRow('power-stats-row', [['label.power.daily', 'stat-power-day', '0 RSD'], ['label.power.yearly', 'stat-power-year', '0 RSD'], ['label.power.kwhPerMonth', 'stat-power-kwh', '0']])}`;
 }
@@ -6714,9 +7052,6 @@ function renderPowerKelvin() {
     return `<div class="converter-box">${sectionDescKey('desc.power.kelvin')}${selectField('label.power.recommendedLightTemp', 'kel-tip', [{ value: '2700', text: safeT('option.power.kelvin2700') }, { value: '3000', text: safeT('option.power.kelvin3000') }, { value: '4000', text: safeT('option.power.kelvin4000') }, { value: '5000', text: safeT('option.power.kelvin5000') }, { value: '6500', text: safeT('option.power.kelvin6500') }], '4000')}${inputField('label.power.bulbPower', 'kel-watt', 'W', 'value="10"')}${calcButton('btn.calculate', 'calculateKelvin()')}</div><div id="kel-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('flashlight')}</div><div><div class="res-label">${safeT('label.power.kelvinShort')}</div><h2><span id="res-kel-val">0</span> <small>K</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-kel-val', 'K', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="STRUJA" data-label="Kelvin" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="STRUJA" data-label="Kelvin" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('kel-stats-row', [['label.power.description', 'stat-kel-desc', '—'], ['label.power.approxLumens', 'stat-kel-lum', '0 lm']])}`;
 }
 
-// ============================================================
-// POWER — Kalkulacije
-// ============================================================
 function calculatePower() {
     const watts = num('power-watts'), hours = num('power-hours'), price = num('power-price') || 12;
     if (!watts || !hours) { showToast(safeT('toast.error.enterPowerHours'), 'error'); return; }
@@ -6917,9 +7252,7 @@ function calculateKelvin() {
     show('kel-result-box'); show('kel-stats-row');
 }
 
-// ============================================================
-// WORK — Render funkcije
-// ============================================================
+// ---------- WORK ----------
 function renderWorkVreme() {
     return `<div class="converter-box">${sectionDescKey('desc.work.time')}<div class="input-field"><label>${safeT('label.work.startTime')}</label><div class="input-wrapper"><input type="time" id="work-start" class="custom-input"></div></div><div class="input-field"><label>${safeT('label.work.endTime')}</label><div class="input-wrapper"><input type="time" id="work-end" class="custom-input"></div></div>${inputField('label.work.breakDuration', 'work-break', 'min', 'value="30"')}${selectField('label.work.dayType', 'work-day-type', [{ value: 'workday', text: safeT('option.work.workday') }, { value: 'weekend', text: safeT('option.work.weekend') }, { value: 'holiday', text: safeT('option.work.holiday') }])}${calcButton('btn.calculate', 'calculateWorkTime()')}</div><div id="worktime-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('timer')}</div><div><div class="res-label">${safeT('label.work.totalWorkTime')}</div><h2><span id="res-worktime">0</span></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-worktime', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="POSAO" data-label="Radno vreme" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="POSAO" data-label="Radno vreme" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('worktime-stats-row', [['label.work.withoutBreak', 'stat-worktime-raw', '0'], ['label.work.decimal', 'stat-worktime-dec', '0 h'], ['label.work.multiplier', 'stat-worktime-mult', '100%']])}`;
 }
@@ -6945,9 +7278,6 @@ function renderWorkBonusi() {
     return `<div class="converter-box">${sectionDescKey('desc.work.bonuses')}${inputField('label.work.monthsForBonus', 'bonus-months', '', 'value="12"')}${inputField('label.work.avgMonthlySalary', 'bonus-salary', 'RSD', 'placeholder="80000"')}${inputField('label.work.thirteenthSalary', 'bonus-13th', 'RSD', 'placeholder="0"')}${inputField('label.work.vacationAllowance', 'bonus-regres', 'RSD', 'placeholder="0"')}${inputField('label.work.mealAllowance', 'bonus-meal', 'RSD', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateBonuses()')}</div>${resultCard('bonus-result-box', 'gift', 'label.work.totalBonuses', 'res-bonus-total', 'RSD', 'POSAO', 'label.work.bonusesShort')}${statsRow('bonus-stats-row', [['label.work.bonusesByMonths', 'stat-bonus-months-total', '0 RSD'], ['label.work.annualTotal', 'stat-bonus-yearly', '0 RSD']])}`;
 }
 
-// ============================================================
-// WORK — Kalkulacije
-// ============================================================
 function calculateWorkTime() {
     const start = el('work-start') ? el('work-start').value : '';
     const end = el('work-end') ? el('work-end').value : '';
@@ -7061,9 +7391,7 @@ function calculateBonuses() {
     show('bonus-result-box'); show('bonus-stats-row');
 }
 
-// ============================================================
-// MUSIC — Render funkcije
-// ============================================================
+// ---------- MUSIC ----------
 const NOTES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const SCALE_INTERVALS = {
     major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10], harmonic_minor: [0, 2, 3, 5, 7, 8, 11],
@@ -7206,9 +7534,6 @@ function renderMusicDetektor() {
     return `<div class="converter-box">${sectionDescKey('desc.music.detector')}${inputField('label.music.frequencyHz', 'detect-freq', 'Hz', 'placeholder="440"')}${calcButton('btn.calculate', 'calculateDetectNote()')}</div><div id="detect-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('musicNote')}</div><div><div class="res-label">${safeT('label.music.nearestNote')}</div><h2><span id="res-detect-note">—</span></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-detect-note', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Detektor" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Detektor" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('detect-stats-row', [['label.music.deviation', 'stat-detect-offset', '0 Hz'], ['label.music.octave', 'stat-detect-octave', '0']])}`;
 }
 
-// ============================================================
-// MUSIC — Kalkulacije
-// ============================================================
 function calculateTranspose() {
     const orig = el('trans-orig') ? el('trans-orig').value : 'C';
     const newKey = el('trans-new') ? el('trans-new').value : 'D';
@@ -7677,13 +8002,6 @@ function calculateCurrency() {
 }
 
 // ============================================================
-// KRAJ DELA 4/5
-// ============================================================// ============================================================
-// ALATIKA — app.js (v6) — DEO 5/5
-// O APLIKACIJI + INIT + REFRESH UI + POKRETANJE
-// ============================================================
-
-// ============================================================
 // O APLIKACIJI
 // ============================================================
 const APP_VERSION = '1.0';
@@ -7716,7 +8034,6 @@ function openAboutModal() {
 // INIT
 // ============================================================
 function initApp() {
-    // Inicijalizuj archive settings
     try { settings.archiveAutoCleanup = getArchiveAutoCleanupSetting(); } catch (e) {}
 
     try {
@@ -7740,7 +8057,6 @@ function initApp() {
     try { loadFxRates(); } catch (e) {}
     try { restoreInputsFor(document); } catch (e) {}
 
-    // NOVO: Pokreni automatsko čišćenje arhive
     try { runArchiveAutoCleanup(); } catch (e) { console.warn('Archive cleanup failed:', e); }
 
     if ('serviceWorker' in navigator) {
@@ -7814,7 +8130,6 @@ function refreshUIText() {
         const confirmCancelBtn = el('confirm-cancel-btn'); if (confirmCancelBtn) confirmCancelBtn.textContent = safeT('confirm.cancel');
         const confirmOkBtn = el('confirm-ok-btn'); if (confirmOkBtn) confirmOkBtn.textContent = safeT('confirm.ok');
 
-        // Arhiva u Podešavanjima
         const settingsArchiveLabel = el('settings-archive-label'); if (settingsArchiveLabel) settingsArchiveLabel.textContent = safeT('settings.archive');
         const settingsArchiveSub = el('settings-archive-sub'); if (settingsArchiveSub) settingsArchiveSub.textContent = safeT('settings.archive.autoCleanup');
         const settingsArchiveBtn = el('settings-archive-btn'); if (settingsArchiveBtn) {
