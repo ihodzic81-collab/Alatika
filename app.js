@@ -3583,7 +3583,15 @@ function toggleInstallmentPaidFromReminders(groupId, installmentIdx) {
 
     vibrate(20);
     playTick(0, 1500, 0.08, 0.03);
-    renderRemindersRate();
+
+    // Ako je pozvano iz Arhive (rem-history-list postoji), osveži samo Arhivu
+    if (el('rem-history-list')) {
+        renderRemindersHistoryList();
+    }
+    // Ako je pozvano iz taba Rate (rem-rate-list postoji), osveži samo Rate
+    else if (el('rem-rate-list')) {
+        renderRemindersRate();
+    }
     updateAppBadge();
 }
 
