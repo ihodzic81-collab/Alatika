@@ -3262,9 +3262,9 @@ function renderRemindersHistory() {
                     </select>
                 </div>
                 <div class="rem-history-actions-row">
-    <button class="rem-action-mini" onclick="exportRemindersHistory()" title="${safeT('rem.history.export')}">📥 ${safeT('rem.history.export')}</button>
-</div>
-            </div>
+                    <button class="rem-action-mini" onclick="exportRemindersHistory()" title="${safeT('rem.history.export')}">📥 ${safeT('rem.history.export')}</button>
+                    <button class="rem-action-mini" onclick="shareRemindersHistory()" title="Podeli">📤 Podeli</button>
+                </div>            </div>
             <div id="rem-history-stats" class="rem-history-stats"></div>
             <div id="rem-history-list" class="rem-history-list"></div>
         </div>
