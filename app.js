@@ -3584,17 +3584,15 @@ function toggleInstallmentPaidFromReminders(groupId, installmentIdx) {
     vibrate(20);
     playTick(0, 1500, 0.08, 0.03);
 
-    // Ako je pozvano iz Arhive (rem-history-list postoji), osveži samo Arhivu
+    // Osvježi SAMO ono što je trenutno na ekranu
     if (el('rem-history-list')) {
         renderRemindersHistoryList();
     }
-    // Ako je pozvano iz taba Rate (rem-rate-list postoji), osveži samo Rate
-    else if (el('rem-rate-list')) {
+    if (el('rem-rate-list')) {
         renderRemindersRate();
     }
     updateAppBadge();
 }
-
 async function deleteInstallmentGroup(groupId) {
     const ok = await showConfirm(safeT('label.rate.deleteConfirm'));
     if (!ok) return;
