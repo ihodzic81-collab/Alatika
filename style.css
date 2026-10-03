@@ -1,5 +1,5 @@
 /* ============================================================
-   ALATIKA — style.css (v4)
+   ALATIKA — style.css (v5)
    ============================================================ */
 
 :root {
@@ -335,7 +335,7 @@ body.modal-open { overflow: hidden; }
 .section-action-btn:active { transform: scale(0.95); }
 
 /* ============================================================
-   BRZI ALATI — povećane ikone
+   BRZI ALATI
    ============================================================ */
 .quick-tools-grid {
     display: grid;
@@ -576,7 +576,6 @@ body.modal-open { overflow: hidden; }
     letter-spacing: -0.1px;
 }
 
-/* Edit mode za Svi alati */
 .all-tool-wrap.draggable {
     cursor: grab;
     transition: opacity 0.2s ease, transform 0.2s ease;
@@ -906,6 +905,32 @@ body.modal-open { overflow: hidden; }
     filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.6));
 }
 
+/* NOVO — settings dugme u headeru kategorije */
+.modal-settings-btn {
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
+    width: 36px; height: 36px;
+    border-radius: 11px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.2s ease;
+    padding: 0;
+}
+.modal-settings-btn svg {
+    width: 18px; height: 18px;
+    stroke: currentColor; fill: none;
+    transition: transform 0.3s ease;
+}
+.modal-settings-btn:hover {
+    background: rgba(99, 102, 241, 0.12);
+    color: var(--accent-primary);
+    border-color: rgba(99, 102, 241, 0.4);
+}
+.modal-settings-btn:hover svg { transform: rotate(60deg); }
+.modal-settings-btn:active { transform: scale(0.9); }
+
 /* ============================================================
    TAB BAR
    ============================================================ */
@@ -981,10 +1006,6 @@ body.modal-open { overflow: hidden; }
     letter-spacing: -0.1px;
     white-space: normal; word-break: break-word;
     max-width: 100%; min-width: 0;
-}
-/* Badge na tabovima (Podsetnici) */
-.tab-btn {
-    position: relative;
 }
 .tab-badge {
     position: absolute;
@@ -1704,12 +1725,9 @@ input[type="text"].custom-input::placeholder {
     border-top: 1px solid var(--border-color);
     font-size: 0.78rem;
     color: var(--text-tertiary);
-}
-
-/* ============================================================
+}/* ============================================================
    PODSETNICI
    ============================================================ */
-/* ============ ISTORIJA PODSETNIKA ============ */
 .rem-history {
     display: flex;
     flex-direction: column;
@@ -2212,7 +2230,6 @@ input[type="text"].custom-input::placeholder {
 /* ============================================================
    BADGE
    ============================================================ */
-/* Badge — sada se dodaje preko ::after na .quick-tool i .all-tool */
 .quick-tool[data-badge]::after,
 .all-tool[data-badge]::after {
     content: attr(data-badge);
@@ -2243,7 +2260,7 @@ input[type="text"].custom-input::placeholder {
 }
 
 /* ============================================================
-   HINTS (fav, badge, tools)
+   HINTS
    ============================================================ */
 .fav-hint,
 .badge-hint,
@@ -2499,7 +2516,7 @@ input[type="text"].custom-input::placeholder {
 }
 
 /* ============================================================
-   FX (Kursna lista) — iOS FIX
+   FX
    ============================================================ */
 .fx-head {
     display: flex; justify-content: space-between;
@@ -3552,99 +3569,6 @@ input[type="text"].custom-input::placeholder {
 }
 .power-device-remove:active { transform: scale(1.2); }
 
-/* Responsive */
-@media (max-width: 400px) {
-    body { padding: 14px; }
-    .quick-tools-grid { gap: 8px; }
-    .quick-tool { padding: 12px 6px 10px; border-radius: 16px; }
-    .quick-tool-icon { width: 52px; height: 52px; border-radius: 15px; }
-    .quick-tool-icon svg { width: 27px; height: 27px; }
-    .quick-tool-label { font-size: 0.72rem; }
-    .all-tools-grid { gap: 8px; }
-    .all-tool { padding: 12px 6px 10px; }
-    .all-tool-icon { width: 40px; height: 40px; border-radius: 11px; }
-    .all-tool-icon svg { width: 20px; height: 20px; }
-    .all-tool-label { font-size: 0.68rem; }
-    .modal-panel { border-radius: 18px; }
-    .modal-header { padding: 12px 16px; min-height: 56px; }
-    .modal-cat-icon { width: 36px; height: 36px; }
-    .modal-title { font-size: 1.05rem; }
-    .tab-bar { padding: 14px 14px 18px; gap: 8px; }
-    .tab-btn { padding: 14px 8px 12px; font-size: 0.82rem; border-radius: 14px; min-height: 100px; }
-    .tab-btn-icon { width: 40px; height: 40px; border-radius: 12px; }
-    .tab-btn-icon svg { width: 20px; height: 20px; }
-    .tab-btn-label { font-size: 0.76rem; line-height: 1.2; }
-    .calc-body { padding: 8px 16px 16px; }
-    .calc-btn-main { font-size: 0.95rem; padding: 13px; }
-    .result-card-green { padding: 14px; }
-    .result-card-green h2 { font-size: 1.35rem; }
-    .pump-icon { font-size: 1.4rem; min-width: 42px; padding: 7px; }
-    .converter-box { padding: 14px; gap: 10px; border-radius: 16px; }
-    .custom-input { font-size: 1rem; padding: 11px 0; }
-    select.custom-input { font-size: 0.9rem; padding: 11px 12px; }
-    .date-day, .date-month { max-width: 42px; }
-    .date-year { max-width: 68px; }
-    .date-part { font-size: 0.95rem; padding: 11px 0; }
-    .opening-item { grid-template-columns: 1fr 55px 55px 28px; gap: 4px; padding: 6px; }
-    .opening-item input { font-size: 0.78rem; }
-    .pct-row { gap: 6px !important; }
-    .pct-row .pct-input { padding: 10px 8px !important; font-size: 0.9rem !important; }
-    .pct-row .pct-select {
-        flex: 0 0 80px !important; width: 80px !important;
-        min-width: 80px !important; max-width: 80px !important;
-        font-size: 0.72rem !important; padding: 10px 4px !important;
-    }
-    .tuner-strings { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
-    .tuner-string-btn { padding: 14px 8px; border-radius: 14px; }
-    .ts-note { font-size: 1.35rem; }
-    .ts-freq { font-size: 0.65rem; }
-    .tuner-note { font-size: 2rem; }
-    .tuner-big-note { font-size: 3.5rem; }
-    .tuner-cents-bar { height: 48px; }
-    .tuner-cents-zone { font-size: 1.2rem; }
-    .logo-text { font-size: 1.2rem; }
-    .icon-btn-svg { width: 38px; height: 38px; }
-    .icon-btn-text { width: 38px; height: 38px; font-size: 0.7rem; }
-    .section-title { font-size: 0.72rem; }
-    .section-action-btn { font-size: 0.68rem; padding: 4px 10px; }
-    .weather-current { padding: 16px; }
-    .weather-temp-big { font-size: 2.5rem; }
-    .weather-day-item { grid-template-columns: 70px 32px 1fr auto; padding: 10px 12px; }
-    .weather-day-name { font-size: 0.78rem; }
-    .weather-day-icon svg { width: 22px; height: 22px; }
-    .weather-day-comment { font-size: 0.7rem; }
-    .weather-day-temps { font-size: 0.78rem; }
-    .fav-hint, .badge-hint { padding: 12px 14px; gap: 10px; width: calc(100% - 24px); }
-    .fav-hint-icon, .badge-hint-icon, .tools-hint-icon { font-size: 1.4rem; }
-    .fav-hint-text strong, .badge-hint-text strong, .tools-hint-text strong { font-size: 0.8rem; }
-    .fav-hint-text span, .badge-hint-text span, .tools-hint-text span { font-size: 0.7rem; }
-    .fav-hint-btn, .badge-hint-btn, .tools-hint-btn { padding: 8px 12px; font-size: 0.7rem; }
-}
-
-@media (min-width: 481px) and (max-width: 768px) {
-    body { padding: 24px; }
-    .app-container { max-width: 640px; }
-    .quick-tools-grid { grid-template-columns: repeat(4, 1fr); }
-    .all-tools-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    .all-tool-icon { width: 48px; height: 48px; }
-    .all-tool-icon svg { width: 24px; height: 24px; }
-    .all-tool-label { font-size: 0.76rem; }
-}
-
-@media (min-width: 769px) {
-    body { padding: 32px; }
-    .app-container { max-width: 720px; }
-    .quick-tools-grid { grid-template-columns: repeat(4, 1fr); gap: 14px; }
-    .all-tools-grid { grid-template-columns: repeat(4, 1fr); gap: 14px; }
-    .quick-tool { padding: 18px 12px 16px; }
-    .quick-tool-icon { width: 64px; height: 64px; }
-    .quick-tool-icon svg { width: 32px; height: 32px; }
-    .quick-tool-label { font-size: 0.84rem; }
-    .all-tool-icon { width: 52px; height: 52px; }
-    .all-tool-icon svg { width: 26px; height: 26px; }
-    .all-tool-label { font-size: 0.8rem; }
-    .tab-btn { font-size: 0.92rem; padding: 14px 16px; }
-}
 /* ============================================================
    RATE (INSTALLMENTS)
    ============================================================ */
@@ -3866,12 +3790,11 @@ input[type="text"].custom-input::placeholder {
     background: rgba(107, 114, 128, 0.2);
     color: var(--text-secondary);
 }
+
 /* ============================================================
-   ARHIVA — grupisano po kategoriji i mesecu
+   ARHIVA
    ============================================================ */
-.arch-category-group {
-    margin-bottom: 24px;
-}
+.arch-category-group { margin-bottom: 24px; }
 .arch-category-title {
     font-size: 0.9rem;
     font-weight: 800;
@@ -3982,36 +3905,6 @@ input[type="text"].custom-input::placeholder {
     background: rgba(99, 102, 241, 0.1) !important;
 }
 
-/* Brzi filter "Ovaj mesec" */
-.rem-quick-filters {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-top: 8px;
-}
-.rem-quick-filter {
-    background: var(--card-bg);
-    border: 1px solid var(--border-strong);
-    color: var(--text-secondary);
-    padding: 6px 12px;
-    border-radius: 10px;
-    font-size: 0.72rem;
-    font-weight: 800;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    font-family: inherit;
-}
-.rem-quick-filter:hover {
-    background: var(--card-active);
-    color: var(--text-main);
-}
-.rem-quick-filter.active {
-    background: var(--accent-primary);
-    color: #ffffff;
-    border-color: var(--accent-primary);
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
-}
-
 /* Sekcija u Podešavanjima — Arhiva */
 .settings-section-title {
     font-size: 0.75rem;
@@ -4026,4 +3919,399 @@ input[type="text"].custom-input::placeholder {
 .settings-section-title:first-child {
     border-top: none;
     margin-top: 0;
+}
+
+/* ============================================================
+   NOVO — PODEŠAVANJE TABOVA (⚙️ modal)
+   ============================================================ */
+.tabs-settings-panel {
+    max-width: 480px;
+    max-height: 92vh;
+}
+.tabs-settings-desc {
+    padding: 14px 18px 0;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    font-weight: 500;
+}
+.tabs-settings-list {
+    padding: 16px 18px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.tabs-settings-item {
+    display: grid;
+    grid-template-columns: 28px 44px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 10px 12px;
+    transition: background 0.15s ease, border-color 0.15s ease, opacity 0.2s ease, transform 0.15s ease;
+    user-select: none;
+    cursor: grab;
+}
+.tabs-settings-item:active { cursor: grabbing; }
+.tabs-settings-item:hover {
+    background: var(--card-active);
+    border-color: var(--qt-accent, var(--accent-primary));
+}
+.tabs-settings-item.dragging {
+    opacity: 0.4;
+    transform: scale(0.97);
+}
+.tabs-settings-item.drag-over {
+    outline: 2px dashed var(--accent-primary);
+    outline-offset: 2px;
+}
+.tabs-settings-item.hidden-tab { opacity: 0.45; }
+.tabs-settings-item.hidden-tab .tabs-settings-name {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+}
+.tabs-settings-handle {
+    font-size: 1rem;
+    color: var(--text-tertiary);
+    letter-spacing: -2px;
+    text-align: center;
+    line-height: 1;
+    pointer-events: none;
+}
+.tabs-settings-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: #ffffff;
+    background: linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 95%, white 5%),
+        color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 80%, black 20%)
+    );
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        0 3px 8px color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 40%, transparent);
+    flex-shrink: 0;
+}
+.tabs-settings-icon svg {
+    width: 20px; height: 20px;
+    stroke: currentColor; stroke-width: 2; fill: none;
+}
+.tabs-settings-name {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--text-main);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+.tabs-settings-check {
+    position: relative;
+    width: 44px; height: 26px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+.tabs-settings-check input {
+    opacity: 0; width: 0; height: 0;
+    position: absolute;
+}
+.tabs-settings-check .toggle-slider {
+    position: absolute; inset: 0;
+    background: var(--card-active);
+    border: 1px solid var(--border-strong);
+    border-radius: 13px;
+    transition: background 0.25s ease, border-color 0.25s ease;
+}
+.tabs-settings-check .toggle-slider::before {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 20px; height: 20px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+.tabs-settings-check input:checked + .toggle-slider {
+    background: color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 30%, transparent);
+    border-color: var(--qt-accent, var(--accent-primary));
+}
+.tabs-settings-check input:checked + .toggle-slider::before {
+    transform: translateX(18px);
+    background: var(--qt-accent, var(--accent-primary));
+}
+.tabs-settings-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 18px 18px;
+    border-top: 1px solid var(--border-color);
+    background: var(--card-bg);
+    flex-shrink: 0;
+}
+.tabs-settings-reset-btn {
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    font-family: inherit;
+}
+.tabs-settings-reset-btn:hover {
+    background: var(--card-active);
+    color: var(--text-main);
+    border-color: var(--accent-primary);
+}
+.tabs-settings-reset-btn:active { transform: scale(0.98); }
+.tabs-settings-save-btn {
+    background: linear-gradient(135deg, var(--accent-primary-light), var(--accent-primary-dark));
+    border: none;
+    color: #ffffff;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: var(--shadow-button);
+    transition: transform 0.1s ease, opacity 0.2s ease;
+    font-family: inherit;
+}
+.tabs-settings-save-btn:active { transform: scale(0.97); }
+
+/* ============================================================
+   NOVO — GODIŠNJICE
+   ============================================================ */
+.rem-years-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(236, 72, 153, 0.1));
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    color: #a855f7;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 8px;
+    margin-top: 6px;
+    width: fit-content;
+    letter-spacing: 0.2px;
+}
+.rem-years-badge .years-icon {
+    font-size: 0.85rem;
+    line-height: 1;
+}
+.rem-jubilee-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, rgba(250, 204, 21, 0.18), rgba(245, 158, 11, 0.12));
+    border: 1px solid rgba(250, 204, 21, 0.5);
+    color: #eab308;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 8px;
+    margin-top: 6px;
+    width: fit-content;
+    letter-spacing: 0.2px;
+    box-shadow: 0 0 12px rgba(250, 204, 21, 0.15);
+}
+
+/* ============================================================
+   NOVO — PLOČICE (zidovi)
+   ============================================================ */
+.tiles-section {
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 4px;
+}
+.tiles-section-title {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--accent-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.tiles-section-title .tiles-toggle {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+.tiles-section-title .tiles-toggle input {
+    accent-color: var(--accent-primary);
+    cursor: pointer;
+}
+.tiles-walls-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: fadeInUp 0.25s ease;
+}
+.tiles-breakdown {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 4px;
+}
+.tiles-breakdown-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+}
+.tiles-breakdown-label {
+    font-size: 0.68rem;
+    color: var(--text-secondary);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.tiles-breakdown-value {
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: var(--text-main);
+    font-variant-numeric: tabular-nums;
+}
+.tiles-breakdown-value.accent { color: #10b981; }
+.tiles-breakdown-unit {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 400px) {
+    body { padding: 14px; }
+    .quick-tools-grid { gap: 8px; }
+    .quick-tool { padding: 12px 6px 10px; border-radius: 16px; }
+    .quick-tool-icon { width: 52px; height: 52px; border-radius: 15px; }
+    .quick-tool-icon svg { width: 27px; height: 27px; }
+    .quick-tool-label { font-size: 0.72rem; }
+    .all-tools-grid { gap: 8px; }
+    .all-tool { padding: 12px 6px 10px; }
+    .all-tool-icon { width: 40px; height: 40px; border-radius: 11px; }
+    .all-tool-icon svg { width: 20px; height: 20px; }
+    .all-tool-label { font-size: 0.68rem; }
+    .modal-panel { border-radius: 18px; }
+    .modal-header { padding: 12px 16px; min-height: 56px; }
+    .modal-cat-icon { width: 36px; height: 36px; }
+    .modal-title { font-size: 1.05rem; }
+    .tab-bar { padding: 14px 14px 18px; gap: 8px; }
+    .tab-btn { padding: 14px 8px 12px; font-size: 0.82rem; border-radius: 14px; min-height: 100px; }
+    .tab-btn-icon { width: 40px; height: 40px; border-radius: 12px; }
+    .tab-btn-icon svg { width: 20px; height: 20px; }
+    .tab-btn-label { font-size: 0.76rem; line-height: 1.2; }
+    .calc-body { padding: 8px 16px 16px; }
+    .calc-btn-main { font-size: 0.95rem; padding: 13px; }
+    .result-card-green { padding: 14px; }
+    .result-card-green h2 { font-size: 1.35rem; }
+    .pump-icon { font-size: 1.4rem; min-width: 42px; padding: 7px; }
+    .converter-box { padding: 14px; gap: 10px; border-radius: 16px; }
+    .custom-input { font-size: 1rem; padding: 11px 0; }
+    select.custom-input { font-size: 0.9rem; padding: 11px 12px; }
+    .date-day, .date-month { max-width: 42px; }
+    .date-year { max-width: 68px; }
+    .date-part { font-size: 0.95rem; padding: 11px 0; }
+    .opening-item { grid-template-columns: 1fr 55px 55px 28px; gap: 4px; padding: 6px; }
+    .opening-item input { font-size: 0.78rem; }
+    .pct-row { gap: 6px !important; }
+    .pct-row .pct-input { padding: 10px 8px !important; font-size: 0.9rem !important; }
+    .pct-row .pct-select {
+        flex: 0 0 80px !important; width: 80px !important;
+        min-width: 80px !important; max-width: 80px !important;
+        font-size: 0.72rem !important; padding: 10px 4px !important;
+    }
+    .tuner-strings { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
+    .tuner-string-btn { padding: 14px 8px; border-radius: 14px; }
+    .ts-note { font-size: 1.35rem; }
+    .ts-freq { font-size: 0.65rem; }
+    .tuner-note { font-size: 2rem; }
+    .tuner-big-note { font-size: 3.5rem; }
+    .tuner-cents-bar { height: 48px; }
+    .tuner-cents-zone { font-size: 1.2rem; }
+    .logo-text { font-size: 1.2rem; }
+    .icon-btn-svg { width: 38px; height: 38px; }
+    .icon-btn-text { width: 38px; height: 38px; font-size: 0.7rem; }
+    .section-title { font-size: 0.72rem; }
+    .section-action-btn { font-size: 0.68rem; padding: 4px 10px; }
+    .weather-current { padding: 16px; }
+    .weather-temp-big { font-size: 2.5rem; }
+    .weather-day-item { grid-template-columns: 70px 32px 1fr auto; padding: 10px 12px; }
+    .weather-day-name { font-size: 0.78rem; }
+    .weather-day-icon svg { width: 22px; height: 22px; }
+    .weather-day-comment { font-size: 0.7rem; }
+    .weather-day-temps { font-size: 0.78rem; }
+    .fav-hint, .badge-hint { padding: 12px 14px; gap: 10px; width: calc(100% - 24px); }
+    .fav-hint-icon, .badge-hint-icon, .tools-hint-icon { font-size: 1.4rem; }
+    .fav-hint-text strong, .badge-hint-text strong, .tools-hint-text strong { font-size: 0.8rem; }
+    .fav-hint-text span, .badge-hint-text span, .tools-hint-text span { font-size: 0.7rem; }
+    .fav-hint-btn, .badge-hint-btn, .tools-hint-btn { padding: 8px 12px; font-size: 0.7rem; }
+    .tabs-settings-item {
+        grid-template-columns: 20px 40px 1fr auto;
+        gap: 8px;
+        padding: 9px 10px;
+    }
+    .tabs-settings-icon { width: 40px; height: 40px; border-radius: 11px; }
+    .tabs-settings-icon svg { width: 18px; height: 18px; }
+    .tabs-settings-name { font-size: 0.82rem; }
+    .tabs-settings-desc { font-size: 0.76rem; padding: 12px 14px 0; }
+    .tabs-settings-list { padding: 14px; }
+    .tabs-settings-actions { padding: 10px 14px 14px; }
+    .tiles-breakdown { grid-template-columns: 1fr; }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+    body { padding: 24px; }
+    .app-container { max-width: 640px; }
+    .quick-tools-grid { grid-template-columns: repeat(4, 1fr); }
+    .all-tools-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .all-tool-icon { width: 48px; height: 48px; }
+    .all-tool-icon svg { width: 24px; height: 24px; }
+    .all-tool-label { font-size: 0.76rem; }
+}
+
+@media (min-width: 769px) {
+    body { padding: 32px; }
+    .app-container { max-width: 720px; }
+    .quick-tools-grid { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .all-tools-grid { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .quick-tool { padding: 18px 12px 16px; }
+    .quick-tool-icon { width: 64px; height: 64px; }
+    .quick-tool-icon svg { width: 32px; height: 32px; }
+    .quick-tool-label { font-size: 0.84rem; }
+    .all-tool-icon { width: 52px; height: 52px; }
+    .all-tool-icon svg { width: 26px; height: 26px; }
+    .all-tool-label { font-size: 0.8rem; }
+    .tab-btn { font-size: 0.92rem; padding: 14px 16px; }
 }
