@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Alatika">
 <title>Alatika — Mali alat za velika računanja</title>
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 
@@ -199,13 +199,13 @@
                 </select>
             </div>
         </div>
-                    <div class="settings-row">
-                <div>
-                    <div class="settings-label" id="settings-archive-label">Arhiva</div>
-                    <div class="settings-sub" id="settings-archive-sub">Automatsko čišćenje arhive</div>
-                </div>
-                <button class="settings-toggle-btn" id="settings-archive-btn" onclick="toggleArchiveAutoCleanup()">Uključeno</button>
+        <div class="settings-row">
+            <div>
+                <div class="settings-label" id="settings-archive-label">Arhiva</div>
+                <div class="settings-sub" id="settings-archive-sub">Automatsko čišćenje arhive</div>
             </div>
+            <button class="settings-toggle-btn" id="settings-archive-btn" onclick="toggleArchiveAutoCleanup()">Uključeno</button>
+        </div>
         <p class="section-desc" id="settings-offline-text">Alatika radi u potpunosti lokalno na tvom telefonu — ništa se ne šalje na internet.</p>
 
         <!-- O aplikaciji -->
@@ -230,9 +230,14 @@
                 <span class="modal-cat-icon" id="category-icon"></span>
                 <h2 class="modal-title" id="category-title">Kategorija</h2>
             </div>
-            <button class="modal-close-btn" onclick="closeModal('category-modal')" aria-label="Zatvori">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
+            <div class="modal-header-right">
+                <button class="modal-settings-btn" onclick="openTabsSettings()" title="Podesi tabove" aria-label="Podesi tabove">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                <button class="modal-close-btn" onclick="closeModal('category-modal')" aria-label="Zatvori">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
         </div>
         <div class="tab-bar" id="category-tab-bar"></div>
     </div>
@@ -256,6 +261,29 @@
             </div>
         </div>
         <div class="calc-body" id="calc-body"></div>
+    </div>
+</div>
+
+<!-- ================= MODAL: PODEŠAVANJE TABOVA ================= -->
+<div id="tabs-settings-modal" class="modal" onclick="closeModalOnBackdrop(event, 'tabs-settings-modal')">
+    <div class="modal-panel tabs-settings-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" id="tabs-settings-icon" style="--qt-accent: #6366f1;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                </span>
+                <h2 class="modal-title" id="tabs-settings-title">Podesi tabove</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('tabs-settings-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <p class="tabs-settings-desc" id="tabs-settings-desc">Uključi/isključi tabove koje želiš da vidiš. Zadrži prstom na ikonu i prevuci za promenu redosleda.</p>
+        <div class="tabs-settings-list" id="tabs-settings-list"></div>
+        <div class="tabs-settings-actions">
+            <button class="tabs-settings-reset-btn" onclick="resetTabsLayout()" id="tabs-settings-reset-btn">Vrati na podrazumevano</button>
+            <button class="tabs-settings-save-btn" onclick="saveTabsLayout()" id="tabs-settings-save-btn">Sačuvaj</button>
+        </div>
     </div>
 </div>
 
@@ -410,7 +438,7 @@
     </div>
 </div>
 
-<script src="translations.js?v=5"></script>
-<script src="app.js?v=5"></script>
+<script src="translations.js?v=6"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>
