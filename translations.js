@@ -5,10 +5,10 @@
 const TRANSLATIONS = {
     sr: {
         // ============ UI OPŠTE ============
-        'app.title': 'Alatika — Mali alat za velika računanja',
-        'app.subtitle': 'Mali alat za velika računanja',
+        'app.title': 'Alatika — tvoj džepni asistent',
+        'app.subtitle': 'Alatika — tvoj džepni asistent',
         'app.search.placeholder': 'Brza pretraga...',
-        'app.footer': 'Alatika — mali alat za velika računanja',
+        'app.footer': 'Alatika — tvoj džepni asistent',
 
         // ============ SEKCIJE ============
         'section.quickTools': 'Brzi alati',
@@ -1765,10 +1765,10 @@ const TRANSLATIONS = {
 
     en: {
         // ============ UI GENERAL ============
-        'app.title': 'Alatika — Small tool for big calculations',
-        'app.subtitle': 'Small tool for big calculations',
+        'app.title': 'Alatika — your pocket assistant',
+        'app.subtitle': 'Alatika — your pocket assistant',
         'app.search.placeholder': 'Quick search...',
-        'app.footer': 'Alatika — small tool for big calculations',
+        'app.footer': 'Alatika — your pocket assistant',
 
         // ============ SECTIONS ============
         'section.quickTools': 'Quick tools',
