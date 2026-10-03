@@ -3849,8 +3849,7 @@ function renderHistoryItem(item) {
             <div class="rem-history-actions">
                 ${item.type !== 'installment' ? `<button class="rem-action-btn rem-action-edit" onclick="editReminderFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${safeT('rem.history.edit')}">${icon('edit')}</button>` : ''}
                 <button class="rem-action-btn rem-action-toggle ${item.isDone ? 'is-done' : ''}" onclick="toggleDoneFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${item.isDone ? safeT('rem.history.markActive') : safeT('rem.history.markDone')}">${item.isDone ? icon('refresh') : icon('check')}</button>
-                ${item.type !== 'installment' ? `<button class="rem-action-btn rem-action-delete" onclick="deleteFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${safeT('rem.history.delete')}">${icon('trash')}</button>` : ''}
-            </div>
+                <button class="rem-action-btn rem-action-delete" onclick="deleteFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${safeT('rem.history.delete')}">${icon('trash')}</button>            </div>
         </div>
     `;
 }
@@ -4014,6 +4013,39 @@ function toggleDoneFromHistory(type, category, id) {
 }
 
 async function deleteFromHistory(type, category, id) {
+    // Poseban slučaj za rate (installment)
+    if (type === 'installment') {
+        const parts = id.split('|');
+        const groupId = parts[0];
+        const idx = parseInt(parts[1]);
+        
+        const ok = await showConfirm('Obrisati ovu ratu?');
+        if (!ok) return;
+        
+        const groups = loadInstallmentGroups();
+        const group = groups.find(g => g.id === groupId);
+        if (!group) { showToast('Rata nije pronađena', 'error'); return; }
+        if (!group.installments || !group.installments[idx]) { showToast('Rata nije pronađena', 'error'); return; }
+        
+        group.installments.splice(idx, 1);
+        group.updatedAt = Date.now();
+        
+        if (group.installments.length === 0) {
+            const idxG = groups.findIndex(g => g.id === groupId);
+            if (idxG !== -1) groups.splice(idxG, 1);
+        } else {
+            group.installments.forEach((inst, i) => { inst.number = i + 1; });
+        }
+        
+        saveInstallmentGroups(groups);
+        showToast('Rata obrisana', 'info', 1500);
+        vibrate(15);
+        renderRemindersHistoryList();
+        updateAppBadge();
+        return;
+    }
+    
+    // Standardni podsetnici
     const key = getReminderStorageKey(type);
     if (!key) return;
 
@@ -4035,7 +4067,6 @@ async function deleteFromHistory(type, category, id) {
     renderRemindersHistoryList();
     updateAppBadge();
 }
-
 function exportRemindersHistory() {
     const allItems = getAllReminderItems();
     if (!allItems.length) {
