@@ -1440,33 +1440,6 @@ function hasActiveRemindersWithRemind() {
     return false;
 }
 // NOVO — proverava da li postoji bar jedan aktivan podsetnik sa remindBefore
-function hasActiveRemindersWithRemind() {
-    try {
-        // Rođendani
-        if (loadReminders('cx_birthdays').some(b => !b.done && b.remindBefore > 0)) return true;
-        // Godišnjice
-        if (loadReminders('cx_anniversaries').some(a => !a.done && a.remindBefore > 0)) return true;
-        // Računi
-        if (loadReminders('cx_bills').some(b => !b.paid && b.remindBefore > 0)) return true;
-        // Lekovi
-        if (loadReminders('cx_medications').some(m => !m.done)) return true;
-        // Napomene
-        if (loadReminders('cx_notes').some(n => !n.done)) return true;
-        // Vozila (aktivna ako imaju datume i nisu done)
-        if (loadReminders('cx_vehicles').some(v => !v.done && (v.regDate || v.techDate || v.insuranceDate))) return true;
-        // Dokumenti
-        if (loadReminders('cx_documents').some(d => !d.done && d.expires)) return true;
-        // Pretplate (aktivne)
-        if (loadReminders('cx_subscriptions').some(s => s.active)) return true;
-        // Rate (nepaćene)
-        const groups = loadInstallmentGroups();
-        for (const g of groups) {
-            if ((g.installments || []).some(i => !i.paid)) return true;
-        }
-    } catch (e) { return false; }
-    return false;
-}
-
 function maybeShowBadgeHint() {
     try {
         if (localStorage.getItem(BADGE_HINT_KEY) === '1') return;
