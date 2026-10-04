@@ -4315,3 +4315,52 @@ input[type="text"].custom-input::placeholder {
     .all-tool-label { font-size: 0.8rem; }
     .tab-btn { font-size: 0.92rem; padding: 14px 16px; }
 }
+/* ============================================================
+   ZELENA PULSIRAJUĆA TAČKICA — za karticu Podsetnici
+   ============================================================ */
+.quick-tool[data-activity-dot]::after,
+.all-tool[data-activity-dot]::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 10px;
+    height: 10px;
+    background: #10b981;
+    border-radius: 50%;
+    box-shadow:
+        0 0 0 2px var(--card-bg),
+        0 0 8px rgba(16, 185, 129, 0.8),
+        0 0 16px rgba(16, 185, 129, 0.5);
+    z-index: 100;
+    pointer-events: none;
+    animation: activityDotPulse 2s ease-in-out infinite;
+}
+
+@keyframes activityDotPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+        box-shadow:
+            0 0 0 2px var(--card-bg),
+            0 0 8px rgba(16, 185, 129, 0.8),
+            0 0 16px rgba(16, 185, 129, 0.5);
+    }
+    50% {
+        transform: scale(1.25);
+        opacity: 0.75;
+        box-shadow:
+            0 0 0 2px var(--card-bg),
+            0 0 14px rgba(16, 185, 129, 1),
+            0 0 24px rgba(16, 185, 129, 0.7);
+    }
+}
+
+/* Light tema — malo drugačija senka */
+[data-theme="light"] .quick-tool[data-activity-dot]::after,
+[data-theme="light"] .all-tool[data-activity-dot]::after {
+    box-shadow:
+        0 0 0 2px var(--card-bg),
+        0 0 6px rgba(16, 185, 129, 0.7),
+        0 0 12px rgba(16, 185, 129, 0.4);
+}
