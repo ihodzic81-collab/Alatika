@@ -1,5 +1,5 @@
 /* ============================================================
-   ALATIKA — style.css (v5)
+   ALATIKA — style.css (v7 — sa GPS stilovima)
    ============================================================ */
 
 :root {
@@ -907,7 +907,6 @@ body.modal-open { overflow: hidden; }
     filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.6));
 }
 
-/* NOVO — settings dugme u headeru kategorije */
 .modal-settings-btn {
     background: transparent;
     border: 1px solid var(--border-strong);
@@ -1727,7 +1726,9 @@ input[type="text"].custom-input::placeholder {
     border-top: 1px solid var(--border-color);
     font-size: 0.78rem;
     color: var(--text-tertiary);
-}/* ============================================================
+}
+
+/* ============================================================
    PODSETNICI
    ============================================================ */
 .rem-history {
@@ -3907,7 +3908,6 @@ input[type="text"].custom-input::placeholder {
     background: rgba(99, 102, 241, 0.1) !important;
 }
 
-/* Sekcija u Podešavanjima — Arhiva */
 .settings-section-title {
     font-size: 0.75rem;
     font-weight: 800;
@@ -3924,7 +3924,7 @@ input[type="text"].custom-input::placeholder {
 }
 
 /* ============================================================
-   NOVO — PODEŠAVANJE TABOVA (⚙️ modal)
+   PODEŠAVANJE TABOVA (⚙️ modal)
    ============================================================ */
 .tabs-settings-panel {
     max-width: 480px;
@@ -4091,7 +4091,7 @@ input[type="text"].custom-input::placeholder {
 .tabs-settings-save-btn:active { transform: scale(0.97); }
 
 /* ============================================================
-   NOVO — GODIŠNJICE
+   GODIŠNJICE
    ============================================================ */
 .rem-years-badge {
     display: inline-flex;
@@ -4130,7 +4130,7 @@ input[type="text"].custom-input::placeholder {
 }
 
 /* ============================================================
-   NOVO — PLOČICE (zidovi)
+   PLOČICE (zidovi)
    ============================================================ */
 .tiles-section {
     background: var(--input-bg);
@@ -4208,6 +4208,482 @@ input[type="text"].custom-input::placeholder {
     font-size: 0.7rem;
     color: var(--text-secondary);
     font-weight: 600;
+}
+
+/* ============================================================
+   GPS — GLAVNI STILOVI
+   ============================================================ */
+.gps-box {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.gps-status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.gps-status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+.gps-status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    flex-shrink: 0;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+.gps-status-indicator.active {
+    border-color: rgba(16, 185, 129, 0.5);
+    background: rgba(16, 185, 129, 0.08);
+}
+.gps-status-indicator.active .gps-status-dot {
+    background: #10b981;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: gpsPulse 1.6s ease-in-out infinite;
+}
+@keyframes gpsPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+        transform: scale(1.15);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        transform: scale(1);
+    }
+}
+.gps-status-text {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.2px;
+}
+.gps-status-indicator.active .gps-status-text {
+    color: #10b981;
+}
+
+.gps-unit-select {
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    color: var(--text-main);
+    border-radius: 10px;
+    padding: 7px 10px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.15s ease;
+}
+.gps-unit-select:focus {
+    border-color: var(--accent-primary);
+}
+
+.gps-big-display {
+    text-align: center;
+    padding: 10px 0 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+.gps-big-number {
+    font-size: 4rem;
+    font-weight: 900;
+    color: var(--text-main);
+    line-height: 1;
+    letter-spacing: -2px;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 4px 24px color-mix(in srgb, var(--qt-accent, #0ea5e9) 30%, transparent);
+    transition: color 0.15s ease;
+}
+.gps-big-unit {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+}
+
+.gps-stats-mini {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+.gps-stat-mini {
+    text-align: center;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.gps-stat-mini-label {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-secondary);
+    font-weight: 800;
+}
+.gps-stat-mini-value {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text-main);
+    font-variant-numeric: tabular-nums;
+}
+
+.gps-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.gps-btn-main {
+    flex: 1;
+    background: linear-gradient(135deg, var(--qt-accent, #0ea5e9), color-mix(in srgb, var(--qt-accent, #0ea5e9) 70%, black));
+    border: none;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 0.95rem;
+    padding: 14px;
+    border-radius: 14px;
+    cursor: pointer;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        0 6px 16px color-mix(in srgb, var(--qt-accent, #0ea5e9) 40%, transparent);
+    transition: transform 0.1s ease, opacity 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+    position: relative;
+    overflow: hidden;
+}
+.gps-btn-main svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+.gps-btn-main:active { transform: scale(0.98); }
+.gps-btn-main.active {
+    background: linear-gradient(135deg, #f43f5e, #be123c);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        0 6px 16px rgba(244, 63, 94, 0.4);
+}
+.gps-btn-secondary {
+    background: var(--card-active);
+    border: 1px solid var(--border-strong);
+    color: var(--text-main);
+    font-weight: 800;
+    font-size: 0.9rem;
+    padding: 14px 18px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: transform 0.1s ease, background 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: inherit;
+}
+.gps-btn-secondary svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+}
+.gps-btn-secondary:active { transform: scale(0.97); background: var(--input-bg); }
+
+.gps-info-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    padding: 10px 12px;
+    background: var(--input-bg);
+    border-radius: 10px;
+    border: 1px solid var(--border-strong);
+    font-weight: 500;
+}
+.gps-info-note svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* ============================================================
+   GPS — KOMPAS
+   ============================================================ */
+.gps-compass-box {
+    align-items: center;
+}
+.gps-compass-visual {
+    width: 220px;
+    height: 220px;
+    margin: 8px auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.gps-compass-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.35));
+}
+#gps-compass-rose {
+    transition: transform 0.12s ease-out;
+}
+.gps-compass-info {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+.gps-compass-degrees {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--text-main);
+    line-height: 1;
+    letter-spacing: -1px;
+    font-variant-numeric: tabular-nums;
+}
+.gps-compass-direction {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--qt-accent, #0ea5e9);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ============================================================
+   GPS — ŠTOPERICA
+   ============================================================ */
+.gps-stopwatch-display {
+    text-align: center;
+    padding: 20px 0;
+}
+.gps-stopwatch-time {
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: var(--text-main);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -2px;
+    line-height: 1;
+    text-shadow: 0 4px 20px color-mix(in srgb, var(--qt-accent, #0ea5e9) 25%, transparent);
+}
+.gps-lap-box {
+    padding: 12px 14px;
+    margin-top: 4px;
+}
+.gps-lap-header {
+    display: grid;
+    grid-template-columns: 50px 1fr 1fr;
+    gap: 8px;
+    padding: 0 8px 8px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.66rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+.gps-lap-header span:first-child { text-align: left; }
+.gps-lap-header span:last-child { text-align: right; }
+.gps-lap-list {
+    display: flex;
+    flex-direction: column;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-top: 4px;
+}
+.gps-lap-row {
+    display: grid;
+    grid-template-columns: 50px 1fr 1fr;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    transition: background 0.15s ease;
+    color: var(--text-main);
+}
+.gps-lap-row:hover { background: var(--input-bg); }
+.gps-lap-row:nth-child(even) { background: var(--input-bg); }
+.gps-lap-row:nth-child(even):hover { background: var(--card-active); }
+.gps-lap-num {
+    color: var(--text-secondary);
+    font-weight: 800;
+    text-align: left;
+}
+.gps-lap-time {
+    text-align: center;
+}
+.gps-lap-total {
+    text-align: right;
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+.gps-lap-row.best {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+}
+.gps-lap-row.best .gps-lap-time,
+.gps-lap-row.best .gps-lap-num { color: #10b981; font-weight: 900; }
+.gps-lap-row.best .gps-lap-total { color: #10b981; }
+.gps-lap-row.worst {
+    background: rgba(244, 63, 94, 0.1);
+    color: #f43f5e;
+}
+.gps-lap-row.worst .gps-lap-time,
+.gps-lap-row.worst .gps-lap-num { color: #f43f5e; font-weight: 900; }
+.gps-lap-row.worst .gps-lap-total { color: #f43f5e; }
+
+/* ============================================================
+   GPS — TAJMER
+   ============================================================ */
+.gps-timer-input-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 6px;
+}
+.gps-timer-input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    max-width: 80px;
+}
+.gps-timer-input-group label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.gps-timer-input {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    color: var(--text-main);
+    font-size: 1.4rem;
+    font-weight: 800;
+    padding: 10px 4px;
+    text-align: center;
+    outline: none;
+    font-family: inherit;
+    font-variant-numeric: tabular-nums;
+    -moz-appearance: textfield;
+    appearance: textfield;
+    transition: border-color 0.15s ease;
+}
+.gps-timer-input::-webkit-outer-spin-button,
+.gps-timer-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.gps-timer-input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+}
+.gps-timer-sep {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--text-secondary);
+    padding-bottom: 12px;
+    user-select: none;
+}
+.gps-timer-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 4px;
+}
+.gps-chip {
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    color: var(--text-main);
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 7px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    font-family: inherit;
+    letter-spacing: 0.2px;
+}
+.gps-chip:hover {
+    background: color-mix(in srgb, var(--qt-accent, #0ea5e9) 15%, var(--input-bg));
+    border-color: var(--qt-accent, #0ea5e9);
+    color: var(--qt-accent, #0ea5e9);
+}
+.gps-chip:active { transform: scale(0.95); }
+
+.gps-timer-display {
+    text-align: center;
+    padding: 12px 0 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: center;
+}
+.gps-timer-time {
+    font-size: 3.2rem;
+    font-weight: 900;
+    color: var(--text-main);
+    line-height: 1;
+    letter-spacing: -3px;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 4px 24px color-mix(in srgb, var(--qt-accent, #0ea5e9) 30%, transparent);
+    transition: color 0.2s ease;
+}
+.gps-timer-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--input-bg);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border-strong);
+    position: relative;
+}
+.gps-timer-progress-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, var(--qt-accent, #0ea5e9), color-mix(in srgb, var(--qt-accent, #0ea5e9) 60%, white));
+    border-radius: 4px;
+    transition: width 0.25s linear;
 }
 
 /* ============================================================
@@ -4291,6 +4767,21 @@ input[type="text"].custom-input::placeholder {
     .tabs-settings-list { padding: 14px; }
     .tabs-settings-actions { padding: 10px 14px 14px; }
     .tiles-breakdown { grid-template-columns: 1fr; }
+
+    /* GPS responsive */
+    .gps-big-number { font-size: 3.2rem; }
+    .gps-compass-visual { width: 190px; height: 190px; }
+    .gps-compass-degrees { font-size: 1.8rem; }
+    .gps-stopwatch-time { font-size: 2.2rem; }
+    .gps-timer-time { font-size: 2.5rem; }
+    .gps-timer-input { font-size: 1.15rem; padding: 8px 2px; }
+    .gps-timer-sep { font-size: 1.3rem; padding-bottom: 10px; }
+    .gps-stat-mini-value { font-size: 0.85rem; }
+    .gps-stat-mini-label { font-size: 0.6rem; }
+    .gps-btn-main { font-size: 0.85rem; padding: 12px; }
+    .gps-btn-secondary { font-size: 0.82rem; padding: 12px 14px; }
+    .gps-lap-row { font-size: 0.75rem; padding: 7px 6px; }
+    .gps-lap-header { font-size: 0.6rem; padding: 0 4px 6px; }
 }
 
 @media (min-width: 481px) and (max-width: 768px) {
@@ -4316,7 +4807,9 @@ input[type="text"].custom-input::placeholder {
     .all-tool-icon svg { width: 26px; height: 26px; }
     .all-tool-label { font-size: 0.8rem; }
     .tab-btn { font-size: 0.92rem; padding: 14px 16px; }
+    .gps-big-number { font-size: 4.5rem; }
 }
+
 /* ============================================================
    ZELENA PULSIRAJUĆA TAČKICA — za karticu Podsetnici
    ============================================================ */
@@ -4358,7 +4851,6 @@ input[type="text"].custom-input::placeholder {
     }
 }
 
-/* Light tema — malo drugačija senka */
 [data-theme="light"] .quick-tool[data-activity-dot]::after,
 [data-theme="light"] .all-tool[data-activity-dot]::after {
     box-shadow:
