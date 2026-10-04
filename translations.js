@@ -1,5 +1,5 @@
 // ============================================================
-// ALATIKA — translations.js (v6 — sa Tab settings, Godišnjice, Pločice zidovi)
+// ALATIKA — translations.js (v7 — sa GPS kategorijom)
 // ============================================================
 
 const TRANSLATIONS = {
@@ -131,6 +131,7 @@ const TRANSLATIONS = {
         // ============ KATEGORIJE ============
         'cat.weather': 'Vreme',
         'cat.money': 'Novac',
+        'cat.gps': 'GPS alati i merači vremena',
         'cat.measures': 'Mere',
         'cat.shopping': 'Kupovina',
         'cat.auto': 'Auto',
@@ -143,6 +144,81 @@ const TRANSLATIONS = {
         'cat.work': 'Posao',
         'cat.music': 'Muzika',
         'cat.podsetnici': 'Podsetnici',
+
+        // ============ GPS — TABOVI ============
+        'tab.gps.brzina': 'Brzina',
+        'tab.gps.visina': 'Visina',
+        'tab.gps.kompas': 'Kompas',
+        'tab.gps.stoperica': 'Štoperica',
+        'tab.gps.tajmer': 'Tajmer',
+
+        // ============ GPS — OPŠTE ============
+        'gps.start': 'Start',
+        'gps.stop': 'Stop',
+        'gps.reset': 'Reset',
+        'gps.resetDone': 'Resetovano',
+        'gps.status.off': 'Isključeno',
+        'gps.status.searching': 'Tražim signal...',
+        'gps.status.receiving': 'Primam GPS signal',
+        'gps.status.error': 'Greška',
+        'gps.error.noGeolocation': 'GPS nije dostupan na ovom uređaju.',
+        'gps.error.permission': 'Dozvoli pristup lokaciji u podešavanjima.',
+        'gps.error.unavailable': 'Lokacija trenutno nije dostupna.',
+        'gps.error.timeout': 'GPS signal nije pronađen. Pokušaj ponovo.',
+        'gps.error.generic': 'Greška pri pristupu GPS-u.',
+
+        // ============ GPS — BRZINA ============
+        'gps.speed.max': 'Max',
+        'gps.speed.avg': 'Prosek',
+        'gps.speed.accuracy': 'Preciznost',
+        'gps.speed.note': 'Brzina < 3 km/h se prikazuje kao 0 (GPS šum kad stojiš). Radi najbolje na otvorenom.',
+
+        // ============ GPS — VISINA ============
+        'gps.alt.min': 'Min',
+        'gps.alt.max': 'Max',
+        'gps.alt.avg': 'Prosek',
+        'gps.alt.ascent': 'Uspon',
+        'gps.alt.descent': 'Spust',
+        'gps.alt.note': 'GPS visina je neprecizna (greška 5-30 m). Za tačnije rezultate koristi na otvorenom prostoru.',
+
+        // ============ GPS — KOMPAS ============
+        'gps.compass.enable': 'Omogući kompas',
+        'gps.compass.disable': 'Isključi kompas',
+        'gps.compass.status.off': 'Isključeno',
+        'gps.compass.status.waiting': 'Čekam senzor...',
+        'gps.compass.status.active': 'Aktivan',
+        'gps.compass.status.gps': 'GPS smer',
+        'gps.compass.status.denied': 'Pristup odbijen',
+        'gps.compass.denied': 'Potrebna je dozvola za kompas.',
+        'gps.compass.pitch': 'Nagib',
+        'gps.compass.roll': 'Rotacija',
+        'gps.compass.source': 'Izvor',
+        'gps.compass.note': 'Kompas radi na telefonima sa magnetometrom. Ako ne radi, koristi GPS smer kretanja (samo dok se krećeš).',
+        'gps.compass.dir.n': 'Sever',
+        'gps.compass.dir.ne': 'Severoistok',
+        'gps.compass.dir.e': 'Istok',
+        'gps.compass.dir.se': 'Jugoistok',
+        'gps.compass.dir.s': 'Jug',
+        'gps.compass.dir.sw': 'Jugozapad',
+        'gps.compass.dir.w': 'Zapad',
+        'gps.compass.dir.nw': 'Severozapad',
+
+        // ============ GPS — ŠTOPERICA ============
+        'gps.sw.lap': 'Krug',
+        'gps.sw.lapHeader.number': '#',
+        'gps.sw.lapHeader.lap': 'Krug',
+        'gps.sw.lapHeader.total': 'Ukupno',
+        'gps.sw.noLap': 'Pokreni štopericu prvo.',
+        'gps.sw.stopFirst': 'Zaustavi štopericu prvo.',
+
+        // ============ GPS — TAJMER ============
+        'gps.timer.note': 'Alarm zvuči 3 puta + vibracija. Ekran neće zaspati dok tajmer radi.',
+        'gps.timer.enterTime': 'Unesi vreme za tajmer.',
+        'gps.timer.stopFirst': 'Zaustavi tajmer prvo.',
+        'gps.timer.pause': 'Pauza',
+        'gps.timer.resume': 'Nastavi',
+        'gps.timer.stopAlarm': 'Zaustavi alarm',
+        'gps.timer.timeUp': '⏰ Vreme je isteklo!',
 
         // ============ PODSETNICI — TABOVI ============
         'tab.podsetnici.arhiva': 'Arhiva',
@@ -1924,6 +2000,7 @@ const TRANSLATIONS = {
         // ============ CATEGORIES ============
         'cat.weather': 'Weather',
         'cat.money': 'Money',
+        'cat.gps': 'GPS tools & time meters',
         'cat.measures': 'Measures',
         'cat.shopping': 'Shopping',
         'cat.auto': 'Auto',
@@ -1936,6 +2013,81 @@ const TRANSLATIONS = {
         'cat.work': 'Work',
         'cat.music': 'Music',
         'cat.podsetnici': 'Reminders',
+
+        // ============ GPS — TABS ============
+        'tab.gps.brzina': 'Speed',
+        'tab.gps.visina': 'Altitude',
+        'tab.gps.kompas': 'Compass',
+        'tab.gps.stoperica': 'Stopwatch',
+        'tab.gps.tajmer': 'Timer',
+
+        // ============ GPS — GENERAL ============
+        'gps.start': 'Start',
+        'gps.stop': 'Stop',
+        'gps.reset': 'Reset',
+        'gps.resetDone': 'Reset done',
+        'gps.status.off': 'Off',
+        'gps.status.searching': 'Searching for signal...',
+        'gps.status.receiving': 'Receiving GPS signal',
+        'gps.status.error': 'Error',
+        'gps.error.noGeolocation': 'GPS is not available on this device.',
+        'gps.error.permission': 'Allow location access in settings.',
+        'gps.error.unavailable': 'Location is currently unavailable.',
+        'gps.error.timeout': 'GPS signal not found. Try again.',
+        'gps.error.generic': 'Error accessing GPS.',
+
+        // ============ GPS — SPEED ============
+        'gps.speed.max': 'Max',
+        'gps.speed.avg': 'Avg',
+        'gps.speed.accuracy': 'Accuracy',
+        'gps.speed.note': 'Speed < 3 km/h is shown as 0 (GPS noise when standing). Works best outdoors.',
+
+        // ============ GPS — ALTITUDE ============
+        'gps.alt.min': 'Min',
+        'gps.alt.max': 'Max',
+        'gps.alt.avg': 'Avg',
+        'gps.alt.ascent': 'Ascent',
+        'gps.alt.descent': 'Descent',
+        'gps.alt.note': 'GPS altitude is imprecise (error 5-30 m). For better results, use it outdoors.',
+
+        // ============ GPS — COMPASS ============
+        'gps.compass.enable': 'Enable compass',
+        'gps.compass.disable': 'Disable compass',
+        'gps.compass.status.off': 'Off',
+        'gps.compass.status.waiting': 'Waiting for sensor...',
+        'gps.compass.status.active': 'Active',
+        'gps.compass.status.gps': 'GPS heading',
+        'gps.compass.status.denied': 'Access denied',
+        'gps.compass.denied': 'Compass permission required.',
+        'gps.compass.pitch': 'Pitch',
+        'gps.compass.roll': 'Roll',
+        'gps.compass.source': 'Source',
+        'gps.compass.note': 'Compass works on phones with magnetometer. If not working, uses GPS heading (only while moving).',
+        'gps.compass.dir.n': 'North',
+        'gps.compass.dir.ne': 'Northeast',
+        'gps.compass.dir.e': 'East',
+        'gps.compass.dir.se': 'Southeast',
+        'gps.compass.dir.s': 'South',
+        'gps.compass.dir.sw': 'Southwest',
+        'gps.compass.dir.w': 'West',
+        'gps.compass.dir.nw': 'Northwest',
+
+        // ============ GPS — STOPWATCH ============
+        'gps.sw.lap': 'Lap',
+        'gps.sw.lapHeader.number': '#',
+        'gps.sw.lapHeader.lap': 'Lap',
+        'gps.sw.lapHeader.total': 'Total',
+        'gps.sw.noLap': 'Start the stopwatch first.',
+        'gps.sw.stopFirst': 'Stop the stopwatch first.',
+
+        // ============ GPS — TIMER ============
+        'gps.timer.note': 'Alarm sounds 3 times + vibration. Screen won\'t sleep while timer runs.',
+        'gps.timer.enterTime': 'Enter timer time.',
+        'gps.timer.stopFirst': 'Stop the timer first.',
+        'gps.timer.pause': 'Pause',
+        'gps.timer.resume': 'Resume',
+        'gps.timer.stopAlarm': 'Stop alarm',
+        'gps.timer.timeUp': '⏰ Time is up!',
 
         // ============ REMINDERS — TABS ============
         'tab.podsetnici.arhiva': 'Archive',
