@@ -1293,13 +1293,52 @@ function updateAppBadge() {
 }
 
 function updateVisualBadge(count) {
-    // Ukloni sve badge-ove sa glavnih kartica (Brzi alati i Svi alati)
+    // Obriši stare badge-ove (brojeve) sa glavnih kartica
     document.querySelectorAll('.quick-tool[data-badge]').forEach(el => el.removeAttribute('data-badge'));
     document.querySelectorAll('.all-tool[data-badge]').forEach(el => el.removeAttribute('data-badge'));
 
-    // NAPOMENA: Badge se više NE prikazuje na glavnoj kartici Podsetnici.
-    // Notifikacije ostaju samo na tabovima unutar modala Podsetnici
-    // (preko funkcije getTabCount koja se poziva u renderCategoryTabs).
+    // Obriši stare zelene tačkice (ako postoje)
+    document.querySelectorAll('.quick-tool[data-activity-dot]').forEach(el => el.removeAttribute('data-activity-dot'));
+    document.querySelectorAll('.all-tool[data-activity-dot]').forEach(el => el.removeAttribute('data-activity-dot'));
+
+    // Proveri da li postoji bar jedan AKTIVAN podsetnik sa remindBefore
+    if (!hasActiveRemindersWithRemind()) return;
+
+    // Dodaj zelenu tačkicu na karticu Podsetnici (Brzi alati)
+    const quickTool = document.querySelector('.quick-tool[data-cat-id="podsetnici"]');
+    if (quickTool) quickTool.setAttribute('data-activity-dot', '1');
+
+    // Dodaj zelenu tačkicu na karticu Podsetnici (Svi alati)
+    const allTool = document.querySelector('.all-tool[data-cat-id="podsetnici"]');
+    if (allTool) allTool.setAttribute('data-activity-dot', '1');
+}
+
+// NOVO — proverava da li postoji bar jedan aktivan podsetnik sa remindBefore
+function hasActiveRemindersWithRemind() {
+    try {
+        // Rođendani
+        if (loadReminders('cx_birthdays').some(b => !b.done && b.remindBefore > 0)) return true;
+        // Godišnjice
+        if (loadReminders('cx_anniversaries').some(a => !a.done && a.remindBefore > 0)) return true;
+        // Računi
+        if (loadReminders('cx_bills').some(b => !b.paid && b.remindBefore > 0)) return true;
+        // Lekovi
+        if (loadReminders('cx_medications').some(m => !m.done)) return true;
+        // Napomene
+        if (loadReminders('cx_notes').some(n => !n.done)) return true;
+        // Vozila (aktivna ako imaju datume i nisu done)
+        if (loadReminders('cx_vehicles').some(v => !v.done && (v.regDate || v.techDate || v.insuranceDate))) return true;
+        // Dokumenti
+        if (loadReminders('cx_documents').some(d => !d.done && d.expires)) return true;
+        // Pretplate (aktivne)
+        if (loadReminders('cx_subscriptions').some(s => s.active)) return true;
+        // Rate (nepaćene)
+        const groups = loadInstallmentGroups();
+        for (const g of groups) {
+            if ((g.installments || []).some(i => !i.paid)) return true;
+        }
+    } catch (e) { return false; }
+    return false;
 }
 
 function maybeShowBadgeHint() {
