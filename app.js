@@ -1,9 +1,9 @@
 // ============================================================
-// ALATIKA — app.js (v6) — DEO 1/2
+// ALATIKA — app.js (v7) — DEO 1/3
 // Pomoćne, ICONS, CATEGORIES, navigacija, alati, favoriti,
 // pretraga, istorija, toast, confirm, podešavanja, ARHIVA,
 // VREME, YIN TUNER, RENDER POMOĆNE, PODSETNICI,
-// SVE KALKULACIJE (AUTO, BIKE, MONEY, MEASURES, HEALTH,
+// SVE KALKULACIJE (AUTO, BIKE, MONEY, GPS, MEASURES, HEALTH,
 // TIME, SHOPPING, HOMECALC, KITCHEN, POWER, WORK, MUSIC),
 // VALUTA, TAB SETTINGS, GODIŠNJICE, PLOČICE ZIDOVI
 // ============================================================
@@ -175,7 +175,16 @@ const ICONS = {
     navigation: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>',
     eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
     bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
-    bellRing: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/><path d="M22 8c0-2.3-.8-4.3-2-6"/></svg>'
+    bellRing: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/><path d="M22 8c0-2.3-.8-4.3-2-6"/></svg>',
+    satellite: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m13.5 6.5 4 4"/><path d="m16 3.5 4.5 4.5"/><path d="M9.5 10.5 13 14"/><path d="M6.5 13.5 3 17l4 4 3.5-3.5"/><path d="M13.5 6.5 17 3l4 4-3.5 3.5"/><path d="m9.5 10.5-3.5 3.5"/><path d="M17.5 17.5 21 14l-4-4"/><path d="m13 11 4 4"/></svg>',
+    compass: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>',
+    stopwatch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/><path d="M12 2v3"/><path d="m19 5-1.5 1.5"/><path d="m5 5 1.5 1.5"/></svg>',
+    mountain: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>',
+    pause: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>',
+    flag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>',
+    rotateCcw: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>',
+    volume2: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>'
 };
 
 function icon(name) {
@@ -220,6 +229,16 @@ const CATEGORIES = {
             { id: 'valuta', name: 'Kursna lista', icon: 'exchange', render: renderMoneyValuta },
             { id: 'podela', name: 'Podela računa', icon: 'receipt', render: renderMoneyPodela },
             { id: 'napojnica', name: 'Napojnica', icon: 'handshake', render: renderMoneyNapojnica }
+        ]
+    },
+    gps: {
+        name: 'GPS alati i merači vremena', icon: 'satellite', accent: '#0ea5e9',
+        tabs: [
+            { id: 'brzina', name: 'Brzina', icon: 'speedometer', render: renderGpsBrzina },
+            { id: 'visina', name: 'Visina', icon: 'mountain', render: renderGpsVisina },
+            { id: 'kompas', name: 'Kompas', icon: 'compass', render: renderGpsKompas },
+            { id: 'stoperica', name: 'Štoperica', icon: 'stopwatch', render: renderGpsStoperica },
+            { id: 'tajmer', name: 'Tajmer', icon: 'timer', render: renderGpsTajmer }
         ]
     },
     measures: {
@@ -586,7 +605,6 @@ function saveTabsLayout() {
     vibrate(20);
     playTick(0, 1500, 0.08, 0.03);
 
-    // Refresh tab bar u pozadini
     const catId = tabsSettingsCategory;
     tabsSettingsCategory = null;
     tabsSettingsDraft = null;
@@ -650,7 +668,6 @@ function renderCategoryTabs(categoryId, tabBar, cat) {
     const order = layout.order && layout.order.length
         ? layout.order.filter(id => cat.tabs.some(t => t.id === id))
         : cat.tabs.map(t => t.id);
-    // Dodaj sve tabove koji nisu u order (bezbednost ako se doda novi tab)
     cat.tabs.forEach(t => { if (!order.includes(t.id)) order.push(t.id); });
 
     tabBar.innerHTML = '';
@@ -763,6 +780,17 @@ function openCalc(categoryId, tabId) {
     if (tabId === 'vise') setTimeout(() => { renderPowerDevices(); updatePowerTotal(); }, 50);
     if (tabId === 'mojauto') setTimeout(() => { updateAutoStatus(); }, 50);
 
+    // NOVO — GPS tabovi (inicijalizacija)
+    if (categoryId === 'gps') {
+        setTimeout(() => {
+            if (tabId === 'brzina') gpsInitBrzina();
+            if (tabId === 'visina') gpsInitVisina();
+            if (tabId === 'kompas') gpsInitKompas();
+            if (tabId === 'stoperica') gpsInitStoperica();
+            if (tabId === 'tajmer') gpsInitTajmer();
+        }, 50);
+    }
+
     if (categoryId === 'weather') {
         setTimeout(() => { initWeatherTab(tabId); }, 80);
     }
@@ -801,6 +829,11 @@ function closeModal(modalId) {
     const modal = el(modalId);
     if (!modal) return;
 
+    // NOVO — GPS cleanup pri zatvaranju
+    if (modalId === 'calc-modal' && activeCategory === 'gps') {
+        try { gpsCleanupAll(); } catch (e) {}
+    }
+
     if (modalId === 'calc-modal' && activeCategory) {
         const catId = activeCategory;
         modal.classList.remove('show');
@@ -838,11 +871,12 @@ function closeAllModals() {
     activeTab = null;
     tabsSettingsCategory = null;
     tabsSettingsDraft = null;
+    try { gpsCleanupAll(); } catch (e) {}
 }
 
 // ================= BRZI ALATI =================
 const QUICK_TOOLS_KEY = 'cx_quick_tools_v2';
-const DEFAULT_QUICK_TOOLS = ['podsetnici', 'money', 'weather', 'measures'];
+const DEFAULT_QUICK_TOOLS = ['podsetnici', 'money', 'weather', 'gps'];
 const MAX_QUICK_TOOLS = 4;
 
 function getQuickTools() {
@@ -1293,35 +1327,26 @@ function updateAppBadge() {
 }
 
 function updateVisualBadge(count) {
-    // Obriši stare badge-ove (brojeve) sa glavnih kartica
     document.querySelectorAll('.quick-tool[data-badge]').forEach(el => el.removeAttribute('data-badge'));
     document.querySelectorAll('.all-tool[data-badge]').forEach(el => el.removeAttribute('data-badge'));
-
-    // Obriši stare zelene tačkice (ako postoje)
     document.querySelectorAll('.quick-tool[data-activity-dot]').forEach(el => el.removeAttribute('data-activity-dot'));
     document.querySelectorAll('.all-tool[data-activity-dot]').forEach(el => el.removeAttribute('data-activity-dot'));
 
-    // Proveri da li postoji bar jedan AKTIVAN podsetnik sa remindBefore
     if (!hasActiveRemindersWithRemind()) return;
 
-    // Dodaj zelenu tačkicu na karticu Podsetnici (Brzi alati)
     const quickTool = document.querySelector('.quick-tool[data-cat-id="podsetnici"]');
     if (quickTool) quickTool.setAttribute('data-activity-dot', '1');
 
-    // Dodaj zelenu tačkicu na karticu Podsetnici (Svi alati)
     const allTool = document.querySelector('.all-tool[data-cat-id="podsetnici"]');
     if (allTool) allTool.setAttribute('data-activity-dot', '1');
 }
-// NOVO — proverava da li je BAR JEDAN podsetnik trenutno "u zoni podsećanja"
-// (trenutni datum je između: glavni datum − remindBefore dana  i  glavni datum)
+
 function hasActiveRemindersWithRemind() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayMs = today.getTime();
     const dayMs = 86400000;
 
-    // Pomoćna: da li je "sada" u prozoru podsećanja?
-    // Vraća true ako je danas između (dogadjaj - remindBefore) i dogadjaj (uključivo)
     const isInReminderWindow = (targetIso, remindBeforeDays) => {
         if (!targetIso) return false;
         const parts = targetIso.split('-').map(Number);
@@ -1332,30 +1357,24 @@ function hasActiveRemindersWithRemind() {
         const remindDays = parseInt(remindBeforeDays) || 0;
         if (remindDays <= 0) return false;
         const startMs = targetMs - (remindDays * dayMs);
-        // Današnji datum mora biti >= start i <= target
         return todayMs >= startMs && todayMs <= targetMs;
     };
 
     try {
-        // Rođendani
         if (loadReminders('cx_birthdays').some(b =>
             !b.done && isInReminderWindow(b.date, b.remindBefore)
         )) return true;
 
-        // Godišnjice
         if (loadReminders('cx_anniversaries').some(a =>
             !a.done && isInReminderWindow(a.date, a.remindBefore)
         )) return true;
 
-        // Računi — koriste dayOfMonth (dan u mesecu), ne pun datum
-        // Prozor: remindBefore dana pre tog dana u mesecu
         const bills = loadReminders('cx_bills');
         for (const b of bills) {
             if (b.paid) continue;
             const day = parseInt(b.dayOfMonth) || 1;
             const remind = parseInt(b.remindBefore) || 0;
             if (remind <= 0) continue;
-            // Sledeći dan plaćanja (ovaj mesec ili sledeći)
             let next = new Date(today.getFullYear(), today.getMonth(), day);
             next.setHours(0, 0, 0, 0);
             if (next.getTime() < todayMs) {
@@ -1369,11 +1388,9 @@ function hasActiveRemindersWithRemind() {
             if (todayMs >= startMs && todayMs <= next.getTime()) return true;
         }
 
-        // Lekovi — prozor: danas između startDate i endDate (ako postoji endDate)
         const meds = loadReminders('cx_medications');
         for (const m of meds) {
             if (m.done) continue;
-            // Ako ima endDate — proveri da li je danas pre ili na endDate
             if (m.endDate) {
                 const parts = m.endDate.split('-').map(Number);
                 if (parts.length === 3) {
@@ -1382,19 +1399,16 @@ function hasActiveRemindersWithRemind() {
                     if (todayMs <= end.getTime()) return true;
                 }
             } else {
-                // Ako nema endDate, smatraj aktivnim
                 return true;
             }
         }
 
-        // Napomene — prozor: remindBefore dana pre dueDate (ako postoji dueDate)
         const notes = loadReminders('cx_notes');
         for (const n of notes) {
             if (n.done) continue;
-            if (n.dueDate && isInReminderWindow(n.dueDate, 7)) return true; // default 7 dana
+            if (n.dueDate && isInReminderWindow(n.dueDate, 7)) return true;
         }
 
-        // Vozila — registracija/tehnički/osiguranje u remindBefore prozoru (default 30 dana)
         const vehicles = loadReminders('cx_vehicles');
         for (const v of vehicles) {
             if (v.done) continue;
@@ -1403,14 +1417,12 @@ function hasActiveRemindersWithRemind() {
             if (isInReminderWindow(v.insuranceDate, 30)) return true;
         }
 
-        // Dokumenti — expires u prozoru (default 30 dana)
         const docs = loadReminders('cx_documents');
         for (const d of docs) {
             if (d.done) continue;
             if (isInReminderWindow(d.expires, 30)) return true;
         }
 
-        // Pretplate — aktivne u remindBefore prozoru (default 3 dana, dayOfMonth)
         const subs = loadReminders('cx_subscriptions');
         for (const s of subs) {
             if (!s.active) continue;
@@ -1428,7 +1440,6 @@ function hasActiveRemindersWithRemind() {
             if (todayMs >= startMs && todayMs <= next.getTime()) return true;
         }
 
-        // Rate — prozor: 3 dana pre datuma rate
         const groups = loadInstallmentGroups();
         for (const g of groups) {
             for (const inst of (g.installments || [])) {
@@ -1439,7 +1450,7 @@ function hasActiveRemindersWithRemind() {
     } catch (e) { return false; }
     return false;
 }
-// NOVO — proverava da li postoji bar jedan aktivan podsetnik sa remindBefore
+
 function maybeShowBadgeHint() {
     try {
         if (localStorage.getItem(BADGE_HINT_KEY) === '1') return;
@@ -1858,6 +1869,10 @@ function setupBackButton() {
             return;
         }
         if (calcModal && calcModal.classList.contains('show')) {
+            // GPS cleanup
+            if (activeCategory === 'gps') {
+                try { gpsCleanupAll(); } catch (err) {}
+            }
             calcModal.classList.remove('show');
             if (activeCategory) {
                 setTimeout(() => openCategoryBack(activeCategory), 100);
@@ -2125,7 +2140,7 @@ function createRipple(e) {
     setTimeout(() => { if (ripple.parentNode) ripple.remove(); }, 600);
 }
 function setupRipple() {
-    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn, .modal-fav-star, .modal-settings-btn, .weather-refresh-btn, .location-gps-btn, .weather-location, .icon-btn-text, .about-row, .all-tools-save-btn, .all-tools-reset-btn, .tabs-settings-reset-btn, .tabs-settings-save-btn';
+    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn, .modal-fav-star, .modal-settings-btn, .weather-refresh-btn, .location-gps-btn, .weather-location, .icon-btn-text, .about-row, .all-tools-save-btn, .all-tools-reset-btn, .tabs-settings-reset-btn, .tabs-settings-save-btn, .gps-btn-main, .gps-btn-secondary, .gps-chip, .gps-color-swatch';
     document.addEventListener('pointerdown', (e) => {
         const t = e.target.closest(selector);
         if (t) createRipple({ currentTarget: t, clientX: e.clientX, clientY: e.clientY });
@@ -2494,9 +2509,9 @@ function runArchiveAutoCleanup() {
         }
     } catch (e) {}
 }// ============================================================
-// ALATIKA — app.js (v6) — DEO 2/2
+// ALATIKA — app.js (v7) — DEO 2/3
 // VREME, YIN TUNER, RENDER POMOĆNE, PODSETNICI,
-// SVE KALKULACIJE, VALUTA, INIT
+// SVE KALKULACIJE (uključujući GPS), VALUTA
 // ============================================================
 
 // ================= VREME — KONSTANTE =================
@@ -3444,6 +3459,1301 @@ function statsRow(boxId, items) {
 function sectionDescKey(key) { return `<p class="section-desc">${safeT(key)}</p>`; }
 
 // ============================================================
+// GPS — BOJE ZA KARTICE (NOVA FUNKCIJA)
+// ============================================================
+const ACCENT_COLORS_KEY = 'cx_accent_colors';
+
+const ACCENT_PALETTE = [
+    { id: 'crvena', color: '#f43f5e', nameSr: 'Crvena', nameEn: 'Red' },
+    { id: 'narandzasta', color: '#f97316', nameSr: 'Narandžasta', nameEn: 'Orange' },
+    { id: 'zuta', color: '#eab308', nameSr: 'Žuta', nameEn: 'Yellow' },
+    { id: 'zelena', color: '#10b981', nameSr: 'Zelena', nameEn: 'Green' },
+    { id: 'teal', color: '#14b8a6', nameSr: 'Teal', nameEn: 'Teal' },
+    { id: 'plava', color: '#3b82f6', nameSr: 'Plava', nameEn: 'Blue' },
+    { id: 'svetloplava', color: '#0ea5e9', nameSr: 'Svetlo plava', nameEn: 'Light blue' },
+    { id: 'ljubicasta', color: '#a855f7', nameSr: 'Ljubičasta', nameEn: 'Purple' },
+    { id: 'ruzicasta', color: '#ec4899', nameSr: 'Ružičasta', nameEn: 'Pink' },
+    { id: 'siva', color: '#6b7280', nameSr: 'Siva', nameEn: 'Gray' },
+    { id: 'tamnocrvena', color: '#dc2626', nameSr: 'Tamno crvena', nameEn: 'Dark red' },
+    { id: 'tamnozelena', color: '#059669', nameSr: 'Tamno zelena', nameEn: 'Dark green' }
+];
+
+function loadAccentColors() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(ACCENT_COLORS_KEY));
+        if (raw && typeof raw === 'object') return raw;
+    } catch (e) {}
+    return {};
+}
+function saveAccentColors(obj) {
+    try { localStorage.setItem(ACCENT_COLORS_KEY, JSON.stringify(obj)); } catch (e) {}
+}
+function getCategoryAccent(categoryId) {
+    const custom = loadAccentColors();
+    if (custom[categoryId]) return custom[categoryId];
+    const cat = CATEGORIES[categoryId];
+    return cat ? cat.accent : '#6366f1';
+}
+function setCategoryAccent(categoryId, color) {
+    const all = loadAccentColors();
+    all[categoryId] = color;
+    saveAccentColors(all);
+    // Refresh prikaza
+    try { renderQuickTools(); } catch (e) {}
+    try { renderAllTools(); } catch (e) {}
+    try {
+        if (activeCategory === categoryId) {
+            const modal = el('category-modal');
+            if (modal) modal.style.setProperty('--qt-accent', color);
+            const iconBox = el('category-icon');
+            if (iconBox) iconBox.style.setProperty('--qt-accent', color);
+            if (typeof openCategoryBack === 'function') openCategoryBack(categoryId);
+        }
+    } catch (e) {}
+}
+function resetCategoryAccent(categoryId) {
+    const all = loadAccentColors();
+    delete all[categoryId];
+    saveAccentColors(all);
+    const cat = CATEGORIES[categoryId];
+    const color = cat ? cat.accent : '#6366f1';
+    try { renderQuickTools(); } catch (e) {}
+    try { renderAllTools(); } catch (e) {}
+    try {
+        if (activeCategory === categoryId) {
+            const modal = el('category-modal');
+            if (modal) modal.style.setProperty('--qt-accent', color);
+            const iconBox = el('category-icon');
+            if (iconBox) iconBox.style.setProperty('--qt-accent', color);
+            if (typeof openCategoryBack === 'function') openCategoryBack(categoryId);
+        }
+    } catch (e) {}
+}
+
+// ============================================================
+// GPS — STORAGE
+// ============================================================
+const GPS_SPEED_UNIT_KEY = 'cx_gps_speed_unit';
+const GPS_ALT_UNIT_KEY = 'cx_gps_alt_unit';
+const GPS_SPEED_MAX_KEY = 'cx_gps_speed_max';
+
+function loadGpsUnit(key, defaultUnit) {
+    try { return localStorage.getItem(key) || defaultUnit; } catch (e) { return defaultUnit; }
+}
+function saveGpsUnit(key, val) {
+    try { localStorage.setItem(key, val); } catch (e) {}
+}
+
+// ============================================================
+// GPS — BRZINA
+// ============================================================
+let gpsSpeedState = {
+    watchId: null,
+    running: false,
+    currentSpeedKmh: 0,
+    maxSpeedKmh: 0,
+    avgSpeedKmh: 0,
+    totalSpeed: 0,
+    samples: 0,
+    accuracy: null,
+    lastPos: null
+};
+
+function renderGpsBrzina() {
+    return `
+        <div class="converter-box gps-box">
+            <div class="gps-status-row">
+                <div class="gps-status-indicator" id="gps-speed-indicator">
+                    <span class="gps-status-dot"></span>
+                    <span class="gps-status-text" id="gps-speed-status">${safeT('gps.status.off')}</span>
+                </div>
+                <select id="gps-speed-unit-select" class="gps-unit-select" onchange="gpsChangeSpeedUnit()">
+                    <option value="kmh">km/h</option>
+                    <option value="mph">mph</option>
+                    <option value="ms">m/s</option>
+                    <option value="kn">kn</option>
+                    <option value="fts">ft/s</option>
+                </select>
+            </div>
+            <div class="gps-big-display">
+                <div class="gps-big-number" id="gps-speed-value">0.0</div>
+                <div class="gps-big-unit" id="gps-speed-unit-label">km/h</div>
+            </div>
+            <div class="gps-stats-mini">
+                <div class="gps-stat-mini">
+                    <div class="gps-stat-mini-label">${safeT('gps.speed.max')}</div>
+                    <div class="gps-stat-mini-value" id="gps-speed-max">0.0</div>
+                </div>
+                <div class="gps-stat-mini">
+                    <div class="gps-stat-mini-label">${safeT('gps.speed.avg')}</div>
+                    <div class="gps-stat-mini-value" id="gps-speed-avg">0.0</div>
+                </div>
+                <div class="gps-stat-mini">
+                    <div class="gps-stat-mini-label">${safeT('gps.speed.accuracy')}</div>
+                    <div class="gps-stat-mini-value" id="gps-speed-accuracy">—</div>
+                </div>
+            </div>
+        </div>
+        <div class="gps-actions">
+            <button class="gps-btn-main" id="gps-speed-btn-start" onclick="gpsToggleSpeed()">
+                ${icon('play')} <span id="gps-speed-btn-label">${safeT('gps.start')}</span>
+            </button>
+            <button class="gps-btn-secondary" onclick="gpsResetSpeed()">
+                ${icon('rotateCcw')} ${safeT('gps.reset')}
+            </button>
+        </div>
+        <div class="gps-info-note">
+            ${icon('info')} ${safeT('gps.speed.note')}
+        </div>
+    `;
+}
+
+function gpsInitBrzina() {
+    const unit = loadGpsUnit(GPS_SPEED_UNIT_KEY, 'kmh');
+    const sel = el('gps-speed-unit-select');
+    if (sel) sel.value = unit;
+    gpsUpdateSpeedUnitLabels();
+    const savedMax = parseFloat(localStorage.getItem(GPS_SPEED_MAX_KEY)) || 0;
+    gpsSpeedState.maxSpeedKmh = savedMax;
+    gpsUpdateSpeedDisplay();
+}
+
+function gpsChangeSpeedUnit() {
+    const sel = el('gps-speed-unit-select');
+    if (!sel) return;
+    saveGpsUnit(GPS_SPEED_UNIT_KEY, sel.value);
+    gpsUpdateSpeedUnitLabels();
+    gpsUpdateSpeedDisplay();
+    vibrate(10);
+    playTick(0, 1300, 0.05, 0.015);
+}
+
+function gpsUpdateSpeedUnitLabels() {
+    const unit = loadGpsUnit(GPS_SPEED_UNIT_KEY, 'kmh');
+    const labels = { kmh: 'km/h', mph: 'mph', ms: 'm/s', kn: 'kn', fts: 'ft/s' };
+    const labelEl = el('gps-speed-unit-label');
+    if (labelEl) labelEl.textContent = labels[unit] || 'km/h';
+}
+
+function gpsConvertSpeed(kmh) {
+    const unit = loadGpsUnit(GPS_SPEED_UNIT_KEY, 'kmh');
+    switch (unit) {
+        case 'mph': return kmh * 0.621371;
+        case 'ms': return kmh / 3.6;
+        case 'kn': return kmh * 0.539957;
+        case 'fts': return kmh * 0.911344;
+        default: return kmh;
+    }
+}
+
+function gpsUpdateSpeedDisplay() {
+    const unit = loadGpsUnit(GPS_SPEED_UNIT_KEY, 'kmh');
+    const valEl = el('gps-speed-value');
+    const maxEl = el('gps-speed-max');
+    const avgEl = el('gps-speed-avg');
+    const accEl = el('gps-speed-accuracy');
+    const decimals = (unit === 'ms' || unit === 'fts') ? 2 : 1;
+    if (valEl) valEl.textContent = fmt(gpsConvertSpeed(gpsSpeedState.currentSpeedKmh), decimals);
+    if (maxEl) maxEl.textContent = fmt(gpsConvertSpeed(gpsSpeedState.maxSpeedKmh), decimals);
+    if (avgEl) avgEl.textContent = fmt(gpsConvertSpeed(gpsSpeedState.avgSpeedKmh), decimals);
+    if (accEl) accEl.textContent = gpsSpeedState.accuracy != null ? `${Math.round(gpsSpeedState.accuracy)} m` : '—';
+}
+
+function gpsToggleSpeed() {
+    if (gpsSpeedState.running) {
+        gpsStopSpeed();
+    } else {
+        gpsStartSpeed();
+    }
+}
+
+function gpsStartSpeed() {
+    if (!navigator.geolocation) {
+        showToast(safeT('gps.error.noGeolocation'), 'error');
+        return;
+    }
+    const indicator = el('gps-speed-indicator');
+    if (indicator) indicator.classList.add('active');
+    gpsSetSpeedStatus(safeT('gps.status.searching'));
+    const btnLabel = el('gps-speed-btn-label');
+    if (btnLabel) btnLabel.textContent = safeT('gps.stop');
+    const btn = el('gps-speed-btn-start');
+    if (btn) btn.classList.add('active');
+    gpsSpeedState.running = true;
+
+    try {
+        gpsSpeedState.watchId = navigator.geolocation.watchPosition(
+            gpsOnSpeedPosition,
+            gpsOnSpeedError,
+            { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 }
+        );
+    } catch (e) {
+        showToast(safeT('gps.error.generic'), 'error');
+        gpsStopSpeed();
+    }
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+}
+
+function gpsStopSpeed() {
+    if (gpsSpeedState.watchId != null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(gpsSpeedState.watchId);
+    }
+    gpsSpeedState.watchId = null;
+    gpsSpeedState.running = false;
+    const indicator = el('gps-speed-indicator');
+    if (indicator) indicator.classList.remove('active');
+    gpsSetSpeedStatus(safeT('gps.status.off'));
+    const btnLabel = el('gps-speed-btn-label');
+    if (btnLabel) btnLabel.textContent = safeT('gps.start');
+    const btn = el('gps-speed-btn-start');
+    if (btn) btn.classList.remove('active');
+    vibrate(15);
+}
+
+function gpsOnSpeedPosition(pos) {
+    const speed = pos.coords.speed;
+    const accuracy = pos.coords.accuracy;
+    const speedKmh = (speed != null && !isNaN(speed) && speed >= 0) ? speed * 3.6 : 0;
+    // Filter šuma
+    const filteredKmh = speedKmh < 3 ? 0 : speedKmh;
+    gpsSpeedState.currentSpeedKmh = filteredKmh;
+    gpsSpeedState.accuracy = accuracy;
+    if (filteredKmh > 0) {
+        gpsSpeedState.totalSpeed += filteredKmh;
+        gpsSpeedState.samples++;
+        gpsSpeedState.avgSpeedKmh = gpsSpeedState.totalSpeed / gpsSpeedState.samples;
+        if (filteredKmh > gpsSpeedState.maxSpeedKmh) {
+            gpsSpeedState.maxSpeedKmh = filteredKmh;
+            try { localStorage.setItem(GPS_SPEED_MAX_KEY, String(filteredKmh)); } catch (e) {}
+        }
+        gpsSetSpeedStatus(safeT('gps.status.receiving'));
+    }
+    gpsUpdateSpeedDisplay();
+}
+
+function gpsOnSpeedError(err) {
+    let msg = safeT('gps.error.generic');
+    if (err.code === 1) msg = safeT('gps.error.permission');
+    else if (err.code === 2) msg = safeT('gps.error.unavailable');
+    else if (err.code === 3) msg = safeT('gps.error.timeout');
+    showToast(msg, 'error');
+    gpsSetSpeedStatus(safeT('gps.status.error'));
+}
+
+function gpsSetSpeedStatus(text) {
+    const s = el('gps-speed-status');
+    if (s) s.textContent = text;
+}
+
+function gpsResetSpeed() {
+    gpsSpeedState.currentSpeedKmh = 0;
+    gpsSpeedState.maxSpeedKmh = 0;
+    gpsSpeedState.avgSpeedKmh = 0;
+    gpsSpeedState.totalSpeed = 0;
+    gpsSpeedState.samples = 0;
+    gpsSpeedState.accuracy = null;
+    try { localStorage.removeItem(GPS_SPEED_MAX_KEY); } catch (e) {}
+    gpsUpdateSpeedDisplay();
+    vibrate(15);
+    playTick(0, 1400, 0.06, 0.02);
+    showToast(safeT('gps.resetDone'), 'info', 1400);
+}
+
+// ============================================================
+// GPS — VISINA
+// ============================================================
+let gpsAltState = {
+    watchId: null,
+    running: false,
+    currentAltM: 0,
+    minAltM: Infinity,
+    maxAltM: -Infinity,
+    totalAlt: 0,
+    samples: 0,
+    avgAltM: 0,
+    accuracy: null,
+    startAltM: null,
+    ascentM: 0,
+    descentM: 0,
+    lastAlt: null
+};
+
+function renderGpsVisina() {
+    return `
+        <div class="converter-box gps-box">
+            <div class="gps-status-row">
+                <div class="gps-status-indicator" id="gps-alt-indicator">
+                    <span class="gps-status-dot"></span>
+                    <span class="gps-status-text" id="gps-alt-status">${safeT('gps.status.off')}</span>
+                </div>
+                <select id="gps-alt-unit-select" class="gps-unit-select" onchange="gpsChangeAltUnit()">
+                    <option value="m">m</option>
+                    <option value="ft">ft</option>
+                    <option value="km">km</option>
+                </select>
+            </div>
+            <div class="gps-big-display">
+                <div class="gps-big-number" id="gps-alt-value">0</div>
+                <div class="gps-big-unit" id="gps-alt-unit-label">m</div>
+            </div>
+            <div class="gps-stats-mini">
+                <div class="gps-stat-mini">
+                    <div class="gps-stat-mini-label">${safeT('gps.alt.min')}</div>
+                    <div class="gps-stat-mini-value" id="gps-alt-min">—</div>
+                </div>
+                <div class="gps-stat-mini">
+                    <div class="gps-stat-mini-label">${safeT('gps.alt.max')}</div>
+                    <div class="gps-stat-mini-value" id="gps-alt-max">—</div>
+                </div>
+                <div class="gps-stat-mini">
+                    <div class="gps-stat-mini-label">${safeT('gps.alt.avg')}</div>
+                    <div class="gps-stat-mini-value" id="gps-alt-avg">—</div>
+                </div>
+            </div>
+            <div class="gps-stats-mini" style="margin-top: 10px;">
+                <div class="gps-stat-mini">
+                    <div class="gps-stat-mini-label">${safeT('gps.alt.ascent')}</div>
+                    <div class="gps-stat-mini-value" id="gps-alt-ascent" style="color:#10b981;">+0</div>
+                </div>
+                <div class="gps-stat-mini">
+                    <div class="gps-stat-mini-label">${safeT('gps.alt.descent')}</div>
+                    <div class="gps-stat-mini-value" id="gps-alt-descent" style="color:#f43f5e;">-0</div>
+                </div>
+                <div class="gps-stat-mini">
+                    <div class="gps-stat-mini-label">${safeT('gps.speed.accuracy')}</div>
+                    <div class="gps-stat-mini-value" id="gps-alt-accuracy">—</div>
+                </div>
+            </div>
+        </div>
+        <div class="gps-actions">
+            <button class="gps-btn-main" id="gps-alt-btn-start" onclick="gpsToggleAlt()">
+                ${icon('play')} <span id="gps-alt-btn-label">${safeT('gps.start')}</span>
+            </button>
+            <button class="gps-btn-secondary" onclick="gpsResetAlt()">
+                ${icon('rotateCcw')} ${safeT('gps.reset')}
+            </button>
+        </div>
+        <div class="gps-info-note">
+            ${icon('info')} ${safeT('gps.alt.note')}
+        </div>
+    `;
+}
+
+function gpsInitVisina() {
+    const unit = loadGpsUnit(GPS_ALT_UNIT_KEY, 'm');
+    const sel = el('gps-alt-unit-select');
+    if (sel) sel.value = unit;
+    gpsUpdateAltUnitLabels();
+    gpsUpdateAltDisplay();
+}
+
+function gpsChangeAltUnit() {
+    const sel = el('gps-alt-unit-select');
+    if (!sel) return;
+    saveGpsUnit(GPS_ALT_UNIT_KEY, sel.value);
+    gpsUpdateAltUnitLabels();
+    gpsUpdateAltDisplay();
+    vibrate(10);
+    playTick(0, 1300, 0.05, 0.015);
+}
+
+function gpsUpdateAltUnitLabels() {
+    const unit = loadGpsUnit(GPS_ALT_UNIT_KEY, 'm');
+    const labels = { m: 'm', ft: 'ft', km: 'km' };
+    const labelEl = el('gps-alt-unit-label');
+    if (labelEl) labelEl.textContent = labels[unit] || 'm';
+}
+
+function gpsConvertAlt(meters) {
+    const unit = loadGpsUnit(GPS_ALT_UNIT_KEY, 'm');
+    switch (unit) {
+        case 'ft': return meters * 3.28084;
+        case 'km': return meters / 1000;
+        default: return meters;
+    }
+}
+
+function gpsUpdateAltDisplay() {
+    const unit = loadGpsUnit(GPS_ALT_UNIT_KEY, 'm');
+    const decimals = unit === 'km' ? 3 : 1;
+    const valEl = el('gps-alt-value');
+    const minEl = el('gps-alt-min');
+    const maxEl = el('gps-alt-max');
+    const avgEl = el('gps-alt-avg');
+    const ascEl = el('gps-alt-ascent');
+    const descEl = el('gps-alt-descent');
+    const accEl = el('gps-alt-accuracy');
+    if (valEl) valEl.textContent = fmt(gpsConvertAlt(gpsAltState.currentAltM), decimals);
+    if (minEl) minEl.textContent = gpsAltState.minAltM === Infinity ? '—' : fmt(gpsConvertAlt(gpsAltState.minAltM), decimals);
+    if (maxEl) maxEl.textContent = gpsAltState.maxAltM === -Infinity ? '—' : fmt(gpsConvertAlt(gpsAltState.maxAltM), decimals);
+    if (avgEl) avgEl.textContent = gpsAltState.samples > 0 ? fmt(gpsConvertAlt(gpsAltState.avgAltM), decimals) : '—';
+    if (ascEl) ascEl.textContent = '+' + fmt(gpsConvertAlt(gpsAltState.ascentM), decimals);
+    if (descEl) descEl.textContent = '-' + fmt(gpsConvertAlt(gpsAltState.descentM), decimals);
+    if (accEl) accEl.textContent = gpsAltState.accuracy != null ? `${Math.round(gpsAltState.accuracy)} m` : '—';
+}
+
+function gpsToggleAlt() {
+    if (gpsAltState.running) gpsStopAlt();
+    else gpsStartAlt();
+}
+
+function gpsStartAlt() {
+    if (!navigator.geolocation) {
+        showToast(safeT('gps.error.noGeolocation'), 'error');
+        return;
+    }
+    const indicator = el('gps-alt-indicator');
+    if (indicator) indicator.classList.add('active');
+    gpsSetAltStatus(safeT('gps.status.searching'));
+    const btnLabel = el('gps-alt-btn-label');
+    if (btnLabel) btnLabel.textContent = safeT('gps.stop');
+    const btn = el('gps-alt-btn-start');
+    if (btn) btn.classList.add('active');
+    gpsAltState.running = true;
+
+    try {
+        gpsAltState.watchId = navigator.geolocation.watchPosition(
+            gpsOnAltPosition,
+            gpsOnAltError,
+            { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 }
+        );
+    } catch (e) {
+        showToast(safeT('gps.error.generic'), 'error');
+        gpsStopAlt();
+    }
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+}
+
+function gpsStopAlt() {
+    if (gpsAltState.watchId != null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(gpsAltState.watchId);
+    }
+    gpsAltState.watchId = null;
+    gpsAltState.running = false;
+    const indicator = el('gps-alt-indicator');
+    if (indicator) indicator.classList.remove('active');
+    gpsSetAltStatus(safeT('gps.status.off'));
+    const btnLabel = el('gps-alt-btn-label');
+    if (btnLabel) btnLabel.textContent = safeT('gps.start');
+    const btn = el('gps-alt-btn-start');
+    if (btn) btn.classList.remove('active');
+    vibrate(15);
+}
+
+function gpsOnAltPosition(pos) {
+    const alt = pos.coords.altitude;
+    const acc = pos.coords.altitudeAccuracy || pos.coords.accuracy;
+    gpsAltState.accuracy = acc;
+    if (alt == null || isNaN(alt)) return;
+    if (gpsAltState.startAltM == null) {
+        gpsAltState.startAltM = alt;
+        gpsAltState.lastAlt = alt;
+    }
+    // Ascent/descent
+    if (gpsAltState.lastAlt != null) {
+        const diff = alt - gpsAltState.lastAlt;
+        if (diff > 0.5) gpsAltState.ascentM += diff;
+        else if (diff < -0.5) gpsAltState.descentM += Math.abs(diff);
+    }
+    gpsAltState.lastAlt = alt;
+    gpsAltState.currentAltM = alt;
+    gpsAltState.minAltM = Math.min(gpsAltState.minAltM, alt);
+    gpsAltState.maxAltM = Math.max(gpsAltState.maxAltM, alt);
+    gpsAltState.totalAlt += alt;
+    gpsAltState.samples++;
+    gpsAltState.avgAltM = gpsAltState.totalAlt / gpsAltState.samples;
+    gpsSetAltStatus(safeT('gps.status.receiving'));
+    gpsUpdateAltDisplay();
+}
+
+function gpsOnAltError(err) {
+    let msg = safeT('gps.error.generic');
+    if (err.code === 1) msg = safeT('gps.error.permission');
+    else if (err.code === 2) msg = safeT('gps.error.unavailable');
+    else if (err.code === 3) msg = safeT('gps.error.timeout');
+    showToast(msg, 'error');
+    gpsSetAltStatus(safeT('gps.status.error'));
+}
+
+function gpsSetAltStatus(text) {
+    const s = el('gps-alt-status');
+    if (s) s.textContent = text;
+}
+
+function gpsResetAlt() {
+    gpsAltState.currentAltM = 0;
+    gpsAltState.minAltM = Infinity;
+    gpsAltState.maxAltM = -Infinity;
+    gpsAltState.totalAlt = 0;
+    gpsAltState.samples = 0;
+    gpsAltState.avgAltM = 0;
+    gpsAltState.accuracy = null;
+    gpsAltState.startAltM = null;
+    gpsAltState.ascentM = 0;
+    gpsAltState.descentM = 0;
+    gpsAltState.lastAlt = null;
+    gpsUpdateAltDisplay();
+    vibrate(15);
+    playTick(0, 1400, 0.06, 0.02);
+    showToast(safeT('gps.resetDone'), 'info', 1400);
+}
+
+// ============================================================
+// GPS — KOMPAS
+// ============================================================
+let gpsCompassState = {
+    listening: false,
+    heading: 0,
+    pitch: 0,
+    roll: 0,
+    absolute: false,
+    permissionGranted: false,
+    usingGpsFallback: false,
+    gpsWatchId: null
+};
+
+function renderGpsKompas() {
+    return `
+        <div class="converter-box gps-box gps-compass-box">
+            <div class="gps-status-row">
+                <div class="gps-status-indicator" id="gps-compass-indicator">
+                    <span class="gps-status-dot"></span>
+                    <span class="gps-status-text" id="gps-compass-status">${safeT('gps.compass.status.off')}</span>
+                </div>
+            </div>
+            <div class="gps-compass-visual">
+                <svg viewBox="0 0 200 200" class="gps-compass-svg" id="gps-compass-svg">
+                    <defs>
+                        <linearGradient id="compassN" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#f43f5e"/>
+                            <stop offset="100%" stop-color="#be123c"/>
+                        </linearGradient>
+                        <linearGradient id="compassS" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#64748b"/>
+                            <stop offset="100%" stop-color="#334155"/>
+                        </linearGradient>
+                    </defs>
+                    <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+                    <circle cx="100" cy="100" r="82" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                    <g id="gps-compass-rose" transform="rotate(0 100 100)">
+                        <text x="100" y="26" text-anchor="middle" fill="#f43f5e" font-size="16" font-weight="900">N</text>
+                        <text x="100" y="184" text-anchor="middle" fill="#94a3b8" font-size="14" font-weight="800">S</text>
+                        <text x="26" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-weight="800">W</text>
+                        <text x="174" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-weight="800">E</text>
+                        <text x="148" y="52" text-anchor="middle" fill="#64748b" font-size="10" font-weight="700">NE</text>
+                        <text x="148" y="156" text-anchor="middle" fill="#64748b" font-size="10" font-weight="700">SE</text>
+                        <text x="52" y="156" text-anchor="middle" fill="#64748b" font-size="10" font-weight="700">SW</text>
+                        <text x="52" y="52" text-anchor="middle" fill="#64748b" font-size="10" font-weight="700">NW</text>
+                        <polygon points="100,40 94,100 100,90 106,100" fill="url(#compassN)"/>
+                        <polygon points="100,160 94,100 100,110 106,100" fill="url(#compassS)"/>
+                        <circle cx="100" cy="100" r="6" fill="#1a1a23" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+                        <circle cx="100" cy="100" r="2" fill="#0ea5e9"/>
+                    </g>
+                </svg>
+            </div>
+            <div class="gps-compass-info">
+                <div class="gps-compass-degrees" id="gps-compass-deg">0°</div>
+                <div class="gps-compass-direction" id="gps-compass-dir">${safeT('gps.compass.dir.n')}</div>
+            </div>
+            <div class="gps-stats-mini">
+                <div class="gps-stat-mini">
+                    <div class="gps-stat-mini-label">${safeT('gps.compass.pitch')}</div>
+                    <div class="gps-stat-mini-value" id="gps-compass-pitch">0°</div>
+                </div>
+                <div class="gps-stat-mini">
+                    <div class="gps-stat-mini-label">${safeT('gps.compass.roll')}</div>
+                    <div class="gps-stat-mini-value" id="gps-compass-roll">0°</div>
+                </div>
+                <div class="gps-stat-mini">
+                    <div class="gps-stat-mini-label">${safeT('gps.compass.source')}</div>
+                    <div class="gps-stat-mini-value" id="gps-compass-source">—</div>
+                </div>
+            </div>
+        </div>
+        <div class="gps-actions">
+            <button class="gps-btn-main" id="gps-compass-btn" onclick="gpsToggleCompass()">
+                ${icon('compass')} <span id="gps-compass-btn-label">${safeT('gps.compass.enable')}</span>
+            </button>
+        </div>
+        <div class="gps-info-note">
+            ${icon('info')} ${safeT('gps.compass.note')}
+        </div>
+    `;
+}
+
+function gpsInitKompas() {
+    gpsUpdateCompassDisplay();
+}
+
+function gpsToggleCompass() {
+    if (gpsCompassState.listening) {
+        gpsStopCompass();
+    } else {
+        gpsStartCompass();
+    }
+}
+
+async function gpsStartCompass() {
+    gpsCompassState.permissionGranted = false;
+
+    // iOS 13+ zahteva eksplicitnu dozvolu
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        try {
+            const result = await DeviceOrientationEvent.requestPermission();
+            if (result !== 'granted') {
+                showToast(safeT('gps.compass.denied'), 'warning');
+                gpsSetCompassStatus(safeT('gps.compass.status.denied'));
+                return;
+            }
+            gpsCompassState.permissionGranted = true;
+        } catch (e) {
+            showToast(safeT('gps.compass.denied'), 'warning');
+            return;
+        }
+    } else {
+        gpsCompassState.permissionGranted = true;
+    }
+
+    // Probaj absolute first
+    let started = false;
+    if ('ondeviceorientationabsolute' in window) {
+        window.addEventListener('deviceorientationabsolute', gpsOnDeviceOrientation, true);
+        started = true;
+        gpsCompassState.absolute = true;
+    }
+    // Uvek dodaj i obični kao fallback
+    window.addEventListener('deviceorientation', gpsOnDeviceOrientation, true);
+
+    gpsCompassState.listening = true;
+    const indicator = el('gps-compass-indicator');
+    if (indicator) indicator.classList.add('active');
+    const btnLabel = el('gps-compass-btn-label');
+    if (btnLabel) btnLabel.textContent = safeT('gps.compass.disable');
+    const btn = el('gps-compass-btn');
+    if (btn) btn.classList.add('active');
+    gpsSetCompassStatus(safeT('gps.compass.status.waiting'));
+
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+
+    // Ako posle 1.5s nema podataka, probaj GPS fallback
+    setTimeout(() => {
+        if (gpsCompassState.listening && gpsCompassState.heading === 0 && !gpsCompassState.gpsWatchId) {
+            gpsStartCompassGpsFallback();
+        }
+    }, 1500);
+}
+
+function gpsStartCompassGpsFallback() {
+    if (!navigator.geolocation) return;
+    gpsCompassState.usingGpsFallback = true;
+    gpsCompassState.gpsWatchId = navigator.geolocation.watchPosition(
+        (pos) => {
+            if (gpsCompassState.usingGpsFallback && pos.coords.heading != null && !isNaN(pos.coords.heading)) {
+                gpsUpdateCompassHeading(pos.coords.heading, false);
+                gpsSetCompassStatus(safeT('gps.compass.status.gps'));
+                const srcEl = el('gps-compass-source');
+                if (srcEl) srcEl.textContent = 'GPS';
+            }
+        },
+        () => {},
+        { enableHighAccuracy: true, maximumAge: 1000 }
+    );
+}
+
+function gpsOnDeviceOrientation(e) {
+    if (!gpsCompassState.listening) return;
+    let heading = null;
+    if (e.webkitCompassHeading != null && !isNaN(e.webkitCompassHeading)) {
+        // iOS - webkitCompassHeading je već u pravom smeru (0 = N, u smeru kazaljke)
+        heading = e.webkitCompassHeading;
+        gpsCompassState.usingGpsFallback = false;
+    } else if (e.alpha != null && !isNaN(e.alpha)) {
+        // Android - alpha je 0 = N, ali u smeru suprotnom od kazaljke
+        const absolute = e.absolute === true || gpsCompassState.absolute;
+        const alpha = e.alpha;
+        heading = absolute ? (360 - alpha) % 360 : alpha;
+    }
+    if (heading != null) {
+        gpsCompassState.usingGpsFallback = false;
+        if (gpsCompassState.gpsWatchId && navigator.geolocation) {
+            navigator.geolocation.clearWatch(gpsCompassState.gpsWatchId);
+            gpsCompassState.gpsWatchId = null;
+        }
+        gpsUpdateCompassHeading(heading, true);
+        gpsSetCompassStatus(safeT('gps.compass.status.active'));
+    }
+    if (e.beta != null) {
+        gpsCompassState.pitch = e.beta;
+        const pEl = el('gps-compass-pitch');
+        if (pEl) pEl.textContent = Math.round(e.beta) + '°';
+    }
+    if (e.gamma != null) {
+        gpsCompassState.roll = e.gamma;
+        const rEl = el('gps-compass-roll');
+        if (rEl) rEl.textContent = Math.round(e.gamma) + '°';
+    }
+}
+
+function gpsUpdateCompassHeading(heading, isSensor) {
+    if (heading == null || isNaN(heading)) return;
+    gpsCompassState.heading = heading;
+    gpsUpdateCompassDisplay();
+    const srcEl = el('gps-compass-source');
+    if (srcEl) srcEl.textContent = isSensor ? (gpsCompassState.absolute ? 'Sensor ✓' : 'Sensor') : 'GPS';
+}
+
+function gpsUpdateCompassDisplay() {
+    const h = gpsCompassState.heading;
+    const degEl = el('gps-compass-deg');
+    const dirEl = el('gps-compass-dir');
+    const rose = el('gps-compass-rose');
+    if (degEl) degEl.textContent = Math.round(h) + '°';
+    if (dirEl) dirEl.textContent = gpsGetCompassDirection(h);
+    if (rose) rose.setAttribute('transform', `rotate(${-h} 100 100)`);
+}
+
+function gpsGetCompassDirection(deg) {
+    const dirs = [
+        { key: 'n', min: 337.5, max: 360 },
+        { key: 'n', min: 0, max: 22.5 },
+        { key: 'ne', min: 22.5, max: 67.5 },
+        { key: 'e', min: 67.5, max: 112.5 },
+        { key: 'se', min: 112.5, max: 157.5 },
+        { key: 's', min: 157.5, max: 202.5 },
+        { key: 'sw', min: 202.5, max: 247.5 },
+        { key: 'w', min: 247.5, max: 292.5 },
+        { key: 'nw', min: 292.5, max: 337.5 }
+    ];
+    for (const d of dirs) {
+        if (deg >= d.min && deg < d.max) return safeT('gps.compass.dir.' + d.key);
+    }
+    return safeT('gps.compass.dir.n');
+}
+
+function gpsSetCompassStatus(text) {
+    const s = el('gps-compass-status');
+    if (s) s.textContent = text;
+}
+
+function gpsStopCompass() {
+    window.removeEventListener('deviceorientationabsolute', gpsOnDeviceOrientation, true);
+    window.removeEventListener('deviceorientation', gpsOnDeviceOrientation, true);
+    if (gpsCompassState.gpsWatchId && navigator.geolocation) {
+        navigator.geolocation.clearWatch(gpsCompassState.gpsWatchId);
+        gpsCompassState.gpsWatchId = null;
+    }
+    gpsCompassState.listening = false;
+    gpsCompassState.usingGpsFallback = false;
+    const indicator = el('gps-compass-indicator');
+    if (indicator) indicator.classList.remove('active');
+    const btnLabel = el('gps-compass-btn-label');
+    if (btnLabel) btnLabel.textContent = safeT('gps.compass.enable');
+    const btn = el('gps-compass-btn');
+    if (btn) btn.classList.remove('active');
+    gpsSetCompassStatus(safeT('gps.compass.status.off'));
+    vibrate(15);
+}
+
+// ============================================================
+// GPS — ŠTOPERICA
+// ============================================================
+let gpsStopwatchState = {
+    running: false,
+    startTime: 0,
+    elapsedMs: 0,
+    rafId: null,
+    laps: [],
+    wakeLock: null
+};
+
+function renderGpsStoperica() {
+    return `
+        <div class="converter-box gps-box">
+            <div class="gps-stopwatch-display">
+                <div class="gps-stopwatch-time" id="gps-sw-time">00:00:00.00</div>
+            </div>
+        </div>
+        <div class="gps-actions">
+            <button class="gps-btn-main" id="gps-sw-btn-start" onclick="gpsToggleStopwatch()">
+                ${icon('play')} <span id="gps-sw-btn-label">${safeT('gps.start')}</span>
+            </button>
+            <button class="gps-btn-secondary" onclick="gpsLapStopwatch()" id="gps-sw-btn-lap">
+                ${icon('flag')} ${safeT('gps.sw.lap')}
+            </button>
+            <button class="gps-btn-secondary" onclick="gpsResetStopwatch()" id="gps-sw-btn-reset">
+                ${icon('rotateCcw')} ${safeT('gps.reset')}
+            </button>
+        </div>
+        <div class="converter-box gps-lap-box" id="gps-sw-laps-box" style="display:none;">
+            <div class="gps-lap-header">
+                <span>${safeT('gps.sw.lapHeader.number')}</span>
+                <span>${safeT('gps.sw.lapHeader.lap')}</span>
+                <span>${safeT('gps.sw.lapHeader.total')}</span>
+            </div>
+            <div id="gps-sw-laps-list" class="gps-lap-list"></div>
+        </div>
+    `;
+}
+
+function gpsInitStoperica() {
+    gpsUpdateStopwatchDisplay(0);
+}
+
+function gpsToggleStopwatch() {
+    if (gpsStopwatchState.running) {
+        gpsStopStopwatch();
+    } else {
+        gpsStartStopwatch();
+    }
+}
+
+async function gpsStartStopwatch() {
+    gpsStopwatchState.running = true;
+    gpsStopwatchState.startTime = performance.now() - gpsStopwatchState.elapsedMs;
+    const btnLabel = el('gps-sw-btn-label');
+    if (btnLabel) btnLabel.textContent = safeT('gps.stop');
+    const btn = el('gps-sw-btn-start');
+    if (btn) btn.classList.add('active');
+    gpsRequestWakeLock();
+    gpsTickStopwatch();
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+}
+
+function gpsStopStopwatch() {
+    gpsStopwatchState.running = false;
+    gpsStopwatchState.elapsedMs = performance.now() - gpsStopwatchState.startTime;
+    if (gpsStopwatchState.rafId) {
+        cancelAnimationFrame(gpsStopwatchState.rafId);
+        gpsStopwatchState.rafId = null;
+    }
+    const btnLabel = el('gps-sw-btn-label');
+    if (btnLabel) btnLabel.textContent = safeT('gps.start');
+    const btn = el('gps-sw-btn-start');
+    if (btn) btn.classList.remove('active');
+    gpsReleaseWakeLock();
+    vibrate(15);
+}
+
+function gpsTickStopwatch() {
+    if (!gpsStopwatchState.running) return;
+    const now = performance.now() - gpsStopwatchState.startTime;
+    gpsUpdateStopwatchDisplay(now);
+    gpsStopwatchState.rafId = requestAnimationFrame(gpsTickStopwatch);
+}
+
+function gpsUpdateStopwatchDisplay(ms) {
+    const el1 = el('gps-sw-time');
+    if (!el1) return;
+    el1.textContent = gpsFormatStopwatch(ms);
+}
+
+function gpsFormatStopwatch(ms) {
+    const total = Math.max(0, ms);
+    const totalSec = total / 1000;
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec - h * 3600) / 60);
+    const s = Math.floor(totalSec - h * 3600 - m * 60);
+    const cs = Math.floor((totalSec - Math.floor(totalSec)) * 100);
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
+}
+
+function gpsLapStopwatch() {
+    if (!gpsStopwatchState.running && gpsStopwatchState.elapsedMs === 0) {
+        showToast(safeT('gps.sw.noLap'), 'info', 1400);
+        return;
+    }
+    const currentTotal = gpsStopwatchState.running
+        ? performance.now() - gpsStopwatchState.startTime
+        : gpsStopwatchState.elapsedMs;
+    const prevTotal = gpsStopwatchState.laps.length
+        ? gpsStopwatchState.laps[gpsStopwatchState.laps.length - 1].total
+        : 0;
+    const lapTime = currentTotal - prevTotal;
+    gpsStopwatchState.laps.push({ lap: lapTime, total: currentTotal });
+    gpsRenderLaps();
+    vibrate(10);
+    playTick(0, 1400, 0.06, 0.02);
+}
+
+function gpsRenderLaps() {
+    const box = el('gps-sw-laps-box');
+    const list = el('gps-sw-laps-list');
+    if (!box || !list) return;
+    if (!gpsStopwatchState.laps.length) {
+        box.style.display = 'none';
+        return;
+    }
+    box.style.display = 'block';
+    // Nađi min i max lap
+    let minLap = Infinity, maxLap = -Infinity;
+    gpsStopwatchState.laps.forEach((l, i) => {
+        if (i === 0 && gpsStopwatchState.laps.length === 1) return;
+        if (l.lap < minLap) minLap = l.lap;
+        if (l.lap > maxLap) maxLap = l.lap;
+    });
+    const showColors = gpsStopwatchState.laps.length > 1;
+    list.innerHTML = gpsStopwatchState.laps.map((l, i) => {
+        const num = i + 1;
+        let cls = '';
+        if (showColors) {
+            if (l.lap === minLap) cls = 'best';
+            else if (l.lap === maxLap) cls = 'worst';
+        }
+        return `
+            <div class="gps-lap-row ${cls}">
+                <span class="gps-lap-num">#${num}</span>
+                <span class="gps-lap-time">${gpsFormatStopwatch(l.lap)}</span>
+                <span class="gps-lap-total">${gpsFormatStopwatch(l.total)}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+function gpsResetStopwatch() {
+    if (gpsStopwatchState.running) {
+        showToast(safeT('gps.sw.stopFirst'), 'warning', 1500);
+        return;
+    }
+    gpsStopwatchState.elapsedMs = 0;
+    gpsStopwatchState.laps = [];
+    gpsUpdateStopwatchDisplay(0);
+    gpsRenderLaps();
+    vibrate(15);
+    playTick(0, 1400, 0.06, 0.02);
+}
+
+async function gpsRequestWakeLock() {
+    if (!('wakeLock' in navigator)) return;
+    try {
+        gpsStopwatchState.wakeLock = await navigator.wakeLock.request('screen');
+    } catch (e) {}
+}
+function gpsReleaseWakeLock() {
+    if (gpsStopwatchState.wakeLock) {
+        try { gpsStopwatchState.wakeLock.release(); } catch (e) {}
+        gpsStopwatchState.wakeLock = null;
+    }
+}
+
+// ============================================================
+// GPS — TAJMER
+// ============================================================
+let gpsTimerState = {
+    running: false,
+    paused: false,
+    totalMs: 0,
+    remainingMs: 0,
+    endTime: 0,
+    rafId: null,
+    intervalId: null,
+    alarmIntervalId: null,
+    wakeLock: null,
+    alarming: false
+};
+
+function renderGpsTajmer() {
+    return `
+        <div class="converter-box gps-box">
+            <div class="gps-timer-input-row" id="gps-timer-input-row">
+                <div class="gps-timer-input-group">
+                    <label>HH</label>
+                    <input type="number" id="gps-timer-h" class="gps-timer-input" min="0" max="23" placeholder="0" inputmode="numeric">
+                </div>
+                <div class="gps-timer-sep">:</div>
+                <div class="gps-timer-input-group">
+                    <label>MM</label>
+                    <input type="number" id="gps-timer-m" class="gps-timer-input" min="0" max="59" placeholder="0" inputmode="numeric">
+                </div>
+                <div class="gps-timer-sep">:</div>
+                <div class="gps-timer-input-group">
+                    <label>SS</label>
+                    <input type="number" id="gps-timer-s" class="gps-timer-input" min="0" max="59" placeholder="0" inputmode="numeric">
+                </div>
+            </div>
+            <div class="gps-timer-presets" id="gps-timer-presets">
+                <button class="gps-chip" onclick="gpsTimerPreset(60)">1 min</button>
+                <button class="gps-chip" onclick="gpsTimerPreset(300)">5 min</button>
+                <button class="gps-chip" onclick="gpsTimerPreset(600)">10 min</button>
+                <button class="gps-chip" onclick="gpsTimerPreset(900)">15 min</button>
+                <button class="gps-chip" onclick="gpsTimerPreset(1800)">30 min</button>
+                <button class="gps-chip" onclick="gpsTimerPreset(3600)">1 h</button>
+            </div>
+            <div class="gps-timer-display" id="gps-timer-display">
+                <div class="gps-timer-time" id="gps-timer-time">00:00:00</div>
+                <div class="gps-timer-progress-bar">
+                    <div class="gps-timer-progress-fill" id="gps-timer-progress"></div>
+                </div>
+            </div>
+        </div>
+        <div class="gps-actions">
+            <button class="gps-btn-main" id="gps-timer-btn-start" onclick="gpsToggleTimer()">
+                ${icon('play')} <span id="gps-timer-btn-label">${safeT('gps.start')}</span>
+            </button>
+            <button class="gps-btn-secondary" onclick="gpsResetTimer()">
+                ${icon('rotateCcw')} ${safeT('gps.reset')}
+            </button>
+        </div>
+        <div class="gps-info-note">
+            ${icon('info')} ${safeT('gps.timer.note')}
+        </div>
+    `;
+}
+
+function gpsInitTajmer() {
+    gpsUpdateTimerDisplay();
+}
+
+function gpsTimerPreset(seconds) {
+    if (gpsTimerState.running) {
+        showToast(safeT('gps.timer.stopFirst'), 'warning', 1500);
+        return;
+    }
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    const hEl = el('gps-timer-h'); if (hEl) hEl.value = h || '';
+    const mEl = el('gps-timer-m'); if (mEl) mEl.value = m || '';
+    const sEl = el('gps-timer-s'); if (sEl) sEl.value = s || '';
+    gpsTimerState.totalMs = seconds * 1000;
+    gpsTimerState.remainingMs = seconds * 1000;
+    gpsUpdateTimerDisplay();
+    vibrate(10);
+    playTick(0, 1300, 0.05, 0.015);
+}
+
+function gpsGetTimerInputMs() {
+    const h = parseInt(el('gps-timer-h')?.value) || 0;
+    const m = parseInt(el('gps-timer-m')?.value) || 0;
+    const s = parseInt(el('gps-timer-s')?.value) || 0;
+    return (h * 3600 + m * 60 + s) * 1000;
+}
+
+function gpsToggleTimer() {
+    if (gpsTimerState.alarming) {
+        gpsStopAlarm();
+        return;
+    }
+    if (gpsTimerState.running) {
+        if (gpsTimerState.paused) {
+            gpsResumeTimer();
+        } else {
+            gpsPauseTimer();
+        }
+    } else {
+        gpsStartTimer();
+    }
+}
+
+function gpsStartTimer() {
+    const ms = gpsGetTimerInputMs();
+    if (ms <= 0) {
+        showToast(safeT('gps.timer.enterTime'), 'warning');
+        return;
+    }
+    gpsTimerState.totalMs = ms;
+    gpsTimerState.remainingMs = ms;
+    gpsTimerState.running = true;
+    gpsTimerState.paused = false;
+    gpsTimerState.endTime = performance.now() + ms;
+    gpsTimerState.alarming = false;
+    gpsUpdateTimerButton();
+    gpsRequestTimerWakeLock();
+    gpsTickTimer();
+    gpsTimerState.intervalId = setInterval(gpsTickTimer, 200);
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+}
+
+function gpsPauseTimer() {
+    if (!gpsTimerState.running || gpsTimerState.paused) return;
+    gpsTimerState.paused = true;
+    gpsTimerState.remainingMs = Math.max(0, gpsTimerState.endTime - performance.now());
+    if (gpsTimerState.rafId) { cancelAnimationFrame(gpsTimerState.rafId); gpsTimerState.rafId = null; }
+    if (gpsTimerState.intervalId) { clearInterval(gpsTimerState.intervalId); gpsTimerState.intervalId = null; }
+    gpsUpdateTimerButton();
+    vibrate(15);
+}
+
+function gpsResumeTimer() {
+    if (!gpsTimerState.running || !gpsTimerState.paused) return;
+    gpsTimerState.paused = false;
+    gpsTimerState.endTime = performance.now() + gpsTimerState.remainingMs;
+    gpsTickTimer();
+    gpsTimerState.intervalId = setInterval(gpsTickTimer, 200);
+    gpsUpdateTimerButton();
+    vibrate(15);
+}
+
+function gpsTickTimer() {
+    if (!gpsTimerState.running || gpsTimerState.paused) return;
+    const remaining = Math.max(0, gpsTimerState.endTime - performance.now());
+    gpsTimerState.remainingMs = remaining;
+    gpsUpdateTimerDisplay();
+    if (remaining <= 0) {
+        gpsTimerComplete();
+        return;
+    }
+    gpsTimerState.rafId = requestAnimationFrame(gpsTickTimer);
+}
+
+function gpsUpdateTimerDisplay() {
+    const timeEl = el('gps-timer-time');
+    const progressEl = el('gps-timer-progress');
+    if (!timeEl) return;
+    const ms = gpsTimerState.remainingMs || gpsTimerState.totalMs || gpsGetTimerInputMs();
+    const sec = Math.ceil(ms / 1000);
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    timeEl.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    if (progressEl) {
+        const total = gpsTimerState.totalMs || 1;
+        const pct = Math.max(0, Math.min(100, (ms / total) * 100));
+        progressEl.style.width = pct + '%';
+    }
+}
+
+function gpsUpdateTimerButton() {
+    const label = el('gps-timer-btn-label');
+    const btn = el('gps-timer-btn-start');
+    if (!label) return;
+    if (gpsTimerState.alarming) {
+        label.textContent = safeT('gps.timer.stopAlarm');
+        if (btn) btn.classList.add('active');
+    } else if (!gpsTimerState.running) {
+        label.textContent = safeT('gps.start');
+        if (btn) btn.classList.remove('active');
+    } else if (gpsTimerState.paused) {
+        label.textContent = safeT('gps.timer.resume');
+        if (btn) btn.classList.remove('active');
+    } else {
+        label.textContent = safeT('gps.timer.pause');
+        if (btn) btn.classList.add('active');
+    }
+}
+
+function gpsTimerComplete() {
+    gpsTimerState.running = false;
+    gpsTimerState.paused = false;
+    if (gpsTimerState.rafId) { cancelAnimationFrame(gpsTimerState.rafId); gpsTimerState.rafId = null; }
+    if (gpsTimerState.intervalId) { clearInterval(gpsTimerState.intervalId); gpsTimerState.intervalId = null; }
+    gpsTimerState.remainingMs = 0;
+    gpsUpdateTimerDisplay();
+    gpsStartAlarm();
+}
+
+function gpsStartAlarm() {
+    gpsTimerState.alarming = true;
+    gpsUpdateTimerButton();
+    showToast(safeT('gps.timer.timeUp'), 'success', 4000);
+    // Ponovi alarm nekoliko puta
+    let count = 0;
+    const maxCount = 10;
+    const beepOnce = () => {
+        if (!gpsTimerState.alarming) return;
+        if (count >= maxCount) {
+            gpsStopAlarm();
+            return;
+        }
+        count++;
+        gpsPlayAlarmBeep();
+        vibrate([300, 100, 300, 100, 300]);
+    };
+    beepOnce();
+    gpsTimerState.alarmIntervalId = setInterval(beepOnce, 3000);
+}
+
+function gpsPlayAlarmBeep() {
+    if (!settings.sound) return;
+    const ctx = getAudio();
+    if (!ctx) return;
+    try {
+        if (ctx.state === 'suspended') ctx.resume();
+        const now = ctx.currentTime;
+        for (let i = 0; i < 3; i++) {
+            const t = now + i * 0.2;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, t);
+            gain.gain.setValueAtTime(0.0001, t);
+            gain.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.16);
+        }
+    } catch (e) {}
+}
+
+function gpsStopAlarm() {
+    gpsTimerState.alarming = false;
+    if (gpsTimerState.alarmIntervalId) {
+        clearInterval(gpsTimerState.alarmIntervalId);
+        gpsTimerState.alarmIntervalId = null;
+    }
+    gpsUpdateTimerButton();
+    vibrate(20);
+}
+
+function gpsResetTimer() {
+    if (gpsTimerState.running && !gpsTimerState.paused) {
+        showToast(safeT('gps.timer.stopFirst'), 'warning', 1500);
+        return;
+    }
+    gpsStopAlarm();
+    gpsTimerState.running = false;
+    gpsTimerState.paused = false;
+    gpsTimerState.totalMs = 0;
+    gpsTimerState.remainingMs = 0;
+    if (gpsTimerState.rafId) { cancelAnimationFrame(gpsTimerState.rafId); gpsTimerState.rafId = null; }
+    if (gpsTimerState.intervalId) { clearInterval(gpsTimerState.intervalId); gpsTimerState.intervalId = null; }
+    gpsReleaseTimerWakeLock();
+    const hEl = el('gps-timer-h'); if (hEl) hEl.value = '';
+    const mEl = el('gps-timer-m'); if (mEl) mEl.value = '';
+    const sEl = el('gps-timer-s'); if (sEl) sEl.value = '';
+    gpsUpdateTimerDisplay();
+    gpsUpdateTimerButton();
+    vibrate(15);
+    playTick(0, 1400, 0.06, 0.02);
+}
+
+async function gpsRequestTimerWakeLock() {
+    if (!('wakeLock' in navigator)) return;
+    try {
+        gpsTimerState.wakeLock = await navigator.wakeLock.request('screen');
+    } catch (e) {}
+}
+function gpsReleaseTimerWakeLock() {
+    if (gpsTimerState.wakeLock) {
+        try { gpsTimerState.wakeLock.release(); } catch (e) {}
+        gpsTimerState.wakeLock = null;
+    }
+}
+
+// ============================================================
+// GPS — GLOBALNI CLEANUP
+// ============================================================
+function gpsCleanupAll() {
+    try { gpsStopSpeed(); } catch (e) {}
+    try { gpsStopAlt(); } catch (e) {}
+    try { gpsStopCompass(); } catch (e) {}
+    try { gpsStopStopwatch(); } catch (e) {}
+    try { gpsStopAlarm(); } catch (e) {}
+    try {
+        gpsTimerState.running = false;
+        if (gpsTimerState.rafId) { cancelAnimationFrame(gpsTimerState.rafId); gpsTimerState.rafId = null; }
+        if (gpsTimerState.intervalId) { clearInterval(gpsTimerState.intervalId); gpsTimerState.intervalId = null; }
+        gpsReleaseTimerWakeLock();
+    } catch (e) {}
+}
+
+// ============================================================
 // PODSETNICI — Storage helperi
 // ============================================================
 const REMINDER_KEYS = {
@@ -3557,7 +4867,6 @@ function urgencyColor(days) {
     return '#10b981';
 }
 
-// NOVO — izračun godina braka za godišnjice
 function yearsSinceDate(isoDate) {
     if (!isoDate) return null;
     const parts = isoDate.split('-').map(Number);
@@ -3591,7 +4900,6 @@ function nextJubileeYears(isoDate) {
     const currentYears = today.getFullYear() - start.getFullYear();
     let nextJub = jubilees.find(j => j > currentYears);
     if (!nextJub) nextJub = Math.ceil((currentYears + 1) / 10) * 10;
-    // Datum sledećeg jubileja (isti dan/mesec, te godine)
     const nextDate = new Date(start.getFullYear() + nextJub, start.getMonth(), start.getDate());
     const daysUntil = Math.round((nextDate - today) / 86400000);
     return { years: nextJub, daysUntil };
@@ -4216,7 +5524,6 @@ function renderHistoryItem(item) {
     const color = days !== null ? urgencyColor(days) : item.color;
     const doneClass = item.isDone ? ' rem-item-done' : '';
 
-    // NOVO — prikaz godina braka za godišnjice
     let yearsBadge = '';
     if (item.type === 'anniversary' && item.dueDate) {
         const ys = yearsSinceDate(item.dueDate);
@@ -5019,7 +6326,6 @@ function renderReminderItem(type, item) {
     const daysTxt = days !== null ? formatDaysToHuman(days) : '';
     const daysCol = days !== null ? urgencyColor(days) : '';
 
-    // NOVO — godišnjice: prikaz godina
     let yearsBadge = '';
     if (type === 'anniversary' && item.date) {
         const ys = yearsSinceDate(item.date);
@@ -6920,23 +8226,19 @@ function calculateTiles() {
     const wallTiles = Math.ceil(wallTilesBase * factor);
     const totalTiles = floorTiles + wallTiles;
 
-    // Prikaz
     const tt = el('res-tiles-total'); if (tt) tt.innerText = totalTiles;
     const tf = el('res-tiles-floor'); if (tf) tf.innerText = floorTiles;
     const tw = el('res-tiles-wall'); if (tw) tw.innerText = wallTiles;
 
-    // Ažuriraj prikaz površina u breakdown-u
     const floorUnit = document.querySelector('#res-tiles-floor + .tiles-breakdown-unit') || document.querySelectorAll('.tiles-breakdown-unit')[0];
     const wallUnit = document.querySelector('#res-tiles-wall + .tiles-breakdown-unit') || document.querySelectorAll('.tiles-breakdown-unit')[1];
     if (floorUnit) floorUnit.textContent = `${safeT('unit.pcsShort')} (${fmt(floorArea, 1)} m²)`;
     if (wallUnit) wallUnit.textContent = `${safeT('unit.pcsShort')} (${fmt(wallArea, 1)} m²)`;
 
-    // Stats
     const sa = el('stat-tiles-floor-area'); if (sa) sa.innerText = fmt(floorArea, 2) + ' m²';
     const sw = el('stat-tiles-wall-area'); if (sw) sw.innerText = fmt(wallArea, 2) + ' m²';
     const st = el('stat-tiles-total-area'); if (st) st.innerText = fmt(totalArea, 2) + ' m²';
 
-    // Ako nema zidova, sakrij prikaz zidova u breakdown-u? Ne — ostavljamo vidljivo sa 0
     show('tiles-result-box');
     show('tiles-stats-row');
 }
@@ -8162,9 +9464,7 @@ function openAboutModal() {
     vibrate(15);
     playTick(0, 1400, 0.06, 0.02);
     try { history.pushState({ modal: 'about' }, '', ''); } catch (e) {}
-}
-
-// ============================================================
+}// ============================================================
 // INIT
 // ============================================================
 function initApp() {
