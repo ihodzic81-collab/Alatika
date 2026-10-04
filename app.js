@@ -1312,7 +1312,133 @@ function updateVisualBadge(count) {
     const allTool = document.querySelector('.all-tool[data-cat-id="podsetnici"]');
     if (allTool) allTool.setAttribute('data-activity-dot', '1');
 }
+// NOVO — proverava da li je BAR JEDAN podsetnik trenutno "u zoni podsećanja"
+// (trenutni datum je između: glavni datum − remindBefore dana  i  glavni datum)
+function hasActiveRemindersWithRemind() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayMs = today.getTime();
+    const dayMs = 86400000;
 
+    // Pomoćna: da li je "sada" u prozoru podsećanja?
+    // Vraća true ako je danas između (dogadjaj - remindBefore) i dogadjaj (uključivo)
+    const isInReminderWindow = (targetIso, remindBeforeDays) => {
+        if (!targetIso) return false;
+        const parts = targetIso.split('-').map(Number);
+        if (parts.length !== 3) return false;
+        const target = new Date(parts[0], parts[1] - 1, parts[2]);
+        target.setHours(0, 0, 0, 0);
+        const targetMs = target.getTime();
+        const remindDays = parseInt(remindBeforeDays) || 0;
+        if (remindDays <= 0) return false;
+        const startMs = targetMs - (remindDays * dayMs);
+        // Današnji datum mora biti >= start i <= target
+        return todayMs >= startMs && todayMs <= targetMs;
+    };
+
+    try {
+        // Rođendani
+        if (loadReminders('cx_birthdays').some(b =>
+            !b.done && isInReminderWindow(b.date, b.remindBefore)
+        )) return true;
+
+        // Godišnjice
+        if (loadReminders('cx_anniversaries').some(a =>
+            !a.done && isInReminderWindow(a.date, a.remindBefore)
+        )) return true;
+
+        // Računi — koriste dayOfMonth (dan u mesecu), ne pun datum
+        // Prozor: remindBefore dana pre tog dana u mesecu
+        const bills = loadReminders('cx_bills');
+        for (const b of bills) {
+            if (b.paid) continue;
+            const day = parseInt(b.dayOfMonth) || 1;
+            const remind = parseInt(b.remindBefore) || 0;
+            if (remind <= 0) continue;
+            // Sledeći dan plaćanja (ovaj mesec ili sledeći)
+            let next = new Date(today.getFullYear(), today.getMonth(), day);
+            next.setHours(0, 0, 0, 0);
+            if (next.getTime() < todayMs) {
+                let nm = today.getMonth() + 1;
+                let ny = today.getFullYear();
+                if (nm > 11) { nm = 0; ny++; }
+                next = new Date(ny, nm, day);
+                next.setHours(0, 0, 0, 0);
+            }
+            const startMs = next.getTime() - (remind * dayMs);
+            if (todayMs >= startMs && todayMs <= next.getTime()) return true;
+        }
+
+        // Lekovi — prozor: danas između startDate i endDate (ako postoji endDate)
+        const meds = loadReminders('cx_medications');
+        for (const m of meds) {
+            if (m.done) continue;
+            // Ako ima endDate — proveri da li je danas pre ili na endDate
+            if (m.endDate) {
+                const parts = m.endDate.split('-').map(Number);
+                if (parts.length === 3) {
+                    const end = new Date(parts[0], parts[1] - 1, parts[2]);
+                    end.setHours(0, 0, 0, 0);
+                    if (todayMs <= end.getTime()) return true;
+                }
+            } else {
+                // Ako nema endDate, smatraj aktivnim
+                return true;
+            }
+        }
+
+        // Napomene — prozor: remindBefore dana pre dueDate (ako postoji dueDate)
+        const notes = loadReminders('cx_notes');
+        for (const n of notes) {
+            if (n.done) continue;
+            if (n.dueDate && isInReminderWindow(n.dueDate, 7)) return true; // default 7 dana
+        }
+
+        // Vozila — registracija/tehnički/osiguranje u remindBefore prozoru (default 30 dana)
+        const vehicles = loadReminders('cx_vehicles');
+        for (const v of vehicles) {
+            if (v.done) continue;
+            if (isInReminderWindow(v.regDate, 30)) return true;
+            if (isInReminderWindow(v.techDate, 30)) return true;
+            if (isInReminderWindow(v.insuranceDate, 30)) return true;
+        }
+
+        // Dokumenti — expires u prozoru (default 30 dana)
+        const docs = loadReminders('cx_documents');
+        for (const d of docs) {
+            if (d.done) continue;
+            if (isInReminderWindow(d.expires, 30)) return true;
+        }
+
+        // Pretplate — aktivne u remindBefore prozoru (default 3 dana, dayOfMonth)
+        const subs = loadReminders('cx_subscriptions');
+        for (const s of subs) {
+            if (!s.active) continue;
+            const day = parseInt(s.dayOfMonth) || 1;
+            let next = new Date(today.getFullYear(), today.getMonth(), day);
+            next.setHours(0, 0, 0, 0);
+            if (next.getTime() < todayMs) {
+                let nm = today.getMonth() + 1;
+                let ny = today.getFullYear();
+                if (nm > 11) { nm = 0; ny++; }
+                next = new Date(ny, nm, day);
+                next.setHours(0, 0, 0, 0);
+            }
+            const startMs = next.getTime() - (3 * dayMs);
+            if (todayMs >= startMs && todayMs <= next.getTime()) return true;
+        }
+
+        // Rate — prozor: 3 dana pre datuma rate
+        const groups = loadInstallmentGroups();
+        for (const g of groups) {
+            for (const inst of (g.installments || [])) {
+                if (inst.paid) continue;
+                if (isInReminderWindow(inst.date, 3)) return true;
+            }
+        }
+    } catch (e) { return false; }
+    return false;
+}
 // NOVO — proverava da li postoji bar jedan aktivan podsetnik sa remindBefore
 function hasActiveRemindersWithRemind() {
     try {
