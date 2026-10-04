@@ -362,14 +362,15 @@ body.modal-open { overflow: hidden; }
 }
 .quick-tool::before {
     content: ''; position: absolute;
-    top: -30%; right: -30%; width: 160%; height: 160%;
+    inset: 0;
     background: radial-gradient(
         circle at 70% 30%,
         color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 22%, transparent) 0%,
         transparent 55%
     );
     pointer-events: none; z-index: 0; opacity: 0.8;
-    clip-path: inset(0 round 18px);
+    border-radius: inherit;
+    overflow: hidden;
 }
 .quick-tool > * { position: relative; z-index: 1; }
 .quick-tool:hover {
@@ -520,14 +521,15 @@ body.modal-open { overflow: hidden; }
 }
 .all-tool::before {
     content: ''; position: absolute;
-    top: -30%; right: -30%; width: 160%; height: 160%;
+    inset: 0;
     background: radial-gradient(
         circle at 70% 30%,
         color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 16%, transparent) 0%,
         transparent 55%
     );
     pointer-events: none; z-index: 0; opacity: 0.7;
-    clip-path: inset(0 round 16px);
+    border-radius: inherit;
+    overflow: hidden;
 }
 .all-tool > * { position: relative; z-index: 1; }
 .all-tool:hover {
