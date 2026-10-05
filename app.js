@@ -232,7 +232,6 @@ const CATEGORIES = {
         tabs: [
             { id: 'brzina', name: 'Brzina', icon: 'speedometer', render: renderGpsBrzina },
             { id: 'visina', name: 'Visina', icon: 'mountain', render: renderGpsVisina },
-            { id: 'kompas', name: 'Kompas', icon: 'compass', render: renderGpsKompas },
             { id: 'stoperica', name: 'Štoperica', icon: 'stopwatch', render: renderGpsStoperica },
             { id: 'tajmer', name: 'Tajmer', icon: 'timer', render: renderGpsTajmer }
         ]
