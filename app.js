@@ -4181,29 +4181,46 @@ function gpsToggleCompass() {
     }
 }
 
-async function gpsStartCompass() {
+function gpsStartCompass() {
     gpsCompassState.permissionGranted = false;
     gpsCompassState.sensorDataReceived = false;
 
+    // iOS 13+ — pozovi permission SINHRONO, bez async/await pre toga
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        try {
-            const result = await DeviceOrientationEvent.requestPermission();
-            if (result !== 'granted') {
+        const permissionPromise = DeviceOrientationEvent.requestPermission();
+        if (permissionPromise && typeof permissionPromise.then === 'function') {
+            permissionPromise.then((result) => {
+                if (result === 'granted') {
+                    gpsCompassState.permissionGranted = true;
+                    gpsActuallyStartCompass();
+                } else {
+                    showToast(safeT('gps.compass.denied'), 'warning');
+                    gpsSetCompassStatus(safeT('gps.compass.status.denied'));
+                }
+            }).catch((e) => {
+                console.warn('Compass permission error:', e);
                 showToast(safeT('gps.compass.denied'), 'warning');
                 gpsSetCompassStatus(safeT('gps.compass.status.denied'));
-                return;
+            });
+        } else {
+            const result = permissionPromise;
+            if (result === 'granted') {
+                gpsCompassState.permissionGranted = true;
+                gpsActuallyStartCompass();
+            } else {
+                showToast(safeT('gps.compass.denied'), 'warning');
+                gpsSetCompassStatus(safeT('gps.compass.status.denied'));
             }
-            gpsCompassState.permissionGranted = true;
-        } catch (e) {
-            console.warn('Compass permission error:', e);
-            showToast(safeT('gps.compass.denied'), 'warning');
-            gpsSetCompassStatus(safeT('gps.compass.status.denied'));
-            return;
         }
-    } else {
-        gpsCompassState.permissionGranted = true;
+        return;
     }
 
+    // Android / stariji iOS — nema permission API
+    gpsCompassState.permissionGranted = true;
+    gpsActuallyStartCompass();
+}
+
+function gpsActuallyStartCompass() {
     let started = false;
     if ('ondeviceorientationabsolute' in window) {
         window.addEventListener('deviceorientationabsolute', gpsOnDeviceOrientation, true);
