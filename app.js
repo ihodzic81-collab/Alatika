@@ -4270,17 +4270,28 @@ function gpsStartCompassGpsFallback() {
     );
 }
 
+// NOVO — state za smoothing rotacije
+gpsCompassState.smoothedHeading = null;
+gpsCompassState.headingWarmup = 0;
+gpsCompassState.lastRawHeading = null;
+
 function gpsOnDeviceOrientation(e) {
     if (!gpsCompassState.listening) return;
-    let heading = null;
+    let rawHeading = null;
+
+    // iOS — webkitCompassHeading je već u pravom smeru (0 = N, u smeru kazaljke)
     if (e.webkitCompassHeading != null && !isNaN(e.webkitCompassHeading)) {
-        heading = e.webkitCompassHeading;
-    } else if (e.alpha != null && !isNaN(e.alpha)) {
+        rawHeading = e.webkitCompassHeading;
+    }
+    // Android — alpha je 0 = N, ali u smeru suprotnom od kazaljke
+    else if (e.alpha != null && !isNaN(e.alpha)) {
         const absolute = e.absolute === true || gpsCompassState.absolute;
         const alpha = e.alpha;
-        heading = absolute ? (360 - alpha) % 360 : alpha;
+        rawHeading = absolute ? (360 - alpha) % 360 : alpha;
     }
-    if (heading != null) {
+
+    if (rawHeading != null) {
+        // Prvi put kad stigne heading
         if (!gpsCompassState.sensorDataReceived) {
             gpsCompassState.sensorDataReceived = true;
             if (gpsCompassState.fallbackTimerId) {
@@ -4292,10 +4303,64 @@ function gpsOnDeviceOrientation(e) {
                 gpsCompassState.gpsWatchId = null;
                 gpsCompassState.usingGpsFallback = false;
             }
+            // Resetuj warmup — tek smo počeli
+            gpsCompassState.headingWarmup = 0;
+            gpsCompassState.smoothedHeading = null;
+            gpsCompassState.lastRawHeading = null;
         }
-        gpsUpdateCompassHeading(heading, true);
+
+        // WARMUP — prvih 3 očitavanja ignoriši (senzor se stabilizuje)
+        gpsCompassState.headingWarmup++;
+        if (gpsCompassState.headingWarmup < 3) {
+            gpsSetCompassStatus(safeT('gps.compass.status.waiting'));
+            return;
+        }
+
+        // SMOOTHING + UNWRAP (rešava skok 359° → 1°)
+        const smoothed = gpsSmoothHeading(rawHeading);
+        gpsUpdateCompassHeading(smoothed, true);
         gpsSetCompassStatus(safeT('gps.compass.status.active'));
     }
+
+    if (e.beta != null) {
+        gpsCompassState.pitch = e.beta;
+        const pEl = el('gps-compass-pitch');
+        if (pEl) pEl.textContent = Math.round(e.beta) + '°';
+    }
+    if (e.gamma != null) {
+        gpsCompassState.roll = e.gamma;
+        const rEl = el('gps-compass-roll');
+        if (rEl) rEl.textContent = Math.round(e.gamma) + '°';
+    }
+}
+
+// NOVO — smoothing heading-a sa unwrap logikom
+function gpsSmoothHeading(rawHeading) {
+    // Prvi put — postavi samo
+    if (gpsCompassState.smoothedHeading === null) {
+        gpsCompassState.smoothedHeading = rawHeading;
+        gpsCompassState.lastRawHeading = rawHeading;
+        return rawHeading;
+    }
+
+    const lastRaw = gpsCompassState.lastRawHeading;
+    let diff = rawHeading - lastRaw;
+
+    // UNWRAP: ako je razlika > 180°, prešli smo granicu 0/360 — "odmotaj" vrednost
+    if (diff > 180) diff -= 360;
+    else if (diff < -180) diff += 360;
+
+    // Primeni smoothing — 70% stara vrednost, 30% nova (glatko ali responzivno)
+    let smoothed = gpsCompassState.smoothedHeading + diff * 0.3;
+
+    // Normalizuj u [0, 360)
+    smoothed = ((smoothed % 360) + 360) % 360;
+
+    gpsCompassState.smoothedHeading = smoothed;
+    gpsCompassState.lastRawHeading = rawHeading;
+
+    return smoothed;
+}
     if (e.beta != null) {
         gpsCompassState.pitch = e.beta;
         const pEl = el('gps-compass-pitch');
@@ -4363,6 +4428,9 @@ function gpsStopCompass() {
     gpsCompassState.listening = false;
     gpsCompassState.usingGpsFallback = false;
     gpsCompassState.sensorDataReceived = false;
+    gpsCompassState.smoothedHeading = null;
+    gpsCompassState.headingWarmup = 0;
+    gpsCompassState.lastRawHeading = null;
     const indicator = el('gps-compass-indicator');
     if (indicator) indicator.classList.remove('active');
     const btnLabel = el('gps-compass-btn-label');
