@@ -4185,8 +4185,13 @@ function gpsStartCompass() {
     gpsCompassState.permissionGranted = false;
     gpsCompassState.sensorDataReceived = false;
 
-    // iOS 13+ — pozovi permission SINHRONO, bez async/await pre toga
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    // Detekcija da li je iOS (Safari) — samo iOS zahteva requestPermission
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    // iOS 13+ — pozovi permission SINHRONO
+    if (isIOS && typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
         const permissionPromise = DeviceOrientationEvent.requestPermission();
         if (permissionPromise && typeof permissionPromise.then === 'function') {
             permissionPromise.then((result) => {
@@ -4215,7 +4220,7 @@ function gpsStartCompass() {
         return;
     }
 
-    // Android / stariji iOS — nema permission API
+    // Android / stariji iOS / ostali — NEMA permission API, odmah kreni
     gpsCompassState.permissionGranted = true;
     gpsActuallyStartCompass();
 }
@@ -4248,7 +4253,6 @@ function gpsActuallyStartCompass() {
         }
     }, 2500);
 }
-
 function gpsStartCompassGpsFallback() {
     if (!navigator.geolocation) return;
     gpsCompassState.usingGpsFallback = true;
