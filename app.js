@@ -1,11 +1,7 @@
 // ============================================================
-// ALATIKA — app.js (v7) — DEO 1/3
+// ALATIKA — app.js (v8) — DEO 1/3
 // Pomoćne, ICONS, CATEGORIES, navigacija, alati, favoriti,
-// pretraga, istorija, toast, confirm, podešavanja, ARHIVA,
-// VREME, YIN TUNER, RENDER POMOĆNE, PODSETNICI,
-// SVE KALKULACIJE (AUTO, BIKE, MONEY, GPS, MEASURES, HEALTH,
-// TIME, SHOPPING, HOMECALC, KITCHEN, POWER, WORK, MUSIC),
-// VALUTA, TAB SETTINGS, GODIŠNJICE, PLOČICE ZIDOVI
+// pretraga, istorija, toast, confirm, podešavanja, ARHIVA
 // ============================================================
 
 // ================= POMOĆNE =================
@@ -433,7 +429,7 @@ function getTabCount(categoryId, tabId) {
 }
 
 // ============================================================
-// NOVO — PODEŠAVANJE TABOVA PO KATEGORIJI (Faza 1 + 2)
+// NOVO — PODEŠAVANJE TABOVA PO KATEGORIJI
 // ============================================================
 const TABS_LAYOUT_KEY = 'cx_tabs_layout';
 
@@ -490,12 +486,150 @@ function openTabsSettings() {
     }
 
     renderTabsSettingsList();
+    renderAccentPalette();
 
     if (modal) modal.classList.add('show');
     document.body.classList.add('modal-open');
     vibrate(15);
     playTick(0, 1400, 0.06, 0.02);
     try { history.pushState({ modal: 'tabs-settings' }, '', ''); } catch (e) {}
+}
+
+// ============================================================
+// NOVO — IZBOR BOJE AKCENTA (paleta u ⚙️ modalu)
+// ============================================================
+const ACCENT_COLORS_KEY = 'cx_accent_colors';
+
+const ACCENT_PALETTE = [
+    { id: 'crvena', color: '#f43f5e', nameSr: 'Crvena', nameEn: 'Red' },
+    { id: 'narandzasta', color: '#f97316', nameSr: 'Narandžasta', nameEn: 'Orange' },
+    { id: 'zuta', color: '#eab308', nameSr: 'Žuta', nameEn: 'Yellow' },
+    { id: 'zelena', color: '#10b981', nameSr: 'Zelena', nameEn: 'Green' },
+    { id: 'teal', color: '#14b8a6', nameSr: 'Teal', nameEn: 'Teal' },
+    { id: 'plava', color: '#3b82f6', nameSr: 'Plava', nameEn: 'Blue' },
+    { id: 'svetloplava', color: '#0ea5e9', nameSr: 'Svetlo plava', nameEn: 'Light blue' },
+    { id: 'ljubicasta', color: '#a855f7', nameSr: 'Ljubičasta', nameEn: 'Purple' },
+    { id: 'ruzicasta', color: '#ec4899', nameSr: 'Ružičasta', nameEn: 'Pink' },
+    { id: 'siva', color: '#6b7280', nameSr: 'Siva', nameEn: 'Gray' },
+    { id: 'tamnocrvena', color: '#dc2626', nameSr: 'Tamno crvena', nameEn: 'Dark red' },
+    { id: 'tamnozelena', color: '#059669', nameSr: 'Tamno zelena', nameEn: 'Dark green' }
+];
+
+function loadAccentColors() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(ACCENT_COLORS_KEY));
+        if (raw && typeof raw === 'object') return raw;
+    } catch (e) {}
+    return {};
+}
+function saveAccentColors(obj) {
+    try { localStorage.setItem(ACCENT_COLORS_KEY, JSON.stringify(obj)); } catch (e) {}
+}
+function getCategoryAccent(categoryId) {
+    const custom = loadAccentColors();
+    if (custom[categoryId]) return custom[categoryId];
+    const cat = CATEGORIES[categoryId];
+    return cat ? cat.accent : '#6366f1';
+}
+function setCategoryAccent(categoryId, color) {
+    const all = loadAccentColors();
+    all[categoryId] = color;
+    saveAccentColors(all);
+    try { renderQuickTools(); } catch (e) {}
+    try { renderAllTools(); } catch (e) {}
+    try {
+        if (activeCategory === categoryId) {
+            const modal = el('category-modal');
+            if (modal) modal.style.setProperty('--qt-accent', color);
+            const iconBox = el('category-icon');
+            if (iconBox) iconBox.style.setProperty('--qt-accent', color);
+            if (typeof openCategoryBack === 'function') openCategoryBack(categoryId);
+        }
+    } catch (e) {}
+}
+function resetCategoryAccent(categoryId) {
+    const all = loadAccentColors();
+    delete all[categoryId];
+    saveAccentColors(all);
+    const cat = CATEGORIES[categoryId];
+    const color = cat ? cat.accent : '#6366f1';
+    try { renderQuickTools(); } catch (e) {}
+    try { renderAllTools(); } catch (e) {}
+    try {
+        if (activeCategory === categoryId) {
+            const modal = el('category-modal');
+            if (modal) modal.style.setProperty('--qt-accent', color);
+            const iconBox = el('category-icon');
+            if (iconBox) iconBox.style.setProperty('--qt-accent', color);
+            if (typeof openCategoryBack === 'function') openCategoryBack(categoryId);
+        }
+    } catch (e) {}
+}
+
+function renderAccentPalette() {
+    const paletteBox = el('tabs-settings-palette');
+    if (!paletteBox || !tabsSettingsCategory) return;
+
+    const currentColor = getCategoryAccent(tabsSettingsCategory);
+    const defaultColor = CATEGORIES[tabsSettingsCategory] ? CATEGORIES[tabsSettingsCategory].accent : '#6366f1';
+
+    let html = '';
+    ACCENT_PALETTE.forEach(p => {
+        const isSelected = (p.color.toLowerCase() === currentColor.toLowerCase());
+        const colorName = (typeof currentLang !== 'undefined' && currentLang === 'en') ? p.nameEn : p.nameSr;
+        html += `
+            <button type="button"
+                    class="gps-color-swatch${isSelected ? ' selected' : ''}"
+                    style="--swatch-color: ${p.color};"
+                    title="${escapeHtml(colorName)}"
+                    aria-label="${escapeHtml(colorName)}"
+                    onclick="selectAccentColor('${p.color}')">
+                ${isSelected ? '✓' : ''}
+            </button>
+        `;
+    });
+    paletteBox.innerHTML = html;
+
+    const isCustom = (currentColor.toLowerCase() !== defaultColor.toLowerCase());
+    const resetBtn = el('tabs-settings-color-reset');
+    if (resetBtn) {
+        resetBtn.style.display = isCustom ? 'inline-flex' : 'none';
+        resetBtn.textContent = safeT('tabs.settings.color.reset');
+    }
+
+    const colorTitle = el('tabs-settings-color-title');
+    if (colorTitle) colorTitle.textContent = safeT('tabs.settings.color.title');
+}
+
+function selectAccentColor(color) {
+    if (!tabsSettingsCategory) return;
+    setCategoryAccent(tabsSettingsCategory, color);
+    renderAccentPalette();
+    const cat = CATEGORIES[tabsSettingsCategory];
+    if (cat) {
+        const modal = el('tabs-settings-modal');
+        if (modal) modal.style.setProperty('--qt-accent', color);
+        const iconBox = el('tabs-settings-icon');
+        if (iconBox) iconBox.style.setProperty('--qt-accent', color);
+    }
+    vibrate(10);
+    playTick(0, 1400, 0.06, 0.02);
+}
+
+function resetAccentColor() {
+    if (!tabsSettingsCategory) return;
+    resetCategoryAccent(tabsSettingsCategory);
+    renderAccentPalette();
+    const cat = CATEGORIES[tabsSettingsCategory];
+    if (cat) {
+        const modal = el('tabs-settings-modal');
+        if (modal) modal.style.setProperty('--qt-accent', cat.accent);
+        const iconBox = el('tabs-settings-icon');
+        if (iconBox) iconBox.style.setProperty('--qt-accent', cat.accent);
+    }
+    vibrate(15);
+    playTick(0, 1500, 0.08, 0.03);
+    showToast(safeT('tabs.settings.color.resetDone'), 'info', 1600);
 }
 
 function renderTabsSettingsList() {
@@ -640,11 +774,12 @@ function openCategory(categoryId) {
     const iconBox = el('category-icon');
     const titleBox = el('category-title');
     const tabBar = el('category-tab-bar');
+    const accent = getCategoryAccent(categoryId);
 
     if (!modal || !iconBox || !titleBox || !tabBar) return;
 
-    modal.style.setProperty('--qt-accent', cat.accent);
-    iconBox.style.setProperty('--qt-accent', cat.accent);
+    modal.style.setProperty('--qt-accent', accent);
+    iconBox.style.setProperty('--qt-accent', accent);
     iconBox.innerHTML = icon(cat.icon);
     titleBox.textContent = safeT('cat.' + categoryId);
 
@@ -660,7 +795,6 @@ function openCategory(categoryId) {
     if (toolsHint) toolsHint.style.display = 'none';
 }
 
-// NOVO — izdvojeno renderovanje tabova (poštuje layout)
 function renderCategoryTabs(categoryId, tabBar, cat) {
     if (!tabBar || !cat) return;
     const layout = getCategoryTabsLayout(categoryId);
@@ -670,6 +804,8 @@ function renderCategoryTabs(categoryId, tabBar, cat) {
         : cat.tabs.map(t => t.id);
     cat.tabs.forEach(t => { if (!order.includes(t.id)) order.push(t.id); });
 
+    const accent = getCategoryAccent(categoryId);
+
     tabBar.innerHTML = '';
     order.forEach(tabId => {
         if (hidden.includes(tabId)) return;
@@ -678,7 +814,7 @@ function renderCategoryTabs(categoryId, tabBar, cat) {
 
         const btn = document.createElement('button');
         btn.className = 'tab-btn';
-        btn.style.setProperty('--qt-accent', cat.accent);
+        btn.style.setProperty('--qt-accent', accent);
         btn.innerHTML = `
             <span class="tab-btn-icon">${icon(tab.icon)}</span>
             <span class="tab-btn-label">${escapeHtml(safeT('tab.' + categoryId + '.' + tab.id))}</span>
@@ -705,11 +841,12 @@ function openCategoryBack(categoryId) {
     const iconBox = el('category-icon');
     const titleBox = el('category-title');
     const tabBar = el('category-tab-bar');
+    const accent = getCategoryAccent(categoryId);
 
     if (!modal || !iconBox || !titleBox || !tabBar) return;
 
-    modal.style.setProperty('--qt-accent', cat.accent);
-    iconBox.style.setProperty('--qt-accent', cat.accent);
+    modal.style.setProperty('--qt-accent', accent);
+    iconBox.style.setProperty('--qt-accent', accent);
     iconBox.innerHTML = icon(cat.icon);
     titleBox.textContent = safeT('cat.' + categoryId);
 
@@ -734,11 +871,12 @@ function openCalc(categoryId, tabId) {
     const iconBox = el('calc-icon');
     const titleBox = el('calc-title');
     const body = el('calc-body');
+    const accent = getCategoryAccent(categoryId);
 
     if (!modal || !iconBox || !titleBox || !body) return;
 
-    modal.style.setProperty('--qt-accent', cat.accent);
-    iconBox.style.setProperty('--qt-accent', cat.accent);
+    modal.style.setProperty('--qt-accent', accent);
+    iconBox.style.setProperty('--qt-accent', accent);
     iconBox.innerHTML = icon(tab.icon);
     titleBox.textContent = safeT('tab.' + categoryId + '.' + tabId);
 
@@ -762,6 +900,7 @@ function openCalc(categoryId, tabId) {
 
     try { restoreInputsFor(body); } catch (e) {}
     try { setupDateTriplesIn(body); } catch (e) {}
+    try { setupShapeTypeListener(body); } catch (e) {}
 
     vibrate(20);
     playTick(0, 1500, 0.08, 0.03);
@@ -780,7 +919,6 @@ function openCalc(categoryId, tabId) {
     if (tabId === 'vise') setTimeout(() => { renderPowerDevices(); updatePowerTotal(); }, 50);
     if (tabId === 'mojauto') setTimeout(() => { updateAutoStatus(); }, 50);
 
-    // NOVO — GPS tabovi (inicijalizacija)
     if (categoryId === 'gps') {
         setTimeout(() => {
             if (tabId === 'brzina') gpsInitBrzina();
@@ -829,7 +967,6 @@ function closeModal(modalId) {
     const modal = el(modalId);
     if (!modal) return;
 
-    // NOVO — GPS cleanup pri zatvaranju
     if (modalId === 'calc-modal' && activeCategory === 'gps') {
         try { gpsCleanupAll(); } catch (e) {}
     }
@@ -901,9 +1038,10 @@ function renderQuickTools() {
     tools.forEach(id => {
         const cat = CATEGORIES[id];
         if (!cat) return;
+        const accent = getCategoryAccent(id);
         const btn = document.createElement('button');
         btn.className = 'quick-tool';
-        btn.style.setProperty('--qt-accent', cat.accent);
+        btn.style.setProperty('--qt-accent', accent);
         btn.dataset.catId = id;
         btn.innerHTML = `
             <span class="quick-tool-icon">${icon(cat.icon)}</span>
@@ -922,10 +1060,11 @@ function openQuickToolsEditor() {
     const current = getQuickTools();
     grid.innerHTML = '';
     Object.entries(CATEGORIES).forEach(([id, cat]) => {
+        const accent = getCategoryAccent(id);
         const item = document.createElement('div');
         item.className = 'editor-item' + (current.includes(id) ? ' selected' : '');
         item.dataset.catId = id;
-        item.style.setProperty('--qt-accent', cat.accent);
+        item.style.setProperty('--qt-accent', accent);
         item.innerHTML = `
             <div class="editor-item-icon">${icon(cat.icon)}</div>
             <div class="editor-item-label">${escapeHtml(safeT('cat.' + id))}</div>
@@ -966,7 +1105,7 @@ function saveQuickTools() {
     showToast(safeT('editor.success'), 'success');
 }
 
-// ================= SVI ALATI (sa edit mode + drag&drop) =================
+// ================= SVI ALATI =================
 const HIDDEN_CATS_KEY = 'cx_hidden_cats';
 const CATEGORY_ORDER_KEY = 'cx_category_order';
 const TOOLS_HINT_KEY = 'cx_hint_dismissed_tools';
@@ -1015,6 +1154,8 @@ function renderAllTools() {
         const isHidden = hidden.includes(id);
         if (!allToolsEditMode && isHidden) return;
 
+        const accent = getCategoryAccent(id);
+
         const wrap = document.createElement('div');
         wrap.className = 'all-tool-wrap';
         wrap.dataset.catId = id;
@@ -1030,7 +1171,7 @@ function renderAllTools() {
 
         const btn = document.createElement('button');
         btn.className = 'all-tool';
-        btn.style.setProperty('--qt-accent', cat.accent);
+        btn.style.setProperty('--qt-accent', accent);
         btn.dataset.catId = id;
         btn.innerHTML = `
             <span class="all-tool-icon">${icon(cat.icon)}</span>
@@ -1245,10 +1386,11 @@ function renderFavorites() {
         if (!cat) return;
         const tab = cat.tabs.find(t => t.id === tabId);
         if (!tab) return;
+        const accent = getCategoryAccent(catId);
         const chip = document.createElement('button');
         chip.className = 'favorite-chip';
         chip.type = 'button';
-        chip.style.setProperty('--qt-accent', cat.accent);
+        chip.style.setProperty('--qt-accent', accent);
         chip.innerHTML = `
             <span class="fav-icon">${icon(tab.icon)}</span>
             <span class="fav-text">${escapeHtml(safeT('tab.' + catId + '.' + tabId))}</span>
@@ -1869,7 +2011,6 @@ function setupBackButton() {
             return;
         }
         if (calcModal && calcModal.classList.contains('show')) {
-            // GPS cleanup
             if (activeCategory === 'gps') {
                 try { gpsCleanupAll(); } catch (err) {}
             }
@@ -2140,7 +2281,7 @@ function createRipple(e) {
     setTimeout(() => { if (ripple.parentNode) ripple.remove(); }, 600);
 }
 function setupRipple() {
-    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn, .modal-fav-star, .modal-settings-btn, .weather-refresh-btn, .location-gps-btn, .weather-location, .icon-btn-text, .about-row, .all-tools-save-btn, .all-tools-reset-btn, .tabs-settings-reset-btn, .tabs-settings-save-btn, .gps-btn-main, .gps-btn-secondary, .gps-chip, .gps-color-swatch';
+    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn, .modal-fav-star, .modal-settings-btn, .weather-refresh-btn, .location-gps-btn, .weather-location, .icon-btn-text, .about-row, .all-tools-save-btn, .all-tools-reset-btn, .tabs-settings-reset-btn, .tabs-settings-save-btn, .gps-btn-main, .gps-btn-secondary, .gps-chip, .gps-color-swatch, .tabs-settings-color-reset';
     document.addEventListener('pointerdown', (e) => {
         const t = e.target.closest(selector);
         if (t) createRipple({ currentTarget: t, clientX: e.clientX, clientY: e.clientY });
@@ -2376,6 +2517,20 @@ function setupDateTriplesIn(root) {
     });
 }
 
+// ================= POPRAVKA — Građevina: Površina =================
+function setupShapeTypeListener(root) {
+    const sel = root.querySelector('#shape-type');
+    if (!sel || sel.dataset.shapeListener === '1') return;
+    sel.dataset.shapeListener = '1';
+    sel.addEventListener('change', () => {
+        toggleShapeInputs();
+        const box = root.querySelector('#shape-result-box');
+        if (box) box.style.display = 'none';
+        vibrate(10);
+        playTick(0, 1300, 0.05, 0.015);
+    });
+}
+
 // ================= INPUT PERSISTENCE =================
 const INPUT_STORAGE_KEY = 'cx_inputs_v1';
 let inputCache = {};
@@ -2509,9 +2664,9 @@ function runArchiveAutoCleanup() {
         }
     } catch (e) {}
 }// ============================================================
-// ALATIKA — app.js (v7) — DEO 2/3
+// ALATIKA — app.js (v8) — DEO 2/3
 // VREME, YIN TUNER, RENDER POMOĆNE, PODSETNICI,
-// SVE KALKULACIJE (uključujući GPS), VALUTA
+// SVE KALKULACIJE (uključujući GPS i Građevina)
 // ============================================================
 
 // ================= VREME — KONSTANTE =================
@@ -3459,78 +3614,6 @@ function statsRow(boxId, items) {
 function sectionDescKey(key) { return `<p class="section-desc">${safeT(key)}</p>`; }
 
 // ============================================================
-// GPS — BOJE ZA KARTICE (NOVA FUNKCIJA)
-// ============================================================
-const ACCENT_COLORS_KEY = 'cx_accent_colors';
-
-const ACCENT_PALETTE = [
-    { id: 'crvena', color: '#f43f5e', nameSr: 'Crvena', nameEn: 'Red' },
-    { id: 'narandzasta', color: '#f97316', nameSr: 'Narandžasta', nameEn: 'Orange' },
-    { id: 'zuta', color: '#eab308', nameSr: 'Žuta', nameEn: 'Yellow' },
-    { id: 'zelena', color: '#10b981', nameSr: 'Zelena', nameEn: 'Green' },
-    { id: 'teal', color: '#14b8a6', nameSr: 'Teal', nameEn: 'Teal' },
-    { id: 'plava', color: '#3b82f6', nameSr: 'Plava', nameEn: 'Blue' },
-    { id: 'svetloplava', color: '#0ea5e9', nameSr: 'Svetlo plava', nameEn: 'Light blue' },
-    { id: 'ljubicasta', color: '#a855f7', nameSr: 'Ljubičasta', nameEn: 'Purple' },
-    { id: 'ruzicasta', color: '#ec4899', nameSr: 'Ružičasta', nameEn: 'Pink' },
-    { id: 'siva', color: '#6b7280', nameSr: 'Siva', nameEn: 'Gray' },
-    { id: 'tamnocrvena', color: '#dc2626', nameSr: 'Tamno crvena', nameEn: 'Dark red' },
-    { id: 'tamnozelena', color: '#059669', nameSr: 'Tamno zelena', nameEn: 'Dark green' }
-];
-
-function loadAccentColors() {
-    try {
-        const raw = JSON.parse(localStorage.getItem(ACCENT_COLORS_KEY));
-        if (raw && typeof raw === 'object') return raw;
-    } catch (e) {}
-    return {};
-}
-function saveAccentColors(obj) {
-    try { localStorage.setItem(ACCENT_COLORS_KEY, JSON.stringify(obj)); } catch (e) {}
-}
-function getCategoryAccent(categoryId) {
-    const custom = loadAccentColors();
-    if (custom[categoryId]) return custom[categoryId];
-    const cat = CATEGORIES[categoryId];
-    return cat ? cat.accent : '#6366f1';
-}
-function setCategoryAccent(categoryId, color) {
-    const all = loadAccentColors();
-    all[categoryId] = color;
-    saveAccentColors(all);
-    // Refresh prikaza
-    try { renderQuickTools(); } catch (e) {}
-    try { renderAllTools(); } catch (e) {}
-    try {
-        if (activeCategory === categoryId) {
-            const modal = el('category-modal');
-            if (modal) modal.style.setProperty('--qt-accent', color);
-            const iconBox = el('category-icon');
-            if (iconBox) iconBox.style.setProperty('--qt-accent', color);
-            if (typeof openCategoryBack === 'function') openCategoryBack(categoryId);
-        }
-    } catch (e) {}
-}
-function resetCategoryAccent(categoryId) {
-    const all = loadAccentColors();
-    delete all[categoryId];
-    saveAccentColors(all);
-    const cat = CATEGORIES[categoryId];
-    const color = cat ? cat.accent : '#6366f1';
-    try { renderQuickTools(); } catch (e) {}
-    try { renderAllTools(); } catch (e) {}
-    try {
-        if (activeCategory === categoryId) {
-            const modal = el('category-modal');
-            if (modal) modal.style.setProperty('--qt-accent', color);
-            const iconBox = el('category-icon');
-            if (iconBox) iconBox.style.setProperty('--qt-accent', color);
-            if (typeof openCategoryBack === 'function') openCategoryBack(categoryId);
-        }
-    } catch (e) {}
-}
-
-// ============================================================
 // GPS — STORAGE
 // ============================================================
 const GPS_SPEED_UNIT_KEY = 'cx_gps_speed_unit';
@@ -3715,7 +3798,6 @@ function gpsOnSpeedPosition(pos) {
     const speed = pos.coords.speed;
     const accuracy = pos.coords.accuracy;
     const speedKmh = (speed != null && !isNaN(speed) && speed >= 0) ? speed * 3.6 : 0;
-    // Filter šuma
     const filteredKmh = speedKmh < 3 ? 0 : speedKmh;
     gpsSpeedState.currentSpeedKmh = filteredKmh;
     gpsSpeedState.accuracy = accuracy;
@@ -3951,7 +4033,6 @@ function gpsOnAltPosition(pos) {
         gpsAltState.startAltM = alt;
         gpsAltState.lastAlt = alt;
     }
-    // Ascent/descent
     if (gpsAltState.lastAlt != null) {
         const diff = alt - gpsAltState.lastAlt;
         if (diff > 0.5) gpsAltState.ascentM += diff;
@@ -4001,7 +4082,7 @@ function gpsResetAlt() {
 }
 
 // ============================================================
-// GPS — KOMPAS
+// GPS — KOMPAS (SA POPRAVKOM DOZVOLE + SENSOR DETECTION)
 // ============================================================
 let gpsCompassState = {
     listening: false,
@@ -4011,7 +4092,9 @@ let gpsCompassState = {
     absolute: false,
     permissionGranted: false,
     usingGpsFallback: false,
-    gpsWatchId: null
+    gpsWatchId: null,
+    sensorDataReceived: false,
+    fallbackTimerId: null
 };
 
 function renderGpsKompas() {
@@ -4080,6 +4163,9 @@ function renderGpsKompas() {
         <div class="gps-info-note">
             ${icon('info')} ${safeT('gps.compass.note')}
         </div>
+        <div class="gps-info-note" style="margin-top: 8px; background: rgba(14,165,233,0.08); border-color: rgba(14,165,233,0.3);">
+            ${icon('info')} ${safeT('gps.compass.tip')}
+        </div>
     `;
 }
 
@@ -4097,8 +4183,8 @@ function gpsToggleCompass() {
 
 async function gpsStartCompass() {
     gpsCompassState.permissionGranted = false;
+    gpsCompassState.sensorDataReceived = false;
 
-    // iOS 13+ zahteva eksplicitnu dozvolu
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
         try {
             const result = await DeviceOrientationEvent.requestPermission();
@@ -4109,21 +4195,21 @@ async function gpsStartCompass() {
             }
             gpsCompassState.permissionGranted = true;
         } catch (e) {
+            console.warn('Compass permission error:', e);
             showToast(safeT('gps.compass.denied'), 'warning');
+            gpsSetCompassStatus(safeT('gps.compass.status.denied'));
             return;
         }
     } else {
         gpsCompassState.permissionGranted = true;
     }
 
-    // Probaj absolute first
     let started = false;
     if ('ondeviceorientationabsolute' in window) {
         window.addEventListener('deviceorientationabsolute', gpsOnDeviceOrientation, true);
         started = true;
         gpsCompassState.absolute = true;
     }
-    // Uvek dodaj i obični kao fallback
     window.addEventListener('deviceorientation', gpsOnDeviceOrientation, true);
 
     gpsCompassState.listening = true;
@@ -4138,12 +4224,12 @@ async function gpsStartCompass() {
     vibrate(20);
     playTick(0, 1500, 0.08, 0.03);
 
-    // Ako posle 1.5s nema podataka, probaj GPS fallback
-    setTimeout(() => {
-        if (gpsCompassState.listening && gpsCompassState.heading === 0 && !gpsCompassState.gpsWatchId) {
+    gpsCompassState.fallbackTimerId = setTimeout(() => {
+        if (gpsCompassState.listening && !gpsCompassState.sensorDataReceived && !gpsCompassState.gpsWatchId) {
+            console.log('Compass: no sensor data after 2.5s — starting GPS fallback');
             gpsStartCompassGpsFallback();
         }
-    }, 1500);
+    }, 2500);
 }
 
 function gpsStartCompassGpsFallback() {
@@ -4167,20 +4253,24 @@ function gpsOnDeviceOrientation(e) {
     if (!gpsCompassState.listening) return;
     let heading = null;
     if (e.webkitCompassHeading != null && !isNaN(e.webkitCompassHeading)) {
-        // iOS - webkitCompassHeading je već u pravom smeru (0 = N, u smeru kazaljke)
         heading = e.webkitCompassHeading;
-        gpsCompassState.usingGpsFallback = false;
     } else if (e.alpha != null && !isNaN(e.alpha)) {
-        // Android - alpha je 0 = N, ali u smeru suprotnom od kazaljke
         const absolute = e.absolute === true || gpsCompassState.absolute;
         const alpha = e.alpha;
         heading = absolute ? (360 - alpha) % 360 : alpha;
     }
     if (heading != null) {
-        gpsCompassState.usingGpsFallback = false;
-        if (gpsCompassState.gpsWatchId && navigator.geolocation) {
-            navigator.geolocation.clearWatch(gpsCompassState.gpsWatchId);
-            gpsCompassState.gpsWatchId = null;
+        if (!gpsCompassState.sensorDataReceived) {
+            gpsCompassState.sensorDataReceived = true;
+            if (gpsCompassState.fallbackTimerId) {
+                clearTimeout(gpsCompassState.fallbackTimerId);
+                gpsCompassState.fallbackTimerId = null;
+            }
+            if (gpsCompassState.gpsWatchId && navigator.geolocation) {
+                navigator.geolocation.clearWatch(gpsCompassState.gpsWatchId);
+                gpsCompassState.gpsWatchId = null;
+                gpsCompassState.usingGpsFallback = false;
+            }
         }
         gpsUpdateCompassHeading(heading, true);
         gpsSetCompassStatus(safeT('gps.compass.status.active'));
@@ -4245,8 +4335,13 @@ function gpsStopCompass() {
         navigator.geolocation.clearWatch(gpsCompassState.gpsWatchId);
         gpsCompassState.gpsWatchId = null;
     }
+    if (gpsCompassState.fallbackTimerId) {
+        clearTimeout(gpsCompassState.fallbackTimerId);
+        gpsCompassState.fallbackTimerId = null;
+    }
     gpsCompassState.listening = false;
     gpsCompassState.usingGpsFallback = false;
+    gpsCompassState.sensorDataReceived = false;
     const indicator = el('gps-compass-indicator');
     if (indicator) indicator.classList.remove('active');
     const btnLabel = el('gps-compass-btn-label');
@@ -4388,7 +4483,6 @@ function gpsRenderLaps() {
         return;
     }
     box.style.display = 'block';
-    // Nađi min i max lap
     let minLap = Infinity, maxLap = -Infinity;
     gpsStopwatchState.laps.forEach((l, i) => {
         if (i === 0 && gpsStopwatchState.laps.length === 1) return;
@@ -4650,7 +4744,6 @@ function gpsStartAlarm() {
     gpsTimerState.alarming = true;
     gpsUpdateTimerButton();
     showToast(safeT('gps.timer.timeUp'), 'success', 4000);
-    // Ponovi alarm nekoliko puta
     let count = 0;
     const maxCount = 10;
     const beepOnce = () => {
@@ -8032,10 +8125,10 @@ function calculateMealCost() {
 let openingsData = { paint: [], tile: [], block: [], board: [] };
 
 function renderHomePovrsina() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.area')}${selectField('label.home.shape', 'shape-type', [{ value: 'rect', text: safeT('option.home.rectangle') }, { value: 'square', text: safeT('option.home.square') }, { value: 'circle', text: safeT('option.home.circle') }, { value: 'triangle', text: safeT('option.home.triangle') }], 'rect')}<div id="shape-rect-inputs">${inputField('label.home.length', 'shape-a', 'm', 'placeholder="5"')}${inputField('label.home.width', 'shape-b', 'm', 'placeholder="3"')}</div><div id="shape-square-inputs" style="display:none;">${inputField('label.home.side', 'shape-side', 'm', 'placeholder="4"')}</div><div id="shape-circle-inputs" style="display:none;">${inputField('label.home.diameter', 'shape-diameter', 'm', 'placeholder="4"')}</div><div id="shape-triangle-inputs" style="display:none;">${inputField('label.home.base', 'shape-base', 'm', 'placeholder="6"')}${inputField('label.home.height', 'shape-height', 'm', 'placeholder="4"')}</div>${calcButton('btn.calculate', 'calculateShapeArea()')}</div>${resultCard('shape-result-box', 'square', 'label.home.area', 'res-shape-area', 'm²', 'GRAĐEVINA', 'label.home.area')}`;
+    return `<div class="converter-box">${sectionDescKey('desc.home.area')}${selectField('label.home.shape', 'shape-type', [{ value: 'rect', text: safeT('option.home.rectangle') }, { value: 'square', text: safeT('option.home.square') }, { value: 'circle', text: safeT('option.home.circle') }, { value: 'triangle', text: safeT('option.home.triangle') }], 'rect')}<div id="shape-rect-inputs">${inputField('label.home.length', 'shape-a', 'm', 'placeholder="5"')}${inputField('label.home.width', 'shape-b', 'm', 'placeholder="3"')}</div><div id="shape-square-inputs" style="display:none;">${inputField('label.home.side', 'shape-side', 'm', 'placeholder="4"')}</div><div id="shape-circle-inputs" style="display:none;">${inputField('label.home.diameter', 'shape-diameter', 'm', 'placeholder="4"')}</div><div id="shape-triangle-inputs" style="display:none;">${inputField('label.home.length', 'shape-base', 'm', 'placeholder="6"')}${inputField('label.home.height', 'shape-height', 'm', 'placeholder="4"')}</div>${calcButton('btn.calculate', 'calculateShapeArea()')}</div>${resultCard('shape-result-box', 'square', 'label.home.area', 'res-shape-area', 'm²', 'GRAĐEVINA', 'label.home.area')}`;
 }
 function renderHomeBlokovi() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.blocks')}${inputField('label.home.wallLength', 'block-wall-l', 'm', 'placeholder="10"')}${inputField('label.home.wallHeight', 'block-wall-h', 'm', 'placeholder="2.8"')}${inputField('label.home.blockDimensions', 'block-l', 'cm', 'placeholder="25"')}${inputField('label.home.blockDimensions', 'block-h', 'cm', 'placeholder="19"')}${inputField('label.home.pricePerPiece', 'block-price', 'RSD', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateBlocks()')}</div>${resultCard('blocks-result-box', 'bricks', 'label.home.blocksNeeded', 'res-blocks-count', '', 'GRAĐEVINA', 'Blokovi')}${statsRow('blocks-stats-row', [['label.home.netArea', 'stat-blocks-area', '0 m²'], ['label.home.totalPrice', 'stat-blocks-price', '—']])}`;
+    return `<div class="converter-box">${sectionDescKey('desc.home.blocks')}${inputField('label.home.wallLength', 'block-wall-l', 'm', 'placeholder="10"')}${inputField('label.home.wallHeight', 'block-wall-h', 'm', 'placeholder="2.8"')}${inputField('label.home.blockDimensions', 'block-l', 'cm', 'placeholder="25"')}${inputField('label.home.blockDimensions', 'block-h', 'cm', 'placeholder="19"')}${inputField('label.home.pricePerPiece', 'block-price', '€', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateBlocks()')}</div>${resultCard('blocks-result-box', 'bricks', 'label.home.blocksNeeded', 'res-blocks-count', '', 'GRAĐEVINA', 'Blokovi')}${statsRow('blocks-stats-row', [['label.home.netArea', 'stat-blocks-area', '0 m²'], ['label.home.totalPrice', 'stat-blocks-price', '—']])}`;
 }
 function renderHomeTable() {
     return `<div class="converter-box">${sectionDescKey('desc.home.boards')}${inputField('label.home.surfaceLength', 'board-wall-l', 'm', 'placeholder="10"')}${inputField('label.home.surfaceHeight', 'board-wall-h', 'm', 'placeholder="2.8"')}${inputField('label.home.boardDimensions', 'board-l', 'cm', 'placeholder="125"')}${inputField('label.home.boardDimensions', 'board-w', 'cm', 'placeholder="250"')}${inputField('label.home.reserve', 'board-reserve', '%', 'placeholder="10"')}${calcButton('btn.calculate', 'calculateBoards()')}</div>${resultCard('boards-result-box', 'board', 'label.home.boardsNeeded', 'res-boards-count', '', 'GRAĐEVINA', 'Table')}${statsRow('boards-stats-row', [['label.home.netArea', 'stat-boards-area', '0 m²'], ['label.home.boardArea', 'stat-boards-single', '0 m²']])}`;
@@ -8181,10 +8274,23 @@ function toggleTilesWalls() {
 function calculateShapeArea() {
     const type = el('shape-type') ? el('shape-type').value : 'rect';
     let area = 0;
-    if (type === 'rect') { const a = num('shape-a'), b = num('shape-b'); if (!a || !b) { showToast(safeT('toast.error.enterLengthWidth'), 'error'); return; } area = a * b; }
-    else if (type === 'square') { const s = num('shape-side'); if (!s) { showToast(safeT('toast.error.enterSide'), 'error'); return; } area = s * s; }
-    else if (type === 'circle') { const d = num('shape-diameter'); if (!d) { showToast(safeT('toast.error.enterDiameter'), 'error'); return; } area = Math.PI * Math.pow(d / 2, 2); }
-    else { const b = num('shape-base'), h = num('shape-height'); if (!b || !h) { showToast(safeT('toast.error.enterBaseHeight'), 'error'); return; } area = (b * h) / 2; }
+    if (type === 'rect') {
+        const a = num('shape-a'), b = num('shape-b');
+        if (!a || !b) { showToast(safeT('toast.error.enterLengthWidth'), 'error'); return; }
+        area = a * b;
+    } else if (type === 'square') {
+        const s = num('shape-side');
+        if (!s) { showToast(safeT('toast.error.enterSide'), 'error'); return; }
+        area = s * s;
+    } else if (type === 'circle') {
+        const d = num('shape-diameter');
+        if (!d) { showToast(safeT('toast.error.enterDiameter'), 'error'); return; }
+        area = Math.PI * Math.pow(d / 2, 2);
+    } else if (type === 'triangle') {
+        const b = num('shape-base'), h = num('shape-height');
+        if (!b || !h) { showToast(safeT('toast.error.enterBaseHeight'), 'error'); return; }
+        area = (b * h) / 2;
+    }
     const sa = el('res-shape-area'); if (sa) sa.innerText = fmt(area, 2);
     show('shape-result-box');
 }
@@ -8271,7 +8377,7 @@ function calculateBlocks() {
     const bc = el('res-blocks-count'); if (bc) bc.innerText = blocks;
     const ba = el('stat-blocks-area'); if (ba) ba.innerText = fmt(netArea, 2) + ' m²';
     const price = num('block-price');
-    const bp = el('stat-blocks-price'); if (bp) bp.innerText = price ? money(blocks * price) + ' RSD' : '—';
+    const bp = el('stat-blocks-price'); if (bp) bp.innerText = price ? money(blocks * price) + ' €' : '—';
     show('blocks-result-box'); show('blocks-stats-row');
 }
 function calculateBoards() {
@@ -9569,6 +9675,11 @@ function refreshUIText() {
         const settingsArchiveBtn = el('settings-archive-btn'); if (settingsArchiveBtn) {
             settingsArchiveBtn.textContent = getArchiveAutoCleanupSetting() ? safeT('settings.archive.autoCleanup.on') : safeT('settings.archive.autoCleanup.off');
         }
+
+        const colorTitle = el('tabs-settings-color-title');
+        if (colorTitle) colorTitle.textContent = safeT('tabs.settings.color.title');
+        const colorReset = el('tabs-settings-color-reset');
+        if (colorReset) colorReset.textContent = safeT('tabs.settings.color.reset');
     } catch (e) { console.warn('refreshUIText greška:', e); }
 }
 
