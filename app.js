@@ -4277,21 +4277,21 @@ gpsCompassState.lastRawHeading = null;
 
 function gpsOnDeviceOrientation(e) {
     if (!gpsCompassState.listening) return;
+
     let rawHeading = null;
 
-    // iOS — webkitCompassHeading je već u pravom smeru (0 = N, u smeru kazaljke)
+    // iOS — webkitCompassHeading je već pravi sever
     if (e.webkitCompassHeading != null && !isNaN(e.webkitCompassHeading)) {
         rawHeading = e.webkitCompassHeading;
     }
-    // Android — alpha je 0 = N, ali u smeru suprotnom od kazaljke
+    // Android — alpha (0 = sever, ali obrnuto od kazaljke)
     else if (e.alpha != null && !isNaN(e.alpha)) {
         const absolute = e.absolute === true || gpsCompassState.absolute;
-        const alpha = e.alpha;
-        rawHeading = absolute ? (360 - alpha) % 360 : alpha;
+        rawHeading = absolute ? (360 - e.alpha) % 360 : e.alpha;
     }
 
     if (rawHeading != null) {
-        // Prvi put kad stigne heading
+        // Prvi put kada stigne heading — resetuj stanje
         if (!gpsCompassState.sensorDataReceived) {
             gpsCompassState.sensorDataReceived = true;
             if (gpsCompassState.fallbackTimerId) {
@@ -4303,40 +4303,32 @@ function gpsOnDeviceOrientation(e) {
                 gpsCompassState.gpsWatchId = null;
                 gpsCompassState.usingGpsFallback = false;
             }
-            // Resetuj warmup — tek smo počeli
-            gpsCompassState.headingWarmup = 0;
+            // Reset smoothing stanja
             gpsCompassState.smoothedHeading = null;
             gpsCompassState.lastRawHeading = null;
         }
 
-        // WARMUP — prvih 3 očitavanja ignoriši (senzor se stabilizuje)
-        gpsCompassState.headingWarmup++;
-        if (gpsCompassState.headingWarmup < 3) {
-            gpsSetCompassStatus(safeT('gps.compass.status.waiting'));
-            return;
-        }
-
-        // SMOOTHING + UNWRAP (rešava skok 359° → 1°)
+        // Filtriranje
         const smoothed = gpsSmoothHeading(rawHeading);
         gpsUpdateCompassHeading(smoothed, true);
         gpsSetCompassStatus(safeT('gps.compass.status.active'));
     }
 
-    if (e.beta != null) {
+    // Pitch i roll
+    if (e.beta != null && !isNaN(e.beta)) {
         gpsCompassState.pitch = e.beta;
         const pEl = el('gps-compass-pitch');
         if (pEl) pEl.textContent = Math.round(e.beta) + '°';
     }
-    if (e.gamma != null) {
+    if (e.gamma != null && !isNaN(e.gamma)) {
         gpsCompassState.roll = e.gamma;
         const rEl = el('gps-compass-roll');
         if (rEl) rEl.textContent = Math.round(e.gamma) + '°';
     }
 }
 
-// NOVO — smoothing heading-a sa unwrap logikom
 function gpsSmoothHeading(rawHeading) {
-    // Prvi put — postavi samo
+    // Prvi put — samo postavi
     if (gpsCompassState.smoothedHeading === null) {
         gpsCompassState.smoothedHeading = rawHeading;
         gpsCompassState.lastRawHeading = rawHeading;
@@ -4346,12 +4338,24 @@ function gpsSmoothHeading(rawHeading) {
     const lastRaw = gpsCompassState.lastRawHeading;
     let diff = rawHeading - lastRaw;
 
-    // UNWRAP: ako je razlika > 180°, prešli smo granicu 0/360 — "odmotaj" vrednost
+    // UNWRAP — rešava skok 359° ↔ 1°
     if (diff > 180) diff -= 360;
     else if (diff < -180) diff += 360;
 
-    // Primeni smoothing — 70% stara vrednost, 30% nova (glatko ali responzivno)
-    let smoothed = gpsCompassState.smoothedHeading + diff * 0.3;
+    // MRTVА ZONA — ignoriši mikroskopske trzaje (< 0.3°)
+    if (Math.abs(diff) < 0.3) {
+        diff = 0;
+    }
+
+    // Ako je skok preveliki (> 60° u jednom frame-u) — verovatno je šum, preskoči
+    if (Math.abs(diff) > 60) {
+        gpsCompassState.lastRawHeading = rawHeading;
+        return gpsCompassState.smoothedHeading;
+    }
+
+    // LOW-PASS FILTER — 0.15 = glatko, ali responzivno
+    const smoothingFactor = 0.15;
+    let smoothed = gpsCompassState.smoothedHeading + diff * smoothingFactor;
 
     // Normalizuj u [0, 360)
     smoothed = ((smoothed % 360) + 360) % 360;
@@ -4360,8 +4364,7 @@ function gpsSmoothHeading(rawHeading) {
     gpsCompassState.lastRawHeading = rawHeading;
 
     return smoothed;
-}
-    
+}    
 function gpsUpdateCompassHeading(heading, isSensor) {
     if (heading == null || isNaN(heading)) return;
     gpsCompassState.heading = heading;
