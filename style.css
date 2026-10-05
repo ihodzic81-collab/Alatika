@@ -3937,6 +3937,135 @@ input[type="text"].custom-input::placeholder {
     line-height: 1.5;
     font-weight: 500;
 }
+/* ============================================================
+   IZBOR BOJE KARTICE (paleta u ⚙️ modalu)
+   ============================================================ */
+.tabs-settings-color-section {
+    padding: 14px 18px 6px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tabs-settings-color-title {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.tabs-settings-palette {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.gps-color-swatch {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-width: 44px;
+    justify-self: center;
+    border-radius: 50%;
+    background: var(--swatch-color, #6366f1);
+    border: 2px solid transparent;
+    cursor: pointer;
+    position: relative;
+    padding: 0;
+    transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.2s ease,
+                border-color 0.15s ease;
+    box-shadow:
+        inset 0 2px 3px rgba(255, 255, 255, 0.35),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.25),
+        0 2px 6px rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 900;
+    line-height: 1;
+    font-family: inherit;
+}
+
+.gps-color-swatch:hover {
+    transform: scale(1.12);
+    box-shadow:
+        inset 0 2px 3px rgba(255, 255, 255, 0.4),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+        0 4px 12px color-mix(in srgb, var(--swatch-color, #6366f1) 60%, transparent);
+}
+
+.gps-color-swatch:active {
+    transform: scale(0.95);
+}
+
+.gps-color-swatch.selected {
+    border-color: #ffffff;
+    box-shadow:
+        inset 0 2px 3px rgba(255, 255, 255, 0.4),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+        0 0 0 3px color-mix(in srgb, var(--swatch-color, #6366f1) 50%, transparent),
+        0 4px 12px color-mix(in srgb, var(--swatch-color, #6366f1) 60%, transparent);
+    transform: scale(1.06);
+}
+
+.gps-color-swatch.selected::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px dashed color-mix(in srgb, var(--swatch-color, #6366f1) 70%, transparent);
+    animation: swatchPulse 1.8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes swatchPulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.05); }
+}
+
+.tabs-settings-color-reset {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    font-family: inherit;
+    margin-bottom: 4px;
+}
+
+.tabs-settings-color-reset:hover {
+    background: var(--card-active);
+    color: var(--text-main);
+    border-color: var(--accent-primary);
+}
+
+.tabs-settings-color-reset:active {
+    transform: scale(0.97);
+}
+
+@media (max-width: 400px) {
+    .tabs-settings-palette {
+        gap: 8px;
+    }
+    .gps-color-swatch {
+        max-width: 38px;
+        font-size: 0.85rem;
+    }
+    .tabs-settings-color-section {
+        padding: 12px 14px 4px;
+    }
+}
 .tabs-settings-list {
     padding: 16px 18px;
     overflow-y: auto;
