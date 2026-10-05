@@ -1,5 +1,6 @@
+
 // ============================================================
-// ALATIKA — translations.js (v7 — sa GPS kategorijom)
+// ALATIKA — translations.js (v8 — sa paletom boja i kompas tip)
 // ============================================================
 
 const TRANSLATIONS = {
@@ -113,6 +114,9 @@ const TRANSLATIONS = {
         'tabs.settings.saved': 'Tabovi sačuvani',
         'tabs.settings.reset.done': 'Tabovi vraćeni na podrazumevano',
         'tabs.settings.error.minOne': 'Mora ostati bar jedan tab vidljiv.',
+        'tabs.settings.color.title': 'Boja kartice',
+        'tabs.settings.color.reset': 'Vrati boju',
+        'tabs.settings.color.resetDone': 'Boja vraćena na podrazumevanu',
 
         // ============ O APLIKACIJI ============
         'about.title': 'O aplikaciji',
@@ -194,6 +198,7 @@ const TRANSLATIONS = {
         'gps.compass.roll': 'Rotacija',
         'gps.compass.source': 'Izvor',
         'gps.compass.note': 'Kompas radi na telefonima sa magnetometrom. Ako ne radi, koristi GPS smer kretanja (samo dok se krećeš).',
+        'gps.compass.tip': 'Na iPhone-u: klikni "Omogući kompas" i potvrdi dozvolu. Ako i dalje ne radi, drži telefon uspravno i pomeri ga u obliku osmice. Na Androidu: telefon mora imati magnetometar (kompas).',
         'gps.compass.dir.n': 'Sever',
         'gps.compass.dir.ne': 'Severoistok',
         'gps.compass.dir.e': 'Istok',
@@ -1982,6 +1987,9 @@ const TRANSLATIONS = {
         'tabs.settings.saved': 'Tabs saved',
         'tabs.settings.reset.done': 'Tabs reset to default',
         'tabs.settings.error.minOne': 'At least one tab must remain visible.',
+        'tabs.settings.color.title': 'Card color',
+        'tabs.settings.color.reset': 'Reset color',
+        'tabs.settings.color.resetDone': 'Color reset to default',
 
         // ============ ABOUT ============
         'about.title': 'About',
@@ -2063,6 +2071,7 @@ const TRANSLATIONS = {
         'gps.compass.roll': 'Roll',
         'gps.compass.source': 'Source',
         'gps.compass.note': 'Compass works on phones with magnetometer. If not working, uses GPS heading (only while moving).',
+        'gps.compass.tip': 'On iPhone: tap "Enable compass" and confirm permission. If it still doesn\'t work, hold the phone upright and move it in a figure-8. On Android: phone must have a magnetometer (compass).',
         'gps.compass.dir.n': 'North',
         'gps.compass.dir.ne': 'Northeast',
         'gps.compass.dir.e': 'East',
