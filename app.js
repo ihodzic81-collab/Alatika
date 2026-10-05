@@ -4308,9 +4308,9 @@ function gpsOnDeviceOrientation(e) {
             gpsCompassState.lastRawHeading = null;
         }
 
-        // Filtriranje
-        const smoothed = gpsSmoothHeading(rawHeading);
-        gpsUpdateCompassHeading(smoothed, true);
+    // PRIVREMENO — bez filtriranja, samo da vidimo sirove podatke
+        console.log('RAW heading:', rawHeading);
+        gpsUpdateCompassHeading(rawHeading, true);
         gpsSetCompassStatus(safeT('gps.compass.status.active'));
     }
 
