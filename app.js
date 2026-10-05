@@ -4371,7 +4371,6 @@ function gpsSmoothHeading(rawHeading) {
         const rEl = el('gps-compass-roll');
         if (rEl) rEl.textContent = Math.round(e.gamma) + '°';
     }
-}
 
 function gpsUpdateCompassHeading(heading, isSensor) {
     if (heading == null || isNaN(heading)) return;
