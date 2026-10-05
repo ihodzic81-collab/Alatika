@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Alatika">
 <title>Alatika — Mali alat za velika računanja</title>
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 
@@ -279,6 +279,20 @@
             </button>
         </div>
         <p class="tabs-settings-desc" id="tabs-settings-desc">Uključi/isključi tabove koje želiš da vidiš. Zadrži prstom na ikonu i prevuci za promenu redosleda.</p>
+
+        <!-- NOVO — Izbor boje kartice -->
+        <div class="tabs-settings-color-section">
+            <div class="tabs-settings-color-title" id="tabs-settings-color-title">Boja kartice</div>
+            <div class="tabs-settings-palette" id="tabs-settings-palette"></div>
+            <button type="button"
+                    class="tabs-settings-color-reset"
+                    id="tabs-settings-color-reset"
+                    style="display: none;"
+                    onclick="resetAccentColor()">
+                Vrati boju
+            </button>
+        </div>
+
         <div class="tabs-settings-list" id="tabs-settings-list"></div>
         <div class="tabs-settings-actions">
             <button class="tabs-settings-reset-btn" onclick="resetTabsLayout()" id="tabs-settings-reset-btn">Vrati na podrazumevano</button>
@@ -438,7 +452,7 @@
     </div>
 </div>
 
-<script src="translations.js?v=7"></script>
-<script src="app.js?v=7"></script>
+<script src="translations.js?v=8"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>
