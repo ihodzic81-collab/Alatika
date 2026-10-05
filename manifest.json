@@ -1,8 +1,8 @@
 {
   "name": "Alatika — Mali alat za velika računanja",
   "short_name": "Alatika",
-  "description": "Alatika — tvoj džepni asistent. Kalkulatori, podsetnici, vreme i još mnogo toga.",
-  "start_url": "./",
+  "description": "Alatika — tvoj džepni asistent.",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
@@ -13,19 +13,19 @@
   "categories": ["utilities", "productivity"],
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "./web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-512.png",
+      "src": "./web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-512.png",
+      "src": "./web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
