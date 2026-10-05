@@ -4361,17 +4361,7 @@ function gpsSmoothHeading(rawHeading) {
 
     return smoothed;
 }
-    if (e.beta != null) {
-        gpsCompassState.pitch = e.beta;
-        const pEl = el('gps-compass-pitch');
-        if (pEl) pEl.textContent = Math.round(e.beta) + '°';
-    }
-    if (e.gamma != null) {
-        gpsCompassState.roll = e.gamma;
-        const rEl = el('gps-compass-roll');
-        if (rEl) rEl.textContent = Math.round(e.gamma) + '°';
-    }
-
+    
 function gpsUpdateCompassHeading(heading, isSensor) {
     if (heading == null || isNaN(heading)) return;
     gpsCompassState.heading = heading;
