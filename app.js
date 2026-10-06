@@ -8012,7 +8012,95 @@ function calculateBonuses() {
     const by = el('stat-bonus-yearly'); if (by) by.innerText = money(total) + ' RSD';
     show('bonus-result-box'); show('bonus-stats-row');
 }
+// ---------- STRUJA: KABL I OSIGURAČ ----------
+function renderPowerKabl() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Preporučeni presek kabla i osigurač na osnovu struje i dužine.</p>
+            ${inputField('label.power.loadCurrent', 'kabl-amps', 'A', 'placeholder="16"')}
+            ${inputField('label.power.cableLength', 'kabl-len', 'm', 'placeholder="20"')}
+            ${inputField('label.power.voltage', 'kabl-volt', 'V', 'value="230"')}
+            ${selectField('label.power.cableType', 'kabl-type', [
+                { value: 'bakr', text: 'Bakar' },
+                { value: 'alu', text: 'Aluminijum' }
+            ], 'bakr')}
+            ${calcButton('btn.calculate', 'calculateCable()')}
+        </div>
+        <div id="kabl-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left">
+                <div class="pump-icon">${icon('cable')}</div>
+                <div>
+                    <div class="res-label">Preporučeni presek</div>
+                    <h2><span id="res-kabl-mm2">0</span> <small>mm²</small></h2>
+                </div>
+            </div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-kabl-mm2', 'mm²', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="STRUJA" data-label="Kabl" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="STRUJA" data-label="Kabl" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+        ${statsRow('kabl-stats-row', [
+            ['Osigurač', 'stat-kabl-osig', '0 A'],
+            ['Pad napona', 'stat-kabl-pad', '0 %'],
+            ['Materijal', 'stat-kabl-mat', '—']
+        ])}
+    `;
+}
 
+function calculateCable() {
+    const amps = num('kabl-amps');
+    const len = num('kabl-len');
+    const volts = num('kabl-volt') || 230;
+    const isCopper = !el('kabl-type') || el('kabl-type').value === 'bakr';
+    
+    if (!amps || !len) { 
+        showToast('Unesi struju i dužinu kabla.', 'error'); 
+        return; 
+    }
+    
+    // Dozvoljena struja po preseku (A) za bakarne kablove
+    const ampacity = isCopper 
+        ? { 1.5: 14, 2.5: 20, 4: 26, 6: 34, 10: 46, 16: 62, 25: 80, 35: 100, 50: 125 } 
+        : { 2.5: 15, 4: 20, 6: 26, 10: 36, 16: 48, 25: 62, 35: 78, 50: 96 };
+    
+    const rho = isCopper ? 0.0178 : 0.0282; // specifična otpornost (Ω·mm²/m)
+    const sections = Object.keys(ampacity).map(Number).sort((a, b) => a - b);
+    
+    // Izaberi minimalni presek koji zadovoljava struju (sa 15% margine)
+    let chosen = null;
+    for (const s of sections) {
+        if (ampacity[s] >= amps * 1.15) { chosen = s; break; }
+    }
+    if (!chosen) chosen = sections[sections.length - 1];
+    
+    // Provera pada napona (max 5%)
+    const minSectionForDrop = (2 * rho * len * amps) / (volts * 0.05);
+    if (minSectionForDrop > chosen) {
+        for (const s of sections) {
+            if (s >= minSectionForDrop) { chosen = s; break; }
+        }
+    }
+    
+    const dropPct = ((2 * rho * len * amps) / chosen / volts) * 100;
+    const fuses = [6, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125];
+    const recommendedFuse = fuses.find(f => f >= amps * 1.15) || 125;
+    
+    const rv = el('res-kabl-mm2');
+    if (rv) rv.innerText = fmt(chosen, 1);
+    
+    const so = el('stat-kabl-osig');
+    if (so) so.innerText = recommendedFuse + ' A';
+    
+    const sp = el('stat-kabl-pad');
+    if (sp) sp.innerText = fmt(dropPct, 2) + ' %';
+    
+    const sm = el('stat-kabl-mat');
+    if (sm) sm.innerText = isCopper ? 'Bakar' : 'Aluminijum';
+    
+    show('kabl-result-box'); 
+    show('kabl-stats-row');
+}
 // ============================================================
 // MUZIKA
 // ============================================================
