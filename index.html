@@ -7,13 +7,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Alatika">
-<title>Alatika — Mali alat za velika računanja</title>
+<title>Alatika 2.0 — tvoj džepni asistent</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="web-app-manifest-192x192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="web-app-manifest-512x512.png">
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 
@@ -24,12 +24,37 @@
         <h1 class="logo-text">ALATI<span>KA</span></h1>
     </div>
     <p class="splash-tagline">Alatika — tvoj džepni asistent</p>
+    <div class="splash-version">v2.0</div>
 </div>
 
 <!-- ================= APP ================= -->
 <div class="app-container">
 
-    <!-- ========== POČETNI EKRAN ========== -->
+    <!-- ============================================================ -->
+    <!-- TOOLBAR — uvek vidljiv na vrhu (ISPOD headera)              -->
+    <!-- ============================================================ -->
+    <div id="app-toolbar" class="app-toolbar">
+        <button id="toolbar-torch-btn" class="toolbar-btn" onclick="openTorchOptions()" title="Lampa" aria-label="Lampa">
+            <span class="toolbar-icon"></span>
+            <span class="toolbar-label" data-i18n="toolbar.torch.title">Lampa</span>
+        </button>
+        <button id="toolbar-stopwatch-btn" class="toolbar-btn" onclick="openToolbarStopwatch()" title="Štoperica" aria-label="Štoperica">
+            <span class="toolbar-icon"></span>
+            <span class="toolbar-label">Štoperica</span>
+        </button>
+        <button id="toolbar-timer-btn" class="toolbar-btn" onclick="openToolbarTimer()" title="Tajmer" aria-label="Tajmer">
+            <span class="toolbar-icon"></span>
+            <span class="toolbar-label">Tajmer</span>
+        </button>
+        <button id="toolbar-level-btn" class="toolbar-btn" onclick="openLevelOptions()" title="Nivo" aria-label="Nivo">
+            <span class="toolbar-icon"></span>
+            <span class="toolbar-label">Nivo</span>
+        </button>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- EKRAN: POČETNA                                               -->
+    <!-- ============================================================ -->
     <div id="home-screen" class="screen active">
 
         <header class="header">
@@ -43,12 +68,9 @@
                     <button id="theme-toggle" class="icon-btn-svg" onclick="toggleTheme()" title="Tema" aria-label="Tema">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                     </button>
-                    <button class="icon-btn-svg" onclick="openScreen('settings-screen')" title="Podešavanja" aria-label="Podešavanja">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                    </button>
                 </div>
             </div>
-            <p class="subtitle" id="app-subtitle">Alatika — tvoj džepni asistent</p>
+            <p class="subtitle" id="app-subtitle">Alatika 2.0 — tvoj džepni asistent</p>
         </header>
 
         <div class="search-wrap">
@@ -57,8 +79,12 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                 </span>
                 <input type="text" id="home-search" class="search-input"
-                       placeholder="Brza pretraga..."
-                       oninput="handleQuickSearch()">
+                       placeholder="Pretraži alate ili ukucaj broj..."
+                       oninput="handleQuickSearch()"
+                       autocomplete="off">
+                <button id="search-clear-btn" class="search-clear-btn" onclick="clearSearch()" style="display:none;" aria-label="Obriši">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
             </div>
         </div>
 
@@ -66,6 +92,7 @@
 
         <div id="home-normal-content">
 
+            <!-- ========== BRZI ALATI ========== -->
             <section class="home-section" id="quick-tools-section">
                 <div class="section-head">
                     <h2 class="section-title" id="sec-title-quick">Brzi alati</h2>
@@ -74,6 +101,7 @@
                 <div id="quick-tools-grid" class="quick-tools-grid"></div>
             </section>
 
+            <!-- ========== MOJI ALATI ========== -->
             <section class="home-section" id="my-tools-section">
                 <div class="section-head">
                     <h2 class="section-title" id="sec-title-my">Moji alati</h2>
@@ -84,7 +112,11 @@
                 </div>
             </section>
 
-            <section class="home-section">
+            <!-- ========== 10 SEKCIJA ========== -->
+            <div id="sections-container" class="sections-container"></div>
+
+            <!-- ========== SVI ALATI (fallback/legacy) ========== -->
+            <section class="home-section" id="all-tools-section">
                 <div class="section-head">
                     <h2 class="section-title" id="sec-title-all">Svi alati</h2>
                     <button class="section-action-btn" id="btn-edit-all-tools" onclick="toggleAllToolsEditMode()">Izmeni</button>
@@ -103,18 +135,57 @@
                 <div id="all-tools-grid" class="all-tools-grid"></div>
             </section>
 
-            <div class="footer-tag" id="footer-tag">Alatika — mali alat za velika računanja</div>
+            <div class="footer-tag" id="footer-tag">Alatika 2.0 — tvoj džepni asistent</div>
         </div>
     </div>
 
-    <!-- ========== ISTORIJA ========== -->
+    <!-- ============================================================ -->
+    <!-- EKRAN: DANAS DASHBOARD                                       -->
+    <!-- ============================================================ -->
+    <div id="today-screen" class="screen">
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <h2 id="today-title">Danas</h2>
+                <p id="today-subtitle" class="top-bar-sub">Tvoj dnevni pregled</p>
+            </div>
+            <button class="icon-btn-svg" onclick="refreshTodayDashboard()" title="Osveži" aria-label="Osveži">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+            </button>
+        </div>
+
+        <div class="today-greeting" id="today-greeting">
+            <div class="today-greeting-text">Dobro jutro!</div>
+            <div class="today-greeting-date" id="today-date"></div>
+        </div>
+
+        <div id="today-content" class="today-content">
+            <!-- Dinamički sadržaj -->
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- EKRAN: MOJI ALATI                                            -->
+    <!-- ============================================================ -->
+    <div id="mytools-screen" class="screen">
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <h2 id="mytools-title">Moji alati</h2>
+                <p id="mytools-subtitle" class="top-bar-sub">Tvoji omiljeni alati</p>
+            </div>
+        </div>
+        <div id="mytools-content" class="mytools-content">
+            <!-- Dinamički sadržaj -->
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- EKRAN: ISTORIJA                                              -->
+    <!-- ============================================================ -->
     <div id="history-screen" class="screen">
         <div class="top-bar">
-            <button class="back-btn" onclick="goHome()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-            </button>
-            <h2 id="history-title">Moja računanja</h2>
-            <span class="dots">•••</span>
+            <div class="top-bar-left">
+                <h2 id="history-title">Moja računanja</h2>
+            </div>
         </div>
 
         <div class="history-search-wrap">
@@ -151,15 +222,34 @@
         </div>
     </div>
 
-    <!-- ========== PODEŠAVANJA ========== -->
+    <!-- ============================================================ -->
+    <!-- EKRAN: PODEŠAVANJA                                           -->
+    <!-- ============================================================ -->
     <div id="settings-screen" class="screen">
         <div class="top-bar">
-            <button class="back-btn" onclick="goHome()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-            </button>
-            <h2 id="settings-title">Podešavanja</h2>
-            <span class="dots">•••</span>
+            <div class="top-bar-left">
+                <h2 id="settings-title">Podešavanja</h2>
+            </div>
         </div>
+
+        <!-- Profil korisnika -->
+        <div class="converter-box settings-profile-box">
+            <div class="settings-row settings-row-clickable" onclick="openProfileModal()">
+                <div>
+                    <div class="settings-label" id="settings-profile-label">Moj profil</div>
+                    <div class="settings-sub" id="settings-profile-sub">Popuni podatke za auto-fill</div>
+                </div>
+                <span class="about-arrow">›</span>
+            </div>
+            <div class="settings-row" style="border-top: 1px solid var(--border-color); margin-top: 8px; padding-top: 12px;">
+                <div>
+                    <div class="settings-label">Podaci u profilu</div>
+                    <div class="settings-sub" id="settings-profile-status">Nije popunjeno</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tema, zvuk, vibracija -->
         <div class="converter-box">
             <div class="settings-row">
                 <div>
@@ -203,13 +293,18 @@
                 </select>
             </div>
         </div>
-        <div class="settings-row">
-            <div>
-                <div class="settings-label" id="settings-archive-label">Arhiva</div>
-                <div class="settings-sub" id="settings-archive-sub">Automatsko čišćenje arhive</div>
+
+        <!-- Arhiva -->
+        <div class="converter-box">
+            <div class="settings-row">
+                <div>
+                    <div class="settings-label" id="settings-archive-label">Arhiva</div>
+                    <div class="settings-sub" id="settings-archive-sub">Automatsko čišćenje arhive</div>
+                </div>
+                <button class="settings-toggle-btn" id="settings-archive-btn" onclick="toggleArchiveAutoCleanup()">Uključeno</button>
             </div>
-            <button class="settings-toggle-btn" id="settings-archive-btn" onclick="toggleArchiveAutoCleanup()">Uključeno</button>
         </div>
+
         <p class="section-desc" id="settings-offline-text">Alatika radi u potpunosti lokalno na tvom telefonu — ništa se ne šalje na internet.</p>
 
         <!-- O aplikaciji -->
@@ -226,7 +321,45 @@
 
 </div>
 
-<!-- ================= MODAL: KATEGORIJA ================= -->
+<!-- ============================================================ -->
+<!-- BOTTOM NAVIGATION — 5 tabova                                 -->
+<!-- ============================================================ -->
+<nav id="bottom-nav" class="bottom-nav">
+    <button class="bottom-nav-btn active" data-screen="home-screen" onclick="switchBottomNav('home-screen')" aria-label="Početna">
+        <span class="bottom-nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        <span class="bottom-nav-label" id="nav-label-home">Početna</span>
+    </button>
+    <button class="bottom-nav-btn" data-screen="mytools-screen" onclick="switchBottomNav('mytools-screen')" aria-label="Moji alati">
+        <span class="bottom-nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </span>
+        <span class="bottom-nav-label" id="nav-label-my">Moji alati</span>
+    </button>
+    <button class="bottom-nav-btn" data-screen="today-screen" onclick="switchBottomNav('today-screen')" aria-label="Danas">
+        <span class="bottom-nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
+        </span>
+        <span class="bottom-nav-label" id="nav-label-today">Danas</span>
+    </button>
+    <button class="bottom-nav-btn" data-screen="history-screen" onclick="switchBottomNav('history-screen')" aria-label="Istorija">
+        <span class="bottom-nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="10"/></svg>
+        </span>
+        <span class="bottom-nav-label" id="nav-label-history">Istorija</span>
+    </button>
+    <button class="bottom-nav-btn" data-screen="settings-screen" onclick="switchBottomNav('settings-screen')" aria-label="Podešavanja">
+        <span class="bottom-nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </span>
+        <span class="bottom-nav-label" id="nav-label-settings">Podešavanja</span>
+    </button>
+</nav>
+
+<!-- ============================================================ -->
+<!-- MODAL: KATEGORIJA (postojeći)                                 -->
+<!-- ============================================================ -->
 <div id="category-modal" class="modal" onclick="closeModalOnBackdrop(event, 'category-modal')">
     <div class="modal-panel category-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -247,7 +380,9 @@
     </div>
 </div>
 
-<!-- ================= MODAL: RAČUNANJE ================= -->
+<!-- ============================================================ -->
+<!-- MODAL: RAČUNANJE (postojeći)                                  -->
+<!-- ============================================================ -->
 <div id="calc-modal" class="modal" onclick="closeModalOnBackdrop(event, 'calc-modal')">
     <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -268,7 +403,9 @@
     </div>
 </div>
 
-<!-- ================= MODAL: PODEŠAVANJE TABOVA ================= -->
+<!-- ============================================================ -->
+<!-- MODAL: PODEŠAVANJE TABOVA (postojeći)                         -->
+<!-- ============================================================ -->
 <div id="tabs-settings-modal" class="modal" onclick="closeModalOnBackdrop(event, 'tabs-settings-modal')">
     <div class="modal-panel tabs-settings-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -284,7 +421,6 @@
         </div>
         <p class="tabs-settings-desc" id="tabs-settings-desc">Uključi/isključi tabove koje želiš da vidiš. Zadrži prstom na ikonu i prevuci za promenu redosleda.</p>
 
-        <!-- NOVO — Izbor boje kartice -->
         <div class="tabs-settings-color-section">
             <div class="tabs-settings-color-title" id="tabs-settings-color-title">Boja kartice</div>
             <div class="tabs-settings-palette" id="tabs-settings-palette"></div>
@@ -305,7 +441,9 @@
     </div>
 </div>
 
-<!-- ================= MODAL: IZMENA BRZIH ALATA ================= -->
+<!-- ============================================================ -->
+<!-- MODAL: IZMENA BRZIH ALATA (postojeći)                         -->
+<!-- ============================================================ -->
 <div id="editor-modal" class="modal" onclick="closeModalOnBackdrop(event, 'editor-modal')">
     <div class="modal-panel editor-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -322,7 +460,9 @@
     </div>
 </div>
 
-<!-- ================= MODAL: LOKACIJA (za Vreme) ================= -->
+<!-- ============================================================ -->
+<!-- MODAL: LOKACIJA (postojeći, za Vreme)                         -->
+<!-- ============================================================ -->
 <div id="location-modal" class="modal" onclick="closeModalOnBackdrop(event, 'location-modal')">
     <div class="modal-panel location-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -351,7 +491,9 @@
     </div>
 </div>
 
-<!-- ================= MODAL: O APLIKACIJI ================= -->
+<!-- ============================================================ -->
+<!-- MODAL: O APLIKACIJI (postojeći)                               -->
+<!-- ============================================================ -->
 <div id="about-modal" class="modal" onclick="closeModalOnBackdrop(event, 'about-modal')">
     <div class="modal-panel about-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -370,7 +512,7 @@
                 <span class="cx-logo">A</span>
                 <h1 class="logo-text">ALATI<span>KA</span></h1>
             </div>
-            <p class="about-version" id="about-version">v1.0 • Oktobar 2026</p>
+            <p class="about-version" id="about-version">v2.0 • Oktobar 2026</p>
 
             <div class="about-description" id="about-description"></div>
 
@@ -400,7 +542,9 @@
     </div>
 </div>
 
-<!-- ================= MODAL: REMINDER FORMA ================= -->
+<!-- ============================================================ -->
+<!-- MODAL: REMINDER FORMA (postojeći)                             -->
+<!-- ============================================================ -->
 <div id="reminder-modal" class="modal" onclick="closeModalOnBackdrop(event, 'reminder-modal')">
     <div class="modal-panel reminder-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -418,7 +562,543 @@
     </div>
 </div>
 
-<!-- ================= FAV HINT ================= -->
+<!-- NAPOMENA: Svi novi modali (torch, level, stopwatch, timer, profile, ...) -->
+<!-- se nalaze u DEO 2/2 ispod ovog mesta -->
+    <!-- ============================================================ -->
+<!-- MODAL: LAMPA (torch)                                          -->
+<!-- ============================================================ -->
+<div id="torch-modal" class="modal" onclick="closeModalOnBackdrop(event, 'torch-modal')">
+    <div class="modal-panel torch-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #eab308;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6c0 2-2 2-2 4v10a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V10c0-2-2-2-2-4V2h12z"/><line x1="6" x2="18" y1="6" y2="6"/><line x1="12" x2="12" y1="12" y2="12"/></svg>
+                </span>
+                <h2 class="modal-title" id="torch-modal-title">Baterijska lampa</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('torch-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="torch-body">
+            <button class="torch-main-btn" id="torch-toggle-main" onclick="toggleTorch()">
+                <span class="torch-main-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6c0 2-2 2-2 4v10a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V10c0-2-2-2-2-4V2h12z"/><line x1="6" x2="18" y1="6" y2="6"/></svg>
+                </span>
+                <span class="torch-main-label">Uključi / Isključi</span>
+            </button>
+            <button class="torch-sos-btn" id="torch-sos-btn" onclick="torchState.sosActive ? torchStopSOS() : torchStartSOS()">
+                🆘 Uključi SOS
+            </button>
+            <button class="torch-autooff-btn" id="torch-autooff-btn" onclick="setTorchAutoOff(!isTorchAutoOffEnabled())">
+                Auto-off: Uključen
+            </button>
+            <p class="torch-note">Auto-off isključuje lampu posle 5 minuta. SOS mode treperi "···−−−···".</p>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: NIVO (libela)                                          -->
+<!-- ============================================================ -->
+<div id="level-modal" class="modal" onclick="closeModalOnBackdrop(event, 'level-modal')">
+    <div class="modal-panel level-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #0ea5e9;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
+                </span>
+                <h2 class="modal-title" id="level-modal-title">Nivo (libela)</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('level-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="level-body">
+            <div class="level-circle-wrap">
+                <div class="level-circle">
+                    <div class="level-crosshair-h"></div>
+                    <div class="level-crosshair-v"></div>
+                    <div class="level-target-ring"></div>
+                    <div class="level-bubble" id="level-bubble"></div>
+                </div>
+            </div>
+            <div class="level-status" id="level-status">Nagnuto</div>
+            <div class="level-values">
+                <div class="level-value-item">
+                    <div class="level-value-label">Napred-nazad</div>
+                    <div class="level-value-num" id="level-beta-val">0.0°</div>
+                </div>
+                <div class="level-value-item">
+                    <div class="level-value-label">Levo-desno</div>
+                    <div class="level-value-num" id="level-gamma-val">0.0°</div>
+                </div>
+            </div>
+            <div class="level-actions">
+                <button class="calc-btn-main" id="level-toggle-btn" onclick="toggleLevel()">⏹ Isključi nivo</button>
+                <button class="gps-btn-secondary" onclick="levelCalibrate()">🎯 Kalibriši</button>
+            </div>
+            <p class="level-note">Postavi telefon na površinu i kalibriši. Kad je ravno, balon je zelen i telefon zavibrira.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: ŠTOPERICA (toolbar)                                    -->
+<!-- ============================================================ -->
+<div id="toolbar-stopwatch-modal" class="modal" onclick="closeModalOnBackdrop(event, 'toolbar-stopwatch-modal')">
+    <div class="modal-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #0ea5e9;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/><path d="M12 2v3"/><path d="m19 5-1.5 1.5"/><path d="m5 5 1.5 1.5"/></svg>
+                </span>
+                <h2 class="modal-title">Štoperica</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('toolbar-stopwatch-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="toolbar-stopwatch-body">
+            <div class="toolbar-stopwatch-display" id="toolbar-stopwatch-time">00:00:00.00</div>
+            <div class="gps-actions" style="margin: 16px 0;">
+                <button class="gps-btn-main" id="toolbar-stopwatch-toggle" onclick="toolbarStopwatchToggle()" style="flex: 1;">
+                    ▶ Start / Stop
+                </button>
+                <button class="gps-btn-secondary" onclick="toolbarStopwatchReset()">↺ Reset</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: TAJMER (toolbar)                                       -->
+<!-- ============================================================ -->
+<div id="toolbar-timer-modal" class="modal" onclick="closeModalOnBackdrop(event, 'toolbar-timer-modal')">
+    <div class="modal-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #f59e0b;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>
+                </span>
+                <h2 class="modal-title">Tajmer</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('toolbar-timer-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="toolbar-timer-body">
+            <div class="toolbar-timer-status" id="toolbar-timer-status">Spreman</div>
+            <div class="toolbar-timer-display" id="toolbar-timer-time">00:00:00</div>
+            <div class="toolbar-timer-progress-bar">
+                <div class="toolbar-timer-progress-fill" id="toolbar-timer-progress"></div>
+            </div>
+            <div class="gps-timer-presets">
+                <button class="gps-chip" onclick="toolbarTimerPreset(60)">1 min</button>
+                <button class="gps-chip" onclick="toolbarTimerPreset(300)">5 min</button>
+                <button class="gps-chip" onclick="toolbarTimerPreset(600)">10 min</button>
+                <button class="gps-chip" onclick="toolbarTimerPreset(900)">15 min</button>
+                <button class="gps-chip" onclick="toolbarTimerPreset(1800)">30 min</button>
+                <button class="gps-chip" onclick="toolbarTimerPreset(3600)">1 h</button>
+            </div>
+            <div class="gps-actions" style="margin: 16px 0;">
+                <button class="gps-btn-main" id="toolbar-timer-toggle" onclick="toolbarTimerState.running ? (toolbarTimerState.paused ? toolbarTimerResume() : toolbarTimerPause()) : toolbarTimerStart()">
+                    ▶ Start
+                </button>
+                <button class="gps-btn-secondary" onclick="toolbarTimerReset()">↺ Reset</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: PROFIL KORISNIKA                                       -->
+<!-- ============================================================ -->
+<div id="profile-modal" class="modal" onclick="closeModalOnBackdrop(event, 'profile-modal')">
+    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #6366f1;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </span>
+                <h2 class="modal-title">Moj profil</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('profile-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="profile-modal-body">
+            <p class="section-desc">Popuni jednom — koristi svuda. Automatski se popunjavaju: BMI, BMR, idealna težina, puls zone, kalorije, 1RM, veličina rama bicikla.</p>
+            <div class="converter-box">
+                <div class="input-field">
+                    <label>Ime</label>
+                    <input type="text" id="profile-name" class="custom-input" placeholder="npr. Marko">
+                </div>
+                <div class="input-field">
+                    <label>Godište</label>
+                    <input type="number" id="profile-age" class="custom-input" placeholder="npr. 1990" inputmode="numeric">
+                </div>
+                <div class="input-field">
+                    <label>Pol</label>
+                    <select id="profile-gender" class="custom-input">
+                        <option value="male">Muški</option>
+                        <option value="female">Ženski</option>
+                    </select>
+                </div>
+                <div class="input-field">
+                    <label>Visina</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="profile-height" class="custom-input" placeholder="175" inputmode="decimal">
+                        <span class="unit">cm</span>
+                    </div>
+                </div>
+                <div class="input-field">
+                    <label>Težina</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="profile-weight" class="custom-input" placeholder="75" inputmode="decimal">
+                        <span class="unit">kg</span>
+                    </div>
+                </div>
+                <div class="input-field">
+                    <label>Nivo aktivnosti</label>
+                    <select id="profile-activity" class="custom-input">
+                        <option value="1.2">Sedentaran</option>
+                        <option value="1.375" selected>Lagana aktivnost</option>
+                        <option value="1.55">Umerena aktivnost</option>
+                        <option value="1.725">Visoka aktivnost</option>
+                        <option value="1.9">Vrlo visoka aktivnost</option>
+                    </select>
+                </div>
+                <button class="calc-btn-main" onclick="saveUserProfile()">Sačuvaj profil</button>
+                <button class="rem-delete-btn" onclick="clearUserProfile()">Obriši profil</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: ISTORIJA TOČENJA — dodavanje                           -->
+<!-- ============================================================ -->
+<div id="fuel-history-modal" class="modal" onclick="closeModalOnBackdrop(event, 'fuel-history-modal')">
+    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #f43f5e;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="15" y1="22" y2="22"/><line x1="4" x2="14" y1="9" y2="9"/><path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"/><path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2 2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/></svg>
+                </span>
+                <h2 class="modal-title">Novo točenje</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('fuel-history-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="fuel-history-modal-body"></div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: HABIT (nova navika)                                    -->
+<!-- ============================================================ -->
+<div id="habit-modal" class="modal" onclick="closeModalOnBackdrop(event, 'habit-modal')">
+    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #10b981;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </span>
+                <h2 class="modal-title">Nova navika</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('habit-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="habit-modal-body"></div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: JOURNAL (nova beleška)                                 -->
+<!-- ============================================================ -->
+<div id="journal-modal" class="modal" onclick="closeModalOnBackdrop(event, 'journal-modal')">
+    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #a855f7;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                </span>
+                <h2 class="modal-title" id="journal-modal-title">Nova beleška</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('journal-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="journal-modal-body"></div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: WORKOUT (novi trening)                                 -->
+<!-- ============================================================ -->
+<div id="workout-modal" class="modal" onclick="closeModalOnBackdrop(event, 'workout-modal')">
+    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #ec4899;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg>
+                </span>
+                <h2 class="modal-title">Novi trening</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('workout-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="workout-modal-body"></div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: WATER/SLEEP (voda ili san unos)                        -->
+<!-- ============================================================ -->
+<div id="water-sleep-modal" class="modal" onclick="closeModalOnBackdrop(event, 'water-sleep-modal')">
+    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #06b6d4;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+                </span>
+                <h2 class="modal-title" id="water-sleep-modal-title">Voda i san</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('water-sleep-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="water-sleep-modal-body"></div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: RECIPE (novi recept)                                   -->
+<!-- ============================================================ -->
+<div id="recipes-modal" class="modal" onclick="closeModalOnBackdrop(event, 'recipes-modal')">
+    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #84cc16;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+                </span>
+                <h2 class="modal-title" id="recipes-modal-title">Novi recept</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('recipes-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="recipes-modal-body"></div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: SAVINGS (štednja)                                      -->
+<!-- ============================================================ -->
+<div id="savings-modal" class="modal" onclick="closeModalOnBackdrop(event, 'savings-modal')">
+    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #10b981;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2h0V5z"/><path d="M2 9v1c0 1.1.9 2 2 2h1"/><path d="M16 11h.01"/></svg>
+                </span>
+                <h2 class="modal-title">Štednja</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('savings-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="savings-modal-body"></div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: BARCODE (skeniranje)                                   -->
+<!-- ============================================================ -->
+<div id="barcode-modal" class="modal" onclick="closeModalOnBackdrop(event, 'barcode-modal')">
+    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #14b8a6;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5v14"/><path d="M8 5v14"/><path d="M12 5v14"/><path d="M17 5v14"/><path d="M21 5v14"/></svg>
+                </span>
+                <h2 class="modal-title">Skeniranje barkoda</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('barcode-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="barcode-modal-body"></div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: PRICE TRACKING (novi proizvod)                         -->
+<!-- ============================================================ -->
+<div id="price-tracking-modal" class="modal" onclick="closeModalOnBackdrop(event, 'price-tracking-modal')">
+    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #14b8a6;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                </span>
+                <h2 class="modal-title" id="price-tracking-modal-title">Novi proizvod</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('price-tracking-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="price-tracking-modal-body"></div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: COST ESTIMATE (nova stavka u troškovniku)              -->
+<!-- ============================================================ -->
+<div id="cost-estimate-modal" class="modal" onclick="closeModalOnBackdrop(event, 'cost-estimate-modal')">
+    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #ea580c;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>
+                </span>
+                <h2 class="modal-title">Nova stavka u troškovniku</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('cost-estimate-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="cost-estimate-modal-body"></div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: SOLAR (solarni paneli)                                 -->
+<!-- ============================================================ -->
+<div id="solar-modal" class="modal" onclick="closeModalOnBackdrop(event, 'solar-modal')">
+    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #eab308;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                </span>
+                <h2 class="modal-title">Solarni paneli</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('solar-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="solar-modal-body"></div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: HOLIDAYS (praznici)                                    -->
+<!-- ============================================================ -->
+<div id="holidays-modal" class="modal" onclick="closeModalOnBackdrop(event, 'holidays-modal')">
+    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #f59e0b;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>
+                </span>
+                <h2 class="modal-title">Praznici</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('holidays-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="holidays-modal-body"></div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: TIMEZONE (vremenske zone)                              -->
+<!-- ============================================================ -->
+<div id="timezone-modal" class="modal" onclick="closeModalOnBackdrop(event, 'timezone-modal')">
+    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #0ea5e9;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </span>
+                <h2 class="modal-title">Vremenske zone</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('timezone-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="timezone-modal-body"></div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: SHOE (obuvanje)                                        -->
+<!-- ============================================================ -->
+<div id="shoe-modal" class="modal" onclick="closeModalOnBackdrop(event, 'shoe-modal')">
+    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #a855f7;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 17h20v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-2Z"/><path d="M4 17V9a4 4 0 0 1 4-4h1a4 4 0 0 1 4 4v1a4 4 0 0 0 4 4h3a2 2 0 0 1 2 2v1"/></svg>
+                </span>
+                <h2 class="modal-title">Konverzija obuće</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('shoe-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="shoe-modal-body"></div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: CLOTHING (odeća)                                       -->
+<!-- ============================================================ -->
+<div id="clothing-modal" class="modal" onclick="closeModalOnBackdrop(event, 'clothing-modal')">
+    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #a855f7;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
+                </span>
+                <h2 class="modal-title">Veličina odeće</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('clothing-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="clothing-modal-body"></div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: NUMBERS (brojevi)                                      -->
+<!-- ============================================================ -->
+<div id="numbers-modal" class="modal" onclick="closeModalOnBackdrop(event, 'numbers-modal')">
+    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <span class="modal-cat-icon" style="--qt-accent: #8b5cf6;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
+                </span>
+                <h2 class="modal-title">Konverzija brojeva</h2>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('numbers-modal')" aria-label="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="calc-body" id="numbers-modal-body"></div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- HINT-OVI                                                      -->
+<!-- ============================================================ -->
 <div id="fav-hint" class="fav-hint" style="display: none;">
     <div class="fav-hint-icon">⭐</div>
     <div class="fav-hint-text">
@@ -428,7 +1108,6 @@
     <button class="fav-hint-btn" id="fav-hint-btn" onclick="dismissFavHint()">Razumem</button>
 </div>
 
-<!-- ================= BADGE HINT ================= -->
 <div id="badge-hint" class="badge-hint" style="display: none;">
     <div class="badge-hint-icon">🔔</div>
     <div class="badge-hint-text">
@@ -438,10 +1117,14 @@
     <button class="badge-hint-btn" id="badge-hint-btn" onclick="dismissBadgeHint()">Razumem</button>
 </div>
 
-<!-- ================= TOAST ================= -->
+<!-- ============================================================ -->
+<!-- TOAST                                                         -->
+<!-- ============================================================ -->
 <div id="toast-container" class="toast-container"></div>
 
-<!-- ================= CONFIRM ================= -->
+<!-- ============================================================ -->
+<!-- CONFIRM                                                       -->
+<!-- ============================================================ -->
 <div id="confirm-modal" class="confirm-modal">
     <div class="confirm-box">
         <div class="confirm-icon">
@@ -456,7 +1139,10 @@
     </div>
 </div>
 
-<script src="translations.js?v=8"></script>
-<script src="app.js?v=8"></script>
+<!-- ============================================================ -->
+<!-- SKRIPTE                                                       -->
+<!-- ============================================================ -->
+<script src="translations.js?v=9"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>
