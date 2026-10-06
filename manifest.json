@@ -1,16 +1,19 @@
 {
-  "name": "Alatika — Mali alat za velika računanja",
+  "name": "Alatika 2.0 — Mali alat za velika računanja",
   "short_name": "Alatika",
-  "description": "Alatika — tvoj džepni asistent.",
+  "description": "Alatika 2.0 — tvoj džepni asistent. Kalkulacije, konverzije, podsetnici i još mnogo toga — sve na jednom mestu.",
   "start_url": "./index.html",
   "scope": "./",
+  "id": "/alatika/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
   "background_color": "#0f0f14",
   "theme_color": "#0f0f14",
   "lang": "sr",
   "dir": "ltr",
-  "categories": ["utilities", "productivity"],
+  "categories": ["utilities", "productivity", "lifestyle"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "./web-app-manifest-192x192.png",
@@ -23,6 +26,63 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "./web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Danas",
+      "short_name": "Danas",
+      "description": "Otvori današnji pregled",
+      "url": "./index.html#today",
+      "icons": [
+        {
+          "src": "./web-app-manifest-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Podsetnici",
+      "short_name": "Podsetnici",
+      "description": "Otvori podsetnike",
+      "url": "./index.html#podsetnici",
+      "icons": [
+        {
+          "src": "./web-app-manifest-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Kalkulator",
+      "short_name": "Kalkulator",
+      "description": "Otvori brzi kalkulator",
+      "url": "./index.html#money",
+      "icons": [
+        {
+          "src": "./web-app-manifest-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "screenshots": [],
+  "launch_handler": {
+    "client_mode": ["focus-existing", "auto"]
+  }
 }
