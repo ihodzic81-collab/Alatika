@@ -1,7 +1,7 @@
 {
-  "name": "Alatika 2.0 — Mali alat za velika računanja",
+  "name": "Alatika 3.0 — Mali alat za velika računanja",
   "short_name": "Alatika",
-  "description": "Alatika 2.0 — tvoj džepni asistent. Kalkulacije, konverzije, podsetnici i još mnogo toga — sve na jednom mestu.",
+  "description": "Alatika 3.0 — tvoj džepni asistent. Kalkulacije, konverzije, podsetnici i još mnogo toga — sve na jednom mestu.",
   "start_url": "./index.html",
   "scope": "./",
   "id": "/alatika/",
