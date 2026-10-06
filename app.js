@@ -10864,7 +10864,41 @@ function initToolbarIcons() {
         try { speedometerStop(); } catch (e) {}
     });
 }
+// ============================================================
+// HASH ROUTING (za PWA shortcuts)
+// ============================================================
+function handleInitialHash() {
+    const hash = (window.location.hash || '').replace('#', '').trim();
+    if (!hash) return;
 
+    // Očisti hash da ne smeta pri navigaciji
+    setTimeout(() => {
+        try { history.replaceState(null, '', window.location.pathname); } catch (e) {}
+    }, 100);
+
+    // Rutiraj na odgovarajući ekran/modal
+    if (hash === 'today') {
+        setTimeout(() => switchBottomNav('today-screen'), 300);
+    } else if (hash === 'history') {
+        setTimeout(() => switchBottomNav('history-screen'), 300);
+    } else if (hash === 'settings') {
+        setTimeout(() => switchBottomNav('settings-screen'), 300);
+    } else if (hash === 'podsetnici') {
+        setTimeout(() => openCategory('podsetnici'), 300);
+    } else if (hash === 'money') {
+        setTimeout(() => openCategory('money'), 300);
+    } else if (hash === 'weather') {
+        setTimeout(() => openCategory('weather'), 300);
+    } else if (hash === 'health') {
+        setTimeout(() => openCategory('health'), 300);
+    }
+}
+
+// Osluškuj hashchange (npr. kad korisnik klikne shortcut u PWA)
+window.addEventListener('hashchange', handleInitialHash);
+
+// Pokreni proveru hash-a odmah nakon inicijalizacije
+setTimeout(handleInitialHash, 500);
 // ============================================================
 // POKRETANJE
 // ============================================================
