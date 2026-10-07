@@ -3,7 +3,7 @@
 // Offline keširanje + PWA podrška
 // ============================================================
 
-const CACHE_NAME = 'alatika-v9';
+const CACHE_NAME = 'alatika-v12';
 
 // Lista fajlova koji se keširaju pri instalaciji
 const ASSETS = [
