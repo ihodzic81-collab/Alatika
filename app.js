@@ -1787,13 +1787,11 @@ function openAllToolsModal() {
     const modal = el('all-tools-modal');
     if (!modal) return;
 
-    // Reset search
     const searchInput = el('all-tools-search');
     if (searchInput) searchInput.value = '';
     const clearBtn = el('all-tools-search-clear');
     if (clearBtn) clearBtn.style.display = 'none';
 
-    // Render sekcije
     renderAllToolsSections();
 
     modal.classList.add('show');
@@ -1812,16 +1810,15 @@ function renderAllToolsSections() {
     Object.entries(SECTIONS).forEach(([secId, section]) => {
         const sectionAccent = section.accent;
         const sectionIconName = section.icon;
-        // Broj kategorija u sekciji (ukupan broj tabova)
         let totalTools = 0;
         section.cats.forEach(catId => {
             const cat = CATEGORIES[catId];
             if (cat) totalTools += cat.tabs.length;
         });
 
-        // Accordion — podrazumevano zatvoreno, osim ako je korisnik otvorio
         const isOpen = allToolsSectionState[secId] === true;
         const openClass = isOpen ? ' open' : '';
+        const ariaExpanded = isOpen ? 'true' : 'false';
 
         let innerHtml = '';
         section.cats.forEach(catId => {
@@ -1838,7 +1835,7 @@ function renderAllToolsSections() {
 
         html += `
             <div class="all-tools-section${openClass}" data-section-id="${secId}" style="--section-accent: ${sectionAccent};">
-                <button class="all-tools-section-head" onclick="toggleAllToolsSection('${secId}')">
+                <button class="all-tools-section-head" onclick="toggleAllToolsSection('${secId}')" aria-expanded="${ariaExpanded}" aria-controls="all-tools-body-${secId}">
                     <span class="all-tools-section-icon">${icon(sectionIconName)}</span>
                     <span class="all-tools-section-info">
                         <span class="all-tools-section-title">${escapeHtml(safeT('section.' + secId))}</span>
@@ -1848,7 +1845,7 @@ function renderAllToolsSections() {
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                     </span>
                 </button>
-                <div class="all-tools-section-body">
+                <div class="all-tools-section-body" id="all-tools-body-${secId}">
                     <div class="all-tools-section-body-inner">
                         <div class="all-tools-section-grid">${innerHtml}</div>
                     </div>
@@ -1858,17 +1855,17 @@ function renderAllToolsSections() {
     });
     container.innerHTML = html;
 }
-
 function toggleAllToolsSection(secId) {
     const section = document.querySelector(`.all-tools-section[data-section-id="${secId}"]`);
     if (!section) return;
     const isOpen = section.classList.contains('open');
     section.classList.toggle('open', !isOpen);
     allToolsSectionState[secId] = !isOpen;
+    const head = section.querySelector('.all-tools-section-head');
+    if (head) head.setAttribute('aria-expanded', (!isOpen).toString());
     vibrate(8);
     playTick(0, 1200, 0.04, 0.012);
 }
-
 function openCategoryFromAllTools(catId) {
     closeModal('all-tools-modal');
     setTimeout(() => {
@@ -2586,6 +2583,12 @@ function openCalc(categoryId, tabId) {
     if (tabId === 'skica') setTimeout(() => { if (typeof drawSketch === 'function') drawSketch(); }, 50);
     if (tabId === 'barkod') setTimeout(() => { if (typeof initBarcodeScanner === 'function') initBarcodeScanner(); }, 50);
     if (tabId === 'koraci') setTimeout(() => { if (typeof initPedometer === 'function') initPedometer(); }, 50);
+        // Weather inicijalizacija
+    if (categoryId === 'weather') {
+        setTimeout(() => {
+            if (typeof initWeatherTab === 'function') initWeatherTab(tabId);
+        }, 100);
+    }
 
     try { history.pushState({ modal: 'calc', category: categoryId, tab: tabId }, '', ''); } catch (e) {}
     try { maybeShowFavHint(); } catch (e) {}
@@ -10285,6 +10288,18 @@ async function initWeatherTab(tabId) {
         return;
     }
     await loadWeatherData(tabId);
+}
+function initWeatherTabWrapper() {
+    if (activeTab && activeTab.startsWith('weather')) {
+        initWeatherTab(activeTab.replace('weather-', ''));
+    }
+}
+
+function ensureWeatherInit() {
+    // Provera da li je Weather tab otvoren i da li treba inicijalizovati
+    if (activeCategory === 'weather' && activeTab) {
+        setTimeout(() => initWeatherTab(activeTab), 50);
+    }
 }
 async function loadWeatherData(tabId) {
     const loc = weatherState.location;
