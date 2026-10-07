@@ -565,31 +565,62 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
         </div>
-        <div class="level-body">
-            <div class="level-circle-wrap">
-                <div class="level-circle">
+
+        <div class="level-body-modern">
+            <!-- GLAVNI VIZUAL -->
+            <div class="level-visual">
+                <div class="level-circle-modern">
+                    <div class="level-ring-outer"></div>
+                    <div class="level-ring-middle"></div>
+                    <div class="level-ring-inner"></div>
                     <div class="level-crosshair-h"></div>
                     <div class="level-crosshair-v"></div>
-                    <div class="level-target-ring"></div>
-                    <div class="level-bubble" id="level-bubble"></div>
+                    <div class="level-bubble-modern" id="level-bubble">
+                        <div class="level-bubble-inner"></div>
+                    </div>
+                </div>
+                <div class="level-status-modern" id="level-status">Nagnuto</div>
+            </div>
+
+            <!-- 3 STAT BOXA -->
+            <div class="level-stats-modern">
+                <div class="level-stat-box">
+                    <div class="level-stat-label">X osa</div>
+                    <div class="level-stat-value" id="level-beta-val">0.0°</div>
+                </div>
+                <div class="level-stat-box">
+                    <div class="level-stat-label">Y osa</div>
+                    <div class="level-stat-value" id="level-gamma-val">0.0°</div>
+                </div>
+                <div class="level-stat-box highlight">
+                    <div class="level-stat-label">Ukupno</div>
+                    <div class="level-stat-value" id="level-total-val">0.0°</div>
                 </div>
             </div>
-            <div class="level-status" id="level-status">Nagnuto</div>
-            <div class="level-values">
-                <div class="level-value-item">
-                    <div class="level-value-label">Napred-nazad</div>
-                    <div class="level-value-num" id="level-beta-val">0.0°</div>
-                </div>
-                <div class="level-value-item">
-                    <div class="level-value-label">Levo-desno</div>
-                    <div class="level-value-num" id="level-gamma-val">0.0°</div>
-                </div>
+
+            <!-- TOGGLE OPCIJE -->
+            <div class="level-toggles">
+                <button class="level-toggle-btn active" id="level-sound-toggle" onclick="toggleLevelSound()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                    <span>Zvuk</span>
+                </button>
+                <button class="level-toggle-btn active" id="level-vibrate-toggle" onclick="toggleLevelVibrate()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="4" width="8" height="16" rx="2"/><path d="M4 10v4"/><path d="M20 10v4"/></svg>
+                    <span>Vibracija</span>
+                </button>
             </div>
-            <div class="level-actions">
-                <button class="calc-btn-main" id="level-toggle-btn" onclick="toggleLevel()">⏹ Isključi nivo</button>
-                <button class="gps-btn-secondary" onclick="levelCalibrate()">🎯 Kalibriši</button>
+
+            <!-- AKCIJE -->
+            <div class="level-actions-modern">
+                <button class="level-btn-primary" onclick="levelCalibrate()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M2 12h3"/><path d="M19 12h3"/></svg>
+                    Kalibriši
+                </button>
+                <button class="level-btn-secondary" onclick="levelResetOffset()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    Reset
+                </button>
             </div>
-            <p class="level-note">Postavi telefon na površinu i kalibriši. Kad je ravno, balon je zelen i telefon zavibrira.</p>
         </div>
     </div>
 </div>
