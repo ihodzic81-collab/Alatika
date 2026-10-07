@@ -257,8 +257,8 @@ body.modal-open { overflow: hidden; }
     flex-shrink: 0;
     overflow: visible;
     position: relative;
-    padding: 4px;
-    box-sizing: border-box;
+    padding: 5px;
+    box-sizing: content-box;
 }
 .toolbar-icon svg {
     width: 24px;
