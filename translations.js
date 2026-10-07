@@ -34,7 +34,7 @@ const TRANSLATIONS = {
         'toolbar.timer.timeUp': '⏰ Vreme je isteklo!',
         'toolbar.stopwatch.title': 'Štoperica',
         'toolbar.speedometer.title': 'Brzinomer (GPS)',
-        'toolbar.speedometer.label': 'Brzinomer',
+        'toolbar.speedometer.label': 'Brzina',
         'toolbar.speedometer.status.off': 'Isključeno',
         'toolbar.speedometer.status.searching': 'Tražim signal...',
         'toolbar.speedometer.status.receiving': 'Primam GPS signal',
