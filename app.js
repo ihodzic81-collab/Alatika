@@ -1,7 +1,12 @@
 // ============================================================
 // ALATIKA 3.0 — app.js
-// Deo 1/4: Pomoćne funkcije, ICONS, SECTIONS, CATEGORIES,
-// getTabCount, init, toolbar logika (bez lampe, sa brzinomerom)
+// Deo 1/2: Pomoćne funkcije, ICONS, SECTIONS, CATEGORIES,
+// getTabCount, init, toolbar logika (Nivo, ŠTOPERICA MODERNA,
+// TAJMER MODERNI, BRZINOMER MODERNI), bottom nav, today dashboard,
+// Moji alati, profil, pretraga, SVI ALATI ACCORDION,
+// Toast, Confirm, zvuk/vibracija, ripple, podešavanja,
+// copy/share, istorija, favoriti, badge, arhiva, date triple,
+// input persistence, tab layout, accent colors, about, back button
 // ============================================================
 
 // ================= POMOĆNE =================
@@ -496,13 +501,9 @@ const CATEGORIES = {
     }
 };
 
-// ================= getTabCount — MORA ODMAH POSLE CATEGORIES =================
-// Vraća broj aktivnih podsetnika za badge na tabovima.
-// Koristi se za badge prikaz na tab dugmadima unutar kategorije "podsetnici"
-// i slično. Vraća 0 ako tab nema badge logiku.
+// ================= getTabCount =================
 function getTabCount(categoryId, tabId) {
     try {
-        // Samo za podsetnike imamo badge
         if (categoryId !== 'podsetnici') return 0;
 
         const today = new Date();
@@ -510,7 +511,6 @@ function getTabCount(categoryId, tabId) {
         const todayMs = today.getTime();
         const dayMs = 86400000;
 
-        // Rodjendani — aktivni (nije done), u narednih 7 dana
         if (tabId === 'rodjendani') {
             return loadReminders('cx_birthdays').filter(b => {
                 if (b.done) return false;
@@ -518,13 +518,9 @@ function getTabCount(categoryId, tabId) {
                 return d !== null && d <= 7;
             }).length;
         }
-
-        // Računi — neplaćeni
         if (tabId === 'racuni') {
             return loadReminders('cx_bills').filter(b => !b.paid).length;
         }
-
-        // Vozila — bilo koji dokument ističe u narednih 30 dana
         if (tabId === 'vozila') {
             const vehicles = loadReminders('cx_vehicles');
             const docs = loadReminders('cx_documents');
@@ -544,13 +540,9 @@ function getTabCount(categoryId, tabId) {
             });
             return count;
         }
-
-        // Pretplate — aktivne
         if (tabId === 'pretplate') {
             return loadReminders('cx_subscriptions').filter(s => s.active).length;
         }
-
-        // Lekovi — aktivni sa preostalim zalihama < 7 dana ili endDate < 7 dana
         if (tabId === 'lekivi') {
             return loadReminders('cx_medications').filter(m => {
                 if (m.done) return false;
@@ -561,8 +553,6 @@ function getTabCount(categoryId, tabId) {
                 return true;
             }).length;
         }
-
-        // Godišnjice — u narednih 7 dana
         if (tabId === 'godisnjice') {
             return loadReminders('cx_anniversaries').filter(a => {
                 if (a.done) return false;
@@ -570,8 +560,6 @@ function getTabCount(categoryId, tabId) {
                 return d !== null && d <= 7;
             }).length;
         }
-
-        // Napomene — aktivne sa dueDate u narednih 7 dana
         if (tabId === 'napomene') {
             return loadReminders('cx_notes').filter(n => {
                 if (n.done) return false;
@@ -580,8 +568,6 @@ function getTabCount(categoryId, tabId) {
                 return days !== null && days >= 0 && days <= 7;
             }).length;
         }
-
-        // Rate — aktivne grupe (imaju neplaćene rate u narednih 7 dana)
         if (tabId === 'rate') {
             try {
                 const groups = loadInstallmentGroups();
@@ -596,35 +582,22 @@ function getTabCount(categoryId, tabId) {
                 return count;
             } catch (e) { return 0; }
         }
-
-        // Arhiva — broj završenih stavki
         if (tabId === 'arhiva') {
             try {
                 return getAllReminderItems().filter(i => i.isDone).length;
             } catch (e) { return 0; }
         }
-
         return 0;
     } catch (e) {
         return 0;
     }
 }
 
-// Globalna lista svih kategorija
 const ALL_CATEGORY_IDS = Object.keys(CATEGORIES);
 
 // ============================================================
-// KRAJ DELA 1/4
-// ============================================================// ============================================================
-// ALATIKA 3.0 — app.js
-// Deo 2/4: Toolbar (bez lampe, sa brzinomerom), Bottom nav,
-// Danas dashboard, Moji alati, Profil, Pretraga, Svi alati modal,
-// Toast, Confirm, Zvuk/Vibracija, Ripple, Podešavanja,
-// Copy/Share, Istorija, Favoriti, Badge, Arhiva, Date triple,
-// Input persistence, Tab layout, Accent colors, About, Back button
+// NIVO (LIBELA)
 // ============================================================
-
-// ================= NIVO (LIBELA) =================
 const levelState = {
     listening: false,
     beta: 0,
@@ -635,7 +608,6 @@ const levelState = {
     supported: null
 };
 
-// Dodatne opcije za Nivo (zvuk i vibracija)
 levelState.soundEnabled = true;
 levelState.vibrateEnabled = true;
 
@@ -748,7 +720,6 @@ function openLevelOptions() {
     const toggleBtn = el('level-toggle-btn');
     if (toggleBtn) toggleBtn.textContent = levelState.listening ? safeT('toolbar.level.stop') : safeT('toolbar.level.start');
 
-    // Učitaj toggle stanja iz localStorage
     try {
         const s = localStorage.getItem('cx_level_sound');
         if (s !== null) levelState.soundEnabled = s === '1';
@@ -768,13 +739,50 @@ function openLevelOptions() {
     if (!levelState.listening) levelStart();
 }
 
-// ================= ŠTOPERICA (TOOLBAR) =================
+function toggleLevelSound() {
+    levelState.soundEnabled = !levelState.soundEnabled;
+    const btn = el('level-sound-toggle');
+    if (btn) btn.classList.toggle('active', levelState.soundEnabled);
+    try { localStorage.setItem('cx_level_sound', levelState.soundEnabled ? '1' : '0'); } catch(e) {}
+    vibrate(10);
+}
+
+function toggleLevelVibrate() {
+    levelState.vibrateEnabled = !levelState.vibrateEnabled;
+    const btn = el('level-vibrate-toggle');
+    if (btn) btn.classList.toggle('active', levelState.vibrateEnabled);
+    try { localStorage.setItem('cx_level_vibrate', levelState.vibrateEnabled ? '1' : '0'); } catch(e) {}
+    vibrate(10);
+}
+
+function levelResetOffset() {
+    levelState.offsetBeta = 0;
+    levelState.offsetGamma = 0;
+    levelState.beta = 0;
+    levelState.gamma = 0;
+    levelUpdateDisplay();
+    vibrate(15);
+    showToast('Nivo resetovan', 'info', 1500);
+}
+
+// ============================================================
+// ZADATAK 1: MODERNA ŠTOPERICA (TOOLBAR)
+// SVG progress prsten + 3 stat boxa + lista krugova (accordion)
+// ============================================================
 const toolbarStopwatchState = {
     running: false,
     startTime: 0,
     elapsedMs: 0,
-    rafId: null
+    rafId: null,
+    laps: [],
+    lastLapTime: 0,
+    lapsOpen: false
 };
+
+// Konstanta obima prstena: 2 * π * r = 2 * π * 98 ≈ 615.75
+const STOPWATCH_CIRCUMFERENCE = 615.75;
+// Maksimalno vreme za prsten (npr. 60 sekundi)
+const STOPWATCH_RING_PERIOD_MS = 60000;
 
 function toolbarStopwatchToggle() {
     if (toolbarStopwatchState.running) {
@@ -788,20 +796,32 @@ function toolbarStopwatchToggle() {
     } else {
         toolbarStopwatchState.running = true;
         toolbarStopwatchState.startTime = performance.now() - toolbarStopwatchState.elapsedMs;
-        toolbarTick();
+        toolbarStopwatchTick();
         vibrate(20);
         playTick(0, 1500, 0.08, 0.03);
     }
-    const btn = el('toolbar-stopwatch-btn');
-    if (btn) btn.classList.toggle('active', toolbarStopwatchState.running);
+    toolbarStopwatchUpdateBtn();
 }
 
-function toolbarTick() {
+function toolbarStopwatchTick() {
     if (!toolbarStopwatchState.running) return;
     const now = performance.now() - toolbarStopwatchState.startTime;
+    toolbarStopwatchState.elapsedMs = now;
+    toolbarStopwatchUpdateDisplay(now);
+    toolbarStopwatchState.rafId = requestAnimationFrame(toolbarStopwatchTick);
+}
+
+function toolbarStopwatchUpdateDisplay(ms) {
     const timeEl = el('toolbar-stopwatch-time');
-    if (timeEl) timeEl.textContent = formatStopwatchTime(now);
-    toolbarStopwatchState.rafId = requestAnimationFrame(toolbarTick);
+    if (timeEl) timeEl.textContent = formatStopwatchTime(ms);
+
+    // SVG prsten — 60s perioda
+    const ring = el('stopwatch-ring-progress');
+    if (ring) {
+        const pct = (ms % STOPWATCH_RING_PERIOD_MS) / STOPWATCH_RING_PERIOD_MS;
+        const offset = STOPWATCH_CIRCUMFERENCE * (1 - pct);
+        ring.style.strokeDashoffset = offset.toFixed(2);
+    }
 }
 
 function formatStopwatchTime(ms) {
@@ -814,13 +834,124 @@ function formatStopwatchTime(ms) {
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
 }
 
+function toolbarStopwatchLap() {
+    if (!toolbarStopwatchState.running && toolbarStopwatchState.elapsedMs === 0) {
+        showToast(safeT('gps.sw.noLap') || 'Prvo pokreni štopericu.', 'info', 1500);
+        return;
+    }
+    const currentTotal = toolbarStopwatchState.running
+        ? performance.now() - toolbarStopwatchState.startTime
+        : toolbarStopwatchState.elapsedMs;
+    const prevTotal = toolbarStopwatchState.laps.length
+        ? toolbarStopwatchState.laps[toolbarStopwatchState.laps.length - 1].total
+        : 0;
+    const lapTime = currentTotal - prevTotal;
+    toolbarStopwatchState.laps.push({ lap: lapTime, total: currentTotal });
+    toolbarStopwatchRenderLaps();
+    toolbarStopwatchUpdateStats();
+    vibrate(10);
+    playTick(0, 1400, 0.06, 0.02);
+}
+
+function toolbarStopwatchUpdateStats() {
+    const countEl = el('stopwatch-lap-count');
+    const bestEl = el('stopwatch-best-lap');
+    const worstEl = el('stopwatch-worst-lap');
+    const laps = toolbarStopwatchState.laps;
+    if (countEl) countEl.textContent = laps.length;
+
+    if (laps.length === 0) {
+        if (bestEl) bestEl.textContent = '—';
+        if (worstEl) worstEl.textContent = '—';
+        return;
+    }
+    const lapTimes = laps.map(l => l.lap);
+    const best = Math.min(...lapTimes);
+    const worst = Math.max(...lapTimes);
+    if (bestEl) bestEl.textContent = formatShortLap(best);
+    if (worstEl) worstEl.textContent = formatShortLap(worst);
+}
+
+function formatShortLap(ms) {
+    const total = Math.max(0, ms);
+    const totalSec = total / 1000;
+    const m = Math.floor(totalSec / 60);
+    const s = Math.floor(totalSec - m * 60);
+    const cs = Math.floor((totalSec - Math.floor(totalSec)) * 100);
+    if (m > 0) {
+        return `${m}:${String(s).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
+    }
+    return `${s}.${String(cs).padStart(2, '0')}`;
+}
+
+function toolbarStopwatchRenderLaps() {
+    const wrap = el('stopwatch-laps-wrap');
+    const list = el('stopwatch-laps-list');
+    const title = el('stopwatch-laps-title');
+    if (!wrap || !list) return;
+    const laps = toolbarStopwatchState.laps;
+    if (laps.length === 0) {
+        wrap.style.display = 'none';
+        return;
+    }
+    wrap.style.display = 'block';
+    if (title) title.textContent = `Krugovi (${laps.length})`;
+
+    const lapTimes = laps.map(l => l.lap);
+    const best = Math.min(...lapTimes);
+    const worst = Math.max(...lapTimes);
+    const showColors = laps.length > 1;
+
+    list.innerHTML = laps.map((l, i) => {
+        const num = i + 1;
+        let cls = '';
+        if (showColors) {
+            if (l.lap === best) cls = 'best';
+            else if (l.lap === worst) cls = 'worst';
+        }
+        return `<div class="stopwatch-lap-row ${cls}">
+            <span class="stopwatch-lap-num">#${num}</span>
+            <span class="stopwatch-lap-time">${formatStopwatchTime(l.lap)}</span>
+            <span class="stopwatch-lap-total">${formatStopwatchTime(l.total)}</span>
+        </div>`;
+    }).join('');
+}
+
+function toolbarStopwatchUpdateBtn() {
+    const btn = el('toolbar-stopwatch-btn');
+    const label = el('stopwatch-btn-label');
+    const lapBtn = el('toolbar-stopwatch-lap-btn');
+    if (toolbarStopwatchState.running) {
+        if (btn) btn.classList.add('running');
+        if (label) label.textContent = '⏸ PAUZA';
+        if (lapBtn) lapBtn.disabled = false;
+    } else {
+        if (btn) btn.classList.remove('running');
+        if (label) label.textContent = '▶ START';
+        if (lapBtn) lapBtn.disabled = false;
+    }
+}
+
 function toolbarStopwatchReset() {
-    if (toolbarStopwatchState.running) return;
+    if (toolbarStopwatchState.running) {
+        showToast(safeT('gps.sw.stopFirst') || 'Prvo zaustavi štopericu.', 'warning', 1500);
+        return;
+    }
     toolbarStopwatchState.elapsedMs = 0;
-    const timeEl = el('toolbar-stopwatch-time');
-    if (timeEl) timeEl.textContent = formatStopwatchTime(0);
+    toolbarStopwatchState.laps = [];
+    toolbarStopwatchUpdateDisplay(0);
+    toolbarStopwatchRenderLaps();
+    toolbarStopwatchUpdateStats();
     vibrate(15);
     playTick(0, 1400, 0.06, 0.02);
+}
+
+function toggleStopwatchLaps() {
+    const wrap = el('stopwatch-laps-wrap');
+    if (!wrap) return;
+    toolbarStopwatchState.lapsOpen = !toolbarStopwatchState.lapsOpen;
+    wrap.classList.toggle('open', toolbarStopwatchState.lapsOpen);
+    vibrate(8);
 }
 
 function openToolbarStopwatch() {
@@ -828,14 +959,19 @@ function openToolbarStopwatch() {
     if (!modal) return;
     modal.classList.add('show');
     document.body.classList.add('modal-open');
-    const timeEl = el('toolbar-stopwatch-time');
-    if (timeEl) timeEl.textContent = formatStopwatchTime(toolbarStopwatchState.elapsedMs);
-    const btn = el('toolbar-stopwatch-btn');
-    if (btn) btn.classList.toggle('active', toolbarStopwatchState.running);
+    toolbarStopwatchUpdateDisplay(toolbarStopwatchState.elapsedMs);
+    toolbarStopwatchUpdateBtn();
+    toolbarStopwatchRenderLaps();
+    toolbarStopwatchUpdateStats();
     vibrate(15);
 }
 
-// ================= TAJMER (TOOLBAR) =================
+// ============================================================
+// ZADATAK 2: MODERNI TAJMER (TOOLBAR)
+// SVG prsten koji se SMANJUJE + preseti + HH:MM:SS + opcije
+// ============================================================
+const TIMER_CIRCUMFERENCE = 615.75;
+
 const toolbarTimerState = {
     running: false,
     paused: false,
@@ -843,9 +979,35 @@ const toolbarTimerState = {
     remainingMs: 0,
     endTime: 0,
     intervalId: null,
+    rafId: null,
     alarming: false,
-    alarmIntervalId: null
+    alarmIntervalId: null,
+    repeat: false,
+    vibrateEnabled: true,
+    soundEnabled: true
 };
+
+function toolbarTimerToggleRepeat() {
+    toolbarTimerState.repeat = !toolbarTimerState.repeat;
+    const btn = el('timer-option-repeat');
+    if (btn) btn.classList.toggle('active', toolbarTimerState.repeat);
+    vibrate(10);
+}
+
+function toolbarTimerToggleVibrate() {
+    toolbarTimerState.vibrateEnabled = !toolbarTimerState.vibrateEnabled;
+    const btn = el('timer-option-vibrate');
+    if (btn) btn.classList.toggle('active', toolbarTimerState.vibrateEnabled);
+    vibrate(10);
+}
+
+function toolbarTimerToggleSound() {
+    toolbarTimerState.soundEnabled = !toolbarTimerState.soundEnabled;
+    const btn = el('timer-option-sound');
+    if (btn) btn.classList.toggle('active', toolbarTimerState.soundEnabled);
+    if (toolbarTimerState.soundEnabled) playTick(0, 1500, 0.08, 0.03);
+    vibrate(10);
+}
 
 function toolbarTimerPreset(seconds) {
     if (toolbarTimerState.running) {
@@ -854,23 +1016,50 @@ function toolbarTimerPreset(seconds) {
     }
     toolbarTimerState.totalMs = seconds * 1000;
     toolbarTimerState.remainingMs = seconds * 1000;
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    const hEl = el('toolbar-timer-h'); if (hEl) hEl.value = h || '';
+    const mEl = el('toolbar-timer-m'); if (mEl) mEl.value = m || '';
+    const sEl = el('toolbar-timer-s'); if (sEl) sEl.value = s || '';
     toolbarTimerUpdateDisplay();
-    toolbarTimerUpdateUI();
+    toolbarTimerUpdateBtn();
     vibrate(10);
     playTick(0, 1300, 0.05, 0.015);
 }
 
+function toolbarTimerGetInputMs() {
+    const h = parseInt(el('toolbar-timer-h')?.value) || 0;
+    const m = parseInt(el('toolbar-timer-m')?.value) || 0;
+    const s = parseInt(el('toolbar-timer-s')?.value) || 0;
+    return (h * 3600 + m * 60 + s) * 1000;
+}
+
+function toolbarTimerToggle() {
+    if (toolbarTimerState.alarming) {
+        toolbarTimerStopAlarm();
+        return;
+    }
+    if (toolbarTimerState.running) {
+        if (toolbarTimerState.paused) toolbarTimerResume();
+        else toolbarTimerPause();
+    } else {
+        toolbarTimerStart();
+    }
+}
+
 function toolbarTimerStart() {
-    if (toolbarTimerState.running && !toolbarTimerState.paused) return;
-    const ms = toolbarTimerState.remainingMs || toolbarTimerState.totalMs;
+    const ms = toolbarTimerState.remainingMs || toolbarTimerGetInputMs();
     if (ms <= 0) {
         showToast(safeT('toolbar.timer.enterTime'), 'warning');
         return;
     }
+    toolbarTimerState.totalMs = ms;
+    toolbarTimerState.remainingMs = ms;
     toolbarTimerState.running = true;
     toolbarTimerState.paused = false;
     toolbarTimerState.endTime = performance.now() + ms;
-    toolbarTimerUpdateUI();
+    toolbarTimerUpdateBtn();
     toolbarTimerTick();
     toolbarTimerState.intervalId = setInterval(toolbarTimerTick, 200);
     vibrate(20);
@@ -885,7 +1074,11 @@ function toolbarTimerPause() {
         clearInterval(toolbarTimerState.intervalId);
         toolbarTimerState.intervalId = null;
     }
-    toolbarTimerUpdateUI();
+    if (toolbarTimerState.rafId) {
+        cancelAnimationFrame(toolbarTimerState.rafId);
+        toolbarTimerState.rafId = null;
+    }
+    toolbarTimerUpdateBtn();
     vibrate(15);
 }
 
@@ -893,9 +1086,9 @@ function toolbarTimerResume() {
     if (!toolbarTimerState.running || !toolbarTimerState.paused) return;
     toolbarTimerState.paused = false;
     toolbarTimerState.endTime = performance.now() + toolbarTimerState.remainingMs;
-    toolbarTimerUpdateUI();
     toolbarTimerTick();
     toolbarTimerState.intervalId = setInterval(toolbarTimerTick, 200);
+    toolbarTimerUpdateBtn();
     vibrate(15);
 }
 
@@ -914,22 +1107,27 @@ function toolbarTimerComplete() {
         clearInterval(toolbarTimerState.intervalId);
         toolbarTimerState.intervalId = null;
     }
+    if (toolbarTimerState.rafId) {
+        cancelAnimationFrame(toolbarTimerState.rafId);
+        toolbarTimerState.rafId = null;
+    }
     toolbarTimerState.remainingMs = 0;
     toolbarTimerUpdateDisplay();
-    toolbarTimerUpdateUI();
+    toolbarTimerUpdateBtn();
     toolbarTimerStartAlarm();
 }
 
 function toolbarTimerStartAlarm() {
     toolbarTimerState.alarming = true;
+    toolbarTimerUpdateBtn();
     showToast(safeT('toolbar.timer.timeUp'), 'success', 4000);
     let count = 0;
     const beep = () => {
         if (!toolbarTimerState.alarming) return;
         if (count >= 10) { toolbarTimerStopAlarm(); return; }
         count++;
-        playAlarmBeep();
-        vibrate([300, 100, 300, 100, 300]);
+        if (toolbarTimerState.soundEnabled) playAlarmBeep();
+        if (toolbarTimerState.vibrateEnabled) vibrate([300, 100, 300, 100, 300]);
     };
     beep();
     toolbarTimerState.alarmIntervalId = setInterval(beep, 3000);
@@ -941,8 +1139,22 @@ function toolbarTimerStopAlarm() {
         clearInterval(toolbarTimerState.alarmIntervalId);
         toolbarTimerState.alarmIntervalId = null;
     }
-    toolbarTimerUpdateUI();
+    toolbarTimerUpdateBtn();
     vibrate(20);
+
+    // Ako je repeat uključen, restartuj tajmer
+    if (toolbarTimerState.repeat) {
+        setTimeout(() => {
+            toolbarTimerState.running = false;
+            toolbarTimerState.paused = false;
+            toolbarTimerState.endTime = performance.now() + toolbarTimerState.totalMs;
+            toolbarTimerState.remainingMs = toolbarTimerState.totalMs;
+            toolbarTimerState.running = true;
+            toolbarTimerTick();
+            toolbarTimerState.intervalId = setInterval(toolbarTimerTick, 200);
+            toolbarTimerUpdateBtn();
+        }, 800);
+    }
 }
 
 function toolbarTimerReset() {
@@ -959,38 +1171,60 @@ function toolbarTimerReset() {
         clearInterval(toolbarTimerState.intervalId);
         toolbarTimerState.intervalId = null;
     }
+    if (toolbarTimerState.rafId) {
+        cancelAnimationFrame(toolbarTimerState.rafId);
+        toolbarTimerState.rafId = null;
+    }
+    const hEl = el('toolbar-timer-h'); if (hEl) hEl.value = '';
+    const mEl = el('toolbar-timer-m'); if (mEl) mEl.value = '';
+    const sEl = el('toolbar-timer-s'); if (sEl) sEl.value = '';
     toolbarTimerUpdateDisplay();
-    toolbarTimerUpdateUI();
+    toolbarTimerUpdateBtn();
     vibrate(15);
     playTick(0, 1400, 0.06, 0.02);
 }
 
 function toolbarTimerUpdateDisplay() {
     const timeEl = el('toolbar-timer-time');
-    const progressEl = el('toolbar-timer-progress');
+    const ring = el('timer-ring-progress');
     if (!timeEl) return;
-    const ms = toolbarTimerState.remainingMs || toolbarTimerState.totalMs;
+    const ms = toolbarTimerState.remainingMs || toolbarTimerState.totalMs || toolbarTimerGetInputMs();
     const sec = Math.ceil(ms / 1000);
     const h = Math.floor(sec / 3600);
     const m = Math.floor((sec % 3600) / 60);
     const s = sec % 60;
     timeEl.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    if (progressEl) {
+
+    // SVG prsten — smanjuje se kako vreme ističe
+    if (ring) {
         const total = toolbarTimerState.totalMs || 1;
-        const pct = Math.max(0, Math.min(100, (ms / total) * 100));
-        progressEl.style.width = pct + '%';
+        const pct = Math.max(0, Math.min(1, ms / total));
+        const offset = TIMER_CIRCUMFERENCE * (1 - pct);
+        ring.style.strokeDashoffset = offset.toFixed(2);
     }
 }
 
-function toolbarTimerUpdateUI() {
+function toolbarTimerUpdateBtn() {
     const btn = el('toolbar-timer-btn');
-    if (btn) btn.classList.toggle('active', toolbarTimerState.running && !toolbarTimerState.paused);
-    const labelEl = el('toolbar-timer-status');
-    if (labelEl) {
-        if (toolbarTimerState.alarming) labelEl.textContent = safeT('toolbar.timer.alarming');
-        else if (toolbarTimerState.running && toolbarTimerState.paused) labelEl.textContent = safeT('toolbar.timer.paused');
-        else if (toolbarTimerState.running) labelEl.textContent = safeT('toolbar.timer.running');
-        else labelEl.textContent = safeT('toolbar.timer.ready');
+    const label = el('toolbar-timer-btn-label');
+    const status = el('toolbar-timer-status');
+    if (!label) return;
+    if (toolbarTimerState.alarming) {
+        label.textContent = '⏹ ZAUSTAVI ALARM';
+        if (btn) btn.classList.add('alarming', 'running');
+        if (status) status.textContent = '⏰ VREME JE ISTEKLO!';
+    } else if (!toolbarTimerState.running) {
+        label.textContent = '▶ START';
+        if (btn) btn.classList.remove('running', 'alarming');
+        if (status) status.textContent = safeT('toolbar.timer.ready');
+    } else if (toolbarTimerState.paused) {
+        label.textContent = '▶ NASTAVI';
+        if (btn) btn.classList.remove('running');
+        if (status) status.textContent = safeT('toolbar.timer.paused');
+    } else {
+        label.textContent = '⏸ PAUZA';
+        if (btn) btn.classList.add('running');
+        if (status) status.textContent = safeT('toolbar.timer.running');
     }
 }
 
@@ -1000,13 +1234,18 @@ function openToolbarTimer() {
     modal.classList.add('show');
     document.body.classList.add('modal-open');
     toolbarTimerUpdateDisplay();
-    toolbarTimerUpdateUI();
+    toolbarTimerUpdateBtn();
     vibrate(15);
 }
 
-// ================= BRZINOMER (TOOLBAR) — NOVO U 3.0 =================
+// ============================================================
+// ZADATAK 3: MODERNI BRZINOMER (TOOLBAR)
+// Analogni SVG brzinomer + sparkline + upozorenje + distanca
+// ============================================================
 const SPEEDOMETER_UNIT_KEY = 'cx_speedometer_unit_v3';
 const SPEEDOMETER_MAX_KEY = 'cx_speedometer_max_v3';
+const SPEEDOMETER_LIMIT_KEY = 'cx_speedometer_limit_v3';
+const SPEEDOMETER_DEFAULT_LIMIT = 130;
 
 const speedometerState = {
     watchId: null,
@@ -1018,7 +1257,12 @@ const speedometerState = {
     samples: 0,
     accuracy: null,
     wakeLock: null,
-    unit: 'kmh'  // kmh, mph, ms, kn, fts
+    unit: 'kmh',
+    limitKmh: SPEEDOMETER_DEFAULT_LIMIT,
+    lastPosition: null,
+    totalDistanceKm: 0,
+    sparkData: [],  // { t, kmh }
+    sparkIntervalId: null
 };
 
 function loadSpeedometerUnit() {
@@ -1032,6 +1276,10 @@ function loadSpeedometerUnit() {
         const mx = parseFloat(localStorage.getItem(SPEEDOMETER_MAX_KEY));
         if (!isNaN(mx) && mx > 0) speedometerState.maxKmh = mx;
     } catch (e) {}
+    try {
+        const lim = parseFloat(localStorage.getItem(SPEEDOMETER_LIMIT_KEY));
+        if (!isNaN(lim) && lim > 0) speedometerState.limitKmh = lim;
+    } catch (e) {}
 }
 
 function saveSpeedometerUnit() {
@@ -1040,6 +1288,10 @@ function saveSpeedometerUnit() {
 
 function saveSpeedometerMax() {
     try { localStorage.setItem(SPEEDOMETER_MAX_KEY, String(speedometerState.maxKmh)); } catch (e) {}
+}
+
+function saveSpeedometerLimit() {
+    try { localStorage.setItem(SPEEDOMETER_LIMIT_KEY, String(speedometerState.limitKmh)); } catch (e) {}
 }
 
 function speedometerConvert(kmh) {
@@ -1063,6 +1315,7 @@ function speedometerChangeUnit() {
     speedometerState.unit = sel.value;
     saveSpeedometerUnit();
     speedometerUpdateDisplay();
+    speedometerUpdateAnalog();
     vibrate(10);
 }
 
@@ -1073,11 +1326,117 @@ function speedometerUpdateDisplay() {
     const avgEl = el('speedometer-avg');
     const accEl = el('speedometer-accuracy');
     const unitEl = el('speedometer-unit-label');
+    const distEl = el('speedometer-distance');
     if (valEl) valEl.textContent = fmt(speedometerConvert(speedometerState.currentKmh), decimals);
     if (maxEl) maxEl.textContent = fmt(speedometerConvert(speedometerState.maxKmh), decimals);
     if (avgEl) avgEl.textContent = fmt(speedometerConvert(speedometerState.avgKmh), decimals);
     if (accEl) accEl.textContent = speedometerState.accuracy != null ? `${Math.round(speedometerState.accuracy)} m` : '—';
-    if (unitEl) unitEl.textContent = speedometerUnitLabel();
+    if (unitEl) unitEl.textContent = speedometerUnitLabel().toUpperCase();
+    if (distEl) distEl.innerHTML = `${speedometerState.totalDistanceKm.toFixed(2)} <small>km</small>`;
+}
+
+// Maksimalna vrednost na skali (u km/h)
+const SPEEDOMETER_SCALE_MAX_KMH = 240;
+
+function speedometerUpdateAnalog() {
+    const needleGroup = el('speed-needle-group');
+    if (!needleGroup) return;
+    const kmh = Math.min(speedometerState.currentKmh, SPEEDOMETER_SCALE_MAX_KMH);
+    const ratio = kmh / SPEEDOMETER_SCALE_MAX_KMH;
+    // Skala od -120° do +120° (240° opseg)
+    const startAngle = -120;
+    const endAngle = 120;
+    const angle = startAngle + (endAngle - startAngle) * ratio;
+    needleGroup.style.transform = `rotate(${angle}deg)`;
+
+    // Upozorenje preko limita
+    const wrap = el('speedometer-analog-wrap');
+    const valEl = el('speedometer-value');
+    const over = speedometerState.currentKmh > speedometerState.limitKmh;
+    if (wrap) wrap.classList.toggle('over-limit', over);
+    if (valEl) valEl.classList.toggle('over-limit', over);
+}
+
+function speedometerDrawScale() {
+    // Nacrtaj tick marks i brojeve
+    const ticks = el('speed-ticks');
+    const numbers = el('speed-numbers');
+    if (!ticks || !numbers) return;
+
+    const cx = 140, cy = 140;
+    const rOuter = 118, rInnerMajor = 105, rInnerMinor = 112;
+    const startAngle = -120, endAngle = 120;
+    const totalSteps = 24; // 0 do 240, svakih 10
+    const majorEvery = 2;  // svakih 20 je major
+    let ticksHtml = '';
+    let numbersHtml = '';
+
+    for (let i = 0; i <= totalSteps; i++) {
+        const value = (SPEEDOMETER_SCALE_MAX_KMH / totalSteps) * i;
+        const angle = startAngle + (endAngle - startAngle) * (i / totalSteps);
+        const rad = (angle - 90) * Math.PI / 180;
+        const isMajor = (i % majorEvery === 0);
+        const rIn = isMajor ? rInnerMajor : rInnerMinor;
+        const x1 = cx + rIn * Math.cos(rad);
+        const y1 = cy + rIn * Math.sin(rad);
+        const x2 = cx + rOuter * Math.cos(rad);
+        const y2 = cy + rOuter * Math.sin(rad);
+        const isRedZone = value > speedometerState.limitKmh;
+        ticksHtml += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${isRedZone ? '#f43f5e' : 'var(--text-tertiary)'}" stroke-width="${isMajor ? 2.5 : 1.2}" stroke-linecap="round"/>`;
+
+        if (isMajor && value > 0) {
+            const rLabel = rInnerMajor - 16;
+            const lx = cx + rLabel * Math.cos(rad);
+            const ly = cy + rLabel * Math.sin(rad);
+            numbersHtml += `<text x="${lx.toFixed(1)}" y="${(ly + 4).toFixed(1)}" text-anchor="middle" fill="${isRedZone ? '#f43f5e' : 'var(--text-secondary)'}">${value}</text>`;
+        }
+    }
+    ticks.innerHTML = ticksHtml;
+    numbers.innerHTML = numbersHtml;
+}
+
+function speedometerUpdateSparkline() {
+    const line = el('spark-line');
+    const fill = el('spark-fill');
+    if (!line || !fill) return;
+
+    const data = speedometerState.sparkData;
+    if (data.length < 2) {
+        line.setAttribute('d', '');
+        fill.setAttribute('d', '');
+        return;
+    }
+
+    const w = 300, h = 60;
+    const maxKmh = Math.max(60, ...data.map(d => d.kmh));
+    const stepX = w / Math.max(1, data.length - 1);
+
+    let pathD = '';
+    let fillD = `M 0 ${h} `;
+    data.forEach((d, i) => {
+        const x = i * stepX;
+        const y = h - (d.kmh / maxKmh) * h;
+        if (i === 0) {
+            pathD += `M ${x.toFixed(1)} ${y.toFixed(1)} `;
+            fillD += `L ${x.toFixed(1)} ${y.toFixed(1)} `;
+        } else {
+            pathD += `L ${x.toFixed(1)} ${y.toFixed(1)} `;
+            fillD += `L ${x.toFixed(1)} ${y.toFixed(1)} `;
+        }
+    });
+    fillD += `L ${w} ${h} Z`;
+    line.setAttribute('d', pathD);
+    fill.setAttribute('d', fillD);
+}
+
+function speedometerPushSparkSample() {
+    if (!speedometerState.running) return;
+    const now = performance.now();
+    speedometerState.sparkData.push({ t: now, kmh: speedometerState.currentKmh });
+    // Zadrži samo poslednjih 30 sekundi
+    const cutoff = now - 30000;
+    speedometerState.sparkData = speedometerState.sparkData.filter(d => d.t >= cutoff);
+    speedometerUpdateSparkline();
 }
 
 function speedometerSetStatus(textKey) {
@@ -1103,9 +1462,12 @@ function openSpeedometerModal() {
     loadSpeedometerUnit();
     const sel = el('speedometer-unit-select');
     if (sel) sel.value = speedometerState.unit;
+    speedometerDrawScale();
     speedometerUpdateDisplay();
+    speedometerUpdateAnalog();
+    speedometerUpdateSparkline();
     speedometerUpdateBtnLabel();
-    // Ako je toolbar brzinomer već aktivan (npr. otvoren GPS tab), pokaži
+
     const indicator = el('speedometer-indicator');
     if (indicator) indicator.classList.toggle('active', speedometerState.running);
     if (speedometerState.running) speedometerSetStatus('toolbar.speedometer.status.receiving');
@@ -1143,6 +1505,9 @@ function speedometerStart() {
         return;
     }
     speedometerRequestWakeLock();
+    // Sparkline interval
+    if (speedometerState.sparkIntervalId) clearInterval(speedometerState.sparkIntervalId);
+    speedometerState.sparkIntervalId = setInterval(speedometerPushSparkSample, 500);
     vibrate(20);
     playTick(0, 1500, 0.08, 0.03);
 }
@@ -1153,6 +1518,10 @@ function speedometerStop() {
     }
     speedometerState.watchId = null;
     speedometerState.running = false;
+    if (speedometerState.sparkIntervalId) {
+        clearInterval(speedometerState.sparkIntervalId);
+        speedometerState.sparkIntervalId = null;
+    }
     speedometerSetStatus('toolbar.speedometer.status.off');
     speedometerUpdateBtnLabel();
     const indicator = el('speedometer-indicator');
@@ -1168,6 +1537,24 @@ function speedometerOnPosition(pos) {
     const filteredKmh = speedKmh < 3 ? 0 : speedKmh;
     speedometerState.currentKmh = filteredKmh;
     speedometerState.accuracy = accuracy;
+
+    // Distanca: računaj između dve pozicije (Haversine)
+    if (speedometerState.lastPosition) {
+        const d = haversineKm(
+            speedometerState.lastPosition.lat,
+            speedometerState.lastPosition.lon,
+            pos.coords.latitude,
+            pos.coords.longitude
+        );
+        if (d > 0.001 && d < 1) {  // 1m - 1km, filter šuma
+            speedometerState.totalDistanceKm += d;
+        }
+    }
+    speedometerState.lastPosition = {
+        lat: pos.coords.latitude,
+        lon: pos.coords.longitude
+    };
+
     if (filteredKmh > 0) {
         speedometerState.totalKmh += filteredKmh;
         speedometerState.samples++;
@@ -1179,6 +1566,17 @@ function speedometerOnPosition(pos) {
         speedometerSetStatus('toolbar.speedometer.status.receiving');
     }
     speedometerUpdateDisplay();
+    speedometerUpdateAnalog();
+}
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 function speedometerOnError(err) {
@@ -1197,8 +1595,13 @@ function speedometerReset() {
     speedometerState.totalKmh = 0;
     speedometerState.samples = 0;
     speedometerState.accuracy = null;
+    speedometerState.totalDistanceKm = 0;
+    speedometerState.lastPosition = null;
+    speedometerState.sparkData = [];
     try { localStorage.removeItem(SPEEDOMETER_MAX_KEY); } catch (e) {}
     speedometerUpdateDisplay();
+    speedometerUpdateAnalog();
+    speedometerUpdateSparkline();
     vibrate(15);
     playTick(0, 1400, 0.06, 0.02);
     showToast(safeT('gps.resetDone'), 'info', 1400);
@@ -1218,7 +1621,9 @@ function speedometerReleaseWakeLock() {
     }
 }
 
-// ================= BOTTOM NAVIGATION =================
+// ============================================================
+// BOTTOM NAVIGATION
+// ============================================================
 let currentScreenId = 'home-screen';
 
 function switchBottomNav(screenId) {
@@ -1237,7 +1642,9 @@ function updateBottomNavUI() {
     });
 }
 
-// ================= NAVIGACIJA — EKRANI =================
+// ============================================================
+// NAVIGACIJA — EKRANI
+// ============================================================
 function openScreen(screenId, direction = 'right') {
     try {
         document.querySelectorAll('.screen').forEach(screen => {
@@ -1281,7 +1688,9 @@ function goHome() {
     switchBottomNav('home-screen');
 }
 
-// ================= DANAS DASHBOARD =================
+// ============================================================
+// DANAS DASHBOARD
+// ============================================================
 function renderTodayDashboard() {
     const content = el('today-content');
     const greeting = el('today-greeting');
@@ -1468,7 +1877,9 @@ function renderTodayTip() {
     `;
 }
 
-// ================= MOJI ALATI SCREEN =================
+// ============================================================
+// MOJI ALATI SCREEN
+// ============================================================
 function renderMyToolsScreen() {
     const content = el('mytools-content');
     if (!content) return;
@@ -1507,7 +1918,9 @@ function renderMyToolsScreen() {
     content.innerHTML = html;
 }
 
-// ================= PROFIL KORISNIKA =================
+// ============================================================
+// PROFIL KORISNIKA
+// ============================================================
 const USER_PROFILE_KEY = 'cx_user_profile';
 
 function loadUserProfile() {
@@ -1588,7 +2001,9 @@ function updateProfileStatusLabel() {
     }
 }
 
-// ================= PAMETNA PRETRAGA =================
+// ============================================================
+// PAMETNA PRETRAGA
+// ============================================================
 const RECENT_SEARCH_KEY = 'cx_recent_searches';
 const CATEGORY_CLICKS_KEY = 'cx_category_clicks';
 
@@ -1798,10 +2213,10 @@ function clearSearch() {
     handleQuickSearch();
 }
 
-// ================= SVI ALATI MODAL (NOVO U 3.0) =================
-
-// Stanje za "Svi alati" modal — koje sekcije su otvorene
-const allToolsSectionState = {};
+// ============================================================
+// ZADATAK 4: SVI ALATI MODAL — ACCORDION (kompletno)
+// ============================================================
+const allToolsCatState = {};
 
 function openAllToolsModal() {
     const modal = el('all-tools-modal');
@@ -1822,16 +2237,12 @@ function openAllToolsModal() {
     try { history.pushState({ modal: 'all-tools' }, '', ''); } catch (e) {}
 }
 
-// Stanje za otvorene kategorije
-const allToolsCatState = {};
-
 function renderAllToolsSections() {
     const container = el('all-tools-sections');
     if (!container) return;
 
     let html = '';
 
-    // Prolazi kroz sve kategorije
     Object.entries(CATEGORIES).forEach(([catId, cat]) => {
         const accent = getCategoryAccent(catId);
         const totalTools = cat.tabs.length;
@@ -1839,7 +2250,6 @@ function renderAllToolsSections() {
         const openClass = isOpen ? ' open' : '';
         const ariaExpanded = isOpen ? 'true' : 'false';
 
-        // Grid sa svim tabovima
         let tabsHtml = '';
         cat.tabs.forEach(tab => {
             const tabAccent = accent;
@@ -1865,7 +2275,6 @@ function renderAllToolsSections() {
             `;
         });
 
-        // Kartica kategorije
         html += `
             <div class="all-tools-cat${openClass}" data-cat-id="${catId}" style="--cat-accent: ${accent};">
                 <button class="all-tools-cat-head"
@@ -1874,7 +2283,7 @@ function renderAllToolsSections() {
                     <span class="all-tools-cat-icon">${icon(cat.icon)}</span>
                     <span class="all-tools-cat-info">
                         <span class="all-tools-cat-name">${escapeHtml(safeT('cat.' + catId))}</span>
-                        <span class="all-tools-cat-count">${totalTools} ${totalTools === 1 ? 'alat' : (totalTools < 5 ? 'alata' : 'alata')}</span>
+                        <span class="all-tools-cat-count">${totalTools} ${totalTools === 1 ? 'alat' : 'alata'}</span>
                     </span>
                     <span class="all-tools-cat-arrow">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
@@ -1904,6 +2313,30 @@ function toggleAllToolsCat(catId) {
     playTick(0, 1200, 0.04, 0.012);
 }
 
+function closeAllToolsCat(catId) {
+    const catEl = document.querySelector(`.all-tools-cat[data-cat-id="${catId}"]`);
+    if (!catEl) return false;
+    if (!catEl.classList.contains('open')) return false;
+    catEl.classList.remove('open');
+    allToolsCatState[catId] = false;
+    const head = catEl.querySelector('.all-tools-cat-head');
+    if (head) head.setAttribute('aria-expanded', 'false');
+    vibrate(8);
+    return true;
+}
+
+function closeAnyOpenAllToolsCat() {
+    const openCats = document.querySelectorAll('.all-tools-cat.open');
+    if (openCats.length === 0) return false;
+    openCats.forEach(cat => {
+        cat.classList.remove('open');
+        const catId = cat.dataset.catId;
+        if (catId) allToolsCatState[catId] = false;
+    });
+    vibrate(8);
+    return true;
+}
+
 function openCalcFromAllTools(catId, tabId) {
     closeModal('all-tools-modal');
     setTimeout(() => {
@@ -1911,7 +2344,60 @@ function openCalcFromAllTools(catId, tabId) {
     }, 200);
 }
 
-// ================= TOAST =================
+// ---- Pretraga u "Svi alati" modalu ----
+function handleAllToolsSearch() {
+    const input = el('all-tools-search');
+    if (!input) return;
+    const q = input.value.trim();
+    const clearBtn = el('all-tools-search-clear');
+    if (clearBtn) clearBtn.style.display = q ? 'flex' : 'none';
+
+    if (!q) {
+        renderAllToolsSections();
+        return;
+    }
+
+    // Prikaži rezultate pretrage umesto accordiona
+    const container = el('all-tools-sections');
+    if (!container) return;
+    const matches = searchTools(q);
+    if (matches.length === 0) {
+        container.innerHTML = `
+            <div class="all-tools-search-empty">
+                <div class="all-tools-search-empty-title">${safeT('allTools.noResults')}</div>
+                <div>${safeT('allTools.tryAgain')}</div>
+            </div>
+        `;
+        return;
+    }
+    let html = '<div class="all-tools-search-results">';
+    matches.forEach(tool => {
+        const accent = getCategoryAccent(tool.catId);
+        html += `
+            <button class="all-tools-search-item" style="--qt-accent: ${accent};" onclick="openCalcFromAllTools('${tool.catId}', '${tool.tabId}')">
+                <span class="all-tools-search-item-icon">${icon(tool.icon)}</span>
+                <span class="all-tools-search-item-text">
+                    <span class="all-tools-search-item-name">${escapeHtml(safeT('tab.' + tool.catId + '.' + tool.tabId))}</span>
+                    <span class="all-tools-search-item-cat">${escapeHtml(safeT('cat.' + tool.catId))}</span>
+                </span>
+            </button>
+        `;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function clearAllToolsSearch() {
+    const input = el('all-tools-search');
+    if (input) input.value = '';
+    const clearBtn = el('all-tools-search-clear');
+    if (clearBtn) clearBtn.style.display = 'none';
+    renderAllToolsSections();
+}
+
+// ============================================================
+// TOAST
+// ============================================================
 function showToast(message, type = 'info', duration = 3000) {
     const container = el('toast-container');
     if (!container) return;
@@ -1940,7 +2426,9 @@ function showToast(message, type = 'info', duration = 3000) {
     else if (type === 'success') vibrate(15);
 }
 
-// ================= CONFIRM =================
+// ============================================================
+// CONFIRM
+// ============================================================
 let confirmResolver = null;
 function showConfirm(message, title = null) {
     return new Promise((resolve) => {
@@ -1961,7 +2449,9 @@ function closeConfirm(result) {
     vibrate(10);
 }
 
-// ================= ZVUK I VIBRACIJA =================
+// ============================================================
+// ZVUK I VIBRACIJA
+// ============================================================
 let settings = { sound: true, haptic: true };
 try {
     const saved = JSON.parse(localStorage.getItem('cx_fx'));
@@ -2049,7 +2539,9 @@ function playAlarmBeep() {
     } catch (e) {}
 }
 
-// ================= RIPPLE =================
+// ============================================================
+// RIPPLE
+// ============================================================
 function createRipple(e) {
     const target = e.currentTarget;
     if (!target) return;
@@ -2063,19 +2555,20 @@ function createRipple(e) {
     ripple.style.left = x + 'px';
     ripple.style.top = y + 'px';
     if (getComputedStyle(target).position === 'static') target.style.position = 'relative';
-    // NE postavljaj overflow — pusti da ripple izađe ako treba
     target.appendChild(ripple);
     setTimeout(() => { if (ripple.parentNode) ripple.remove(); }, 600);
 }
 function setupRipple() {
-    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn, .modal-fav-star, .modal-settings-btn, .weather-refresh-btn, .location-gps-btn, .weather-location, .icon-btn-text, .about-row, .tabs-settings-reset-btn, .tabs-settings-save-btn, .gps-btn-main, .gps-btn-secondary, .gps-chip, .gps-color-swatch, .tabs-settings-color-reset, .toolbar-btn, .bottom-nav-btn, .mytool-item, .habit-day-btn, .today-item, .journal-card, .recipe-card, .water-glass, .holiday-card, .all-tools-main-btn, .all-tools-section-head, .all-tools-item, .all-tools-search-item';
+    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn, .modal-fav-star, .modal-settings-btn, .weather-refresh-btn, .location-gps-btn, .weather-location, .icon-btn-text, .about-row, .tabs-settings-reset-btn, .tabs-settings-save-btn, .gps-btn-main, .gps-btn-secondary, .gps-chip, .gps-color-swatch, .tabs-settings-color-reset, .toolbar-btn, .bottom-nav-btn, .mytool-item, .habit-day-btn, .today-item, .journal-card, .recipe-card, .water-glass, .holiday-card, .all-tools-main-btn, .all-tools-cat-head, .all-tools-tab, .all-tools-search-item, .stopwatch-btn, .timer-btn, .timer-preset-btn, .timer-option-btn, .speedometer-actions .gps-btn-main, .speedometer-actions .gps-btn-secondary';
     document.addEventListener('pointerdown', (e) => {
         const t = e.target.closest(selector);
         if (t) createRipple({ currentTarget: t, clientX: e.clientX, clientY: e.clientY });
     }, { passive: true });
 }
 
-// ================= PODEŠAVANJA =================
+// ============================================================
+// PODEŠAVANJA
+// ============================================================
 function updateSettingsUI() {
     try {
         const themeBtn = el('settings-theme-btn');
@@ -2147,7 +2640,9 @@ function toggleTheme() {
     } catch (e) {}
 }
 
-// ================= COPY / SHARE =================
+// ============================================================
+// COPY / SHARE
+// ============================================================
 function swapInputs(fromId, toId) {
     const fromSelect = el(fromId), toSelect = el(toId);
     if (!fromSelect || !toSelect) return;
@@ -2204,7 +2699,9 @@ async function shareResult(btn) {
     } catch (e) {}
 }
 
-// ================= ISTORIJA =================
+// ============================================================
+// ISTORIJA
+// ============================================================
 function loadHistory() {
     try { return JSON.parse(localStorage.getItem('cx_history')) || []; } catch (e) { return []; }
 }
@@ -2409,7 +2906,9 @@ function trackCategoryUse(categoryId) {
     } catch (e) {}
 }
 
-// ================= NAVIGACIJA — MODALI =================
+// ============================================================
+// NAVIGACIJA — MODALI
+// ============================================================
 let activeCategory = null;
 let activeTab = null;
 
@@ -2564,7 +3063,6 @@ function openCalc(categoryId, tabId) {
     if (tabId === 'skica') setTimeout(() => { if (typeof drawSketch === 'function') drawSketch(); }, 50);
     if (tabId === 'barkod') setTimeout(() => { if (typeof initBarcodeScanner === 'function') initBarcodeScanner(); }, 50);
     if (tabId === 'koraci') setTimeout(() => { if (typeof initPedometer === 'function') initPedometer(); }, 50);
-        // Weather inicijalizacija
     if (categoryId === 'weather') {
         setTimeout(() => {
             if (typeof initWeatherTab === 'function') initWeatherTab(tabId);
@@ -2601,6 +3099,9 @@ function closeModal(modalId) {
     modal.classList.remove('show');
     if (modalId === 'category-modal') activeCategory = null;
     if (modalId === 'tabs-settings-modal') { tabsSettingsCategory = null; tabsSettingsDraft = null; }
+    if (modalId === 'all-tools-modal') {
+        document.body.classList.remove('modal-open');
+    }
 
     setTimeout(() => {
         const anyOpen = document.querySelector('.modal.show');
@@ -2628,7 +3129,9 @@ function closeAllModals() {
     if (typeof stopPedometer === 'function') { try { stopPedometer(); } catch (e) {} }
 }
 
-// ================= BRZI ALATI =================
+// ============================================================
+// BRZI ALATI
+// ============================================================
 const QUICK_TOOLS_KEY = 'cx_quick_tools_v2';
 const DEFAULT_QUICK_TOOLS = ['podsetnici', 'money', 'weather', 'health'];
 const MAX_QUICK_TOOLS = 4;
@@ -2719,7 +3222,9 @@ function saveQuickTools() {
     showToast(safeT('editor.success'), 'success');
 }
 
-// ================= FAVORITI =================
+// ============================================================
+// FAVORITI
+// ============================================================
 const FAV_KEY = 'cx_favorites_v4';
 
 function loadFavorites() {
@@ -2812,7 +3317,6 @@ function toggleCalcFavStar() {
     toggleFavorite(null, key);
 }
 
-// Fav hint
 const FAV_HINT_KEY = 'cx_fav_hint_v1';
 const FAV_HINT_INTERVAL_DAYS = 30;
 function shouldShowFavHint() {
@@ -2841,7 +3345,9 @@ function dismissFavHint() {
     vibrate(10);
 }
 
-// ================= BADGE =================
+// ============================================================
+// BADGE
+// ============================================================
 const BADGE_HINT_KEY = 'cx_hint_dismissed_badge';
 
 function getUrgentRemindersCount() {
@@ -2891,7 +3397,9 @@ function dismissBadgeHint() {
     vibrate(10);
 }
 
-// ================= ARHIVA =================
+// ============================================================
+// ARHIVA
+// ============================================================
 const ARCHIVE_KEY = 'cx_archive';
 const ARCHIVE_AUTO_CLEANUP_KEY = 'cx_archive_auto_cleanup';
 const ARCHIVE_MAX_AGE_DAYS = 730;
@@ -2963,7 +3471,9 @@ function runArchiveAutoCleanup() {
     } catch (e) {}
 }
 
-// ================= DATE TRIPLE =================
+// ============================================================
+// DATE TRIPLE
+// ============================================================
 function isoToParts(iso) {
     if (!iso || typeof iso !== 'string') return null;
     const parts = iso.split('-').map(Number);
@@ -3074,7 +3584,9 @@ function setupShapeTypeListener(root) {
     });
 }
 
-// ================= INPUT PERSISTENCE =================
+// ============================================================
+// INPUT PERSISTENCE
+// ============================================================
 const INPUT_STORAGE_KEY = 'cx_inputs_v1';
 let inputCache = {};
 function loadInputCache() {
@@ -3123,7 +3635,9 @@ function setupInputPersistence() {
     }, true);
 }
 
-// ================= TAB LAYOUT =================
+// ============================================================
+// TAB LAYOUT
+// ============================================================
 const TABS_LAYOUT_KEY = 'cx_tabs_layout';
 function loadTabsLayout() {
     try {
@@ -3290,7 +3804,9 @@ function resetTabsLayout() {
     vibrate(15);
 }
 
-// ================= ACCENT COLORS =================
+// ============================================================
+// ACCENT COLORS
+// ============================================================
 const ACCENT_COLORS_KEY = 'cx_accent_colors';
 const ACCENT_PALETTE = [
     { id: 'crvena', color: '#f43f5e', nameSr: 'Crvena', nameEn: 'Red' },
@@ -3390,7 +3906,9 @@ function resetAccentColor() {
     showToast(safeT('tabs.settings.color.resetDone'), 'info', 1600);
 }
 
-// ================= O APLIKACIJI =================
+// ============================================================
+// O APLIKACIJI
+// ============================================================
 const APP_VERSION = '3.0';
 const APP_DATE_SR = 'Oktobar 2026';
 const APP_DATE_EN = 'October 2026';
@@ -3416,7 +3934,9 @@ function openAboutModal() {
     playTick(0, 1400, 0.06, 0.02);
 }
 
-// ================= BACK BUTTON / HISTORY =================
+// ============================================================
+// BACK BUTTON / HISTORY
+// ============================================================
 function setupBackButton() {
     try { history.replaceState({ screen: 'home-screen', home: true }, '', ''); } catch (e) {}
     window.addEventListener('popstate', (e) => {
@@ -3434,14 +3954,28 @@ function setupBackButton() {
         const speedometerModal = el('speedometer-modal');
         const allToolsModal = el('all-tools-modal');
 
-        // Nove modale po prioritetu
         const noviModali = ['fuel-history-modal','habit-modal','journal-modal','workout-modal','water-sleep-modal','recipes-modal','savings-modal','barcode-modal','price-tracking-modal','cost-estimate-modal','solar-modal','holidays-modal','timezone-modal','shoe-modal','clothing-modal','numbers-modal'];
         for (const id of noviModali) {
             const m = el(id);
             if (m && m.classList.contains('show')) { m.classList.remove('show'); return; }
         }
 
-        if (allToolsModal && allToolsModal.classList.contains('show')) { allToolsModal.classList.remove('show'); document.body.classList.remove('modal-open'); return; }
+        // ZADATAK 4: Back dugme u Svi alati modalu
+        // 1) Ako je otvoren kalkulator → vrati na accordion (Svi alati)
+        //    (calc-modal je iznad all-tools, ali ako je i on otvoren)
+        // 2) Ako je accordion otvoren (bilo koja kategorija) → zatvori accordion
+        // 3) Ako je Svi alati otvoren → zatvori modal
+        if (allToolsModal && allToolsModal.classList.contains('show')) {
+            // Prvo: ako je neka kategorija otvorena → zatvori je
+            const closed = closeAnyOpenAllToolsCat();
+            if (closed) return;
+            // Inače: zatvori ceo modal
+            allToolsModal.classList.remove('show');
+            document.body.classList.remove('modal-open');
+            vibrate(10);
+            return;
+        }
+
         if (profileModal && profileModal.classList.contains('show')) { profileModal.classList.remove('show'); return; }
         if (levelModal && levelModal.classList.contains('show')) {
             try { levelStop(); } catch (err) {}
@@ -3494,2699 +4028,213 @@ function setupBackButton() {
         }
     });
 }
-// ================= NIVO — DODATNE FUNKCIJE =================
 
-function toggleLevelSound() {
-    levelState.soundEnabled = !levelState.soundEnabled;
-    const btn = el('level-sound-toggle');
-    if (btn) btn.classList.toggle('active', levelState.soundEnabled);
-    try { localStorage.setItem('cx_level_sound', levelState.soundEnabled ? '1' : '0'); } catch(e) {}
-    vibrate(10);
-}
+// ============================================================
+// OSVEŽAVANJE STATIČNIH TEKSTOVA
+// ============================================================
+function refreshUIText() {
+    try {
+        const subtitle = el('app-subtitle'); if (subtitle) subtitle.textContent = safeT('app.subtitle');
+        const searchInput = el('home-search'); if (searchInput) searchInput.placeholder = safeT('app.search.placeholder');
+        const secQuick = el('sec-title-quick'); if (secQuick) secQuick.textContent = safeT('section.quickTools');
+        const secMy = el('sec-title-my'); if (secMy) secMy.textContent = safeT('section.myTools');
+        const btnEditQuick = el('btn-edit-quick'); if (btnEditQuick) btnEditQuick.textContent = safeT('section.edit');
+        const favEmpty = el('favorites-empty'); if (favEmpty) favEmpty.innerHTML = safeT('section.favoritesEmpty');
+        const footerTag = el('footer-tag'); if (footerTag) footerTag.textContent = safeT('app.footer');
+        const settingsTitle = el('settings-title'); if (settingsTitle) settingsTitle.textContent = safeT('settings.title');
+        const settingsThemeLabel = el('settings-theme-label'); if (settingsThemeLabel) settingsThemeLabel.textContent = safeT('settings.theme');
+        const settingsThemeSub = el('settings-theme-sub'); if (settingsThemeSub) settingsThemeSub.textContent = safeT('settings.theme.desc');
+        const settingsSoundLabel = el('settings-sound-label'); if (settingsSoundLabel) settingsSoundLabel.textContent = safeT('settings.sound');
+        const settingsSoundSub = el('settings-sound-sub'); if (settingsSoundSub) settingsSoundSub.textContent = safeT('settings.sound.desc');
+        const settingsHapticLabel = el('settings-haptic-label'); if (settingsHapticLabel) settingsHapticLabel.textContent = safeT('settings.haptic');
+        const settingsHapticSub = el('settings-haptic-sub'); if (settingsHapticSub) settingsHapticSub.textContent = safeT('settings.haptic.desc');
+        const settingsCurrencyLabel = el('settings-currency-label'); if (settingsCurrencyLabel) settingsCurrencyLabel.textContent = safeT('settings.currency');
+        const settingsCurrencySub = el('settings-currency-sub'); if (settingsCurrencySub) settingsCurrencySub.textContent = safeT('settings.currency.desc');
+        const settingsLanguageLabel = el('settings-language-label'); if (settingsLanguageLabel) settingsLanguageLabel.textContent = safeT('settings.language');
+        const settingsLanguageSub = el('settings-language-sub'); if (settingsLanguageSub) settingsLanguageSub.textContent = safeT('settings.language.desc');
+        const settingsOffline = el('settings-offline-text'); if (settingsOffline) settingsOffline.textContent = safeT('settings.offline');
+        const aboutTitle = el('about-title'); if (aboutTitle) aboutTitle.textContent = safeT('about.title');
+        const aboutSub = el('about-sub'); if (aboutSub) aboutSub.textContent = safeT('about.subtitle');
+        const historyTitle = el('history-title'); if (historyTitle) historyTitle.textContent = safeT('history.title');
+        const historySearch = el('history-search'); if (historySearch) historySearch.placeholder = safeT('history.search');
+        const btnHistoryExport = el('btn-history-export'); if (btnHistoryExport) btnHistoryExport.textContent = safeT('history.export');
+        const btnHistoryClear = el('btn-history-clear'); if (btnHistoryClear) btnHistoryClear.textContent = safeT('history.clear');
+        const historyEmpty = el('history-empty'); if (historyEmpty) historyEmpty.textContent = safeT('history.empty');
+        const historyNoResults = el('history-no-results'); if (historyNoResults) historyNoResults.textContent = safeT('history.noResults');
+        const statsToggleBtn = el('stats-toggle-btn'); if (statsToggleBtn) { const panel = el('stats-panel'); const isOpen = panel && panel.style.display !== 'none'; statsToggleBtn.textContent = isOpen ? safeT('history.stats.hide') : safeT('history.stats.show'); }
+        const langBtn = el('lang-toggle'); if (langBtn) langBtn.textContent = (typeof currentLang !== 'undefined' ? currentLang : 'sr').toUpperCase();
+        const editorTitle = el('editor-title'); if (editorTitle) editorTitle.textContent = safeT('editor.title');
+        const editorDesc = el('editor-desc'); if (editorDesc) editorDesc.textContent = safeT('editor.desc');
+        const editorSaveBtn = el('editor-save-btn'); if (editorSaveBtn) editorSaveBtn.textContent = safeT('editor.save');
+        const locationTitle = el('location-title'); if (locationTitle) locationTitle.textContent = safeT('weather.location.title');
+        const locationSearchInput = el('location-search-input'); if (locationSearchInput) locationSearchInput.placeholder = safeT('weather.location.search');
+        const locationGpsText = el('location-gps-text'); if (locationGpsText) locationGpsText.textContent = safeT('weather.location.gps');
+        const favHintTitle = el('fav-hint-title'); if (favHintTitle) favHintTitle.textContent = safeT('fav.hint.title');
+        const favHintText = el('fav-hint-text'); if (favHintText) favHintText.textContent = safeT('fav.hint.text');
+        const favHintBtn = el('fav-hint-btn'); if (favHintBtn) favHintBtn.textContent = safeT('fav.hint.btn');
+        const confirmTitle = el('confirm-title'); if (confirmTitle) confirmTitle.textContent = safeT('confirm.title');
+        const confirmMsg = el('confirm-message'); if (confirmMsg) confirmMsg.textContent = safeT('confirm.title');
+        const confirmCancelBtn = el('confirm-cancel-btn'); if (confirmCancelBtn) confirmCancelBtn.textContent = safeT('confirm.cancel');
+        const confirmOkBtn = el('confirm-ok-btn'); if (confirmOkBtn) confirmOkBtn.textContent = safeT('confirm.ok');
+        const settingsArchiveLabel = el('settings-archive-label'); if (settingsArchiveLabel) settingsArchiveLabel.textContent = safeT('settings.archive');
+        const settingsArchiveSub = el('settings-archive-sub'); if (settingsArchiveSub) settingsArchiveSub.textContent = safeT('settings.archive.autoCleanup');
+        const settingsArchiveBtn = el('settings-archive-btn'); if (settingsArchiveBtn) settingsArchiveBtn.textContent = getArchiveAutoCleanupSetting() ? safeT('settings.archive.autoCleanup.on') : safeT('settings.archive.autoCleanup.off');
+        const colorTitle = el('tabs-settings-color-title'); if (colorTitle) colorTitle.textContent = safeT('tabs.settings.color.title');
+        const colorReset = el('tabs-settings-color-reset'); if (colorReset) colorReset.textContent = safeT('tabs.settings.color.reset');
 
-function toggleLevelVibrate() {
-    levelState.vibrateEnabled = !levelState.vibrateEnabled;
-    const btn = el('level-vibrate-toggle');
-    if (btn) btn.classList.toggle('active', levelState.vibrateEnabled);
-    try { localStorage.setItem('cx_level_vibrate', levelState.vibrateEnabled ? '1' : '0'); } catch(e) {}
-    vibrate(10);
-}
+        const navHome = el('nav-label-home'); if (navHome) navHome.textContent = safeT('nav.home');
+        const navMy = el('nav-label-my'); if (navMy) navMy.textContent = safeT('nav.myTools');
+        const navToday = el('nav-label-today'); if (navToday) navToday.textContent = safeT('nav.today');
+        const navHistory = el('nav-label-history'); if (navHistory) navHistory.textContent = safeT('nav.history');
+        const navSettings = el('nav-label-settings'); if (navSettings) navSettings.textContent = safeT('nav.settings');
 
-function levelResetOffset() {
-    levelState.offsetBeta = 0;
-    levelState.offsetGamma = 0;
-    levelState.beta = 0;
-    levelState.gamma = 0;
-    levelUpdateDisplay();
-    vibrate(15);
-    showToast('Nivo resetovan', 'info', 1500);
+        const toolbarLevel = el('toolbar-level-label'); if (toolbarLevel) toolbarLevel.textContent = safeT('toolbar.level.title');
+        const toolbarStopwatch = el('toolbar-stopwatch-label'); if (toolbarStopwatch) toolbarStopwatch.textContent = safeT('toolbar.stopwatch.title');
+        const toolbarTimer = el('toolbar-timer-label'); if (toolbarTimer) toolbarTimer.textContent = safeT('toolbar.timer.title');
+        const toolbarSpeedometer = el('toolbar-speedometer-label'); if (toolbarSpeedometer) toolbarSpeedometer.textContent = safeT('toolbar.speedometer.label');
+
+        const todayTitle = el('today-title'); if (todayTitle) todayTitle.textContent = safeT('today.title');
+        const todaySubtitle = el('today-subtitle'); if (todaySubtitle) todaySubtitle.textContent = safeT('today.subtitle');
+
+        const mytoolsTitle = el('mytools-title'); if (mytoolsTitle) mytoolsTitle.textContent = safeT('nav.myTools');
+        const mytoolsSubtitle = el('mytools-subtitle'); if (mytoolsSubtitle) mytoolsSubtitle.textContent = 'Tvoji omiljeni alati';
+
+        const settingsProfileLabel = el('settings-profile-label'); if (settingsProfileLabel) settingsProfileLabel.textContent = safeT('settings.profile');
+        const settingsProfileSub = el('settings-profile-sub'); if (settingsProfileSub) settingsProfileSub.textContent = safeT('settings.profile.desc');
+
+        const allToolsBtnTitle = el('all-tools-btn-title'); if (allToolsBtnTitle) allToolsBtnTitle.textContent = safeT('allTools.button');
+        const allToolsBtnSub = el('all-tools-btn-sub'); if (allToolsBtnSub) allToolsBtnSub.textContent = safeT('allTools.subtitle');
+        const allToolsSearch = el('all-tools-search'); if (allToolsSearch) allToolsSearch.placeholder = safeT('allTools.search.placeholder');
+        const allToolsTitle = el('all-tools-modal-title'); if (allToolsTitle) allToolsTitle.textContent = safeT('allTools.title');
+
+        const speedometerTitle = el('speedometer-modal-title'); if (speedometerTitle) speedometerTitle.textContent = safeT('toolbar.speedometer.title');
+
+        const splashTagline = el('splash-tagline'); if (splashTagline) splashTagline.textContent = safeT('app.subtitle');
+    } catch (e) { console.warn('refreshUIText greška:', e); }
 }
 
 // ============================================================
-// KRAJ DELA 2/4
+// INIT
+// ============================================================
+function initApp() {
+    try { settings.archiveAutoCleanup = getArchiveAutoCleanupSetting(); } catch (e) {}
+
+    try {
+        const savedTheme = localStorage.getItem('cx_theme');
+        if (savedTheme === 'light' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+            document.documentElement.setAttribute('data-theme', 'light');
+            const tt = el('theme-toggle');
+            if (tt) tt.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
+        }
+    } catch (e) {}
+
+    try { loadInputCache(); setupInputPersistence(); } catch (e) {}
+
+    try {
+        const savedCurrency = localStorage.getItem('cx_default_currency');
+        const ac = el('auto-currency');
+        if (savedCurrency && ac) ac.value = savedCurrency;
+    } catch (e) {}
+
+    try { refreshUIText(); } catch (e) { console.error('refreshUIText:', e); }
+    try { renderQuickTools(); } catch (e) { console.error('renderQuickTools:', e); }
+    try { renderFavorites(); } catch (e) { console.error('renderFavorites:', e); }
+    try { populateNoteSelects(); } catch (e) {}
+    try { updateSettingsUI(); } catch (e) {}
+    try { updateProfileStatusLabel(); } catch (e) {}
+    try { setupRipple(); } catch (e) {}
+    try { setupBackButton(); } catch (e) {}
+    try { loadFxRates(); } catch (e) {}
+    try { restoreInputsFor(document); } catch (e) {}
+    try { runArchiveAutoCleanup(); } catch (e) {}
+    try { initToolbarIcons(); } catch (e) {}
+
+    // Service worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW registered', reg.scope)).catch(err => console.warn('SW registration failed', err));
+        });
+    }
+
+    setTimeout(() => { updateAppBadge(); }, 500);
+    setTimeout(() => { maybeShowBadgeHint(); }, 1200);
+    setInterval(updateAppBadge, 60 * 60 * 1000);
+
+    setTimeout(() => {
+        const splash = el('splash-screen');
+        if (splash) { splash.classList.add('hide'); setTimeout(() => { if (splash.parentNode) splash.remove(); }, 400); }
+    }, 500);
+
+    if (typeof t === 'function') document.title = t('app.title');
+
+    setTimeout(() => {
+        document.querySelectorAll('.modal').forEach(m => {
+            m.classList.remove('show');
+        });
+        document.body.classList.remove('modal-open');
+    }, 100);
+}
+
+function initToolbarIcons() {
+    const stopwatchIcon = document.querySelector('#toolbar-stopwatch-btn .toolbar-icon');
+    if (stopwatchIcon) stopwatchIcon.innerHTML = icon('stopwatch');
+    const timerIcon = document.querySelector('#toolbar-timer-btn .toolbar-icon');
+    if (timerIcon) timerIcon.innerHTML = icon('timer');
+    const levelBtnIcon = document.querySelector('#toolbar-level-btn .toolbar-icon');
+    if (levelBtnIcon) levelBtnIcon.innerHTML = icon('level');
+    const speedometerBtnIcon = document.querySelector('#toolbar-speedometer-btn .toolbar-icon');
+    if (speedometerBtnIcon) speedometerBtnIcon.innerHTML = icon('speedometer');
+
+    window.addEventListener('pagehide', () => {
+        try { levelStop(); } catch (e) {}
+        try { speedometerStop(); } catch (e) {}
+    });
+}
+
+// ============================================================
+// HASH ROUTING (za PWA shortcuts)
+// ============================================================
+function handleInitialHash() {
+    const hash = (window.location.hash || '').replace('#', '').trim();
+    if (!hash) return;
+    setTimeout(() => {
+        try { history.replaceState(null, '', window.location.pathname); } catch (e) {}
+    }, 100);
+
+    if (hash === 'today') {
+        setTimeout(() => switchBottomNav('today-screen'), 300);
+    } else if (hash === 'history') {
+        setTimeout(() => switchBottomNav('history-screen'), 300);
+    } else if (hash === 'settings') {
+        setTimeout(() => switchBottomNav('settings-screen'), 300);
+    } else if (hash === 'podsetnici') {
+        setTimeout(() => openCategory('podsetnici'), 300);
+    } else if (hash === 'money') {
+        setTimeout(() => openCategory('money'), 300);
+    } else if (hash === 'weather') {
+        setTimeout(() => openCategory('weather'), 300);
+    } else if (hash === 'health') {
+        setTimeout(() => openCategory('health'), 300);
+    }
+}
+
+window.addEventListener('hashchange', handleInitialHash);
+setTimeout(handleInitialHash, 500);
+
+// ============================================================
+// POKRETANJE
+// ============================================================
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
+
+// ============================================================
+// KRAJ DELA 1/2 — nastavlja se u delu 2/2
 // ============================================================// ============================================================
-// ALATIKA 3.0 — app.js
-// Deo 3/4: Svi NOVI alati (obuvanje, odeća, brojevi, štednja,
-// barkod, praćenje cena, skica, troškovnik, istorija točenja,
-// profil vozila, solarni paneli, praznici, vremenske zone,
-// workout journal, pedometar, voda/san, recepti, habit, dnevnik)
+// RENDER POMOĆNE
 // ============================================================
-
-// ============================================================
-// KONVERZIJE — OBUĆA, ODEĆA, BROJEVI
-// ============================================================
-
-// ---------- OBUVANJE ----------
-const SHOE_SIZES = {
-    male: {
-        eu: [39, 40, 41, 42, 43, 44, 45, 46, 47, 48],
-        us: [6.5, 7, 8, 8.5, 9.5, 10, 11, 12, 12.5, 13.5],
-        uk: [6, 6.5, 7.5, 8, 9, 9.5, 10.5, 11.5, 12, 13],
-        cm: [24.5, 25, 25.5, 26, 27, 27.5, 28.5, 29.5, 30, 31]
-    },
-    female: {
-        eu: [35, 36, 37, 38, 39, 40, 41, 42, 43],
-        us: [5, 5.5, 6.5, 7.5, 8.5, 9, 10, 10.5, 11.5],
-        uk: [2.5, 3, 4, 5, 6, 6.5, 7.5, 8, 9],
-        cm: [22, 22.5, 23.5, 24, 25, 25.5, 26.5, 27, 28]
-    },
-    kids: {
-        eu: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35],
-        us: [4.5, 5.5, 6.5, 7, 8, 8.5, 9.5, 10.5, 11, 12, 12.5, 13, 1, 2, 2.5, 3.5],
-        uk: [4, 5, 6, 6.5, 7.5, 8, 9, 10, 10.5, 11.5, 12, 12.5, 13.5, 1, 1.5, 2.5],
-        cm: [12, 13, 14, 14.5, 15, 15.5, 16, 17, 17.5, 18, 18.5, 19, 20, 20.5, 21, 22]
-    }
-};
-
-function renderConversionObuca() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Konverzija veličina obuće između EU, US, UK sistema.</p>
-            <div class="input-field">
-                <label>Pol</label>
-                <select id="shoe-gender" class="custom-input" onchange="calculateShoeSize()">
-                    <option value="male">Muški</option>
-                    <option value="female">Ženski</option>
-                    <option value="kids">Deca</option>
-                </select>
-            </div>
-            <div class="conversion-grid">
-                <div class="conversion-field">
-                    <label>Iz sistema</label>
-                    <select id="shoe-from" class="custom-input" onchange="calculateShoeSize()">
-                        <option value="eu">EU</option>
-                        <option value="us">US</option>
-                        <option value="uk">UK</option>
-                        <option value="cm">CM (dužina stopala)</option>
-                    </select>
-                </div>
-                <div class="conversion-field">
-                    <label>U sistem</label>
-                    <select id="shoe-to" class="custom-input" onchange="calculateShoeSize()">
-                        <option value="eu">EU</option>
-                        <option value="us" selected>US</option>
-                        <option value="uk">UK</option>
-                        <option value="cm">CM (dužina stopala)</option>
-                    </select>
-                </div>
-            </div>
-            <div class="input-field">
-                <label>Veličina</label>
-                <div class="input-wrapper">
-                    <input type="number" id="shoe-val" class="custom-input" placeholder="42" inputmode="decimal" oninput="calculateShoeSize()">
-                    <span class="unit" id="shoe-from-unit">EU</span>
-                </div>
-            </div>
-            ${calcButton('btn.calculate', 'calculateShoeSize()')}
-        </div>
-        <div class="conversion-result" id="shoe-result-box" style="display: none;">
-            <div class="conversion-result-label">Veličina</div>
-            <div class="conversion-result-value" id="res-shoe-val">0</div>
-            <div class="conversion-result-sub" id="res-shoe-system">US</div>
-        </div>
-        <p class="section-desc" style="text-align: center; font-size: 0.72rem;">Konverzija je približna. Proizvođači mogu imati različite veličine.</p>
-    `;
-}
-
-function calculateShoeSize() {
-    const gender = el('shoe-gender') ? el('shoe-gender').value : 'male';
-    const from = el('shoe-from') ? el('shoe-from').value : 'eu';
-    const to = el('shoe-to') ? el('shoe-to').value : 'us';
-    const val = num('shoe-val');
-    const fromUnit = el('shoe-from-unit');
-    if (fromUnit) fromUnit.textContent = from.toUpperCase();
-
-    if (val === null) { hide('shoe-result-box'); return; }
-
-    const table = SHOE_SIZES[gender];
-    if (!table) return;
-
-    const fromArr = table[from];
-    if (!fromArr) return;
-    let closestIdx = 0;
-    let minDiff = Infinity;
-    fromArr.forEach((size, i) => {
-        const diff = Math.abs(size - val);
-        if (diff < minDiff) { minDiff = diff; closestIdx = i; }
-    });
-
-    const result = table[to][closestIdx];
-    const resultEl = el('res-shoe-val');
-    const systemEl = el('res-shoe-system');
-    if (resultEl) resultEl.textContent = result;
-    if (systemEl) systemEl.textContent = to.toUpperCase();
-    show('shoe-result-box');
-}
-
-// ---------- ODEĆA ----------
-const CLOTHING_SIZES = {
-    male: [
-        { intl: 'XS', eu: 44, us: '34', uk: '34' },
-        { intl: 'S', eu: 46, us: '36', uk: '36' },
-        { intl: 'M', eu: 48, us: '38', uk: '38' },
-        { intl: 'L', eu: 50, us: '40', uk: '40' },
-        { intl: 'XL', eu: 52, us: '42', uk: '42' },
-        { intl: 'XXL', eu: 54, us: '44', uk: '44' },
-        { intl: '3XL', eu: 56, us: '46', uk: '46' }
-    ],
-    female: [
-        { intl: 'XS', eu: 34, us: '2', uk: '6' },
-        { intl: 'S', eu: 36, us: '4', uk: '8' },
-        { intl: 'M', eu: 38, us: '6', uk: '10' },
-        { intl: 'L', eu: 40, us: '8', uk: '12' },
-        { intl: 'XL', eu: 42, us: '10', uk: '14' },
-        { intl: 'XXL', eu: 44, us: '12', uk: '16' },
-        { intl: '3XL', eu: 46, us: '14', uk: '18' }
-    ]
-};
-
-function renderConversionOdeca() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Konverzija veličina odeće između internacionalnih (S/M/L), EU, US i UK sistema.</p>
-            <div class="input-field">
-                <label>Pol</label>
-                <select id="clothing-gender" class="custom-input" onchange="calculateClothingSize()">
-                    <option value="male">Muški</option>
-                    <option value="female">Ženski</option>
-                </select>
-            </div>
-            <div class="conversion-grid">
-                <div class="conversion-field">
-                    <label>Iz sistema</label>
-                    <select id="clothing-from" class="custom-input" onchange="calculateClothingSize()">
-                        <option value="intl">Internacionalno (S/M/L)</option>
-                        <option value="eu" selected>EU</option>
-                        <option value="us">US</option>
-                        <option value="uk">UK</option>
-                    </select>
-                </div>
-                <div class="conversion-field">
-                    <label>U sistem</label>
-                    <select id="clothing-to" class="custom-input" onchange="calculateClothingSize()">
-                        <option value="intl">Internacionalno (S/M/L)</option>
-                        <option value="eu">EU</option>
-                        <option value="us" selected>US</option>
-                        <option value="uk">UK</option>
-                    </select>
-                </div>
-            </div>
-            <div class="input-field">
-                <label>Veličina</label>
-                <div class="input-wrapper">
-                    <input type="text" id="clothing-val" class="custom-input" placeholder="48 / M" oninput="calculateClothingSize()">
-                </div>
-            </div>
-            ${calcButton('btn.calculate', 'calculateClothingSize()')}
-        </div>
-        <div class="conversion-result" id="clothing-result-box" style="display: none;">
-            <div class="conversion-result-label">Veličina</div>
-            <div class="conversion-result-value" id="res-clothing-val">—</div>
-            <div class="conversion-result-sub" id="res-clothing-system">US</div>
-        </div>
-        <p class="section-desc" style="text-align: center; font-size: 0.72rem;">Konverzija je približna. Proizvođači mogu imati različite veličine.</p>
-    `;
-}
-
-function calculateClothingSize() {
-    const gender = el('clothing-gender') ? el('clothing-gender').value : 'male';
-    const from = el('clothing-from') ? el('clothing-from').value : 'eu';
-    const to = el('clothing-to') ? el('clothing-to').value : 'us';
-    const inputEl = el('clothing-val');
-    if (!inputEl) return;
-    const val = inputEl.value.trim().toUpperCase();
-
-    if (!val) { hide('clothing-result-box'); return; }
-
-    const table = CLOTHING_SIZES[gender];
-    if (!table) return;
-
-    let row = null;
-    if (from === 'intl') {
-        row = table.find(r => r.intl === val);
-    } else {
-        const numVal = parseFloat(val);
-        if (!isNaN(numVal)) {
-            row = table.find(r => String(r[from]) === String(numVal));
-        }
-    }
-
-    if (!row) {
-        const resultEl = el('res-clothing-val');
-        const systemEl = el('res-clothing-system');
-        if (resultEl) resultEl.textContent = '—';
-        if (systemEl) systemEl.textContent = 'Nema podudaranja';
-        show('clothing-result-box');
-        return;
-    }
-
-    const result = row[to];
-    const resultEl = el('res-clothing-val');
-    const systemEl = el('res-clothing-system');
-    if (resultEl) resultEl.textContent = result;
-    if (systemEl) systemEl.textContent = to === 'intl' ? 'Internacionalno' : to.toUpperCase();
-    show('clothing-result-box');
-}
-
-// ---------- BROJEVI ----------
-function romanFromInt(num) {
-    if (num < 1 || num > 3999 || !Number.isInteger(num)) return null;
-    const romanMap = [
-        [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'],
-        [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'],
-        [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']
-    ];
-    let result = '';
-    for (const [value, symbol] of romanMap) {
-        while (num >= value) { result += symbol; num -= value; }
-    }
-    return result;
-}
-
-function intFromRoman(roman) {
-    const map = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
-    let result = 0;
-    const upper = roman.toUpperCase();
-    for (let i = 0; i < upper.length; i++) {
-        const cur = map[upper[i]];
-        const next = map[upper[i + 1]];
-        if (!cur) return null;
-        if (next && cur < next) result -= cur;
-        else result += cur;
-    }
-    return result;
-}
-
-function renderConversionBrojevi() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Konverzija brojeva između decimalnog, binarnog, oktalnog, heksadecimalnog i rimskog sistema.</p>
-            <div class="input-field">
-                <label>Unesi broj</label>
-                <input type="text" id="num-input" class="custom-input" placeholder="npr. 255 ili MCMXCV" oninput="calculateNumbers()">
-            </div>
-            <div class="input-field">
-                <label>Iz sistema</label>
-                <select id="num-from" class="custom-input" onchange="calculateNumbers()">
-                    <option value="dec" selected>Decimalni</option>
-                    <option value="bin">Binarni</option>
-                    <option value="oct">Oktalni</option>
-                    <option value="hex">Heksadecimalni</option>
-                    <option value="roman">Rimski</option>
-                </select>
-            </div>
-        </div>
-        <div class="numbers-grid" id="numbers-result" style="display: none;">
-            <div class="number-system-row" data-sys="dec">
-                <div class="number-system-label">Decimalni</div>
-                <div class="number-system-value" id="res-num-dec">—</div>
-            </div>
-            <div class="number-system-row" data-sys="bin">
-                <div class="number-system-label">Binarni</div>
-                <div class="number-system-value" id="res-num-bin">—</div>
-            </div>
-            <div class="number-system-row" data-sys="oct">
-                <div class="number-system-label">Oktalni</div>
-                <div class="number-system-value" id="res-num-oct">—</div>
-            </div>
-            <div class="number-system-row" data-sys="hex">
-                <div class="number-system-label">Heksadecimalni</div>
-                <div class="number-system-value" id="res-num-hex">—</div>
-            </div>
-            <div class="number-system-row" data-sys="roman">
-                <div class="number-system-label">Rimski</div>
-                <div class="number-system-value" id="res-num-roman">—</div>
-            </div>
-        </div>
-        <p class="section-desc" style="text-align: center; font-size: 0.72rem;">Rimski brojevi idu od 1 do 3999.</p>
-    `;
-}
-
-function calculateNumbers() {
-    const inputEl = el('num-input');
-    const fromEl = el('num-from');
-    if (!inputEl || !fromEl) return;
-    const raw = inputEl.value.trim();
-    const from = fromEl.value;
-    const resultBox = el('numbers-result');
-    if (!raw) {
-        if (resultBox) resultBox.style.display = 'none';
-        return;
-    }
-    let decimal = null;
-    try {
-        if (from === 'dec') {
-            const n = parseInt(raw, 10);
-            if (!isNaN(n)) decimal = n;
-        } else if (from === 'bin') {
-            if (/^[01]+$/.test(raw)) decimal = parseInt(raw, 2);
-        } else if (from === 'oct') {
-            if (/^[0-7]+$/.test(raw)) decimal = parseInt(raw, 8);
-        } else if (from === 'hex') {
-            if (/^[0-9A-Fa-f]+$/.test(raw)) decimal = parseInt(raw, 16);
-        } else if (from === 'roman') {
-            decimal = intFromRoman(raw);
-        }
-    } catch (e) {}
-    if (decimal === null || isNaN(decimal) || decimal < 0) {
-        if (resultBox) resultBox.style.display = 'block';
-        ['dec','bin','oct','hex','roman'].forEach(s => {
-            const el2 = el('res-num-' + s);
-            if (el2) el2.textContent = '—';
-        });
-        return;
-    }
-    const setV = (id, v) => { const e = el(id); if (e) e.textContent = v; };
-    setV('res-num-dec', decimal.toString(10));
-    setV('res-num-bin', decimal.toString(2));
-    setV('res-num-oct', decimal.toString(8));
-    setV('res-num-hex', decimal.toString(16).toUpperCase());
-    const roman = romanFromInt(decimal);
-    setV('res-num-roman', roman || '—');
-    if (resultBox) resultBox.style.display = 'flex';
-}
-
-// ============================================================
-// NOVAC — ŠTEDNJA, POREĐENJE, BUDŽET
-// ============================================================
-
-// ---------- ŠTEDNJA ----------
-function renderMoneyStednja() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Izračunaj koliko meseci treba da uštediš za cilj.</p>
-            ${inputField('label.money.stednja.target', 'savings-target', 'RSD', 'placeholder="1000000"')}
-            ${inputField('label.money.stednja.current', 'savings-current', 'RSD', 'placeholder="0"')}
-            ${inputField('label.money.stednja.monthly', 'savings-monthly', 'RSD', 'placeholder="20000"')}
-            ${inputField('label.money.stednja.interest', 'savings-interest', '%', 'value="0" step="0.1"')}
-            ${calcButton('btn.calculate', 'calculateSavings()')}
-        </div>
-        ${resultCard('savings-result-box', 'piggyBank', 'label.money.stednja.months', 'res-savings-months', 'meseci', 'NOVAC', 'label.money.stednja.progress')}
-        ${statsRow('savings-stats-row', [
-            ['label.money.stednja.total', 'stat-savings-total', '0 RSD'],
-            ['label.money.stednja.interestEarned', 'stat-savings-interest', '0 RSD']
-        ])}
-        <div class="savings-progress" id="savings-progress-box" style="display: none;">
-            <div class="savings-amounts">
-                <span class="current" id="savings-current-label">0 RSD</span>
-                <span class="target" id="savings-target-label">0 RSD</span>
-            </div>
-            <div class="savings-progress-bar-wrap">
-                <div class="savings-progress-fill" id="savings-progress-fill" style="width: 0%;"></div>
-            </div>
-            <div class="savings-pct" id="savings-pct">0%</div>
-        </div>
-    `;
-}
-
-function calculateSavings() {
-    const target = num('savings-target');
-    const current = num('savings-current') || 0;
-    const monthly = num('savings-monthly');
-    const annualRate = num('savings-interest') || 0;
-    if (!target || target <= 0 || !monthly || monthly <= 0) {
-        showToast('Unesi cilj i mesečni iznos.', 'error');
-        return;
-    }
-    const remaining = Math.max(0, target - current);
-    if (remaining === 0) {
-        const rm = el('res-savings-months');
-        if (rm) rm.innerText = '0';
-        showToast('Cilj je već dostignut!', 'success', 2500);
-        show('savings-result-box');
-        return;
-    }
-    let months;
-    if (annualRate <= 0) {
-        months = Math.ceil(remaining / monthly);
-    } else {
-        const monthlyRate = annualRate / 100 / 12;
-        months = Math.ceil(Math.log(1 + (remaining * monthlyRate) / monthly) / Math.log(1 + monthlyRate));
-    }
-    const totalSaved = monthly * months;
-    const interest = Math.max(0, totalSaved - remaining);
-
-    const rm = el('res-savings-months');
-    if (rm) rm.innerText = months;
-    const st = el('stat-savings-total');
-    if (st) st.innerText = money(totalSaved) + ' RSD';
-    const si = el('stat-savings-interest');
-    if (si) si.innerText = money(interest) + ' RSD';
-
-    show('savings-result-box'); show('savings-stats-row');
-
-    const pct = Math.min(100, (current / target) * 100);
-    const progressBox = el('savings-progress-box');
-    if (progressBox) progressBox.style.display = 'flex';
-    const fill = el('savings-progress-fill');
-    if (fill) fill.style.width = pct + '%';
-    const pctEl = el('savings-pct');
-    if (pctEl) pctEl.textContent = fmt(pct, 1) + '%';
-    const currLabel = el('savings-current-label');
-    if (currLabel) currLabel.textContent = money(current) + ' RSD';
-    const tgtLabel = el('savings-target-label');
-    if (tgtLabel) tgtLabel.textContent = money(target) + ' RSD';
-}
-
-// ---------- POREĐENJE CENA (dva proizvoda) ----------
-function renderMoneyPoredjenje() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Uporedi cenu dva proizvoda po jedinici mere.</p>
-            <div class="compare-group">
-                <div class="compare-title">Proizvod A</div>
-                ${inputField('label.shop.price', 'price-a', 'RSD', 'placeholder="200"')}
-                ${inputField('label.shop.quantity', 'qty-a', '', 'placeholder="1"')}
-                ${selectField('label.shop.unit', 'unit-a', [
-                    { value: 'kg', text: 'kg' },
-                    { value: 'g', text: 'g' },
-                    { value: 'L', text: 'L' },
-                    { value: 'ml', text: 'ml' },
-                    { value: 'kom', text: 'kom' }
-                ])}
-            </div>
-            <div class="compare-group">
-                <div class="compare-title">Proizvod B</div>
-                ${inputField('label.shop.price', 'price-b', 'RSD', 'placeholder="180"')}
-                ${inputField('label.shop.quantity', 'qty-b', '', 'placeholder="0.9"')}
-                ${selectField('label.shop.unit', 'unit-b', [
-                    { value: 'kg', text: 'kg' },
-                    { value: 'g', text: 'g' },
-                    { value: 'L', text: 'L' },
-                    { value: 'ml', text: 'ml' },
-                    { value: 'kom', text: 'kom' }
-                ])}
-            </div>
-            ${calcButton('btn.calculate', 'calculateMoneyPoredjenje()')}
-        </div>
-        ${resultCard('poredjenje-result-box', 'scale', 'label.shop.compareResult', 'res-poredjenje-winner', '', 'NOVAC', 'label.shop.compareShort')}
-        ${statsRow('poredjenje-stats-row', [
-            ['label.shop.productA', 'stat-poredjenje-a', '0'],
-            ['label.shop.productB', 'stat-poredjenje-b', '0'],
-            ['label.shop.difference', 'stat-poredjenje-diff', '0%']
-        ])}
-    `;
-}
-
-function calculateMoneyPoredjenje() {
-    const aP = num('price-a'), aQ = num('qty-a');
-    const aU = el('unit-a') ? el('unit-a').value : 'kg';
-    const bP = num('price-b'), bQ = num('qty-b');
-    const bU = el('unit-b') ? el('unit-b').value : 'kg';
-    if (!aP || !aQ || !bP || !bQ) { showToast('Unesi sve vrednosti.', 'error'); return; }
-    function toBase(price, qty, unit) {
-        if (unit === 'g' || unit === 'ml') return price / (qty / 1000);
-        return price / qty;
-    }
-    const aBase = toBase(aP, aQ, aU);
-    const bBase = toBase(bP, bQ, bU);
-    const winner = aBase < bBase ? safeT('label.shop.productACheaper') : (bBase < aBase ? safeT('label.shop.productBCheaper') : safeT('label.shop.samePrice'));
-    const rw = el('res-poredjenje-winner'); if (rw) rw.innerText = winner;
-    const sa = el('stat-poredjenje-a'); if (sa) sa.innerText = money(aBase);
-    const sb = el('stat-poredjenje-b'); if (sb) sb.innerText = money(bBase);
-    const sd = el('stat-poredjenje-diff'); if (sd) sd.innerText = fmt(Math.abs(aBase - bBase) / Math.max(aBase, bBase) * 100, 1) + '%';
-    show('poredjenje-result-box'); show('poredjenje-stats-row');
-}
-
-// ---------- BUDŽET ----------
-function renderMoneyBudzet() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Izračunaj dnevni limit potrošnje na osnovu budžeta.</p>
-            ${inputField('label.shop.totalBudget', 'budzet-total-m', 'RSD', 'placeholder="30000"')}
-            ${selectField('label.shop.period', 'budzet-period-m', [
-                { value: '7', text: 'Nedelja (7 dana)' },
-                { value: '14', text: 'Dve nedelje (14 dana)' },
-                { value: '30', text: 'Mesec (30 dana)' }
-            ])}
-            ${inputField('label.shop.alreadySpent', 'budzet-spent-m', 'RSD', 'placeholder="0"')}
-            ${calcButton('btn.calculate', 'calculateMoneyBudzet()')}
-        </div>
-        ${resultCard('budzet-result-box-m', 'calendarSm', 'label.shop.dailyLimit', 'res-budzet-daily-m', 'RSD', 'NOVAC', 'label.shop.budgetShort')}
-        ${statsRow('budzet-stats-row-m', [
-            ['label.shop.untilEndOfPeriod', 'stat-budzet-left-m', '0 RSD'],
-            ['label.shop.daysCount', 'stat-budzet-days-m', '0'],
-            ['label.shop.dailyUntilEnd', 'stat-budzet-recalc-m', '0 RSD']
-        ])}
-    `;
-}
-
-function calculateMoneyBudzet() {
-    const total = num('budzet-total-m');
-    const period = el('budzet-period-m') ? parseInt(el('budzet-period-m').value) : 30;
-    const spent = num('budzet-spent-m') || 0;
-    if (!total || total <= 0) { showToast('Unesi budžet.', 'error'); return; }
-    const daily = total / period, left = Math.max(0, total - spent);
-    const rd = el('res-budzet-daily-m'); if (rd) rd.innerText = money(daily);
-    const sl = el('stat-budzet-left-m'); if (sl) sl.innerText = money(left) + ' RSD';
-    const sd = el('stat-budzet-days-m'); if (sd) sd.innerText = period;
-    const sr = el('stat-budzet-recalc-m'); if (sr) sr.innerText = money(left / period) + ' RSD';
-    show('budzet-result-box-m'); show('budzet-stats-row-m');
-}
-
-// ============================================================
-// KUPOVINA — BARKOD, PRAĆENJE CENA
-// ============================================================
-
-let barcodeStream = null;
-let barcodeIntervalId = null;
-let barcodeDetector = null;
-
-function renderBarcodeScanner() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Skeniraj barkod kamerom telefona ili unesi ručno.</p>
-            <div class="barcode-camera-wrap" id="barcode-camera-wrap" style="display: none;">
-                <video id="barcode-video" autoplay playsinline muted></video>
-                <div class="barcode-overlay">
-                    <div class="barcode-frame"></div>
-                    <div class="barcode-scan-line"></div>
-                </div>
-            </div>
-            <button class="calc-btn-main" id="barcode-start-btn" onclick="startBarcodeScanner()">▶ Pokreni kameru</button>
-            <button class="gps-btn-secondary" id="barcode-stop-btn" style="display: none; width: 100%; margin-top: 8px;" onclick="stopBarcodeScanner()">⏹ Zaustavi kameru</button>
-            <div style="margin-top: 14px;">
-                <label style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 700;">Ručni unos barkoda</label>
-                <div class="input-wrapper" style="margin-top: 6px;">
-                    <input type="text" id="barcode-manual" class="custom-input" placeholder="npr. 1234567890123" inputmode="numeric">
-                </div>
-                <button class="calc-btn-main" style="margin-top: 8px;" onclick="useBarcodeManually()">Pretraži proizvod</button>
-            </div>
-        </div>
-        <div class="barcode-detected" id="barcode-detected" style="display: none;">
-            <div class="barcode-detected-label">Detektovan barkod</div>
-            <div class="barcode-detected-code" id="barcode-code">—</div>
-            <button class="calc-btn-main" style="margin-top: 12px;" onclick="addBarcodeToList()">Dodaj u listu za kupovinu</button>
-        </div>
-        <p class="section-desc" style="text-align: center; font-size: 0.72rem;">Skeniranje koristi kameru. Ako nije podržano, unesi barkod ručno.</p>
-    `;
-}
-
-function initBarcodeScanner() {
-    // Reset state
-    stopBarcodeScanner();
-}
-
-async function startBarcodeScanner() {
-    const wrap = el('barcode-camera-wrap');
-    const startBtn = el('barcode-start-btn');
-    const stopBtn = el('barcode-stop-btn');
-    const video = el('barcode-video');
-    if (!wrap || !video) return;
-    try {
-        barcodeStream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment' }
-        });
-        video.srcObject = barcodeStream;
-        wrap.style.display = 'block';
-        if (startBtn) startBtn.style.display = 'none';
-        if (stopBtn) stopBtn.style.display = 'block';
-
-        if ('BarcodeDetector' in window) {
-            try {
-                barcodeDetector = new BarcodeDetector({
-                    formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code']
-                });
-                barcodeIntervalId = setInterval(async () => {
-                    if (!barcodeDetector || !video) return;
-                    try {
-                        const barcodes = await barcodeDetector.detect(video);
-                        if (barcodes && barcodes.length > 0) {
-                            onBarcodeDetected(barcodes[0].rawValue);
-                        }
-                    } catch (e) {}
-                }, 500);
-            } catch (e) { console.warn('BarcodeDetector error:', e); }
-        } else {
-            showToast('Automatsko skeniranje nije podržano — unesi barkod ručno.', 'info', 3000);
-        }
-    } catch (e) {
-        console.warn('Camera error:', e);
-        showToast('Greška pri pristupu kameri. Dozvoli pristup u podešavanjima.', 'error', 3000);
-    }
-}
-
-function stopBarcodeScanner() {
-    const wrap = el('barcode-camera-wrap');
-    const startBtn = el('barcode-start-btn');
-    const stopBtn = el('barcode-stop-btn');
-    if (barcodeStream) {
-        barcodeStream.getTracks().forEach(t => t.stop());
-        barcodeStream = null;
-    }
-    if (barcodeIntervalId) {
-        clearInterval(barcodeIntervalId);
-        barcodeIntervalId = null;
-    }
-    barcodeDetector = null;
-    if (wrap) wrap.style.display = 'none';
-    if (startBtn) startBtn.style.display = 'block';
-    if (stopBtn) stopBtn.style.display = 'none';
-}
-
-function onBarcodeDetected(code) {
-    if (!code) return;
-    stopBarcodeScanner();
-    const box = el('barcode-detected');
-    const codeEl = el('barcode-code');
-    if (box) box.style.display = 'block';
-    if (codeEl) codeEl.textContent = code;
-    vibrate([50, 30, 50]);
-    playTick(0, 1800, 0.08, 0.04);
-}
-
-function useBarcodeManually() {
-    const input = el('barcode-manual');
-    if (!input) return;
-    const code = input.value.trim();
-    if (!code) { showToast('Unesi barkod.', 'warning'); return; }
-    onBarcodeDetected(code);
-}
-
-function addBarcodeToList() {
-    const codeEl = el('barcode-code');
-    if (!codeEl) return;
-    const code = codeEl.textContent;
-    if (!code || code === '—') return;
-    const list = loadShoppingList();
-    list.push({
-        id: Date.now() + Math.random(),
-        name: 'Barkod: ' + code,
-        qty: '',
-        price: 0,
-        bought: false,
-        date: Date.now(),
-        barcode: code
-    });
-    saveShoppingList(list);
-    showToast('Dodato u listu za kupovinu.', 'success', 2000);
-    vibrate(20);
-}
-
-// ---------- PRAĆENJE CENA ----------
-const PRICE_TRACKING_KEY = 'cx_price_tracking_v1';
-
-function loadPriceTracking() {
-    try {
-        const raw = JSON.parse(localStorage.getItem(PRICE_TRACKING_KEY));
-        if (Array.isArray(raw)) return raw;
-    } catch (e) {}
-    return [];
-}
-
-function savePriceTracking(list) {
-    try { localStorage.setItem(PRICE_TRACKING_KEY, JSON.stringify(list)); } catch (e) {}
-}
-
-function renderPriceTracking() {
-    return `
-        <div class="converter-box">
-            <div class="lista-head">
-                <div class="section-desc" style="margin:0;">Prati cene proizvoda kroz vreme.</div>
-                <button class="section-action-btn" onclick="openPriceTrackingModal()">+ Dodaj</button>
-            </div>
-            <div id="price-tracking-list" class="price-track-list"></div>
-        </div>
-    `;
-}
-
-function renderPriceTrackingList() {
-    const list = el('price-tracking-list');
-    if (!list) return;
-    const items = loadPriceTracking();
-    if (!items.length) {
-        list.innerHTML = `
-            <div class="price-track-empty">
-                <div class="price-track-empty-icon">📊</div>
-                <div>Nema proizvoda. Dodaj prvi!</div>
-            </div>
-        `;
-        return;
-    }
-    let html = '';
-    items.forEach(item => {
-        const prices = item.prices || [];
-        const lowest = prices.length ? Math.min(...prices.map(p => p.price)) : 0;
-        const highest = prices.length ? Math.max(...prices.map(p => p.price)) : 0;
-        const avg = prices.length ? prices.reduce((s, p) => s + p.price, 0) / prices.length : 0;
-        const last = prices.length ? prices[prices.length - 1].price : 0;
-        const change = prices.length >= 2 ? last - prices[prices.length - 2].price : 0;
-        const changeClass = change > 0 ? 'up' : (change < 0 ? 'down' : '');
-        const changeText = change === 0 ? '—' : (change > 0 ? '+' : '') + money(change) + ' RSD';
-
-        html += `
-            <div class="price-track-card">
-                <div class="price-track-head">
-                    <div class="price-track-name">${escapeHtml(item.name)}</div>
-                    ${item.store ? `<div class="price-track-store">${escapeHtml(item.store)}</div>` : ''}
-                </div>
-                <div class="price-track-stats">
-                    <div class="price-track-stat">
-                        <div class="price-track-stat-label">Najniža</div>
-                        <div class="price-track-stat-value low">${money(lowest)}</div>
-                    </div>
-                    <div class="price-track-stat">
-                        <div class="price-track-stat-label">Prosečna</div>
-                        <div class="price-track-stat-value">${money(avg)}</div>
-                    </div>
-                    <div class="price-track-stat">
-                        <div class="price-track-stat-label">Najviša</div>
-                        <div class="price-track-stat-value high">${money(highest)}</div>
-                    </div>
-                </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <span style="font-size:0.75rem;color:var(--text-secondary);font-weight:700;">Poslednja: ${money(last)} RSD</span>
-                    ${changeText !== '—' ? `<span class="price-track-change ${changeClass}">${changeText}</span>` : ''}
-                </div>
-                <div class="price-track-history">
-                    ${prices.slice(-5).reverse().map(p => `
-                        <div class="price-track-history-row">
-                            <span class="price-track-history-date">${escapeHtml(p.date)}${p.store ? ' • ' + escapeHtml(p.store) : ''}</span>
-                            <span class="price-track-history-price">${money(p.price)} RSD</span>
-                        </div>
-                    `).join('')}
-                </div>
-                <div style="display:flex;gap:6px;margin-top:10px;">
-                    <button class="section-action-btn" style="flex:1;" onclick="openAddPriceModal('${item.id}')">+ Dodaj cenu</button>
-                    <button class="section-action-btn" style="flex:1;color:#f43f5e;border-color:rgba(244,63,94,0.4);" onclick="deletePriceTracking('${item.id}')">Obriši</button>
-                </div>
-            </div>
-        `;
-    });
-    list.innerHTML = html;
-}
-
-function openPriceTrackingModal() {
-    const modal = el('price-tracking-modal');
-    const body = el('price-tracking-modal-body');
-    if (!modal || !body) return;
-    body.innerHTML = `
-        <div class="converter-box">
-            ${inputFieldText('label.shop.itemName', 'pt-name', 'npr. Mleko 1L')}
-            ${inputFieldText('label.shop.price', 'pt-store', 'npr. Maxi')}
-            ${calcButton('btn.save', 'savePriceTrackingProduct()')}
-        </div>
-    `;
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-    vibrate(15);
-}
-
-function savePriceTrackingProduct() {
-    const name = el('pt-name') ? el('pt-name').value.trim() : '';
-    const store = el('pt-store') ? el('pt-store').value.trim() : '';
-    if (!name) { showToast('Unesi naziv proizvoda.', 'error'); return; }
-    const list = loadPriceTracking();
-    list.push({
-        id: 'pt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-        name, store,
-        prices: [],
-        createdAt: Date.now()
-    });
-    savePriceTracking(list);
-    closeModal('price-tracking-modal');
-    renderPriceTrackingList();
-    showToast('Proizvod dodat.', 'success', 1500);
-    vibrate(20);
-}
-
-function openAddPriceModal(productId) {
-    const list = loadPriceTracking();
-    const item = list.find(p => p.id === productId);
-    if (!item) return;
-    const price = prompt('Unesi cenu (RSD):');
-    if (!price) return;
-    const priceNum = parseNum(price);
-    if (!priceNum || priceNum <= 0) { showToast('Neispravna cena.', 'error'); return; }
-    const store = prompt('Prodavnica (opciono):') || item.store || '';
-    item.prices = item.prices || [];
-    item.prices.push({
-        price: priceNum,
-        store: store,
-        date: new Date().toISOString().slice(0, 10)
-    });
-    savePriceTracking(list);
-    renderPriceTrackingList();
-    showToast('Cena dodata.', 'success', 1500);
-    vibrate(20);
-}
-
-function deletePriceTracking(productId) {
-    showConfirm('Obrisati ovaj proizvod i sve cene?').then(ok => {
-        if (!ok) return;
-        let list = loadPriceTracking();
-        list = list.filter(p => p.id !== productId);
-        savePriceTracking(list);
-        renderPriceTrackingList();
-        showToast('Proizvod obrisan.', 'info', 1500);
-    });
-}
-
-// ============================================================
-// DOM — SKICA, TROŠKOVNIK
-// ============================================================
-
-function renderSketch() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Nacrtaj skicu prostorije na osnovu dimenzija.</p>
-            ${inputField('label.home.length', 'sketch-length', 'm', 'placeholder="5" oninput="drawSketch()"')}
-            ${inputField('label.home.width', 'sketch-width', 'm', 'placeholder="3" oninput="drawSketch()"')}
-        </div>
-        <div class="sketch-wrap">
-            <svg id="sketch-svg" class="sketch-svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet">
-                <rect x="50" y="50" width="300" height="200" fill="none" stroke="var(--border-strong)" stroke-width="2" stroke-dasharray="6,4"/>
-                <text x="200" y="150" text-anchor="middle" fill="var(--text-tertiary)" font-size="14" font-weight="600">Unesi dimenzije</text>
-            </svg>
-        </div>
-        ${statsRow('sketch-stats-row', [
-            ['label.home.area', 'stat-sketch-area', '0 m²'],
-            ['label.home.totalArea', 'stat-sketch-perimeter', '0 m']
-        ])}
-        <p class="section-desc" style="text-align: center; font-size: 0.72rem;">Skica je samo vizualni prikaz prostorije. Za precizne mere koristi Površinu.</p>
-    `;
-}
-
-function drawSketch() {
-    const svg = el('sketch-svg');
-    if (!svg) return;
-    const l = num('sketch-length');
-    const w = num('sketch-width');
-    if (!l || !w) {
-        svg.innerHTML = `
-            <rect x="50" y="50" width="300" height="200" fill="none" stroke="var(--border-strong)" stroke-width="2" stroke-dasharray="6,4"/>
-            <text x="200" y="150" text-anchor="middle" fill="var(--text-tertiary)" font-size="14" font-weight="600">Unesi dimenzije</text>
-        `;
-        return;
-    }
-    const aspect = l / w;
-    let rw, rh;
-    const maxW = 300, maxH = 200;
-    if (aspect >= maxW / maxH) { rw = maxW; rh = maxW / aspect; }
-    else { rh = maxH; rw = maxH * aspect; }
-    const x = (400 - rw) / 2, y = (300 - rh) / 2;
-
-    svg.innerHTML = `
-        <defs>
-            <pattern id="hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
-                <line x1="0" y1="0" x2="0" y2="8" stroke="var(--accent-primary)" stroke-width="1" opacity="0.15"/>
-            </pattern>
-        </defs>
-        <rect x="${x}" y="${y}" width="${rw}" height="${rh}" fill="url(#hatch)" stroke="var(--accent-primary)" stroke-width="3" rx="4"/>
-        <text x="${x + rw / 2}" y="${y - 12}" text-anchor="middle" fill="var(--text-main)" font-size="13" font-weight="800">${l} m</text>
-        <text x="${x - 12}" y="${y + rh / 2}" text-anchor="middle" fill="var(--text-main)" font-size="13" font-weight="800" transform="rotate(-90 ${x - 12} ${y + rh / 2})">${w} m</text>
-        <text x="${x + rw / 2}" y="${y + rh / 2 + 6}" text-anchor="middle" fill="var(--accent-primary)" font-size="18" font-weight="900">${(l * w).toFixed(2)} m²</text>
-    `;
-
-    const sa = el('stat-sketch-area'); if (sa) sa.innerText = (l * w).toFixed(2) + ' m²';
-    const sp = el('stat-sketch-perimeter'); if (sp) sp.innerText = (2 * (l + w)).toFixed(2) + ' m';
-    const row = el('sketch-stats-row'); if (row) row.style.display = 'flex';
-}
-
-// ---------- TROŠKOVNIK ----------
-const COST_ESTIMATE_KEY = 'cx_cost_estimate_v1';
-
-function loadCostEstimate() {
-    try {
-        const raw = JSON.parse(localStorage.getItem(COST_ESTIMATE_KEY));
-        if (Array.isArray(raw)) return raw;
-    } catch (e) {}
-    return [];
-}
-
-function saveCostEstimate(list) {
-    try { localStorage.setItem(COST_ESTIMATE_KEY, JSON.stringify(list)); } catch (e) {}
-}
-
-function renderCostEstimate() {
-    return `
-        <div class="converter-box">
-            <div class="lista-head">
-                <div class="section-desc" style="margin:0;">Vodi troškovnik materijala i radova.</div>
-                <button class="section-action-btn" onclick="openCostEstimateModal()">+ Dodaj</button>
-            </div>
-            <div id="cost-estimate-list"></div>
-        </div>
-    `;
-}
-
-function renderCostEstimateList() {
-    const wrap = el('cost-estimate-list');
-    if (!wrap) return;
-    const items = loadCostEstimate();
-    if (!items.length) {
-        wrap.innerHTML = `<div class="price-track-empty"><div class="price-track-empty-icon">📋</div><div>Nema stavki. Dodaj prvu!</div></div>`;
-        return;
-    }
-    let rowsHtml = '';
-    let grand = 0;
-    items.forEach(item => {
-        const total = (item.qty || 0) * (item.unitPrice || 0);
-        grand += total;
-        rowsHtml += `
-            <div class="cost-estimate-row">
-                <div class="cost-estimate-name">${escapeHtml(item.name)}</div>
-                <div class="cost-estimate-qty">${item.qty}</div>
-                <div class="cost-estimate-unit">${escapeHtml(item.unit || '')}</div>
-                <div class="cost-estimate-total">${money(total)}</div>
-                <button class="cost-estimate-remove" onclick="deleteCostEstimateItem('${item.id}')">✕</button>
-            </div>
-        `;
-    });
-    wrap.innerHTML = `
-        <div class="cost-estimate-table">
-            <div class="cost-estimate-head">
-                <div>Naziv</div><div>Kol.</div><div>Jed.</div><div>Cena</div><div></div>
-            </div>
-            ${rowsHtml}
-        </div>
-        <div class="cost-estimate-grand-total">
-            <span class="label">UKUPNO</span>
-            <span class="value">${money(grand)} RSD</span>
-        </div>
-        <div style="display:flex;gap:8px;">
-            <button class="section-action-btn" style="flex:1;" onclick="shareCostEstimate()">📤 Podeli</button>
-            <button class="section-action-btn" style="flex:1;color:#f43f5e;border-color:rgba(244,63,94,0.4);" onclick="clearCostEstimate()">Obriši sve</button>
-        </div>
-    `;
-}
-
-function openCostEstimateModal() {
-    const modal = el('cost-estimate-modal');
-    const body = el('cost-estimate-modal-body');
-    if (!modal || !body) return;
-    body.innerHTML = `
-        <div class="converter-box">
-            ${inputFieldText('label.shop.itemName', 'ce-name', 'npr. Blokovi')}
-            ${inputField('label.quantity', 'ce-qty', '', 'placeholder="100"')}
-            ${inputFieldText('label.shop.unit', 'ce-unit', 'kom / m² / kg')}
-            ${inputField('label.shop.price', 'ce-price', 'RSD', 'placeholder="80"')}
-            ${calcButton('btn.save', 'saveCostEstimateItem()')}
-        </div>
-    `;
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-    vibrate(15);
-}
-
-function saveCostEstimateItem() {
-    const name = el('ce-name') ? el('ce-name').value.trim() : '';
-    const qty = num('ce-qty') || 0;
-    const unit = el('ce-unit') ? el('ce-unit').value.trim() : '';
-    const unitPrice = num('ce-price') || 0;
-    if (!name) { showToast('Unesi naziv stavke.', 'error'); return; }
-    const list = loadCostEstimate();
-    list.push({
-        id: 'ce_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-        name, qty, unit, unitPrice,
-        createdAt: Date.now()
-    });
-    saveCostEstimate(list);
-    closeModal('cost-estimate-modal');
-    renderCostEstimateList();
-    showToast('Stavka dodata.', 'success', 1500);
-    vibrate(20);
-}
-
-function deleteCostEstimateItem(id) {
-    let list = loadCostEstimate();
-    list = list.filter(i => i.id !== id);
-    saveCostEstimate(list);
-    renderCostEstimateList();
-    showToast('Stavka obrisana.', 'info', 1200);
-}
-
-function clearCostEstimate() {
-    showConfirm('Obrisati ceo troškovnik?').then(ok => {
-        if (!ok) return;
-        saveCostEstimate([]);
-        renderCostEstimateList();
-        showToast('Troškovnik obrisan.', 'info', 1500);
-    });
-}
-
-function shareCostEstimate() {
-    const items = loadCostEstimate();
-    if (!items.length) { showToast('Nema stavki.', 'info'); return; }
-    let text = 'TROŠKOVNIK — Alatika\n\n';
-    let grand = 0;
-    items.forEach(item => {
-        const total = (item.qty || 0) * (item.unitPrice || 0);
-        grand += total;
-        text += `${item.name}: ${item.qty} ${item.unit || ''} × ${money(item.unitPrice)} = ${money(total)} RSD\n`;
-    });
-    text += `\nUKUPNO: ${money(grand)} RSD`;
-    if (navigator.share) {
-        navigator.share({ text }).catch(() => {});
-    } else {
-        fallbackCopy(text, () => showToast('Kopirano.', 'success', 1500));
-    }
-}
-
-// ============================================================
-// VOZILA — ISTORIJA TOČENJA, PROFIL VOZILA
-// ============================================================
-
-const FUEL_HISTORY_KEY = 'cx_fuel_history_v1';
-
-function loadFuelHistory() {
-    try {
-        const raw = JSON.parse(localStorage.getItem(FUEL_HISTORY_KEY));
-        if (Array.isArray(raw)) return raw;
-    } catch (e) {}
-    return [];
-}
-
-function saveFuelHistory(list) {
-    try { localStorage.setItem(FUEL_HISTORY_KEY, JSON.stringify(list)); } catch (e) {}
-}
-
-function renderFuelHistory() {
-    return `
-        <div class="converter-box">
-            <div class="lista-head">
-                <div class="section-desc" style="margin:0;">Prati točenja, potrošnju i troškove goriva.</div>
-                <button class="section-action-btn" onclick="openFuelHistoryModal()">+ Dodaj</button>
-            </div>
-            <div id="fuel-history-list" class="price-track-list"></div>
-        </div>
-    `;
-}
-
-function renderFuelHistoryList() {
-    const list = el('fuel-history-list');
-    if (!list) return;
-    const items = loadFuelHistory();
-    if (!items.length) {
-        list.innerHTML = `<div class="price-track-empty"><div class="price-track-empty-icon">⛽</div><div>Nema unosa. Dodaj prvo točenje!</div></div>`;
-        return;
-    }
-    const sorted = [...items].sort((a, b) => (a.km || 0) - (b.km || 0));
-    let totalLiters = 0, totalCost = 0, totalKm = 0;
-    let consumptionSum = 0, consumptionCount = 0;
-    for (let i = 1; i < sorted.length; i++) {
-        const kmDiff = sorted[i].km - sorted[i - 1].km;
-        if (kmDiff > 0) {
-            const cons = (sorted[i].liters / kmDiff) * 100;
-            consumptionSum += cons;
-            consumptionCount++;
-        }
-    }
-    sorted.forEach(i => {
-        totalLiters += i.liters || 0;
-        totalCost += (i.liters || 0) * (i.price || 0);
-    });
-    if (sorted.length >= 2) totalKm = sorted[sorted.length - 1].km - sorted[0].km;
-    const avgCons = consumptionCount > 0 ? consumptionSum / consumptionCount : 0;
-    const costPerKm = totalKm > 0 ? totalCost / totalKm : 0;
-
-    let rows = sorted.slice().reverse().map(item => `
-        <div class="price-track-card">
-            <div class="price-track-head">
-                <div class="price-track-name">${escapeHtml(item.date)} • ${item.km} km</div>
-                <div class="price-track-store">${item.liters} L</div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <div style="font-size:0.78rem;color:var(--text-secondary);">Cena/L: <strong style="color:var(--text-main);">${money(item.price)}</strong></div>
-                <div style="font-size:0.78rem;color:var(--text-secondary);text-align:right;">Ukupno: <strong style="color:#10b981;">${money(item.liters * item.price)}</strong></div>
-            </div>
-            <button class="section-action-btn" style="width:100%;margin-top:8px;color:#f43f5e;border-color:rgba(244,63,94,0.4);" onclick="deleteFuelEntry('${item.id}')">Obriši unos</button>
-        </div>
-    `).join('');
-
-    list.innerHTML = `
-        <div class="converter-box" style="margin-bottom:12px;">
-            <div class="rate-info-card" style="margin:0;">
-                <div class="rate-info-row">
-                    <span class="rate-info-label">Prosečna potrošnja</span>
-                    <span class="rate-info-value accent">${fmt(avgCons, 2)} L/100km</span>
-                </div>
-                <div class="rate-info-row">
-                    <span class="rate-info-label">Ukupno litara</span>
-                    <span class="rate-info-value">${fmt(totalLiters, 1)} L</span>
-                </div>
-                <div class="rate-info-row">
-                    <span class="rate-info-label">Ukupni trošak</span>
-                    <span class="rate-info-value">${money(totalCost)} RSD</span>
-                </div>
-                <div class="rate-info-row">
-                    <span class="rate-info-label">Pređeno</span>
-                    <span class="rate-info-value">${totalKm} km</span>
-                </div>
-                <div class="rate-info-row">
-                    <span class="rate-info-label">Cena po km</span>
-                    <span class="rate-info-value">${money(costPerKm)} RSD</span>
-                </div>
-            </div>
-        </div>
-        ${rows}
-        <button class="section-action-btn" style="width:100%;color:#f43f5e;border-color:rgba(244,63,94,0.4);margin-top:12px;" onclick="clearFuelHistory()">Obriši sve</button>
-    `;
-}
-
-function openFuelHistoryModal() {
-    const modal = el('fuel-history-modal');
-    const body = el('fuel-history-modal-body');
-    if (!modal || !body) return;
-    body.innerHTML = `
-        <div class="converter-box">
-            <div class="input-field">
-                <label>Datum</label>
-                <input type="date" id="fh-date" class="custom-input" value="${new Date().toISOString().slice(0, 10)}">
-            </div>
-            ${inputField('label.auto.currentKm', 'fh-km', 'km', 'placeholder="150000"')}
-            ${inputField('label.auto.fuel', 'fh-liters', 'L', 'step="0.1" placeholder="45"')}
-            ${inputField('label.auto.price', 'fh-price', 'RSD/L', 'step="0.1" placeholder="180"')}
-            ${calcButton('btn.save', 'saveFuelEntry()')}
-        </div>
-    `;
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-    vibrate(15);
-}
-
-function saveFuelEntry() {
-    const date = el('fh-date') ? el('fh-date').value : '';
-    const km = num('fh-km');
-    const liters = num('fh-liters');
-    const price = num('fh-price');
-    if (!date || km === null || !liters || !price) { showToast('Popuni sva polja.', 'error'); return; }
-    const list = loadFuelHistory();
-    list.push({
-        id: 'fh_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-        date, km, liters, price,
-        createdAt: Date.now()
-    });
-    saveFuelHistory(list);
-    closeModal('fuel-history-modal');
-    renderFuelHistoryList();
-    showToast('Točenje sačuvano.', 'success', 1500);
-    vibrate(20);
-    playTick(0, 1500, 0.08, 0.03);
-}
-
-function deleteFuelEntry(id) {
-    let list = loadFuelHistory();
-    list = list.filter(i => i.id !== id);
-    saveFuelHistory(list);
-    renderFuelHistoryList();
-    showToast('Unos obrisan.', 'info', 1200);
-}
-
-function clearFuelHistory() {
-    showConfirm('Obrisati celu istoriju točenja?').then(ok => {
-        if (!ok) return;
-        saveFuelHistory([]);
-        renderFuelHistoryList();
-        showToast('Istorija obrisana.', 'info', 1500);
-    });
-}
-
-// ---------- PROFIL VOZILA ----------
-const VEHICLE_PROFILE_KEY = 'cx_vehicle_profile_v1';
-
-function loadVehicleProfile() {
-    try {
-        const raw = JSON.parse(localStorage.getItem(VEHICLE_PROFILE_KEY));
-        if (raw && typeof raw === 'object') return raw;
-    } catch (e) {}
-    return {};
-}
-
-function saveVehicleProfileStore(p) {
-    try { localStorage.setItem(VEHICLE_PROFILE_KEY, JSON.stringify(p)); } catch (e) {}
-}
-
-function renderVehicleProfile() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Popuni podatke o vozilu — koristi se u kalkulacijama.</p>
-            ${inputFieldText('label.auto.model', 'vp-model', 'npr. VW Golf 7')}
-            ${inputFieldText('label.auto.plate', 'vp-plate', 'npr. NP123-AB')}
-            ${inputField('label.auto.technical', 'vp-year', '', 'placeholder="2018"')}
-            <div class="input-field">
-                <label>Tip goriva</label>
-                <select id="vp-fuel-type" class="custom-input">
-                    <option value="petrol">Benzin</option>
-                    <option value="diesel">Dizel</option>
-                    <option value="lpg">TNG</option>
-                    <option value="electric">Električni</option>
-                    <option value="hybrid">Hibrid</option>
-                </select>
-            </div>
-            ${inputField('label.auto.fuel', 'vp-tank', 'L', 'placeholder="55"')}
-            ${inputField('label.auto.avgConsumption', 'vp-consumption', 'L/100km', 'step="0.1" placeholder="7"')}
-            ${dateTripleField('label.auto.registrationExpires', 'vp-reg-date')}
-            ${dateTripleField('label.auto.technicalExpires', 'vp-tech-date')}
-            ${dateTripleField('label.auto.registrationAndInsurance', 'vp-ins-date')}
-            ${calcButton('btn.saveCarProfile', 'saveVehicleProfileData()')}
-            <button class="rem-delete-btn" onclick="clearVehicleProfile()">Obriši profil</button>
-        </div>
-        ${statsRow('vp-status-row', [
-            ['label.auto.registration', 'vp-stat-reg', '—'],
-            ['label.auto.technical', 'vp-stat-tech', '—'],
-            ['label.auto.registrationAndInsurance', 'vp-stat-ins', '—']
-        ])}
-    `;
-}
-
-function loadVehicleProfileIntoForm() {
-    const p = loadVehicleProfile();
-    const setV = (id, v) => { const e = el(id); if (e) e.value = v == null ? '' : v; };
-    setV('vp-model', p.model);
-    setV('vp-plate', p.plate);
-    setV('vp-year', p.year);
-    setV('vp-fuel-type', p.fuelType || 'petrol');
-    setV('vp-tank', p.tankCapacity);
-    setV('vp-consumption', p.avgConsumption);
-    if (p.regDate) setTripleDate('vp-reg-date', p.regDate);
-    if (p.techDate) setTripleDate('vp-tech-date', p.techDate);
-    if (p.insuranceDate) setTripleDate('vp-ins-date', p.insuranceDate);
-    updateVehicleProfileStatus();
-}
-
-function saveVehicleProfileData() {
-    const v = id => { const e = el(id); return e ? e.value.trim() : ''; };
-    const profile = {
-        model: v('vp-model'),
-        plate: v('vp-plate'),
-        year: v('vp-year'),
-        fuelType: v('vp-fuel-type') || 'petrol',
-        tankCapacity: v('vp-tank'),
-        avgConsumption: v('vp-consumption'),
-        regDate: getTripleDate('vp-reg-date'),
-        techDate: getTripleDate('vp-tech-date'),
-        insuranceDate: getTripleDate('vp-ins-date')
-    };
-    saveVehicleProfileStore(profile);
-    showToast('Profil vozila sačuvan.', 'success', 1800);
-    vibrate(20);
-    playTick(0, 1500, 0.08, 0.03);
-    updateVehicleProfileStatus();
-}
-
-function clearVehicleProfile() {
-    showConfirm('Obrisati profil vozila?').then(ok => {
-        if (!ok) return;
-        try { localStorage.removeItem(VEHICLE_PROFILE_KEY); } catch (e) {}
-        showToast('Profil obrisan.', 'info', 1500);
-        loadVehicleProfileIntoForm();
-    });
-}
-
-function updateVehicleProfileStatus() {
-    const p = loadVehicleProfile();
-    const setV = (id, v) => { const e = el(id); if (e) e.innerText = v; };
-    const daysLeft = (iso) => {
-        if (!iso) return null;
-        const parts = iso.split('-').map(Number);
-        if (parts.length !== 3) return null;
-        const target = new Date(parts[0], parts[1] - 1, parts[2]);
-        const today = new Date(); today.setHours(0, 0, 0, 0);
-        return Math.round((target - today) / 86400000);
-    };
-    const fmtDays = (d) => {
-        if (d === null) return '—';
-        if (d < 0) return `Isteklo pre ${Math.abs(d)} d.`;
-        if (d === 0) return 'Danas';
-        return `${d} d.`;
-    };
-    setV('vp-stat-reg', fmtDays(daysLeft(p.regDate)));
-    setV('vp-stat-tech', fmtDays(daysLeft(p.techDate)));
-    setV('vp-stat-ins', fmtDays(daysLeft(p.insuranceDate)));
-    const row = el('vp-status-row');
-    if (row) row.style.display = 'flex';
-}
-
-// ============================================================
-// STRUJA — SOLARNI PANELI
-// ============================================================
-function renderSolarPanels() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Izračunaj koliko solarnih panela ti treba za dnevnu potrošnju.</p>
-            ${inputField('label.power.daily', 'solar-consumption', 'kWh', 'step="0.1" placeholder="15"')}
-            ${inputField('label.power.hoursPerDay', 'solar-hours', 'h', 'value="4" step="0.1"')}
-            ${inputField('label.power.powerWatts', 'solar-panel', 'W', 'value="400"')}
-            ${inputField('label.money.calcType', 'solar-efficiency', '%', 'value="80"')}
-            ${calcButton('btn.calculate', 'calculateSolar()')}
-        </div>
-        <div class="solar-result-card" id="solar-result-box" style="display: none;">
-            <div class="solar-result-value" id="res-solar-count">0</div>
-            <div class="solar-result-label">panela</div>
-            <div class="solar-result-sub" id="res-solar-total-power">Ukupno: 0 W</div>
-        </div>
-        ${statsRow('solar-stats-row', [
-            ['label.power.energy', 'stat-solar-prod', '0 kWh'],
-            ['label.power.power', 'stat-solar-system', '0 kW']
-        ])}
-        <p class="section-desc" style="text-align: center; font-size: 0.72rem;">Proračun je približan. Stvarna proizvodnja zavisi od lokacije, vremena i drugih faktora.</p>
-    `;
-}
-
-function calculateSolar() {
-    const consumption = num('solar-consumption');
-    const sunHours = num('solar-hours') || 4;
-    const panelWatt = num('solar-panel') || 400;
-    const efficiency = (num('solar-efficiency') || 80) / 100;
-    if (!consumption || consumption <= 0) { showToast('Unesi dnevnu potrošnju.', 'error'); return; }
-    const effectivePanelWatt = panelWatt * efficiency;
-    const dailyProductionPerPanel = (effectivePanelWatt * sunHours) / 1000;
-    const panelsNeeded = Math.ceil(consumption / dailyProductionPerPanel);
-    const totalPower = panelsNeeded * panelWatt;
-    const totalProduction = panelsNeeded * dailyProductionPerPanel;
-
-    const rc = el('res-solar-count'); if (rc) rc.innerText = panelsNeeded;
-    const rtp = el('res-solar-total-power'); if (rtp) rtp.innerText = `Ukupno: ${totalPower} W`;
-    const sp = el('stat-solar-prod'); if (sp) sp.innerText = fmt(totalProduction, 2) + ' kWh';
-    const ss = el('stat-solar-system'); if (ss) ss.innerText = fmt(totalPower / 1000, 2) + ' kW';
-    show('solar-result-box'); show('solar-stats-row');
-}
-
-// ============================================================
-// VREME — PRAZNICI, VREMENSKE ZONE
-// ============================================================
-
-const SR_HOLIDAYS_FIXED = [
-    { d: 1, m: 1, name: 'Nova godina', type: 'national' },
-    { d: 2, m: 1, name: 'Nova godina (drugi dan)', type: 'national' },
-    { d: 7, m: 1, name: 'Božić (pravoslavni)', type: 'religious' },
-    { d: 14, m: 1, name: 'Pravoslavna Nova godina', type: 'religious' },
-    { d: 15, m: 2, name: 'Dan državnosti Srbije', type: 'national' },
-    { d: 16, m: 2, name: 'Dan državnosti Srbije (drugi dan)', type: 'national' },
-    { d: 1, m: 5, name: 'Praznik rada', type: 'national' },
-    { d: 2, m: 5, name: 'Praznik rada (drugi dan)', type: 'national' },
-    { d: 11, m: 11, name: 'Dan primirja u Prvom svetskom ratu', type: 'national' }
-];
-
-function getHolidaysForYear(year) {
-    const list = SR_HOLIDAYS_FIXED.map(h => ({
-        date: new Date(year, h.m - 1, h.d),
-        name: h.name,
-        type: h.type
-    }));
-    try {
-        const a = year % 4, b = year % 7, c = year % 19;
-        const d = (19 * c + 15) % 30;
-        const e = (2 * a + 4 * b - d + 34) % 7;
-        const month = Math.floor((d + e + 114) / 31);
-        const day = ((d + e + 114) % 31) + 1;
-        const easterDate = new Date(year, month - 1, day);
-        easterDate.setDate(easterDate.getDate() + 13);
-        list.push({ date: easterDate, name: 'Vaskrs', type: 'religious' });
-        const easterMonday = new Date(easterDate);
-        easterMonday.setDate(easterMonday.getDate() + 1);
-        list.push({ date: easterMonday, name: 'Vaskrsni ponedeljak', type: 'religious' });
-        const goodFriday = new Date(easterDate);
-        goodFriday.setDate(goodFriday.getDate() - 2);
-        list.push({ date: goodFriday, name: 'Veliki petak', type: 'religious' });
-    } catch (e) {}
-    return list.sort((a, b) => a.date - b.date);
-}
-
-function renderHolidays() {
-    const currentYear = new Date().getFullYear();
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Prikaz državnih i verskih praznika za Srbiju.</p>
-            ${inputField('label.time.years', 'holidays-year', '', `value="${currentYear}" oninput="renderHolidaysList()"`)}
-        </div>
-        <div id="holidays-list" class="holiday-list"></div>
-        <p class="section-desc" style="text-align: center; font-size: 0.72rem;">Praznici su za Srbiju. Verski praznici zavise od vere.</p>
-    `;
-}
-
-function renderHolidaysList() {
-    const list = el('holidays-list');
-    if (!list) return;
-    const yearEl = el('holidays-year');
-    const year = yearEl ? parseInt(yearEl.value) : new Date().getFullYear();
-    if (!year || year < 1900 || year > 2100) { list.innerHTML = ''; return; }
-    const holidays = getHolidaysForYear(year);
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const nowMs = today.getTime();
-    let html = '';
-    holidays.forEach(h => {
-        const hDate = new Date(h.date); hDate.setHours(0, 0, 0, 0);
-        const days = Math.round((hDate - nowMs) / 86400000);
-        const isToday = days === 0;
-        const isTomorrow = days === 1;
-        const isPast = days < 0;
-        const cls = isToday ? 'today' : (isTomorrow ? 'tomorrow' : (isPast ? 'past' : ''));
-        const dayName = hDate.getDate();
-        const monthName = hDate.toLocaleDateString('sr-RS', { month: 'short' }).replace('.', '');
-        const daysText = isToday ? 'DANAS' : (isTomorrow ? 'SUTRA' : (isPast ? `pre ${Math.abs(days)} d.` : `${days} d.`));
-        html += `
-            <div class="holiday-card ${cls}">
-                <div class="holiday-date-box">
-                    <div class="holiday-day">${dayName}</div>
-                    <div class="holiday-month">${monthName}</div>
-                </div>
-                <div class="holiday-info">
-                    <div class="holiday-name">${escapeHtml(h.name)}</div>
-                    <div class="holiday-type">${h.type === 'religious' ? 'Verski' : 'Državni'}</div>
-                </div>
-                <div class="holiday-days-until">${daysText}</div>
-            </div>
-        `;
-    });
-    list.innerHTML = html;
-}
-
-// ---------- VREMENSKE ZONE ----------
-const TIMEZONES = [
-    { id: 'UTC-12', offset: -12, label: 'UTC-12:00' },
-    { id: 'UTC-11', offset: -11, label: 'UTC-11:00' },
-    { id: 'UTC-10', offset: -10, label: 'UTC-10:00 (Havaji)' },
-    { id: 'UTC-9', offset: -9, label: 'UTC-09:00 (Aljaska)' },
-    { id: 'UTC-8', offset: -8, label: 'UTC-08:00 (LA)' },
-    { id: 'UTC-7', offset: -7, label: 'UTC-07:00 (Denver)' },
-    { id: 'UTC-6', offset: -6, label: 'UTC-06:00 (Čikago)' },
-    { id: 'UTC-5', offset: -5, label: 'UTC-05:00 (Njujork)' },
-    { id: 'UTC-4', offset: -4, label: 'UTC-04:00 (Karakaš)' },
-    { id: 'UTC-3', offset: -3, label: 'UTC-03:00 (Brazil)' },
-    { id: 'UTC-2', offset: -2, label: 'UTC-02:00' },
-    { id: 'UTC-1', offset: -1, label: 'UTC-01:00 (Azori)' },
-    { id: 'UTC+0', offset: 0, label: 'UTC±00:00 (London)' },
-    { id: 'UTC+1', offset: 1, label: 'UTC+01:00 (Beograd, Berlin)' },
-    { id: 'UTC+2', offset: 2, label: 'UTC+02:00 (Atina, Kairo)' },
-    { id: 'UTC+3', offset: 3, label: 'UTC+03:00 (Moskva)' },
-    { id: 'UTC+4', offset: 4, label: 'UTC+04:00 (Dubai)' },
-    { id: 'UTC+5', offset: 5, label: 'UTC+05:00 (Karachi)' },
-    { id: 'UTC+6', offset: 6, label: 'UTC+06:00 (Daka)' },
-    { id: 'UTC+7', offset: 7, label: 'UTC+07:00 (Bangkok)' },
-    { id: 'UTC+8', offset: 8, label: 'UTC+08:00 (Peking, Singapur)' },
-    { id: 'UTC+9', offset: 9, label: 'UTC+09:00 (Tokio)' },
-    { id: 'UTC+10', offset: 10, label: 'UTC+10:00 (Sidnej)' },
-    { id: 'UTC+11', offset: 11, label: 'UTC+11:00' },
-    { id: 'UTC+12', offset: 12, label: 'UTC+12:00 (Okland)' }
-];
-
-function renderTimeZone() {
-    const now = new Date();
-    const tzOptions = TIMEZONES.map(tz => `<option value="${tz.id}"${tz.offset === 1 ? ' selected' : ''}>${escapeHtml(tz.label)}</option>`).join('');
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Konvertuj vreme između vremenskih zona.</p>
-            <div class="timezone-grid">
-                <div class="timezone-field">
-                    <label>Iz zone</label>
-                    <select id="tz-from" class="custom-input" onchange="calculateTimeZone()">${tzOptions}</select>
-                </div>
-                <div class="timezone-field">
-                    <label>U zonu</label>
-                    <select id="tz-to" class="custom-input" onchange="calculateTimeZone()">${tzOptions.replace('value="UTC+1"', 'value="UTC+8"').replace('selected', '')}</select>
-                </div>
-            </div>
-            <div class="timezone-grid">
-                <div class="timezone-field">
-                    <label>Vreme</label>
-                    <input type="time" id="tz-time" class="custom-input" value="${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}" oninput="calculateTimeZone()">
-                </div>
-                <div class="timezone-field">
-                    <label>Datum</label>
-                    <input type="date" id="tz-date" class="custom-input" value="${now.toISOString().slice(0, 10)}" oninput="calculateTimeZone()">
-                </div>
-            </div>
-            ${calcButton('btn.calculate', 'calculateTimeZone()')}
-        </div>
-        <div class="timezone-result-card" id="tz-result-box" style="display: none;">
-            <div class="timezone-result-label">Rezultat</div>
-            <div class="timezone-result-time" id="tz-result-time">--:--</div>
-            <div class="timezone-result-date" id="tz-result-date">—</div>
-            <div class="timezone-diff" id="tz-result-diff">Razlika: 0 sati</div>
-        </div>
-        <p class="section-desc" style="text-align: center; font-size: 0.72rem;">Proračun ne uključuje letnje/zimsko računanje vremena.</p>
-    `;
-}
-
-function calculateTimeZone() {
-    const fromEl = el('tz-from');
-    const toEl = el('tz-to');
-    const timeEl = el('tz-time');
-    const dateEl = el('tz-date');
-    if (!fromEl || !toEl || !timeEl || !dateEl) return;
-    const fromTz = TIMEZONES.find(tz => tz.id === fromEl.value);
-    const toTz = TIMEZONES.find(tz => tz.id === toEl.value);
-    if (!fromTz || !toTz) return;
-    const [h, m] = timeEl.value.split(':').map(Number);
-    const [yy, mm, dd] = dateEl.value.split('-').map(Number);
-    if (isNaN(h) || isNaN(yy)) return;
-    const utcDate = new Date(Date.UTC(yy, mm - 1, dd, h, m));
-    utcDate.setUTCMinutes(utcDate.getUTCMinutes() - fromTz.offset * 60);
-    const targetDate = new Date(utcDate.getTime() + toTz.offset * 60 * 60000);
-    const resultH = String(targetDate.getUTCHours()).padStart(2, '0');
-    const resultM = String(targetDate.getUTCMinutes()).padStart(2, '0');
-    const resultD = targetDate.getUTCDate();
-    const resultMo = targetDate.getUTCMonth() + 1;
-    const resultY = targetDate.getUTCFullYear();
-    const diffHours = toTz.offset - fromTz.offset;
-
-    const rt = el('tz-result-time'); if (rt) rt.innerText = `${resultH}:${resultM}`;
-    const rd = el('tz-result-date'); if (rd) rd.innerText = `${resultD}.${resultM}.${resultY}.`;
-    const rdiff = el('tz-result-diff');
-    if (rdiff) rdiff.innerText = `Razlika: ${diffHours >= 0 ? '+' : ''}${diffHours} sati`;
-    show('tz-result-box');
-}
-
-// ============================================================
-// ZDRAVLJE — WORKOUT JOURNAL, PEDOMETAR, VODA/SAN
-// ============================================================
-
-// ---------- WORKOUT JOURNAL ----------
-const WORKOUT_KEY = 'cx_workouts_v1';
-const WORKOUT_TYPES = {
-    strength: { label: 'Snaga', icon: 'dumbbell', color: '#ec4899' },
-    cardio: { label: 'Kardio', icon: 'run', color: '#f43f5e' },
-    flexibility: { label: 'Istezanje', icon: 'activity', color: '#10b981' },
-    sport: { label: 'Sport', icon: 'target', color: '#f59e0b' },
-    other: { label: 'Drugo', icon: 'star', color: '#6366f1' }
-};
-
-function loadWorkouts() {
-    try {
-        const raw = JSON.parse(localStorage.getItem(WORKOUT_KEY));
-        if (Array.isArray(raw)) return raw;
-    } catch (e) {}
-    return [];
-}
-function saveWorkouts(list) {
-    try { localStorage.setItem(WORKOUT_KEY, JSON.stringify(list)); } catch (e) {}
-}
-
-function renderWorkoutJournal() {
-    return `
-        <div class="converter-box">
-            <div class="lista-head">
-                <div class="section-desc" style="margin:0;">Beleži svoje treninge i prati napredak.</div>
-                <button class="section-action-btn" onclick="openWorkoutModal()">+ Dodaj</button>
-            </div>
-            <div id="workout-list" class="workout-list"></div>
-        </div>
-    `;
-}
-
-function renderWorkoutList() {
-    const list = el('workout-list');
-    if (!list) return;
-    const items = loadWorkouts().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    if (!items.length) {
-        list.innerHTML = `<div class="workout-empty"><div class="workout-empty-icon">💪</div><div>Nema treninga. Dodaj prvi!</div></div>`;
-        return;
-    }
-    let html = '';
-    items.forEach(w => {
-        const type = WORKOUT_TYPES[w.type] || WORKOUT_TYPES.other;
-        html += `
-            <div class="workout-card" style="--workout-color: ${type.color};">
-                <div class="workout-head">
-                    <span class="workout-type-badge">${escapeHtml(type.label)}</span>
-                    <span class="workout-date">${escapeHtml(w.date)}</span>
-                    ${w.duration ? `<span class="workout-duration">${w.duration} min</span>` : ''}
-                </div>
-                <div class="workout-exercises">
-                    ${(w.exercises || []).map(ex => `
-                        <div class="workout-exercise-row">
-                            <span class="workout-exercise-name">${escapeHtml(ex.name)}</span>
-                            <span class="workout-exercise-detail">${ex.sets || 0}×${ex.reps || 0}</span>
-                            <span class="workout-exercise-detail">${ex.weight || 0} kg</span>
-                        </div>
-                    `).join('')}
-                </div>
-                <button class="section-action-btn" style="width:100%;margin-top:10px;color:#f43f5e;border-color:rgba(244,63,94,0.4);" onclick="deleteWorkout('${w.id}')">Obriši</button>
-            </div>
-        `;
-    });
-    list.innerHTML = html;
-}
-
-let workoutDraftExercises = [];
-
-function openWorkoutModal() {
-    const modal = el('workout-modal');
-    const body = el('workout-modal-body');
-    if (!modal || !body) return;
-    workoutDraftExercises = [];
-    body.innerHTML = `
-        <div class="converter-box">
-            <div class="input-field">
-                <label>Datum</label>
-                <input type="date" id="wo-date" class="custom-input" value="${new Date().toISOString().slice(0, 10)}">
-            </div>
-            <div class="input-field">
-                <label>Tip treninga</label>
-                <select id="wo-type" class="custom-input">
-                    ${Object.entries(WORKOUT_TYPES).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}
-                </select>
-            </div>
-            ${inputField('label.health.timeMin', 'wo-duration', 'min', 'placeholder="60"')}
-            <div class="section-desc">Vežbe:</div>
-            <div id="wo-exercises-list"></div>
-            <button class="workout-add-exercise-btn" onclick="addWorkoutExercise()">+ Dodaj vežbu</button>
-            ${inputFieldText('label.notes', 'wo-notes', '')}
-            ${calcButton('btn.save', 'saveWorkout()')}
-        </div>
-    `;
-    renderWorkoutExercisesDraft();
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-    vibrate(15);
-}
-
-function addWorkoutExercise() {
-    workoutDraftExercises.push({ name: '', sets: 3, reps: 10, weight: 0 });
-    renderWorkoutExercisesDraft();
-    vibrate(10);
-}
-
-function renderWorkoutExercisesDraft() {
-    const list = el('wo-exercises-list');
-    if (!list) return;
-    list.innerHTML = '';
-    workoutDraftExercises.forEach((ex, idx) => {
-        const row = document.createElement('div');
-        row.className = 'workout-exercise-row';
-        row.style.gridTemplateColumns = '1fr 60px 60px 70px 32px';
-        row.innerHTML = `
-            <input type="text" placeholder="Naziv" value="${escapeHtml(ex.name)}" data-idx="${idx}" data-f="name" class="custom-input" style="font-size:0.8rem;padding:6px;background:var(--card-bg);border-radius:6px;border:1px solid var(--border-strong);">
-            <input type="number" placeholder="Serije" value="${ex.sets}" data-idx="${idx}" data-f="sets" class="custom-input" style="font-size:0.8rem;padding:6px;background:var(--card-bg);border-radius:6px;border:1px solid var(--border-strong);">
-            <input type="number" placeholder="Pon." value="${ex.reps}" data-idx="${idx}" data-f="reps" class="custom-input" style="font-size:0.8rem;padding:6px;background:var(--card-bg);border-radius:6px;border:1px solid var(--border-strong);">
-            <input type="number" placeholder="kg" value="${ex.weight}" data-idx="${idx}" data-f="weight" class="custom-input" style="font-size:0.8rem;padding:6px;background:var(--card-bg);border-radius:6px;border:1px solid var(--border-strong);">
-            <button class="cost-estimate-remove" onclick="removeWorkoutExercise(${idx})">✕</button>
-        `;
-        list.appendChild(row);
-    });
-    list.querySelectorAll('input').forEach(inp => {
-        inp.addEventListener('input', e => {
-            const idx = parseInt(e.target.dataset.idx);
-            const field = e.target.dataset.f;
-            if (workoutDraftExercises[idx]) {
-                if (field === 'name') workoutDraftExercises[idx][field] = e.target.value;
-                else workoutDraftExercises[idx][field] = parseNum(e.target.value) || 0;
-            }
-        });
-    });
-}
-
-function removeWorkoutExercise(idx) {
-    workoutDraftExercises.splice(idx, 1);
-    renderWorkoutExercisesDraft();
-}
-
-function saveWorkout() {
-    const date = el('wo-date') ? el('wo-date').value : '';
-    const type = el('wo-type') ? el('wo-type').value : 'other';
-    const duration = num('wo-duration') || 0;
-    const notes = el('wo-notes') ? el('wo-notes').value.trim() : '';
-    if (!date) { showToast('Unesi datum.', 'error'); return; }
-    const list = loadWorkouts();
-    list.push({
-        id: 'wo_' + Date.now(),
-        date, type, duration, notes,
-        exercises: [...workoutDraftExercises],
-        createdAt: Date.now()
-    });
-    saveWorkouts(list);
-    closeModal('workout-modal');
-    renderWorkoutList();
-    showToast('Trening sačuvan.', 'success', 1500);
-    vibrate(20);
-}
-
-function deleteWorkout(id) {
-    showConfirm('Obrisati ovaj trening?').then(ok => {
-        if (!ok) return;
-        let list = loadWorkouts();
-        list = list.filter(w => w.id !== id);
-        saveWorkouts(list);
-        renderWorkoutList();
-        showToast('Trening obrisan.', 'info', 1500);
-    });
-}
-
-// ---------- PEDOMETAR ----------
-const PEDOMETER_KEY = 'cx_pedometer_v1';
-const PEDOMETER_GOAL_KEY = 'cx_pedometer_goal';
-let pedometerState = {
-    steps: 0,
-    goal: 10000,
-    active: false,
-    lastAccel: 0,
-    lastStepTime: 0,
-    listener: null
-};
-
-function loadPedometerData() {
-    try {
-        const raw = JSON.parse(localStorage.getItem(PEDOMETER_KEY));
-        if (raw && raw.date === new Date().toISOString().slice(0, 10)) {
-            pedometerState.steps = raw.steps || 0;
-        } else {
-            pedometerState.steps = 0;
-        }
-    } catch (e) { pedometerState.steps = 0; }
-    try {
-        const g = parseInt(localStorage.getItem(PEDOMETER_GOAL_KEY));
-        if (g > 0) pedometerState.goal = g;
-    } catch (e) {}
-}
-
-function savePedometerData() {
-    try {
-        localStorage.setItem(PEDOMETER_KEY, JSON.stringify({
-            date: new Date().toISOString().slice(0, 10),
-            steps: pedometerState.steps
-        }));
-    } catch (e) {}
-}
-
-function renderPedometer() {
-    loadPedometerData();
-    const pct = Math.min(100, (pedometerState.steps / pedometerState.goal) * 100);
-    return `
-        <div class="pedometer-wrap">
-            <div class="pedometer-circle" style="--progress: ${pct};">
-                <div class="pedometer-inner">
-                    <div class="pedometer-steps" id="pedometer-steps">${pedometerState.steps}</div>
-                    <div class="pedometer-goal-label">od ${pedometerState.goal}</div>
-                    <div class="pedometer-progress-pct" id="pedometer-pct">${fmt(pct, 0)}%</div>
-                </div>
-            </div>
-            <div class="pedometer-stats">
-                <div class="pedometer-stat">
-                    <div class="pedometer-stat-value" id="pedometer-distance">${fmt(pedometerState.steps * 0.00075, 2)}</div>
-                    <div class="pedometer-stat-label">km</div>
-                </div>
-                <div class="pedometer-stat">
-                    <div class="pedometer-stat-value" id="pedometer-calories">${fmt(pedometerState.steps * 0.04, 0)}</div>
-                    <div class="pedometer-stat-label">kcal</div>
-                </div>
-            </div>
-            <div class="input-field" style="width:100%;max-width:400px;">
-                <label>Dnevni cilj</label>
-                <div class="input-wrapper">
-                    <input type="number" id="pedometer-goal-input" class="custom-input" value="${pedometerState.goal}" step="500">
-                </div>
-            </div>
-            <div style="display:flex;gap:8px;width:100%;max-width:400px;">
-                <button class="gps-btn-main" onclick="startPedometer()" style="flex:1;">▶ Pokreni</button>
-                <button class="gps-btn-secondary" onclick="resetPedometer()">Resetuj</button>
-            </div>
-            <p class="section-desc" style="text-align:center;font-size:0.72rem;">Praćenje koraka koristi senzor telefona (ako je podržan). Rezultati mogu odstupati.</p>
-        </div>
-    `;
-}
-
-function initPedometer() {
-    loadPedometerData();
-}
-
-function startPedometer() {
-    if (pedometerState.active) {
-        stopPedometer();
-        return;
-    }
-    if (!window.DeviceMotionEvent) {
-        showToast(safeT('pedometer.unsupported'), 'error', 2500);
-        return;
-    }
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    if (isIOS && typeof DeviceMotionEvent.requestPermission === 'function') {
-        DeviceMotionEvent.requestPermission().then(result => {
-            if (result === 'granted') actuallyStartPedometer();
-            else showToast(safeT('pedometer.permission'), 'error', 2500);
-        }).catch(() => showToast(safeT('pedometer.permission'), 'error', 2500));
-        return;
-    }
-    actuallyStartPedometer();
-}
-
-function actuallyStartPedometer() {
-    pedometerState.active = true;
-    pedometerState.listener = (e) => {
-        const acc = e.accelerationIncludingGravity;
-        if (!acc) return;
-        const magnitude = Math.sqrt((acc.x || 0) ** 2 + (acc.y || 0) ** 2 + (acc.z || 0) ** 2);
-        const now = Date.now();
-        if (magnitude > 12 && now - pedometerState.lastStepTime > 250) {
-            pedometerState.steps++;
-            pedometerState.lastStepTime = now;
-            updatePedometerDisplay();
-            if (pedometerState.steps % 10 === 0) savePedometerData();
-        }
-    };
-    window.addEventListener('devicemotion', pedometerState.listener);
-    vibrate(20);
-    showToast('Pedometar pokrenut.', 'success', 1500);
-}
-
-function stopPedometer() {
-    if (pedometerState.listener) {
-        window.removeEventListener('devicemotion', pedometerState.listener);
-        pedometerState.listener = null;
-    }
-    pedometerState.active = false;
-    savePedometerData();
-    vibrate(15);
-}
-
-function updatePedometerDisplay() {
-    const stepsEl = el('pedometer-steps');
-    const pctEl = el('pedometer-pct');
-    const distEl = el('pedometer-distance');
-    const calEl = el('pedometer-calories');
-    const circle = document.querySelector('.pedometer-circle');
-    if (stepsEl) stepsEl.textContent = pedometerState.steps;
-    const pct = Math.min(100, (pedometerState.steps / pedometerState.goal) * 100);
-    if (pctEl) pctEl.textContent = fmt(pct, 0) + '%';
-    if (distEl) distEl.textContent = fmt(pedometerState.steps * 0.00075, 2);
-    if (calEl) calEl.textContent = fmt(pedometerState.steps * 0.04, 0);
-    if (circle) circle.style.setProperty('--progress', pct);
-}
-
-function resetPedometer() {
-    showConfirm(safeT('pedometer.resetConfirm')).then(ok => {
-        if (!ok) return;
-        pedometerState.steps = 0;
-        savePedometerData();
-        updatePedometerDisplay();
-        showToast('Resetovano.', 'info', 1200);
-    });
-}
-
-// ---------- VODA I SAN ----------
-const WATER_KEY = 'cx_water_v1';
-const SLEEP_KEY = 'cx_sleep_v1';
-const WATER_GOAL_KEY = 'cx_water_goal';
-let waterState = { amount: 0, goal: 2000, date: '' };
-
-function loadWaterData() {
-    try {
-        const raw = JSON.parse(localStorage.getItem(WATER_KEY));
-        const today = new Date().toISOString().slice(0, 10);
-        if (raw && raw.date === today) {
-            waterState.amount = raw.amount || 0;
-            waterState.date = today;
-        } else {
-            waterState.amount = 0;
-            waterState.date = today;
-        }
-    } catch (e) { waterState.amount = 0; }
-    try {
-        const g = parseInt(localStorage.getItem(WATER_GOAL_KEY));
-        if (g > 0) waterState.goal = g;
-    } catch (e) {}
-}
-function saveWaterData() {
-    try {
-        localStorage.setItem(WATER_KEY, JSON.stringify({
-            date: waterState.date,
-            amount: waterState.amount
-        }));
-    } catch (e) {}
-}
-
-function loadSleepHistory() {
-    try {
-        const raw = JSON.parse(localStorage.getItem(SLEEP_KEY));
-        if (Array.isArray(raw)) return raw;
-    } catch (e) {}
-    return [];
-}
-function saveSleepHistory(list) {
-    try { localStorage.setItem(SLEEP_KEY, JSON.stringify(list.slice(0, 60))); } catch (e) {}
-}
-
-function renderWaterSleep() {
-    loadWaterData();
-    const glasses = Math.floor(waterState.amount / 250);
-    const totalGlasses = Math.ceil(waterState.goal / 250);
-    let glassesHtml = '';
-    for (let i = 0; i < totalGlasses; i++) {
-        glassesHtml += `<button class="water-glass ${i < glasses ? 'filled' : ''}" onclick="toggleWaterGlass(${i})"></button>`;
-    }
-    return `
-        <div class="water-sleep-wrap">
-            <div class="water-section">
-                <div class="water-section-title">${icon('droplet')} Voda — danas</div>
-                <div class="water-progress-text">
-                    <span class="current" id="water-amount">${waterState.amount}</span> / ${waterState.goal} ml
-                </div>
-                <div class="water-glasses" id="water-glasses">${glassesHtml}</div>
-                <div class="water-actions">
-                    <button class="water-add-btn" onclick="addWater(250)">+ Čaša (250ml)</button>
-                    <button class="water-add-btn secondary" onclick="resetWater()">Resetuj</button>
-                </div>
-                <div style="margin-top:8px;">
-                    <label style="font-size:0.72rem;color:var(--text-secondary);font-weight:700;">Dnevni cilj (ml)</label>
-                    <input type="number" id="water-goal-input" class="custom-input" value="${waterState.goal}" step="100" onchange="setWaterGoal()" style="background:var(--input-bg);border:1px solid var(--border-strong);border-radius:10px;padding:10px;width:100%;margin-top:4px;color:var(--text-main);font-weight:700;">
-                </div>
-            </div>
-            <div class="sleep-section">
-                <div class="sleep-section-title">${icon('moon')} San</div>
-                ${renderSleepForm()}
-                <div id="sleep-history-box">${renderSleepHistoryHtml()}</div>
-            </div>
-        </div>
-    `;
-}
-
-function toggleWaterGlass(idx) {
-    const glasses = Math.floor(waterState.amount / 250);
-    if (idx < glasses) {
-        waterState.amount = idx * 250;
-    } else {
-        waterState.amount = (idx + 1) * 250;
-    }
-    saveWaterData();
-    renderWaterSleepTab();
-    vibrate(10);
-}
-
-function addWater(ml) {
-    waterState.amount += ml;
-    saveWaterData();
-    renderWaterSleepTab();
-    vibrate(15);
-    playTick(0, 1400, 0.06, 0.02);
-}
-
-function resetWater() {
-    showConfirm('Resetovati današnji unos vode?').then(ok => {
-        if (!ok) return;
-        waterState.amount = 0;
-        saveWaterData();
-        renderWaterSleepTab();
-    });
-}
-
-function setWaterGoal() {
-    const inp = el('water-goal-input');
-    if (!inp) return;
-    const v = parseInt(inp.value);
-    if (v > 0) {
-        waterState.goal = v;
-        try { localStorage.setItem(WATER_GOAL_KEY, String(v)); } catch (e) {}
-        renderWaterSleepTab();
-    }
-}
-
-function renderWaterSleepTab() {
-    const catModal = document.querySelector('#calc-modal.show');
-    if (!catModal) return;
-    const body = el('calc-body');
-    if (body && activeTab === 'vodaSan') {
-        body.innerHTML = renderWaterSleep();
-    }
-}
-
-function renderSleepForm() {
-    const now = new Date();
-    const lastNight = loadSleepHistory()[0];
-    return `
-        <div class="sleep-times">
-            <div class="sleep-time-field">
-                <label>Vreme spavanja</label>
-                <input type="time" id="sleep-bedtime" value="${lastNight ? lastNight.bedtime : '23:00'}" oninput="updateSleepDurationDisplay()">
-            </div>
-            <div class="sleep-time-field">
-                <label>Vreme buđenja</label>
-                <input type="time" id="sleep-waketime" value="${lastNight ? lastNight.waketime : '07:00'}" oninput="updateSleepDurationDisplay()">
-            </div>
-        </div>
-        <div class="sleep-duration" id="sleep-duration-display">—</div>
-        <div class="sleep-quality-row" id="sleep-quality-row">
-            ${['bad', 'ok', 'good', 'great'].map(q => `<button class="sleep-quality-btn" data-q="${q}" onclick="selectSleepQuality('${q}')">${q === 'bad' ? '😴' : q === 'ok' ? '😐' : q === 'good' ? '🙂' : '😊'}<br>${q === 'bad' ? 'Loše' : q === 'ok' ? 'Onako' : q === 'good' ? 'Dobro' : 'Odlično'}</button>`).join('')}
-        </div>
-        <button class="sleep-save-btn" onclick="saveSleepEntry()">Sačuvaj san</button>
-    `;
-}
-
-let selectedSleepQuality = 'good';
-
-function selectSleepQuality(q) {
-    selectedSleepQuality = q;
-    document.querySelectorAll('.sleep-quality-btn').forEach(btn => {
-        btn.classList.toggle('selected', btn.dataset.q === q);
-    });
-    vibrate(10);
-}
-
-function updateSleepDurationDisplay() {
-    const bedEl = el('sleep-bedtime');
-    const wakeEl = el('sleep-waketime');
-    const disp = el('sleep-duration-display');
-    if (!bedEl || !wakeEl || !disp) return;
-    const [bh, bm] = bedEl.value.split(':').map(Number);
-    const [wh, wm] = wakeEl.value.split(':').map(Number);
-    let bedMin = bh * 60 + bm;
-    let wakeMin = wh * 60 + wm;
-    if (wakeMin <= bedMin) wakeMin += 24 * 60;
-    const diff = wakeMin - bedMin;
-    const h = Math.floor(diff / 60), m = diff % 60;
-    disp.textContent = `${h}h ${m}min`;
-}
-
-function saveSleepEntry() {
-    const bedEl = el('sleep-bedtime');
-    const wakeEl = el('sleep-waketime');
-    if (!bedEl || !wakeEl) return;
-    const [bh, bm] = bedEl.value.split(':').map(Number);
-    const [wh, wm] = wakeEl.value.split(':').map(Number);
-    let bedMin = bh * 60 + bm;
-    let wakeMin = wh * 60 + wm;
-    if (wakeMin <= bedMin) wakeMin += 24 * 60;
-    const duration = wakeMin - bedMin;
-    const list = loadSleepHistory();
-    list.unshift({
-        date: new Date().toISOString().slice(0, 10),
-        bedtime: bedEl.value,
-        waketime: wakeEl.value,
-        duration,
-        quality: selectedSleepQuality
-    });
-    saveSleepHistory(list);
-    renderWaterSleepTab();
-    showToast('San sačuvan.', 'success', 1500);
-    vibrate(20);
-}
-
-function renderSleepHistoryHtml() {
-    const list = loadSleepHistory();
-    if (!list.length) return '';
-    const avg = list.slice(0, 7).reduce((s, e) => s + (e.duration || 0), 0) / Math.min(list.length, 7);
-    const avgH = Math.floor(avg / 60);
-    const avgM = Math.round(avg % 60);
-    return `
-        <div class="rate-info-card" style="margin-top:12px;">
-            <div class="rate-info-row">
-                <span class="rate-info-label">Prosečno (7 dana)</span>
-                <span class="rate-info-value accent">${avgH}h ${avgM}min</span>
-            </div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px;">
-            ${list.slice(0, 7).map(e => {
-                const h = Math.floor(e.duration / 60);
-                const m = e.duration % 60;
-                return `<div class="price-track-history-row"><span class="price-track-history-date">${e.date}</span><span class="price-track-history-price">${h}h ${m}min</span></div>`;
-            }).join('')}
-        </div>
-    `;
-}
-
-// ============================================================
-// KUHINJA — RECEPTI
-// ============================================================
-const RECIPES_KEY = 'cx_recipes_v1';
-
-function loadRecipes() {
-    try {
-        const raw = JSON.parse(localStorage.getItem(RECIPES_KEY));
-        if (Array.isArray(raw)) return raw;
-    } catch (e) {}
-    return [];
-}
-function saveRecipes(list) {
-    try { localStorage.setItem(RECIPES_KEY, JSON.stringify(list)); } catch (e) {}
-}
-
-function renderRecipes() {
-    return `
-        <div class="converter-box">
-            <div class="lista-head">
-                <div class="section-desc" style="margin:0;">Sačuvaj recepte i prilagodi porcije.</div>
-                <button class="section-action-btn" onclick="openRecipeModal()">+ Dodaj</button>
-            </div>
-            <div id="recipe-list" class="recipe-list"></div>
-        </div>
-    `;
-}
-
-function renderRecipesList() {
-    const list = el('recipe-list');
-    if (!list) return;
-    const items = loadRecipes();
-    if (!items.length) {
-        list.innerHTML = `<div class="recipe-empty"><div class="recipe-empty-icon">🍳</div><div>Nema recepata. Dodaj prvi!</div></div>`;
-        return;
-    }
-    let html = '';
-    items.forEach(r => {
-        html += `
-            <div class="recipe-card" onclick="openRecipeView('${r.id}')">
-                <div class="recipe-head">
-                    <span class="recipe-emoji">🍽️</span>
-                    <span class="recipe-title">${escapeHtml(r.name)}</span>
-                </div>
-                <div class="recipe-meta-row">
-                    <span class="recipe-meta-item">${icon('users')} ${r.servings || 1} porcija</span>
-                    ${r.prepTime ? `<span class="recipe-meta-item">${icon('clock')} ${r.prepTime} min</span>` : ''}
-                </div>
-                ${(r.ingredients || []).length ? `<div class="recipe-ingredients-preview">${r.ingredients.slice(0, 3).map(i => escapeHtml(i.name)).join(', ')}${r.ingredients.length > 3 ? ', ...' : ''}</div>` : ''}
-            </div>
-        `;
-    });
-    list.innerHTML = html;
-}
-
-let recipeDraftIngredients = [];
-let recipeEditId = null;
-
-function openRecipeModal(editId = null) {
-    const modal = el('recipes-modal');
-    const body = el('recipes-modal-body');
-    if (!modal || !body) return;
-    recipeEditId = editId;
-    let r = { name: '', description: '', servings: 1, prepTime: 0, ingredients: [], steps: '' };
-    if (editId) {
-        const found = loadRecipes().find(x => x.id === editId);
-        if (found) r = found;
-    }
-    recipeDraftIngredients = (r.ingredients || []).map(i => ({ ...i }));
-    body.innerHTML = `
-        <div class="converter-box">
-            ${inputFieldText('label.shop.itemName', 'recipe-name', 'npr. Palačinke')}
-            ${inputFieldText('label.notes', 'recipe-description', '')}
-            ${inputField('label.kitchen.originalPortions', 'recipe-servings', '', `value="${r.servings || 1}"`)}
-            ${inputField('label.health.timeMin', 'recipe-prep', 'min', `value="${r.prepTime || ''}"`)}
-            <div class="section-desc">Sastojci:</div>
-            <div id="recipe-ingredients-list"></div>
-            <button class="workout-add-exercise-btn" onclick="addRecipeIngredient()">+ Dodaj sastojak</button>
-            <div class="input-field">
-                <label>Priprema</label>
-                <textarea id="recipe-steps" class="custom-input rem-textarea" rows="4" placeholder="Koraci pripreme...">${escapeHtml(r.steps || '')}</textarea>
-            </div>
-            ${calcButton('btn.save', 'saveRecipe()')}
-        </div>
-    `;
-    renderRecipeIngredientsDraft();
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-    vibrate(15);
-}
-
-function addRecipeIngredient() {
-    recipeDraftIngredients.push({ name: '', amount: '' });
-    renderRecipeIngredientsDraft();
-    vibrate(10);
-}
-
-function renderRecipeIngredientsDraft() {
-    const list = el('recipe-ingredients-list');
-    if (!list) return;
-    list.innerHTML = '';
-    recipeDraftIngredients.forEach((ing, idx) => {
-        const row = document.createElement('div');
-        row.className = 'recipe-ingredient-row';
-        row.style.gridTemplateColumns = '1fr 100px 32px';
-        row.innerHTML = `
-            <input type="text" placeholder="Sastojak" value="${escapeHtml(ing.name)}" data-idx="${idx}" data-f="name" class="custom-input" style="font-size:0.8rem;padding:6px;background:var(--card-bg);border-radius:6px;border:1px solid var(--border-strong);">
-            <input type="text" placeholder="Količina" value="${escapeHtml(ing.amount)}" data-idx="${idx}" data-f="amount" class="custom-input" style="font-size:0.8rem;padding:6px;background:var(--card-bg);border-radius:6px;border:1px solid var(--border-strong);">
-            <button class="cost-estimate-remove" onclick="removeRecipeIngredient(${idx})">✕</button>
-        `;
-        list.appendChild(row);
-    });
-    list.querySelectorAll('input').forEach(inp => {
-        inp.addEventListener('input', e => {
-            const idx = parseInt(e.target.dataset.idx);
-            const field = e.target.dataset.f;
-            if (recipeDraftIngredients[idx]) recipeDraftIngredients[idx][field] = e.target.value;
-        });
-    });
-}
-
-function removeRecipeIngredient(idx) {
-    recipeDraftIngredients.splice(idx, 1);
-    renderRecipeIngredientsDraft();
-}
-
-function saveRecipe() {
-    const name = el('recipe-name') ? el('recipe-name').value.trim() : '';
-    if (!name) { showToast('Unesi naziv recepta.', 'error'); return; }
-    const r = {
-        id: recipeEditId || ('rc_' + Date.now()),
-        name,
-        description: el('recipe-description') ? el('recipe-description').value.trim() : '',
-        servings: num('recipe-servings') || 1,
-        prepTime: num('recipe-prep') || 0,
-        ingredients: [...recipeDraftIngredients].filter(i => i.name),
-        steps: el('recipe-steps') ? el('recipe-steps').value.trim() : '',
-        createdAt: Date.now()
-    };
-    const list = loadRecipes();
-    if (recipeEditId) {
-        const idx = list.findIndex(x => x.id === recipeEditId);
-        if (idx !== -1) list[idx] = r;
-    } else {
-        list.push(r);
-    }
-    saveRecipes(list);
-    recipeEditId = null;
-    closeModal('recipes-modal');
-    renderRecipesList();
-    showToast('Recept sačuvan.', 'success', 1500);
-    vibrate(20);
-}
-
-function openRecipeView(id) {
-    const r = loadRecipes().find(x => x.id === id);
-    if (!r) return;
-    const modal = el('recipes-modal');
-    const body = el('recipes-modal-body');
-    const titleEl = el('recipes-modal-title');
-    if (!modal || !body) return;
-    if (titleEl) titleEl.textContent = r.name;
-    body.innerHTML = `
-        <div class="converter-box">
-            <div class="section-desc">${escapeHtml(r.description || '')}</div>
-            <div class="recipe-meta-row">
-                <span class="recipe-meta-item">${icon('users')} ${r.servings} porcija</span>
-                ${r.prepTime ? `<span class="recipe-meta-item">${icon('clock')} ${r.prepTime} min</span>` : ''}
-            </div>
-        </div>
-        <div class="converter-box">
-            <div class="recipe-scale-inputs">
-                <label>Prilagodi za:</label>
-                <input type="number" id="recipe-scale-to" class="custom-input" value="${r.servings}" min="1">
-                <span style="color:var(--text-secondary);font-weight:700;">porcija</span>
-            </div>
-            <div id="recipe-scaled-list" style="margin-top:12px;"></div>
-        </div>
-        ${r.steps ? `<div class="converter-box"><div class="section-desc" style="white-space:pre-wrap;line-height:1.6;">${escapeHtml(r.steps)}</div></div>` : ''}
-        <div style="display:flex;gap:8px;">
-            <button class="section-action-btn" style="flex:1;" onclick="closeModal('recipes-modal');openRecipeModal('${r.id}');">Izmeni</button>
-            <button class="section-action-btn" style="flex:1;color:#f43f5e;border-color:rgba(244,63,94,0.4);" onclick="deleteRecipe('${r.id}')">Obriši</button>
-        </div>
-    `;
-    renderScaledIngredients(r);
-    const scaleInput = el('recipe-scale-to');
-    if (scaleInput) {
-        scaleInput.addEventListener('input', () => renderScaledIngredients(r));
-    }
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-    vibrate(15);
-}
-
-function renderScaledIngredients(r) {
-    const list = el('recipe-scaled-list');
-    if (!list) return;
-    const target = num('recipe-scale-to') || r.servings;
-    const factor = target / r.servings;
-    list.innerHTML = (r.ingredients || []).map(i => {
-        let scaled = i.amount;
-        const match = String(i.amount).match(/^([\d.,]+)\s*(.*)$/);
-        if (match) {
-            const n = parseNum(match[1]);
-            const unit = match[2] || '';
-            if (n !== null) scaled = fmt(n * factor, 2) + ' ' + unit;
-        }
-        return `
-            <div class="recipe-ingredient-row">
-                <span class="recipe-ingredient-name">${escapeHtml(i.name)}</span>
-                <span class="recipe-scaled-amount">${escapeHtml(String(scaled))}</span>
-            </div>
-        `;
-    }).join('');
-}
-
-function deleteRecipe(id) {
-    showConfirm('Obrisati ovaj recept?').then(ok => {
-        if (!ok) return;
-        let list = loadRecipes();
-        list = list.filter(x => x.id !== id);
-        saveRecipes(list);
-        closeModal('recipes-modal');
-        renderRecipesList();
-        showToast('Recept obrisan.', 'info', 1500);
-    });
-}
-
-// ============================================================
-// NAVIKE — HABIT TRACKER, DNEVNIK
-// ============================================================
-
-const HABITS_KEY = 'cx_habits_v1';
-
-function loadHabits() {
-    try {
-        const raw = JSON.parse(localStorage.getItem(HABITS_KEY));
-        if (Array.isArray(raw)) return raw;
-    } catch (e) {}
-    return [];
-}
-function saveHabits(list) {
-    try { localStorage.setItem(HABITS_KEY, JSON.stringify(list)); } catch (e) {}
-}
-
-function renderHabitTracker() {
-    return `
-        <div class="converter-box">
-            <div class="lista-head">
-                <div class="section-desc" style="margin:0;">Prati svoje navike i nizove.</div>
-                <button class="section-action-btn" onclick="openHabitModal()">+ Dodaj</button>
-            </div>
-            <div id="habit-list" class="habit-list"></div>
-        </div>
-    `;
-}
-
-function renderHabitsList() {
-    const list = el('habit-list');
-    if (!list) return;
-    const habits = loadHabits();
-    if (!habits.length) {
-        list.innerHTML = `<div class="habit-empty"><div class="habit-empty-icon">✅</div><div>Nema navika. Dodaj prvu!</div></div>`;
-        return;
-    }
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const dayNames = ['Ned', 'Pon', 'Uto', 'Sre', 'Čet', 'Pet', 'Sub'];
-    let html = '';
-    habits.forEach(h => {
-        const history = h.history || {};
-        let weekHtml = '';
-        for (let i = 6; i >= 0; i--) {
-            const d = new Date(today);
-            d.setDate(d.getDate() - i);
-            const key = d.toISOString().slice(0, 10);
-            const done = history[key] === true;
-            const isToday = i === 0;
-            weekHtml += `<button class="habit-day-btn ${done ? 'done' : ''} ${isToday ? 'today' : ''}" onclick="toggleHabitDay('${h.id}', '${key}')">
-                <span class="habit-day-label">${dayNames[d.getDay()]}</span>
-                <span class="habit-day-num">${d.getDate()}</span>
-                ${done ? '<span class="habit-day-check">✓</span>' : ''}
-            </button>`;
-        }
-        let streak = 0;
-        let checkDate = new Date(today);
-        while (true) {
-            const key = checkDate.toISOString().slice(0, 10);
-            if (history[key]) { streak++; checkDate.setDate(checkDate.getDate() - 1); }
-            else break;
-        }
-        const keys = Object.keys(history).filter(k => history[k]).sort();
-        let bestStreak = 0, curStreak = 0, prevDate = null;
-        keys.forEach(k => {
-            const d = new Date(k);
-            if (prevDate && Math.round((d - prevDate) / 86400000) === 1) curStreak++;
-            else curStreak = 1;
-            if (curStreak > bestStreak) bestStreak = curStreak;
-            prevDate = d;
-        });
-        html += `
-            <div class="habit-card" style="--habit-color: ${h.color || '#10b981'};">
-                <div class="habit-head">
-                    <div class="habit-icon">${icon(h.icon || 'check')}</div>
-                    <div class="habit-info">
-                        <div class="habit-name">${escapeHtml(h.name)}</div>
-                        <div class="habit-meta">Najbolji niz: ${bestStreak} d.</div>
-                    </div>
-                    ${streak > 0 ? `<span class="habit-streak-badge">🔥 ${streak}</span>` : ''}
-                </div>
-                <div class="habit-week-grid">${weekHtml}</div>
-                <div class="habit-actions">
-                    <button class="habit-action-btn" onclick="openHabitModal('${h.id}')">Izmeni</button>
-                    <button class="habit-action-btn danger" onclick="deleteHabit('${h.id}')">Obriši</button>
-                </div>
-            </div>
-        `;
-    });
-    list.innerHTML = html;
-}
-
-function toggleHabitDay(habitId, dateKey) {
-    const habits = loadHabits();
-    const h = habits.find(x => x.id === habitId);
-    if (!h) return;
-    h.history = h.history || {};
-    h.history[dateKey] = !h.history[dateKey];
-    saveHabits(habits);
-    renderHabitsList();
-    vibrate(15);
-    playTick(0, 1500, 0.06, 0.02);
-}
-
-let habitEditId = null;
-let habitDraftIcon = 'check';
-let habitDraftColor = '#10b981';
-
-function openHabitModal(editId = null) {
-    const modal = el('habit-modal');
-    const body = el('habit-modal-body');
-    if (!modal || !body) return;
-    habitEditId = editId;
-    let h = { name: '', icon: 'check', color: '#10b981' };
-    if (editId) {
-        const found = loadHabits().find(x => x.id === editId);
-        if (found) h = found;
-    }
-    habitDraftIcon = h.icon || 'check';
-    habitDraftColor = h.color || '#10b981';
-    const iconOptions = ['check', 'run', 'dumbbell', 'book', 'droplet', 'heart', 'sun', 'moon', 'leaf', 'sparkles'];
-    const colorOptions = ['#10b981', '#f43f5e', '#f59e0b', '#06b6d4', '#6366f1', '#a855f7', '#ec4899', '#84cc16'];
-    body.innerHTML = `
-        <div class="converter-box">
-            ${inputFieldText('label.shop.itemName', 'habit-name', 'npr. Trčanje')}
-            <div class="input-field">
-                <label>Ikonica</label>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                    ${iconOptions.map(ic => `<button class="gps-color-swatch" style="--swatch-color: var(--card-active);color:var(--text-main);border:2px solid ${habitDraftIcon === ic ? 'var(--accent-primary)' : 'var(--border-strong)'};" onclick="selectHabitIcon('${ic}')">${icon(ic)}</button>`).join('')}
-                </div>
-            </div>
-            <div class="input-field">
-                <label>Boja</label>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                    ${colorOptions.map(c => `<button class="gps-color-swatch" style="--swatch-color: ${c};" onclick="selectHabitColor('${c}')">${habitDraftColor === c ? '✓' : ''}</button>`).join('')}
-                </div>
-            </div>
-            ${calcButton('btn.save', 'saveHabit()')}
-        </div>
-    `;
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-    vibrate(15);
-}
-
-function selectHabitIcon(ic) {
-    habitDraftIcon = ic;
-    // Re-render samo ikonice
-    document.querySelectorAll('#habit-modal-body .gps-color-swatch').forEach(btn => {
-        const svgInside = btn.querySelector('svg');
-        if (svgInside) {
-            btn.style.border = '2px solid var(--border-strong)';
-        }
-    });
-    if (event && event.currentTarget) {
-        event.currentTarget.style.border = '2px solid var(--accent-primary)';
-    }
-}
-function selectHabitColor(c) {
-    habitDraftColor = c;
-    document.querySelectorAll('#habit-modal-body .gps-color-swatch').forEach(btn => {
-        const swatchColor = btn.style.getPropertyValue('--swatch-color');
-        if (swatchColor && swatchColor.trim() === c) {
-            btn.textContent = '✓';
-        } else if (!btn.querySelector('svg')) {
-            btn.textContent = '';
-        }
-    });
-}
-
-function saveHabit() {
-    const name = el('habit-name') ? el('habit-name').value.trim() : '';
-    if (!name) { showToast('Unesi naziv navike.', 'error'); return; }
-    const list = loadHabits();
-    if (habitEditId) {
-        const h = list.find(x => x.id === habitEditId);
-        if (h) { h.name = name; h.icon = habitDraftIcon; h.color = habitDraftColor; }
-    } else {
-        list.push({
-            id: 'hb_' + Date.now(),
-            name,
-            icon: habitDraftIcon,
-            color: habitDraftColor,
-            history: {},
-            createdAt: Date.now()
-        });
-    }
-    saveHabits(list);
-    habitEditId = null;
-    closeModal('habit-modal');
-    renderHabitsList();
-    showToast('Navika sačuvana.', 'success', 1500);
-    vibrate(20);
-}
-
-function deleteHabit(id) {
-    showConfirm('Obrisati ovu naviku i sve podatke?').then(ok => {
-        if (!ok) return;
-        let list = loadHabits();
-        list = list.filter(h => h.id !== id);
-        saveHabits(list);
-        renderHabitsList();
-        showToast('Navika obrisana.', 'info', 1500);
-    });
-}
-
-// ---------- DNEVNIK ----------
-const JOURNAL_KEY = 'cx_journal_v1';
-const MOODS = {
-    great: '😄',
-    good: '🙂',
-    ok: '😐',
-    bad: '😔',
-    terrible: '😢'
-};
-
-function loadJournal() {
-    try {
-        const raw = JSON.parse(localStorage.getItem(JOURNAL_KEY));
-        if (Array.isArray(raw)) return raw;
-    } catch (e) {}
-    return [];
-}
-function saveJournal(list) {
-    try { localStorage.setItem(JOURNAL_KEY, JSON.stringify(list)); } catch (e) {}
-}
-
-function renderJournal() {
-    return `
-        <div class="converter-box">
-            <div class="lista-head">
-                <div class="section-desc" style="margin:0;">Zapiši svoje misli i osećanja.</div>
-                <button class="section-action-btn" onclick="openJournalModal()">+ Nova beleška</button>
-            </div>
-            <div id="journal-list" class="journal-list"></div>
-        </div>
-    `;
-}
-
-function renderJournalList() {
-    const list = el('journal-list');
-    if (!list) return;
-    const items = loadJournal().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    if (!items.length) {
-        list.innerHTML = `<div class="journal-empty"><div class="journal-empty-icon">📔</div><div>Nema beleški. Napiši prvu!</div></div>`;
-        return;
-    }
-    let html = '';
-    items.forEach(j => {
-        html += `
-            <div class="journal-card" onclick="openJournalModal('${j.id}')">
-                <div class="journal-head">
-                    <span class="journal-mood">${MOODS[j.mood] || '📝'}</span>
-                    <div class="journal-head-text">
-                        <div class="journal-title">${escapeHtml(j.title)}</div>
-                        <div class="journal-date">${new Date(j.createdAt).toLocaleDateString('sr-RS')}</div>
-                    </div>
-                </div>
-                ${j.text ? `<div class="journal-text">${escapeHtml(j.text)}</div>` : ''}
-                ${(j.tags || []).length ? `<div class="journal-tags">${j.tags.map(t => `<span class="journal-tag">#${escapeHtml(t)}</span>`).join('')}</div>` : ''}
-            </div>
-        `;
-    });
-    list.innerHTML = html;
-}
-
-let journalEditId = null;
-let selectedJournalMood = 'good';
-
-function openJournalModal(editId = null) {
-    const modal = el('journal-modal');
-    const body = el('journal-modal-body');
-    const titleEl = el('journal-modal-title');
-    if (!modal || !body) return;
-    journalEditId = editId;
-    let j = { title: '', text: '', mood: 'good', tags: [] };
-    if (editId) {
-        const found = loadJournal().find(x => x.id === editId);
-        if (found) j = found;
-        if (titleEl) titleEl.textContent = 'Izmeni belešku';
-    } else {
-        if (titleEl) titleEl.textContent = 'Nova beleška';
-    }
-    selectedJournalMood = j.mood || 'good';
-    body.innerHTML = `
-        <div class="converter-box">
-            ${inputFieldText('label.shop.itemName', 'journal-title', 'Naslov beleške')}
-            <div class="input-field">
-                <label>Raspoloženje</label>
-                <div class="journal-mood-picker" id="journal-mood-picker">
-                    ${Object.entries(MOODS).map(([k, emoji]) => `<button class="journal-mood-option ${selectedJournalMood === k ? 'selected' : ''}" data-mood="${k}" onclick="selectJournalMood('${k}')">${emoji}</button>`).join('')}
-                </div>
-            </div>
-            <div class="input-field">
-                <label>Tekst</label>
-                <textarea id="journal-text" class="custom-input rem-textarea" rows="6" placeholder="Napiši šta ti je na umu...">${escapeHtml(j.text || '')}</textarea>
-            </div>
-            ${inputFieldText('label.time.date', 'journal-tags', 'npr. posao, porodica')}
-            ${calcButton('btn.save', 'saveJournal()')}
-            ${editId ? `<button class="rem-delete-btn" onclick="deleteJournalEntry('${editId}')">Obriši</button>` : ''}
-        </div>
-    `;
-    const tagsInput = el('journal-tags');
-    if (tagsInput && (j.tags || []).length) tagsInput.value = j.tags.join(', ');
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-    vibrate(15);
-}
-
-function selectJournalMood(mood) {
-    selectedJournalMood = mood;
-    document.querySelectorAll('.journal-mood-option').forEach(btn => {
-        btn.classList.toggle('selected', btn.dataset.mood === mood);
-    });
-    vibrate(10);
-}
-
-function saveJournal() {
-    const title = el('journal-title') ? el('journal-title').value.trim() : '';
-    if (!title) { showToast('Unesi naslov.', 'error'); return; }
-    const text = el('journal-text') ? el('journal-text').value.trim() : '';
-    const tagsRaw = el('journal-tags') ? el('journal-tags').value.trim() : '';
-    const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
-    const list = loadJournal();
-    if (journalEditId) {
-        const idx = list.findIndex(x => x.id === journalEditId);
-        if (idx !== -1) { list[idx] = { ...list[idx], title, text, mood: selectedJournalMood, tags }; }
-    } else {
-        list.unshift({
-            id: 'jn_' + Date.now(),
-            title, text, mood: selectedJournalMood, tags,
-            createdAt: Date.now()
-        });
-    }
-    saveJournal(list);
-    journalEditId = null;
-    closeModal('journal-modal');
-    renderJournalList();
-    showToast('Beleška sačuvana.', 'success', 1500);
-    vibrate(20);
-}
-
-function deleteJournalEntry(id) {
-    showConfirm('Obrisati ovu belešku?').then(ok => {
-        if (!ok) return;
-        let list = loadJournal();
-        list = list.filter(x => x.id !== id);
-        saveJournal(list);
-        closeModal('journal-modal');
-        renderJournalList();
-        showToast('Beleška obrisana.', 'info', 1500);
-    });
-}
-
-// ============================================================
-// KRAJ DELA 3/4
-// ============================================================// ============================================================
-// ALATIKA 3.0 — app.js
-// Deo 4/4: Sve postojeće kalkulacije (mere, novac, kupovina,
-// auto, bicikl, zdravlje, vreme, građevina, kuhinja, struja,
-// posao, muzika), podsetnici, GPS, Weather, FX, init
-// ============================================================
-
-// ================= RENDER POMOĆNE =================
 function inputField(labelKey, id, unit = '', extra = '') {
     const unitHtml = unit ? `<span class="unit">${escapeHtml(unit)}</span>` : '';
     return `
@@ -6596,7 +4644,7 @@ function renderMoneyNapojnica() {
 
 function calculateMoney() {
     const price = num('money-price'), discount = num('money-discount');
-    if (!price || discount === null || discount < 0 || discount > 100) { showToast(safeT('toast.error.enterPriceDiscount'), 'error'); return; }
+    if (!price || discount === null || discount < 0 || discount > 100) { showToast(safeT('toast.error.enterPriceDiscount') || 'Unesi cenu i popust.', 'error'); return; }
     const saved = price * (discount / 100);
     const mf = el('res-money-final'); if (mf) mf.innerText = money(price - saved);
     const ms = el('stat-money-saved'); if (ms) ms.innerText = money(saved) + ' RSD';
@@ -6606,7 +4654,7 @@ function calculatePDV() {
     const amount = num('pdv-amount');
     let rate = num('pdv-rate');
     const type = el('pdv-type') ? el('pdv-type').value : 'add';
-    if (!amount) { showToast(safeT('toast.error.enterAmount'), 'error'); return; }
+    if (!amount) { showToast(safeT('toast.error.enterAmount') || 'Unesi iznos.', 'error'); return; }
     if (rate === null) rate = 20;
     let base, tax, total;
     if (type === 'add') { base = amount; tax = base * (rate / 100); total = base + tax; }
@@ -6632,7 +4680,7 @@ function setFormula(id, text) {
 function calculateMoneyPercent1() {
     const base = num('np-base'), pct = num('np-val');
     const op = el('np-op') ? el('np-op').value : 'add';
-    if (base === null || pct === null) { showToast(safeT('toast.error.enterPricePercent'), 'error'); return; }
+    if (base === null || pct === null) { showToast(safeT('toast.error.enterPricePercent') || 'Unesi cenu i procenat.', 'error'); return; }
     const res = percentAddSub(base, pct, op);
     if (!res) return;
     const rv = el('res-np1-val'); if (rv) rv.innerText = money(res.result);
@@ -6645,7 +4693,7 @@ let amortShowAll = false;
 function calculateLoan() {
     const currency = el('credit-currency') ? el('credit-currency').value : 'RSD';
     const amount = num('loan-amount'), rateYear = num('loan-rate') || 0, months = num('loan-months');
-    if (!amount || !months) { showToast(safeT('toast.error.enterAmountMonths'), 'error'); return; }
+    if (!amount || !months) { showToast(safeT('toast.error.enterAmountMonths') || 'Unesi iznos i broj meseci.', 'error'); return; }
     const rateMonth = (rateYear / 100) / 12;
     let monthly;
     if (rateMonth === 0) monthly = amount / months;
@@ -6698,7 +4746,7 @@ function renderAmortPlan() {
 function toggleAmortPreview() { amortShowAll = !amortShowAll; renderAmortPlan(); }
 function calculateSplit() {
     const total = num('split-total'), people = num('split-people'), tip = num('split-tip') || 0;
-    if (!total || !people || people < 1) { showToast(safeT('toast.error.enterAmountPeople'), 'error'); return; }
+    if (!total || !people || people < 1) { showToast(safeT('toast.error.enterAmountPeople') || 'Unesi iznos i broj osoba.', 'error'); return; }
     const totalWithTip = total * (1 + tip / 100);
     const sv = el('res-split-val'); if (sv) sv.innerText = money(totalWithTip / people);
     const st = el('stat-split-total'); if (st) st.innerText = money(totalWithTip) + ' RSD';
@@ -6706,7 +4754,7 @@ function calculateSplit() {
 }
 function calculateTip() {
     const bill = num('tip-bill'), percent = num('tip-percent'), people = num('tip-people') || 1;
-    if (!bill || percent === null) { showToast(safeT('toast.error.enterAmountPercent'), 'error'); return; }
+    if (!bill || percent === null) { showToast(safeT('toast.error.enterAmountPercent') || 'Unesi iznos i procenat.', 'error'); return; }
     const tipAmount = bill * (percent / 100);
     const total = bill + tipAmount;
     const tv = el('res-tip-val'); if (tv) tv.innerText = money(tipAmount);
@@ -6715,9 +4763,7 @@ function calculateTip() {
     show('tip-result-box'); show('tip-stats-row');
 }
 
-// ---------- RATE (INSTALLMENTS) ----------
 let currentInstallmentData = null;
-
 function calculateInstallments() {
     const startAmount = num('rate-start');
     const count = parseInt(num('rate-count')) || 0;
@@ -6725,9 +4771,9 @@ function calculateInstallments() {
     const period = el('rate-period') ? el('rate-period').value : 'monthly';
     const interestRate = num('rate-interest') || 0;
     const description = el('rate-description') ? el('rate-description').value.trim() : '';
-    if (!startAmount || startAmount <= 0) { showToast(safeT('toast.error.enterAmount'), 'error'); return; }
-    if (!count || count < 1 || count > 120) { showToast(safeT('toast.error.enterValue'), 'error'); return; }
-    if (!firstDate) { showToast(safeT('toast.error.enterDate'), 'error'); return; }
+    if (!startAmount || startAmount <= 0) { showToast(safeT('toast.error.enterAmount') || 'Unesi iznos.', 'error'); return; }
+    if (!count || count < 1 || count > 120) { showToast(safeT('toast.error.enterValue') || 'Unesi vrednost.', 'error'); return; }
+    if (!firstDate) { showToast(safeT('toast.error.enterDate') || 'Unesi datum.', 'error'); return; }
     let monthlyRate = 0;
     if (interestRate > 0) {
         const periodsPerYear = period === 'monthly' ? 12 : (period === 'biweekly' ? 26 : 52);
@@ -6825,7 +4871,7 @@ function renderShopRasipanje() {
 function calculateUnitPrice() {
     const price = num('unit-price'), qty = num('unit-qty');
     const type = el('unit-type') ? el('unit-type').value : 'kg';
-    if (!price || !qty) { showToast(safeT('toast.error.enterPriceQty'), 'error'); return; }
+    if (!price || !qty) { showToast(safeT('toast.error.enterPriceQty') || 'Unesi cenu i količinu.', 'error'); return; }
     let result, label;
     if (type === 'kg') { result = price / qty; label = 'RSD/kg'; }
     else if (type === 'g100') { result = (price / qty) * 100; label = 'RSD/100g'; }
@@ -6842,7 +4888,7 @@ function calculateCompare() {
     const aUnit = el('cmp-a-unit') ? el('cmp-a-unit').value : 'kg';
     const bPrice = num('cmp-b-price'), bQty = num('cmp-b-qty');
     const bUnit = el('cmp-b-unit') ? el('cmp-b-unit').value : 'kg';
-    if (!aPrice || !aQty || !bPrice || !bQty) { showToast(safeT('toast.error.enterAll'), 'error'); return; }
+    if (!aPrice || !aQty || !bPrice || !bQty) { showToast(safeT('toast.error.enterAll') || 'Unesi sve vrednosti.', 'error'); return; }
     function toBase(price, qty, unit) {
         if (unit === 'kg' || unit === 'L' || unit === 'kom') return price / qty;
         if (unit === 'g' || unit === 'ml') return price / (qty / 1000);
@@ -6867,7 +4913,7 @@ function addShoppingItem() {
     const nameEl = el('lista-name'), qtyEl = el('lista-qty'), priceEl = el('lista-price');
     if (!nameEl) return;
     const name = nameEl.value.trim();
-    if (!name) { showToast(safeT('toast.error.enterItemName'), 'error'); return; }
+    if (!name) { showToast(safeT('toast.error.enterItemName') || 'Unesi naziv stavke.', 'error'); return; }
     const list = loadShoppingList();
     list.push({ id: Date.now() + Math.random(), name, qty: qtyEl ? qtyEl.value.trim() : '', price: priceEl ? (parseNum(priceEl.value) || 0) : 0, bought: false, date: Date.now() });
     saveShoppingList(list);
@@ -6875,7 +4921,7 @@ function addShoppingItem() {
     nameEl.value = '';
     if (qtyEl) qtyEl.value = '';
     if (priceEl) priceEl.value = '';
-    showToast(safeT('toast.itemAdded'), 'success', 1400);
+    showToast(safeT('toast.itemAdded') || 'Stavka dodata.', 'success', 1400);
     vibrate(15);
     nameEl.focus();
 }
@@ -6894,19 +4940,19 @@ function removeShoppingItem(id) {
 async function clearBoughtItems() {
     const list = loadShoppingList();
     const boughtCount = list.filter(i => i.bought).length;
-    if (!boughtCount) { showToast(safeT('toast.noBoughtItems'), 'info', 1500); return; }
+    if (!boughtCount) { showToast(safeT('toast.noBoughtItems') || 'Nema kupljenih stavki.', 'info', 1500); return; }
     const ok = await showConfirm(safeT('confirm.clearBought').replace('{0}', boughtCount));
     if (!ok) return;
     saveShoppingList(list.filter(i => !i.bought)); renderShoppingList();
-    showToast(safeT('toast.boughtCleared'), 'success', 1500);
+    showToast(safeT('toast.boughtCleared') || 'Obrisano.', 'success', 1500);
 }
 async function clearShoppingList() {
     const list = loadShoppingList();
-    if (!list.length) { showToast(safeT('toast.listEmpty'), 'info', 1500); return; }
+    if (!list.length) { showToast(safeT('toast.listEmpty') || 'Lista je prazna.', 'info', 1500); return; }
     const ok = await showConfirm(safeT('confirm.clearList'));
     if (!ok) return;
     saveShoppingList([]); renderShoppingList();
-    showToast(safeT('toast.listCleared'), 'success', 1500);
+    showToast(safeT('toast.listCleared') || 'Lista obrisana.', 'success', 1500);
 }
 function renderShoppingList() {
     const list = loadShoppingList();
@@ -6952,7 +4998,7 @@ function calculateBudget() {
     const total = num('budzet-total');
     const period = el('budzet-period') ? parseInt(el('budzet-period').value) : 30;
     const spent = num('budzet-spent') || 0;
-    if (!total || total <= 0) { showToast(safeT('toast.error.enterBudget'), 'error'); return; }
+    if (!total || total <= 0) { showToast(safeT('toast.error.enterBudget') || 'Unesi budžet.', 'error'); return; }
     const daily = total / period, left = Math.max(0, total - spent);
     const rd = el('res-budzet-daily'); if (rd) rd.innerText = money(daily);
     const sl = el('stat-budzet-left'); if (sl) sl.innerText = money(left) + ' RSD';
@@ -6963,7 +5009,7 @@ function calculateBudget() {
 function calculateWorthTrip() {
     const usteda = num('isplati-usteda'), br = num('isplati-br') || 1, dist = num('isplati-dist');
     const potrosnja = num('isplati-potrosnja') || 7, gorivo = num('isplati-gorivo') || 180;
-    if (!usteda || !dist) { showToast(safeT('toast.error.enterSavingsDistance'), 'error'); return; }
+    if (!usteda || !dist) { showToast(safeT('toast.error.enterSavingsDistance') || 'Unesi uštedu i distancu.', 'error'); return; }
     const ukupnaUsteda = usteda * br;
     const trosakPuta = ((dist * 2 / 100) * potrosnja) * gorivo;
     const neto = ukupnaUsteda - trosakPuta;
@@ -6979,8 +5025,8 @@ function calculateWorthTrip() {
 }
 function calculateMealCost() {
     const cena = num('rasip-cena'), porcija = num('rasip-porcija'), bacanje = num('rasip-bacanje') || 0;
-    if (!cena || !porcija) { showToast(safeT('toast.error.enterPriceMeals'), 'error'); return; }
-    if (porcija < 1) { showToast(safeT('toast.error.minOneMeal'), 'error'); return; }
+    if (!cena || !porcija) { showToast(safeT('toast.error.enterPriceMeals') || 'Unesi cenu i broj obroka.', 'error'); return; }
+    if (porcija < 1) { showToast(safeT('toast.error.minOneMeal') || 'Minimum jedan obrok.', 'error'); return; }
     const base = cena / porcija, waste = cena * (bacanje / 100);
     const rv = el('res-rasip-val'); if (rv) rv.innerText = money((cena + waste) / porcija);
     const sb = el('stat-rasip-base'); if (sb) sb.innerText = money(base) + ' RSD';
@@ -7085,7 +5131,7 @@ function calculateAuto() {
     const dist = num('distance'), fuel = num('fuel');
     const price = num('price') || 0;
     const currency = el('auto-currency') ? el('auto-currency').value : 'RSD';
-    if (!dist || !fuel) { showToast(safeT('toast.error.enterDistanceFuel'), 'error'); return; }
+    if (!dist || !fuel) { showToast(safeT('toast.error.enterDistanceFuel') || 'Unesi distancu i gorivo.', 'error'); return; }
     const consumption = (fuel * 100) / dist;
     const totalCost = fuel * price;
     const rc = el('res-consumption'); if (rc) rc.innerText = fmt(consumption, 2);
@@ -7096,7 +5142,7 @@ function calculateAuto() {
 }
 function calculateService() {
     const currentKm = num('current-km'), lastService = num('last-service-km'), interval = num('service-interval');
-    if (currentKm === null || lastService === null || !interval) { showToast(safeT('toast.error.enterAll'), 'error'); return; }
+    if (currentKm === null || lastService === null || !interval) { showToast(safeT('toast.error.enterAll') || 'Unesi sve vrednosti.', 'error'); return; }
     const nextServiceKm = lastService + interval;
     const remainingKm = nextServiceKm - currentKm;
     const lbl = el('res-service-label'), km = el('res-service-km');
@@ -7108,7 +5154,7 @@ function calculateService() {
 function calculateAnnualCost() {
     const reg = num('cost-reg') || 0, fuelYear = num('cost-fuel-year') || 0;
     const total = reg + fuelYear;
-    if (total === 0) { showToast(safeT('toast.error.enterAtLeastOne'), 'error'); return; }
+    if (total === 0) { showToast(safeT('toast.error.enterAtLeastOne') || 'Unesi barem jednu vrednost.', 'error'); return; }
     const at = el('res-annual-total'); if (at) at.innerText = money(total);
     const am = el('stat-annual-month'); if (am) am.innerText = money(total / 12) + ' RSD';
     show('annual-result-box'); show('annual-stats-row');
@@ -7116,7 +5162,7 @@ function calculateAnnualCost() {
 function calculateCostPerKm() {
     const dist = num('pokm-dist');
     const fuelCost = num('pokm-fuel-cost') || 0, serviceCost = num('pokm-service-cost') || 0, regCost = num('pokm-reg-cost') || 0;
-    if (!dist) { showToast(safeT('toast.error.enterDistance'), 'error'); return; }
+    if (!dist) { showToast(safeT('toast.error.enterDistance') || 'Unesi distancu.', 'error'); return; }
     const total = fuelCost + serviceCost + regCost;
     const perKm = total / dist;
     const pv = el('res-pokm-val'); if (pv) pv.innerText = fmt(perKm, 2);
@@ -7127,7 +5173,7 @@ function calculateTripPlanner() {
     const distance = num('trip-distance'), speed = num('trip-speed');
     const departVal = el('trip-depart') ? el('trip-depart').value : '';
     const breaks = num('trip-breaks') || 0;
-    if (!distance || !speed) { showToast(safeT('toast.error.enterDistanceSpeed'), 'error'); return; }
+    if (!distance || !speed) { showToast(safeT('toast.error.enterDistanceSpeed') || 'Unesi distancu i brzinu.', 'error'); return; }
     const driveHours = distance / speed;
     const totalMinutes = driveHours * 60 + breaks;
     const dh = Math.floor(driveHours), dm = Math.round((driveHours - dh) * 60);
@@ -7147,7 +5193,7 @@ function calculateRoadTrip() {
     const distance = num('road-distance'), consumption = num('road-consumption'), price = num('road-price');
     const toll = num('road-toll') || 0, parking = num('road-parking') || 0, other = num('road-other') || 0;
     const people = num('road-people') || 1;
-    if (!distance || !consumption || !price) { showToast(safeT('toast.error.enterAll'), 'error'); return; }
+    if (!distance || !consumption || !price) { showToast(safeT('toast.error.enterAll') || 'Unesi sve vrednosti.', 'error'); return; }
     const liters = (distance / 100) * consumption;
     const fuelCost = liters * price;
     const totalCost = fuelCost + toll + parking + other;
@@ -7247,7 +5293,7 @@ function renderBikeTabela() {
 
 function calculateBike() {
     const front = num('bike-front'), rear = num('bike-rear'), cadence = num('bike-cadence'), wheelInch = num('bike-wheel-inch');
-    if (!front || !rear || !cadence || !wheelInch) { showToast(safeT('toast.error.enterFour'), 'error'); return; }
+    if (!front || !rear || !cadence || !wheelInch) { showToast(safeT('toast.error.enterFour') || 'Unesi sve 4 vrednosti.', 'error'); return; }
     const gearRatio = front / rear;
     const wheelCircumference = wheelInch * 0.0254 * Math.PI;
     const development = gearRatio * wheelCircumference;
@@ -7260,7 +5306,7 @@ function calculateBike() {
 function calculateBikePressure() {
     const weight = num('bike-rider-weight'), width = num('bike-tire-width');
     const type = el('bike-tire-type') ? el('bike-tire-type').value : 'tube';
-    if (!weight || !width) { showToast(safeT('toast.error.enterWeightWidth'), 'error'); return; }
+    if (!weight || !width) { showToast(safeT('toast.error.enterWeightWidth') || 'Unesi težinu i širinu gume.', 'error'); return; }
     let bar = (weight / 10) / (width / 20);
     if (type === 'tubeless') bar -= 0.5;
     bar = Math.max(1.5, Math.min(8.5, bar));
@@ -7272,7 +5318,7 @@ function calculateBikePressure() {
 function calculateBikeFrame() {
     const height = num('bike-user-height');
     const type = el('bike-frame-type') ? el('bike-frame-type').value : 'mtb';
-    if (!height) { showToast(safeT('toast.error.enterHeight'), 'error'); return; }
+    if (!height) { showToast(safeT('toast.error.enterHeight') || 'Unesi visinu.', 'error'); return; }
     let main, unit, alt;
     if (type === 'mtb') { const inch = height * 0.1; main = inch; unit = safeT('unit.inch'); alt = fmt(inch * 2.54, 0) + ' cm'; }
     else { const cm = height * 0.31; main = cm; unit = 'cm'; alt = fmt(cm / 2.54, 1) + ' ' + safeT('unit.inch'); }
@@ -7289,7 +5335,7 @@ function calculateBikeFrame() {
 }
 function calculateBikeCalories() {
     const weight = num('bike-cal-weight'), timeMinutes = num('bike-cal-time'), speed = num('bike-cal-speed');
-    if (!weight || !timeMinutes || !speed) { showToast(safeT('toast.error.enterAll'), 'error'); return; }
+    if (!weight || !timeMinutes || !speed) { showToast(safeT('toast.error.enterAll') || 'Unesi sve vrednosti.', 'error'); return; }
     let met = 8.0;
     if (speed < 15) met = 6.0; else if (speed < 20) met = 8.0; else if (speed < 25) met = 10.0; else met = 12.0;
     const bc = el('res-bike-calories'); if (bc) bc.innerText = fmt(met * weight * (timeMinutes / 60), 0);
@@ -7301,7 +5347,7 @@ function calculateGearTable() {
     const wheelInch = num('gear-wheel') || 29, cadence = num('gear-cadence') || 90;
     const fronts = frontsRaw.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n) && n > 0);
     const rears = rearsRaw.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n) && n > 0);
-    if (!fronts.length || !rears.length) { showToast(safeT('toast.error.enterChainrings'), 'error'); return; }
+    if (!fronts.length || !rears.length) { showToast(safeT('toast.error.enterChainrings') || 'Unesi lančanike.', 'error'); return; }
     const wheelCircumference = wheelInch * 0.0254 * Math.PI;
     const table = el('gear-table'); if (!table) return;
     table.innerHTML = '';
@@ -7343,7 +5389,7 @@ function renderHealth1RM() {
 
 function calculateBMI() {
     const weight = num('health-weight'), heightCm = num('health-height'), age = num('health-bmi-age');
-    if (!weight || !heightCm) { showToast(safeT('toast.error.enterWeightHeight'), 'error'); return; }
+    if (!weight || !heightCm) { showToast(safeT('toast.error.enterWeightHeight') || 'Unesi težinu i visinu.', 'error'); return; }
     const bmi = weight / Math.pow(heightCm / 100, 2);
     let categoryKey;
     if (age !== null && age < 18) categoryKey = 'label.health.underageBmi';
@@ -7358,7 +5404,7 @@ function calculateBMI() {
 function calculateIdealWeight() {
     const height = num('health-ideal-height');
     const gender = el('health-gender') ? el('health-gender').value : 'male';
-    if (!height) { showToast(safeT('toast.error.enterHeight'), 'error'); return; }
+    if (!height) { showToast(safeT('toast.error.enterHeight') || 'Unesi visinu.', 'error'); return; }
     const inchesOver = Math.max(0, (height - 152.4) / 2.54);
     const ideal = (gender === 'male' ? 50 : 45.5) + (2.3 * inchesOver);
     const heightM = height / 100;
@@ -7370,7 +5416,7 @@ function calculateBMR() {
     const weight = num('bmr-weight'), height = num('bmr-height'), age = num('bmr-age');
     const gender = el('bmr-gender') ? el('bmr-gender').value : 'male';
     const activity = el('bmr-activity') ? parseFloat(el('bmr-activity').value) : 1.375;
-    if (!weight || !height || !age) { showToast(safeT('toast.error.enterAll'), 'error'); return; }
+    if (!weight || !height || !age) { showToast(safeT('toast.error.enterAll') || 'Unesi sve vrednosti.', 'error'); return; }
     let bmr = (10 * weight) + (6.25 * height) - (5 * age) + (gender === 'male' ? 5 : -161);
     const bv = el('res-bmr-val'); if (bv) bv.innerText = fmt(bmr * activity, 0);
     const bb = el('stat-bmr-base'); if (bb) bb.innerText = fmt(bmr, 0) + ' kcal';
@@ -7378,7 +5424,7 @@ function calculateBMR() {
 }
 function calculateHeartRate() {
     const age = num('hr-age');
-    if (!age) { showToast(safeT('toast.error.enterAge'), 'error'); return; }
+    if (!age) { showToast(safeT('toast.error.enterAge') || 'Unesi godine.', 'error'); return; }
     const max = 220 - age;
     const zones = [[0.5, 0.6], [0.6, 0.7], [0.7, 0.8], [0.8, 0.9], [0.9, 1.0]];
     const hm = el('res-hr-max'); if (hm) hm.innerText = fmt(max, 0);
@@ -7391,9 +5437,9 @@ function calculateHeartRate() {
 }
 function calculateRunning() {
     const distance = num('run-distance'), min = num('run-min') || 0, sec = num('run-sec') || 0;
-    if (!distance) { showToast(safeT('toast.error.enterDistance'), 'error'); return; }
+    if (!distance) { showToast(safeT('toast.error.enterDistance') || 'Unesi distancu.', 'error'); return; }
     const totalMinutes = min + (sec / 60);
-    if (totalMinutes === 0) { showToast(safeT('toast.error.enterTime'), 'error'); return; }
+    if (totalMinutes === 0) { showToast(safeT('toast.error.enterTime') || 'Unesi vreme.', 'error'); return; }
     const paceMin = totalMinutes / distance;
     const paceMinWhole = Math.floor(paceMin), paceSec = Math.round((paceMin - paceMinWhole) * 60);
     const rp = el('res-run-pace'); if (rp) rp.innerText = `${paceMinWhole}:${String(paceSec).padStart(2, '0')}`;
@@ -7403,7 +5449,7 @@ function calculateRunning() {
 }
 function calculate1RM() {
     const weight = num('rm1-weight'), reps = num('rm1-reps');
-    if (!weight || !reps || reps < 1 || reps > 15) { showToast(safeT('toast.error.enterWeightReps'), 'error'); return; }
+    if (!weight || !reps || reps < 1 || reps > 15) { showToast(safeT('toast.error.enterWeightReps') || 'Unesi težinu i ponavljanja (1-15).', 'error'); return; }
     const rm = weight * (1 + reps / 30);
     const rv = el('res-rm1-val'); if (rv) rv.innerText = fmt(rm, 1);
     const r90 = el('stat-rm1-90'); if (r90) r90.innerText = fmt(rm * 0.9, 1) + ' kg';
@@ -7525,7 +5571,7 @@ function renderTimeRadni() {
 
 function calculateDateDifference() {
     const startVal = getTripleDate('start-date'), endVal = getTripleDate('end-date');
-    if (!startVal || !endVal) { showToast(safeT('toast.error.enterBothDates'), 'error'); return; }
+    if (!startVal || !endVal) { showToast(safeT('toast.error.enterBothDates') || 'Unesi oba datuma.', 'error'); return; }
     let startDate = parseDate(startVal), endDate = parseDate(endVal);
     if (startDate > endDate) { const t = startDate; startDate = endDate; endDate = t; }
     let years = endDate.getFullYear() - startDate.getFullYear();
@@ -7544,7 +5590,7 @@ function calculateDateDifference() {
 function calculateDateShift() {
     const startVal = getTripleDate('shift-date'), days = num('shift-days');
     const op = el('shift-op') ? el('shift-op').value : 'add';
-    if (!startVal || days === null) { showToast(safeT('toast.error.enterDateDays'), 'error'); return; }
+    if (!startVal || days === null) { showToast(safeT('toast.error.enterDateDays') || 'Unesi datum i dane.', 'error'); return; }
     const date = parseDate(startVal);
     date.setDate(date.getDate() + (op === 'sub' ? -Math.abs(days) : Math.abs(days)));
     const sv = el('res-shift-val');
@@ -7555,10 +5601,10 @@ function calculateDateShift() {
 }
 function calculateAge() {
     const birthVal = getTripleDate('birth-date');
-    if (!birthVal) { showToast(safeT('toast.error.enterBirthDate'), 'error'); return; }
+    if (!birthVal) { showToast(safeT('toast.error.enterBirthDate') || 'Unesi datum rođenja.', 'error'); return; }
     const birth = parseDate(birthVal);
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    if (birth > today) { showToast(safeT('toast.error.futureDate'), 'error'); return; }
+    if (birth > today) { showToast(safeT('toast.error.futureDate') || 'Datum u budućnosti.', 'error'); return; }
     let years = today.getFullYear() - birth.getFullYear();
     let months = today.getMonth() - birth.getMonth();
     let days = today.getDate() - birth.getDate();
@@ -7576,7 +5622,7 @@ function calculateAge() {
 }
 function calculateWorkdays() {
     const startVal = getTripleDate('workdays-start'), endVal = getTripleDate('workdays-end');
-    if (!startVal || !endVal) { showToast(safeT('toast.error.enterBothDates'), 'error'); return; }
+    if (!startVal || !endVal) { showToast(safeT('toast.error.enterBothDates') || 'Unesi oba datuma.', 'error'); return; }
     let start = parseDate(startVal), end = parseDate(endVal);
     if (start > end) { const tmp = start; start = end; end = tmp; }
     let workdays = 0, weekend = 0, total = 0;
@@ -7597,7 +5643,7 @@ function convertTimeUnits() {
     const val = num('time-value');
     const from = el('time-from') ? el('time-from').value : 'hours';
     const to = el('time-to') ? el('time-to').value : 'minutes';
-    if (val === null) { showToast(safeT('toast.error.enterValue'), 'error'); return; }
+    if (val === null) { showToast(safeT('toast.error.enterValue') || 'Unesi vrednost.', 'error'); return; }
     const result = val * TIME_SECONDS[from] / TIME_SECONDS[to];
     const tv = el('res-time-conv-val');
     if (tv) tv.innerText = `${fmt(result)} ${safeT(TIME_LABELS_KEY[to])}`;
@@ -7697,19 +5743,19 @@ function calculateShapeArea() {
     let area = 0;
     if (type === 'rect') {
         const a = num('shape-a'), b = num('shape-b');
-        if (!a || !b) { showToast(safeT('toast.error.enterLengthWidth'), 'error'); return; }
+        if (!a || !b) { showToast(safeT('toast.error.enterLengthWidth') || 'Unesi dužinu i širinu.', 'error'); return; }
         area = a * b;
     } else if (type === 'square') {
         const s = num('shape-side');
-        if (!s) { showToast(safeT('toast.error.enterSide'), 'error'); return; }
+        if (!s) { showToast(safeT('toast.error.enterSide') || 'Unesi stranu.', 'error'); return; }
         area = s * s;
     } else if (type === 'circle') {
         const d = num('shape-diameter');
-        if (!d) { showToast(safeT('toast.error.enterDiameter'), 'error'); return; }
+        if (!d) { showToast(safeT('toast.error.enterDiameter') || 'Unesi prečnik.', 'error'); return; }
         area = Math.PI * Math.pow(d / 2, 2);
     } else if (type === 'triangle') {
         const b = num('shape-base'), h = num('shape-height');
-        if (!b || !h) { showToast(safeT('toast.error.enterBaseHeight'), 'error'); return; }
+        if (!b || !h) { showToast(safeT('toast.error.enterBaseHeight') || 'Unesi osnovu i visinu.', 'error'); return; }
         area = (b * h) / 2;
     }
     const sa = el('res-shape-area'); if (sa) sa.innerText = fmt(area, 2);
@@ -7717,7 +5763,7 @@ function calculateShapeArea() {
 }
 function calculatePaint() {
     const width = num('paint-width'), height = num('paint-height'), walls = num('paint-walls') || 0, coverage = num('paint-coverage') || 10;
-    if (!width || !height || !walls) { showToast(safeT('toast.error.enterWallDims'), 'error'); return; }
+    if (!width || !height || !walls) { showToast(safeT('toast.error.enterWallDims') || 'Unesi dimenzije zida.', 'error'); return; }
     const netArea = Math.max(0, width * height * walls - getOpeningsArea('paint'));
     const pl = el('res-paint-liters'); if (pl) pl.innerText = fmt(netArea / coverage, 2);
     const pa = el('stat-paint-area'); if (pa) pa.innerText = fmt(netArea, 2) + ' m²';
@@ -7731,7 +5777,7 @@ function calculateTiles() {
     const roomL = num('tile-room-l'), roomW = num('tile-room-w'), tileL = num('tile-l'), tileW = num('tile-w');
     const reserve = num('tile-reserve') || 0;
     const wallsEnabled = el('tile-walls-enable') && el('tile-walls-enable').checked;
-    if (!roomL || !roomW || !tileL || !tileW) { showToast(safeT('toast.error.enterAllDimensions'), 'error'); return; }
+    if (!roomL || !roomW || !tileL || !tileW) { showToast(safeT('toast.error.enterAllDimensions') || 'Unesi sve dimenzije.', 'error'); return; }
     const floorArea = Math.max(0, roomL * roomW - getOpeningsArea('tile'));
     let wallArea = 0;
     if (wallsEnabled) {
@@ -7754,13 +5800,13 @@ function calculateTiles() {
 }
 function calculateConcrete() {
     const l = num('beton-l'), w = num('beton-w'), h = num('beton-h');
-    if (!l || !w || !h) { showToast(safeT('toast.error.enterAllDimensions'), 'error'); return; }
+    if (!l || !w || !h) { showToast(safeT('toast.error.enterAllDimensions') || 'Unesi sve dimenzije.', 'error'); return; }
     const bm = el('res-beton-m3'); if (bm) bm.innerText = fmt(l * w * h, 3);
     show('beton-result-box');
 }
 function calculateBlocks() {
     const wallL = num('block-wall-l'), wallH = num('block-wall-h'), blockL = num('block-l'), blockH = num('block-h');
-    if (!wallL || !wallH || !blockL || !blockH) { showToast(safeT('toast.error.enterBlockWallDims'), 'error'); return; }
+    if (!wallL || !wallH || !blockL || !blockH) { showToast(safeT('toast.error.enterBlockWallDims') || 'Unesi dimenzije zida i bloka.', 'error'); return; }
     const netArea = Math.max(0, wallL * wallH - getOpeningsArea('block'));
     const blocks = Math.ceil(netArea / ((blockL / 100) * (blockH / 100)));
     const bc = el('res-blocks-count'); if (bc) bc.innerText = blocks;
@@ -7771,7 +5817,7 @@ function calculateBlocks() {
 }
 function calculateCrep() {
     const area = num('crep-area'), perM2 = num('crep-per-m2'), reserve = num('crep-reserve') || 0;
-    if (!area || !perM2) { showToast(safeT('toast.error.enterAreaAndPer'), 'error'); return; }
+    if (!area || !perM2) { showToast(safeT('toast.error.enterAreaAndPer') || 'Unesi površinu i broj po m².', 'error'); return; }
     const baseCount = area * perM2;
     const cc = el('res-crep-count'); if (cc) cc.innerText = Math.ceil(baseCount * (1 + reserve / 100));
     const cb = el('stat-crep-base'); if (cb) cb.innerText = Math.ceil(baseCount) + ' ' + safeT('unit.pcsShort');
@@ -7780,7 +5826,7 @@ function calculateCrep() {
 function calculateGypsum() {
     const area = num('gips-area');
     const layers = el('gips-layers') ? parseInt(el('gips-layers').value) : 1;
-    if (!area) { showToast(safeT('toast.error.enterArea'), 'error'); return; }
+    if (!area) { showToast(safeT('toast.error.enterArea') || 'Unesi površinu.', 'error'); return; }
     const sheetArea = 1.2 * 2.0;
     const gt = el('res-gips-text');
     if (gt) gt.innerHTML = `<strong>${fmt(area, 2)} m²</strong> × ${layers} ${safeT('label.home.layerWord')}`;
@@ -7788,6 +5834,17 @@ function calculateGypsum() {
     const gp = el('stat-gips-profiles'); if (gp) gp.innerText = Math.ceil(area * 2.5 / 3) + ' ' + safeT('unit.pcsShort');
     const gsc = el('stat-gips-screws'); if (gsc) gsc.innerText = Math.ceil(area * 30 * layers) + ' ' + safeT('unit.pcsShort');
     show('gips-result-box'); show('gips-stats-row');
+}
+function toggleShapeInputs() {
+    const type = el('shape-type') ? el('shape-type').value : 'rect';
+    const rect = el('shape-rect-inputs');
+    const square = el('shape-square-inputs');
+    const circle = el('shape-circle-inputs');
+    const triangle = el('shape-triangle-inputs');
+    if (rect) rect.style.display = type === 'rect' ? 'flex' : 'none';
+    if (square) square.style.display = type === 'square' ? 'flex' : 'none';
+    if (circle) circle.style.display = type === 'circle' ? 'flex' : 'none';
+    if (triangle) triangle.style.display = type === 'triangle' ? 'flex' : 'none';
 }
 
 // ============================================================
@@ -7810,7 +5867,7 @@ const SPOON_GRAMS = { secer: 20, brasno: 10, so: 25, kakao: 8, med: 25, ulje: 15
 function calculateSpoon() {
     const ing = el('spoon-ingredient') ? el('spoon-ingredient').value : 'secer';
     const val = num('spoon-val');
-    if (val === null) { showToast(safeT('toast.error.enterValue'), 'error'); return; }
+    if (val === null) { showToast(safeT('toast.error.enterValue') || 'Unesi vrednost.', 'error'); return; }
     const gPerSpoon = SPOON_GRAMS[ing] || 20;
     const sv = el('res-spoon-val'); if (sv) sv.innerText = fmt(val * gPerSpoon, 2);
     const su = el('res-spoon-unit'); if (su) su.innerText = 'g';
@@ -7820,7 +5877,7 @@ const CUP_ML = { standard: 200, velika: 250, mala: 150 };
 function calculateCupConversion() {
     const type = el('cup-type') ? el('cup-type').value : 'standard';
     const val = num('cup-val');
-    if (val === null) { showToast(safeT('toast.error.enterValue'), 'error'); return; }
+    if (val === null) { showToast(safeT('toast.error.enterValue') || 'Unesi vrednost.', 'error'); return; }
     const mlPerCup = CUP_ML[type] || 200;
     const cv = el('res-cup-val'); if (cv) cv.innerText = fmt(val * mlPerCup, 0);
     const cu = el('res-cup-unit'); if (cu) cu.innerText = 'ml';
@@ -7830,7 +5887,7 @@ function calculateOven() {
     const from = el('oven-from') ? el('oven-from').value : 'c';
     const val = num('oven-val');
     const to = el('oven-to') ? el('oven-to').value : 'f';
-    if (val === null) { showToast(safeT('toast.error.enterValue'), 'error'); return; }
+    if (val === null) { showToast(safeT('toast.error.enterValue') || 'Unesi vrednost.', 'error'); return; }
     let celsius;
     if (from === 'f') celsius = (val - 32) * 5 / 9;
     else if (from === 'gas') { const gasToC = { 1: 140, 2: 150, 3: 170, 4: 180, 5: 190, 6: 200, 7: 220, 8: 230, 9: 240 }; celsius = gasToC[Math.round(val)] || 180; }
@@ -7845,7 +5902,7 @@ function calculateOven() {
 }
 function calculatePortion() {
     const orig = num('portion-orig'), want = num('portion-want'), qty = num('portion-qty');
-    if (!orig || !want || !qty) { showToast(safeT('toast.error.enterAll'), 'error'); return; }
+    if (!orig || !want || !qty) { showToast(safeT('toast.error.enterAll') || 'Unesi sve vrednosti.', 'error'); return; }
     const factor = want / orig;
     const pv = el('res-portion-val'); if (pv) pv.innerText = fmt(qty * factor, 2);
     show('portion-result-box');
@@ -7863,7 +5920,7 @@ function renderPowerBaterije() {
 
 function calculatePower() {
     const watts = num('power-watts'), hours = num('power-hours'), price = num('power-price') || 12;
-    if (!watts || !hours) { showToast(safeT('toast.error.enterPowerHours'), 'error'); return; }
+    if (!watts || !hours) { showToast(safeT('toast.error.enterPowerHours') || 'Unesi snagu i sate.', 'error'); return; }
     const kwhDay = (watts * hours) / 1000;
     const kwhMonth = kwhDay * 30;
     const pm = el('res-power-month'); if (pm) pm.innerText = money(kwhMonth * price);
@@ -7874,7 +5931,7 @@ function calculatePower() {
 }
 function calculateBattery() {
     const volt = num('bat-volt') || 12, ah = num('bat-ah'), watt = num('bat-watt'), dod = num('bat-dod') || 80;
-    if (!ah || !watt) { showToast(safeT('toast.error.enterCapacityLoad'), 'error'); return; }
+    if (!ah || !watt) { showToast(safeT('toast.error.enterCapacityLoad') || 'Unesi kapacitet i opterećenje.', 'error'); return; }
     const wh = volt * ah, usefulWh = wh * (dod / 100);
     const rv = el('res-bat-time'); if (rv) rv.innerText = fmt(usefulWh / watt, 2);
     const sw = el('stat-bat-wh'); if (sw) sw.innerText = fmt(wh, 1) + ' Wh';
@@ -7916,7 +5973,7 @@ function calculateWorkTime() {
     const end = el('work-end') ? el('work-end').value : '';
     const breakMin = num('work-break') || 0;
     const dayType = el('work-day-type') ? el('work-day-type').value : 'workday';
-    if (!start || !end) { showToast(safeT('toast.error.enterStartEnd'), 'error'); return; }
+    if (!start || !end) { showToast(safeT('toast.error.enterStartEnd') || 'Unesi početak i kraj.', 'error'); return; }
     const [sh, sm] = start.split(':').map(Number);
     const [eh, em] = end.split(':').map(Number);
     let startMin = sh * 60 + sm, endMin = eh * 60 + em;
@@ -7936,7 +5993,7 @@ function calculateWorkTime() {
 function calculateHourlyRate() {
     const salary = num('work-salary'), hours = num('work-hours');
     const type = el('work-rate-type') ? el('work-rate-type').value : 'monthly';
-    if (!salary || !hours) { showToast(safeT('toast.error.enterSalaryHours'), 'error'); return; }
+    if (!salary || !hours) { showToast(safeT('toast.error.enterSalaryHours') || 'Unesi platu i sate.', 'error'); return; }
     const monthlySalary = type === 'yearly' ? salary / 12 : salary;
     const hourly = monthlySalary / hours;
     const hr = el('res-hourly-rate'); if (hr) hr.innerText = money(hourly);
@@ -7948,7 +6005,7 @@ function calculateHourlyRate() {
 function calculateSalary() {
     const type = el('plata-type') ? el('plata-type').value : 'neto-to-bruto';
     const amount = num('plata-amount');
-    if (!amount) { showToast(safeT('toast.error.enterAmount'), 'error'); return; }
+    if (!amount) { showToast(safeT('toast.error.enterAmount') || 'Unesi iznos.', 'error'); return; }
     const PIO = 0.14, ZDR = 0.0515, NEZ = 0.0075, POREZ = 0.10, NEOPOREZIVO = 25000;
     let neto, bruto, pio, zdr, nez, porez;
     if (type === 'bruto-to-neto') {
@@ -7988,7 +6045,7 @@ function calculateVacation() {
 function calculateNightWork() {
     const hours = num('nocni-hours'), rate = num('nocni-rate');
     const mult = el('nocni-mult') ? parseFloat(el('nocni-mult').value) : 1.26;
-    if (!hours || !rate) { showToast(safeT('toast.error.enterHoursRate'), 'error'); return; }
+    if (!hours || !rate) { showToast(safeT('toast.error.enterHoursRate') || 'Unesi sate i satnicu.', 'error'); return; }
     const base = hours * rate, total = base * mult;
     const nt = el('res-nocni-total'); if (nt) nt.innerText = money(total);
     const nb = el('stat-nocni-base'); if (nb) nb.innerText = money(base) + ' RSD';
@@ -7997,7 +6054,7 @@ function calculateNightWork() {
 }
 function calculateOvertime() {
     const hours = num('prek-hours'), rate = num('prek-rate');
-    if (!hours || !rate) { showToast(safeT('toast.error.enterHoursRate'), 'error'); return; }
+    if (!hours || !rate) { showToast(safeT('toast.error.enterHoursRate') || 'Unesi sate i satnicu.', 'error'); return; }
     const first2 = Math.min(hours, 2), rest = Math.max(0, hours - 2);
     const pt = el('res-prek-total'); if (pt) pt.innerText = money(first2 * rate * 1.26 + rest * rate * 1.5);
     const pf = el('stat-prek-first'); if (pf) pf.innerText = money(first2 * rate * 1.26) + ' RSD';
@@ -8023,7 +6080,10 @@ function calculateBonuses() {
     const by = el('stat-bonus-yearly'); if (by) by.innerText = money(total) + ' RSD';
     show('bonus-result-box'); show('bonus-stats-row');
 }
-// ---------- STRUJA: KABL I OSIGURAČ ----------
+
+// ============================================================
+// STRUJA — KABL I OSIGURAČ
+// ============================================================
 function renderPowerKabl() {
     return `
         <div class="converter-box">
@@ -8064,54 +6124,41 @@ function calculateCable() {
     const len = num('kabl-len');
     const volts = num('kabl-volt') || 230;
     const isCopper = !el('kabl-type') || el('kabl-type').value === 'bakr';
-    
-    if (!amps || !len) { 
-        showToast('Unesi struju i dužinu kabla.', 'error'); 
-        return; 
+    if (!amps || !len) {
+        showToast('Unesi struju i dužinu kabla.', 'error');
+        return;
     }
-    
-    // Dozvoljena struja po preseku (A) za bakarne kablove
-    const ampacity = isCopper 
-        ? { 1.5: 14, 2.5: 20, 4: 26, 6: 34, 10: 46, 16: 62, 25: 80, 35: 100, 50: 125 } 
+    const ampacity = isCopper
+        ? { 1.5: 14, 2.5: 20, 4: 26, 6: 34, 10: 46, 16: 62, 25: 80, 35: 100, 50: 125 }
         : { 2.5: 15, 4: 20, 6: 26, 10: 36, 16: 48, 25: 62, 35: 78, 50: 96 };
-    
-    const rho = isCopper ? 0.0178 : 0.0282; // specifična otpornost (Ω·mm²/m)
+    const rho = isCopper ? 0.0178 : 0.0282;
     const sections = Object.keys(ampacity).map(Number).sort((a, b) => a - b);
-    
-    // Izaberi minimalni presek koji zadovoljava struju (sa 15% margine)
     let chosen = null;
     for (const s of sections) {
         if (ampacity[s] >= amps * 1.15) { chosen = s; break; }
     }
     if (!chosen) chosen = sections[sections.length - 1];
-    
-    // Provera pada napona (max 5%)
     const minSectionForDrop = (2 * rho * len * amps) / (volts * 0.05);
     if (minSectionForDrop > chosen) {
         for (const s of sections) {
             if (s >= minSectionForDrop) { chosen = s; break; }
         }
     }
-    
     const dropPct = ((2 * rho * len * amps) / chosen / volts) * 100;
     const fuses = [6, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125];
     const recommendedFuse = fuses.find(f => f >= amps * 1.15) || 125;
-    
     const rv = el('res-kabl-mm2');
     if (rv) rv.innerText = fmt(chosen, 1);
-    
     const so = el('stat-kabl-osig');
     if (so) so.innerText = recommendedFuse + ' A';
-    
     const sp = el('stat-kabl-pad');
     if (sp) sp.innerText = fmt(dropPct, 2) + ' %';
-    
     const sm = el('stat-kabl-mat');
     if (sm) sm.innerText = isCopper ? 'Bakar' : 'Aluminijum';
-    
-    show('kabl-result-box'); 
+    show('kabl-result-box');
     show('kabl-stats-row');
 }
+
 // ============================================================
 // MUZIKA
 // ============================================================
@@ -8237,7 +6284,7 @@ function calculateTranspose() {
     const orig = el('trans-orig') ? el('trans-orig').value : 'C';
     const newKey = el('trans-new') ? el('trans-new').value : 'D';
     const chordsRaw = el('trans-chords') ? el('trans-chords').value.trim() : '';
-    if (!chordsRaw) { showToast(safeT('toast.error.enterChords'), 'error'); return; }
+    if (!chordsRaw) { showToast(safeT('toast.error.enterChords') || 'Unesi akorde.', 'error'); return; }
     const steps = ((noteToSemitone(newKey) - noteToSemitone(orig)) % 12 + 12) % 12;
     const stepsSigned = steps > 6 ? steps - 12 : steps;
     const transposed = chordsRaw.split(/[,\s]+/).filter(c => c).map(c => transposeChord(c, stepsSigned));
@@ -8262,7 +6309,7 @@ function toggleMetronome() {
     if (!metronomeState.running) {
         const bpm = parseInt(el('metro-bpm').value) || 120;
         const beatUnit = el('metro-beat') ? parseInt(el('metro-beat').value) : 4;
-        if (bpm < 30 || bpm > 300) { showToast(safeT('toast.error.bpmRange'), 'error'); return; }
+        if (bpm < 30 || bpm > 300) { showToast(safeT('toast.error.bpmRange') || 'BPM mora biti između 30 i 300.', 'error'); return; }
         metronomeState.running = true;
         metronomeState.beat = 0;
         metronomeState.totalBeats = 0;
@@ -8627,7 +6674,6 @@ function deleteReminder(key, id) {
     saveReminders(key, list);
 }
 
-// ================= Date helperi =================
 function daysUntilDate(isoOrDate) {
     if (!isoOrDate) return null;
     const target = parseDate(isoOrDate);
@@ -8716,7 +6762,6 @@ function nextJubileeYears(isoDate) {
     return { years: nextJub, daysUntil };
 }
 
-// ================= Render funkcije =================
 function renderRemindersHistory() {
     return `
         <div class="rem-history">
@@ -8862,9 +6907,9 @@ function calculateRemindersInstallments() {
     const period = el('rem-rate-period') ? el('rem-rate-period').value : 'monthly';
     const interestRate = num('rem-rate-interest') || 0;
     const description = el('rem-rate-description') ? el('rem-rate-description').value.trim() : '';
-    if (!startAmount || startAmount <= 0) { showToast(safeT('toast.error.enterAmount'), 'error'); return; }
-    if (!count || count < 1 || count > 120) { showToast(safeT('toast.error.enterValue'), 'error'); return; }
-    if (!firstDate) { showToast(safeT('toast.error.enterDate'), 'error'); return; }
+    if (!startAmount || startAmount <= 0) { showToast(safeT('toast.error.enterAmount') || 'Unesi iznos.', 'error'); return; }
+    if (!count || count < 1 || count > 120) { showToast(safeT('toast.error.enterValue') || 'Unesi vrednost.', 'error'); return; }
+    if (!firstDate) { showToast(safeT('toast.error.enterDate') || 'Unesi datum.', 'error'); return; }
     let monthlyRate = 0;
     if (interestRate > 0) {
         const periodsPerYear = period === 'monthly' ? 12 : (period === 'biweekly' ? 26 : 52);
@@ -9247,7 +7292,9 @@ async function shareRemindersHistory() {
     else fallbackCopy(text, () => showToast('Kopirano u clipboard', 'success', 2000));
 }
 
-// ================= Reminder Modal Forma =================
+// ============================================================
+// REMINDER MODAL FORMA
+// ============================================================
 let currentReminderType = null;
 let currentReminderEditId = null;
 
@@ -9318,51 +7365,51 @@ function saveReminderForm() {
     switch (type) {
         case 'birthday': {
             const name = v('rem-bd-name'); const date = getTripleDate('rem-bd-date');
-            if (!name) { showToast(safeT('toast.rem.error.name'), 'error'); return; }
-            if (!date) { showToast(safeT('toast.rem.error.date'), 'error'); return; }
+            if (!name) { showToast(safeT('toast.rem.error.name') || 'Unesi ime.', 'error'); return; }
+            if (!date) { showToast(safeT('toast.rem.error.date') || 'Unesi datum.', 'error'); return; }
             data = { name, date, remindBefore: n('rem-bd-remind') || 3, favorite: c('rem-bd-fav'), note: v('rem-bd-note') }; break;
         }
         case 'bill': {
             const name = v('rem-bill-name'); const amount = n('rem-bill-amount');
-            if (!name) { showToast(safeT('toast.rem.error.name'), 'error'); return; }
+            if (!name) { showToast(safeT('toast.rem.error.name') || 'Unesi naziv.', 'error'); return; }
             data = { name, amount: amount || 0, period: v('rem-bill-period') || 'monthly', dayOfMonth: n('rem-bill-day') || 1, remindBefore: n('rem-bill-remind') || 3, paid: c('rem-bill-paid') }; break;
         }
         case 'vehicle': {
             const name = v('rem-veh-name');
-            if (!name) { showToast(safeT('toast.rem.error.name'), 'error'); return; }
+            if (!name) { showToast(safeT('toast.rem.error.name') || 'Unesi naziv.', 'error'); return; }
             data = { name, plate: v('rem-veh-plate'), regDate: getTripleDate('rem-veh-reg'), techDate: getTripleDate('rem-veh-tech'), insuranceDate: getTripleDate('rem-veh-ins'), note: v('rem-veh-note') }; break;
         }
         case 'document': {
             const docType = v('rem-doc-type') || 'lk';
             data = { type: docType, name: v('rem-doc-name') || safeT('rem.doc.type.' + docType), expires: getTripleDate('rem-doc-exp'), note: v('rem-doc-note') };
-            if (!data.expires) { showToast(safeT('toast.rem.error.date'), 'error'); return; }
+            if (!data.expires) { showToast(safeT('toast.rem.error.date') || 'Unesi datum.', 'error'); return; }
             break;
         }
         case 'subscription': {
             const name = v('rem-sub-name');
-            if (!name) { showToast(safeT('toast.rem.error.name'), 'error'); return; }
+            if (!name) { showToast(safeT('toast.rem.error.name') || 'Unesi naziv.', 'error'); return; }
             data = { name, amount: n('rem-sub-amount') || 0, dayOfMonth: n('rem-sub-day') || 1, period: v('rem-sub-period') || 'monthly', active: c('rem-sub-active') }; break;
         }
         case 'medication': {
             const name = v('rem-med-name');
-            if (!name) { showToast(safeT('toast.rem.error.name'), 'error'); return; }
+            if (!name) { showToast(safeT('toast.rem.error.name') || 'Unesi naziv.', 'error'); return; }
             data = { name, dose: v('rem-med-dose'), time: v('rem-med-time') || 'morning', frequency: v('rem-med-freq') || 'daily', startDate: getTripleDate('rem-med-start'), endDate: getTripleDate('rem-med-end'), remaining: n('rem-med-remaining') || 0, note: v('rem-med-note') }; break;
         }
         case 'anniversary': {
             const name = v('rem-ann-name'); const date = getTripleDate('rem-ann-date');
-            if (!name) { showToast(safeT('toast.rem.error.name'), 'error'); return; }
-            if (!date) { showToast(safeT('toast.rem.error.date'), 'error'); return; }
+            if (!name) { showToast(safeT('toast.rem.error.name') || 'Unesi naziv.', 'error'); return; }
+            if (!date) { showToast(safeT('toast.rem.error.date') || 'Unesi datum.', 'error'); return; }
             data = { name, annType: v('rem-ann-type') || 'wedding', date, remindBefore: n('rem-ann-remind') || 3, favorite: c('rem-ann-fav'), note: v('rem-ann-note') }; break;
         }
         case 'note': {
             const title = v('rem-note-title');
-            if (!title) { showToast(safeT('toast.rem.error.name'), 'error'); return; }
+            if (!title) { showToast(safeT('toast.rem.error.name') || 'Unesi naslov.', 'error'); return; }
             data = { title, description: v('rem-note-desc'), dueDate: getTripleDate('rem-note-due'), priority: v('rem-note-priority') || 'medium', done: c('rem-note-done') }; break;
         }
     }
     if (currentReminderEditId) updateReminder(key, currentReminderEditId, data);
     else addReminder(key, data);
-    showToast(safeT('toast.rem.saved'), 'success');
+    showToast(safeT('toast.rem.saved') || 'Sačuvano.', 'success');
     vibrate(20);
     playTick(0, 1500, 0.08, 0.03);
     closeReminderModal();
@@ -9390,7 +7437,7 @@ function confirmDeleteReminder() {
     showConfirm(safeT('confirm.rem.delete')).then(ok => {
         if (!ok) return;
         deleteReminder(key, id);
-        showToast(safeT('toast.rem.deleted'), 'info');
+        showToast(safeT('toast.rem.deleted') || 'Obrisano.', 'info');
         closeReminderModal();
         renderReminderList(type);
         updateAppBadge();
@@ -9481,7 +7528,7 @@ function deleteReminderById(type, id) {
     showConfirm(safeT('confirm.rem.delete')).then(ok => {
         if (!ok) return;
         deleteReminder(key, id);
-        showToast(safeT('toast.rem.deleted'), 'info');
+        showToast(safeT('toast.rem.deleted') || 'Obrisano.', 'info');
         renderReminderList(type);
         updateAppBadge();
     });
@@ -9518,7 +7565,6 @@ function renderSubsSummary() {
     box.innerHTML = `<div class="rem-summary-row"><span>${safeT('rem.total.monthly')}</span><strong>${money(monthly)} RSD</strong></div><div class="rem-summary-row"><span>${safeT('rem.total.yearly')}</span><strong>${money(monthly * 12)} RSD</strong></div>`;
 }
 
-// ================= RATE Storage =================
 const INSTALLMENT_GROUPS_KEY = 'cx_installment_groups';
 function loadInstallmentGroups() {
     try {
@@ -9531,7 +7577,6 @@ function saveInstallmentGroups(groups) {
     try { localStorage.setItem(INSTALLMENT_GROUPS_KEY, JSON.stringify(groups)); } catch (e) {}
 }
 
-// ================= hasActiveRemindersWithRemind =================
 function hasActiveRemindersWithRemind() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -9847,7 +7892,6 @@ function gpsResetAlt() {
     showToast(safeT('gps.resetDone'), 'info', 1400);
 }
 
-// Kompas
 let gpsCompassState = { listening: false, heading: 0, pitch: 0, roll: 0, absolute: false, permissionGranted: false, usingGpsFallback: false, gpsWatchId: null, sensorDataReceived: false, fallbackTimerId: null, smoothedHeading: null, lastRawHeading: null };
 function renderGpsKompas() {
     return `
@@ -9980,7 +8024,6 @@ function gpsStopCompass() {
     vibrate(15);
 }
 
-// GPS — Štoperica
 let gpsStopwatchState = { running: false, startTime: 0, elapsedMs: 0, rafId: null, laps: [], wakeLock: null };
 function renderGpsStoperica() {
     return `
@@ -10064,7 +8107,6 @@ function gpsResetStopwatch() {
 async function gpsRequestWakeLock() { if (!('wakeLock' in navigator)) return; try { gpsStopwatchState.wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} }
 function gpsReleaseWakeLock() { if (gpsStopwatchState.wakeLock) { try { gpsStopwatchState.wakeLock.release(); } catch (e) {} gpsStopwatchState.wakeLock = null; } }
 
-// GPS — Tajmer
 let gpsTimerState = { running: false, paused: false, totalMs: 0, remainingMs: 0, endTime: 0, rafId: null, intervalId: null, alarmIntervalId: null, wakeLock: null, alarming: false };
 function renderGpsTajmer() {
     return `
@@ -10296,18 +8338,6 @@ async function initWeatherTab(tabId) {
         return;
     }
     await loadWeatherData(tabId);
-}
-function initWeatherTabWrapper() {
-    if (activeTab && activeTab.startsWith('weather')) {
-        initWeatherTab(activeTab.replace('weather-', ''));
-    }
-}
-
-function ensureWeatherInit() {
-    // Provera da li je Weather tab otvoren i da li treba inicijalizovati
-    if (activeCategory === 'weather' && activeTab) {
-        setTimeout(() => initWeatherTab(activeTab), 50);
-    }
 }
 async function loadWeatherData(tabId) {
     const loc = weatherState.location;
@@ -10805,225 +8835,6 @@ function rollFeedback(duration) {
         const freq = 1700 - (i / times.length) * 600;
         playTick(t / 1000, isLast ? 900 : freq, isLast ? 0.09 : 0.05, isLast ? 0.04 : 0.015);
     });
-}
-
-// ============================================================
-// OSVEŽAVANJE STATIČNIH TEKSTOVA
-// ============================================================
-function refreshUIText() {
-    try {
-        const subtitle = el('app-subtitle'); if (subtitle) subtitle.textContent = safeT('app.subtitle');
-        const searchInput = el('home-search'); if (searchInput) searchInput.placeholder = safeT('app.search.placeholder');
-        const secQuick = el('sec-title-quick'); if (secQuick) secQuick.textContent = safeT('section.quickTools');
-        const secMy = el('sec-title-my'); if (secMy) secMy.textContent = safeT('section.myTools');
-        const btnEditQuick = el('btn-edit-quick'); if (btnEditQuick) btnEditQuick.textContent = safeT('section.edit');
-        const favEmpty = el('favorites-empty'); if (favEmpty) favEmpty.innerHTML = safeT('section.favoritesEmpty');
-        const footerTag = el('footer-tag'); if (footerTag) footerTag.textContent = safeT('app.footer');
-        const settingsTitle = el('settings-title'); if (settingsTitle) settingsTitle.textContent = safeT('settings.title');
-        const settingsThemeLabel = el('settings-theme-label'); if (settingsThemeLabel) settingsThemeLabel.textContent = safeT('settings.theme');
-        const settingsThemeSub = el('settings-theme-sub'); if (settingsThemeSub) settingsThemeSub.textContent = safeT('settings.theme.desc');
-        const settingsSoundLabel = el('settings-sound-label'); if (settingsSoundLabel) settingsSoundLabel.textContent = safeT('settings.sound');
-        const settingsSoundSub = el('settings-sound-sub'); if (settingsSoundSub) settingsSoundSub.textContent = safeT('settings.sound.desc');
-        const settingsHapticLabel = el('settings-haptic-label'); if (settingsHapticLabel) settingsHapticLabel.textContent = safeT('settings.haptic');
-        const settingsHapticSub = el('settings-haptic-sub'); if (settingsHapticSub) settingsHapticSub.textContent = safeT('settings.haptic.desc');
-        const settingsCurrencyLabel = el('settings-currency-label'); if (settingsCurrencyLabel) settingsCurrencyLabel.textContent = safeT('settings.currency');
-        const settingsCurrencySub = el('settings-currency-sub'); if (settingsCurrencySub) settingsCurrencySub.textContent = safeT('settings.currency.desc');
-        const settingsLanguageLabel = el('settings-language-label'); if (settingsLanguageLabel) settingsLanguageLabel.textContent = safeT('settings.language');
-        const settingsLanguageSub = el('settings-language-sub'); if (settingsLanguageSub) settingsLanguageSub.textContent = safeT('settings.language.desc');
-        const settingsOffline = el('settings-offline-text'); if (settingsOffline) settingsOffline.textContent = safeT('settings.offline');
-        const aboutTitle = el('about-title'); if (aboutTitle) aboutTitle.textContent = safeT('about.title');
-        const aboutSub = el('about-sub'); if (aboutSub) aboutSub.textContent = safeT('about.subtitle');
-        const historyTitle = el('history-title'); if (historyTitle) historyTitle.textContent = safeT('history.title');
-        const historySearch = el('history-search'); if (historySearch) historySearch.placeholder = safeT('history.search');
-        const btnHistoryExport = el('btn-history-export'); if (btnHistoryExport) btnHistoryExport.textContent = safeT('history.export');
-        const btnHistoryClear = el('btn-history-clear'); if (btnHistoryClear) btnHistoryClear.textContent = safeT('history.clear');
-        const historyEmpty = el('history-empty'); if (historyEmpty) historyEmpty.textContent = safeT('history.empty');
-        const historyNoResults = el('history-no-results'); if (historyNoResults) historyNoResults.textContent = safeT('history.noResults');
-        const statsToggleBtn = el('stats-toggle-btn'); if (statsToggleBtn) { const panel = el('stats-panel'); const isOpen = panel && panel.style.display !== 'none'; statsToggleBtn.textContent = isOpen ? safeT('history.stats.hide') : safeT('history.stats.show'); }
-        const langBtn = el('lang-toggle'); if (langBtn) langBtn.textContent = (typeof currentLang !== 'undefined' ? currentLang : 'sr').toUpperCase();
-        const editorTitle = el('editor-title'); if (editorTitle) editorTitle.textContent = safeT('editor.title');
-        const editorDesc = el('editor-desc'); if (editorDesc) editorDesc.textContent = safeT('editor.desc');
-        const editorSaveBtn = el('editor-save-btn'); if (editorSaveBtn) editorSaveBtn.textContent = safeT('editor.save');
-        const locationTitle = el('location-title'); if (locationTitle) locationTitle.textContent = safeT('weather.location.title');
-        const locationSearchInput = el('location-search-input'); if (locationSearchInput) locationSearchInput.placeholder = safeT('weather.location.search');
-        const locationGpsText = el('location-gps-text'); if (locationGpsText) locationGpsText.textContent = safeT('weather.location.gps');
-        const favHintTitle = el('fav-hint-title'); if (favHintTitle) favHintTitle.textContent = safeT('fav.hint.title');
-        const favHintText = el('fav-hint-text'); if (favHintText) favHintText.textContent = safeT('fav.hint.text');
-        const favHintBtn = el('fav-hint-btn'); if (favHintBtn) favHintBtn.textContent = safeT('fav.hint.btn');
-        const confirmTitle = el('confirm-title'); if (confirmTitle) confirmTitle.textContent = safeT('confirm.title');
-        const confirmMsg = el('confirm-message'); if (confirmMsg) confirmMsg.textContent = safeT('confirm.title');
-        const confirmCancelBtn = el('confirm-cancel-btn'); if (confirmCancelBtn) confirmCancelBtn.textContent = safeT('confirm.cancel');
-        const confirmOkBtn = el('confirm-ok-btn'); if (confirmOkBtn) confirmOkBtn.textContent = safeT('confirm.ok');
-        const settingsArchiveLabel = el('settings-archive-label'); if (settingsArchiveLabel) settingsArchiveLabel.textContent = safeT('settings.archive');
-        const settingsArchiveSub = el('settings-archive-sub'); if (settingsArchiveSub) settingsArchiveSub.textContent = safeT('settings.archive.autoCleanup');
-        const settingsArchiveBtn = el('settings-archive-btn'); if (settingsArchiveBtn) settingsArchiveBtn.textContent = getArchiveAutoCleanupSetting() ? safeT('settings.archive.autoCleanup.on') : safeT('settings.archive.autoCleanup.off');
-        const colorTitle = el('tabs-settings-color-title'); if (colorTitle) colorTitle.textContent = safeT('tabs.settings.color.title');
-        const colorReset = el('tabs-settings-color-reset'); if (colorReset) colorReset.textContent = safeT('tabs.settings.color.reset');
-
-        // Bottom nav labels
-        const navHome = el('nav-label-home'); if (navHome) navHome.textContent = safeT('nav.home');
-        const navMy = el('nav-label-my'); if (navMy) navMy.textContent = safeT('nav.myTools');
-        const navToday = el('nav-label-today'); if (navToday) navToday.textContent = safeT('nav.today');
-        const navHistory = el('nav-label-history'); if (navHistory) navHistory.textContent = safeT('nav.history');
-        const navSettings = el('nav-label-settings'); if (navSettings) navSettings.textContent = safeT('nav.settings');
-
-        // Toolbar labels
-        const toolbarLevel = el('toolbar-level-label'); if (toolbarLevel) toolbarLevel.textContent = safeT('toolbar.level.title');
-        const toolbarStopwatch = el('toolbar-stopwatch-label'); if (toolbarStopwatch) toolbarStopwatch.textContent = safeT('toolbar.stopwatch.title');
-        const toolbarTimer = el('toolbar-timer-label'); if (toolbarTimer) toolbarTimer.textContent = safeT('toolbar.timer.title');
-        const toolbarSpeedometer = el('toolbar-speedometer-label'); if (toolbarSpeedometer) toolbarSpeedometer.textContent = safeT('toolbar.speedometer.label');
-
-        // Today screen
-        const todayTitle = el('today-title'); if (todayTitle) todayTitle.textContent = safeT('today.title');
-        const todaySubtitle = el('today-subtitle'); if (todaySubtitle) todaySubtitle.textContent = safeT('today.subtitle');
-
-        // My tools
-        const mytoolsTitle = el('mytools-title'); if (mytoolsTitle) mytoolsTitle.textContent = safeT('nav.myTools');
-        const mytoolsSubtitle = el('mytools-subtitle'); if (mytoolsSubtitle) mytoolsSubtitle.textContent = 'Tvoji omiljeni alati';
-
-        // Profile
-        const settingsProfileLabel = el('settings-profile-label'); if (settingsProfileLabel) settingsProfileLabel.textContent = safeT('settings.profile');
-        const settingsProfileSub = el('settings-profile-sub'); if (settingsProfileSub) settingsProfileSub.textContent = safeT('settings.profile.desc');
-
-        // All tools button
-        const allToolsBtnTitle = el('all-tools-btn-title'); if (allToolsBtnTitle) allToolsBtnTitle.textContent = safeT('allTools.button');
-        const allToolsBtnSub = el('all-tools-btn-sub'); if (allToolsBtnSub) allToolsBtnSub.textContent = safeT('allTools.subtitle');
-        const allToolsSearch = el('all-tools-search'); if (allToolsSearch) allToolsSearch.placeholder = safeT('allTools.search.placeholder');
-        const allToolsTitle = el('all-tools-modal-title'); if (allToolsTitle) allToolsTitle.textContent = safeT('allTools.title');
-
-        // Speedometer modal
-        const speedometerTitle = el('speedometer-modal-title'); if (speedometerTitle) speedometerTitle.textContent = safeT('toolbar.speedometer.title');
-
-        // Splash tagline
-        const splashTagline = el('splash-tagline'); if (splashTagline) splashTagline.textContent = safeT('app.subtitle');
-    } catch (e) { console.warn('refreshUIText greška:', e); }
-}
-
-// ============================================================
-// INIT
-// ============================================================
-function initApp() {
-    try { settings.archiveAutoCleanup = getArchiveAutoCleanupSetting(); } catch (e) {}
-
-    // Theme
-    try {
-        const savedTheme = localStorage.getItem('cx_theme');
-        if (savedTheme === 'light' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches)) {
-            document.documentElement.setAttribute('data-theme', 'light');
-            const tt = el('theme-toggle');
-            if (tt) tt.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
-        }
-    } catch (e) {}
-
-    // Input cache
-    try { loadInputCache(); setupInputPersistence(); } catch (e) {}
-
-    // Currency
-    try {
-        const savedCurrency = localStorage.getItem('cx_default_currency');
-        const ac = el('auto-currency');
-        if (savedCurrency && ac) ac.value = savedCurrency;
-    } catch (e) {}
-
-    // Render svega
-    try { refreshUIText(); } catch (e) { console.error('refreshUIText:', e); }
-    try { renderQuickTools(); } catch (e) { console.error('renderQuickTools:', e); }
-    try { renderFavorites(); } catch (e) { console.error('renderFavorites:', e); }
-    try { populateNoteSelects(); } catch (e) {}
-    try { updateSettingsUI(); } catch (e) {}
-    try { updateProfileStatusLabel(); } catch (e) {}
-    try { setupRipple(); } catch (e) {}
-    try { setupBackButton(); } catch (e) {}
-    try { loadFxRates(); } catch (e) {}
-    try { restoreInputsFor(document); } catch (e) {}
-    try { runArchiveAutoCleanup(); } catch (e) {}
-    try { initToolbarIcons(); } catch (e) {}
-
-    // Service worker
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW registered', reg.scope)).catch(err => console.warn('SW registration failed', err));
-        });
-    }
-
-    // Badge
-    setTimeout(() => { updateAppBadge(); }, 500);
-    setTimeout(() => { maybeShowBadgeHint(); }, 1200);
-    setInterval(updateAppBadge, 60 * 60 * 1000);
-
-    // Splash
-    setTimeout(() => {
-        const splash = el('splash-screen');
-        if (splash) { splash.classList.add('hide'); setTimeout(() => { if (splash.parentNode) splash.remove(); }, 400); }
-    }, 500);
-
-    if (typeof t === 'function') document.title = t('app.title');
-        // OČISTI SVE MODALE OD ZAGLAVLJENE 'show' KLASE
-    setTimeout(() => {
-        document.querySelectorAll('.modal').forEach(m => {
-            m.classList.remove('show');
-        });
-        document.body.classList.remove('modal-open');
-    }, 100);
-}
-
-function initToolbarIcons() {
-    const stopwatchIcon = document.querySelector('#toolbar-stopwatch-btn .toolbar-icon');
-    if (stopwatchIcon) stopwatchIcon.innerHTML = icon('stopwatch');
-    const timerIcon = document.querySelector('#toolbar-timer-btn .toolbar-icon');
-    if (timerIcon) timerIcon.innerHTML = icon('timer');
-    const levelBtnIcon = document.querySelector('#toolbar-level-btn .toolbar-icon');
-    if (levelBtnIcon) levelBtnIcon.innerHTML = icon('level');
-    const speedometerBtnIcon = document.querySelector('#toolbar-speedometer-btn .toolbar-icon');
-    if (speedometerBtnIcon) speedometerBtnIcon.innerHTML = icon('speedometer');
-
-    window.addEventListener('pagehide', () => {
-        try { levelStop(); } catch (e) {}
-        try { speedometerStop(); } catch (e) {}
-    });
-}
-// ============================================================
-// HASH ROUTING (za PWA shortcuts)
-// ============================================================
-function handleInitialHash() {
-    const hash = (window.location.hash || '').replace('#', '').trim();
-    if (!hash) return;
-
-    // Očisti hash da ne smeta pri navigaciji
-    setTimeout(() => {
-        try { history.replaceState(null, '', window.location.pathname); } catch (e) {}
-    }, 100);
-
-    // Rutiraj na odgovarajući ekran/modal
-    if (hash === 'today') {
-        setTimeout(() => switchBottomNav('today-screen'), 300);
-    } else if (hash === 'history') {
-        setTimeout(() => switchBottomNav('history-screen'), 300);
-    } else if (hash === 'settings') {
-        setTimeout(() => switchBottomNav('settings-screen'), 300);
-    } else if (hash === 'podsetnici') {
-        setTimeout(() => openCategory('podsetnici'), 300);
-    } else if (hash === 'money') {
-        setTimeout(() => openCategory('money'), 300);
-    } else if (hash === 'weather') {
-        setTimeout(() => openCategory('weather'), 300);
-    } else if (hash === 'health') {
-        setTimeout(() => openCategory('health'), 300);
-    }
-}
-
-// Osluškuj hashchange (npr. kad korisnik klikne shortcut u PWA)
-window.addEventListener('hashchange', handleInitialHash);
-
-// Pokreni proveru hash-a odmah nakon inicijalizacije
-setTimeout(handleInitialHash, 500);
-// ============================================================
-// POKRETANJE
-// ============================================================
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
 }
 
 // ============================================================
