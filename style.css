@@ -1559,13 +1559,20 @@ body.modal-open { overflow: hidden; }
    MODALI — osnova
    ============================================================ */
 .modal {
-    position: fixed; inset: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
     background: rgba(0, 0, 0, 0.55);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     display: none; align-items: center; justify-content: center;
     z-index: 500; padding: 4vh 4vw;
     opacity: 0; transition: opacity 0.22s ease;
+    box-sizing: border-box;
 }
 .modal.show { display: flex; opacity: 1; }
 .modal-panel {
