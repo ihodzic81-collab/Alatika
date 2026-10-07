@@ -1,41 +1,36 @@
 // ============================================================
-// ALATIKA 2.0 — Service Worker
-// Offline keširanje + PWA podrška
+// ALATIKA 3.0 — Service Worker
+// Verzija keša: v12
 // ============================================================
 
 const CACHE_NAME = 'alatika-v12';
 
-// Lista fajlova koji se keširaju pri instalaciji
-const ASSETS = [
+const URLS_TO_CACHE = [
     './',
     './index.html',
     './style.css?v=12',
     './app.js?v=12',
     './translations.js?v=12',
     './manifest.json',
+    './apple-touch-icon.png',
     './web-app-manifest-192x192.png',
-    './web-app-manifest-512x512.png',
-    './apple-touch-icon.png'
+    './web-app-manifest-512x512.png'
 ];
 
 // ============================================================
 // INSTALL — keširaj sve fajlove
 // ============================================================
 self.addEventListener('install', (event) => {
+    console.log('[SW] Installing version:', CACHE_NAME);
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                // Keširaj fajlove jedan po jedan da greška u jednom ne blokira ostale
-                return Promise.all(
-                    ASSETS.map(url => {
-                        return cache.add(url).catch(err => {
-                            console.warn('SW: nije mogao keširati', url, err);
-                        });
-                    })
-                );
-            })
-            .then(() => self.skipWaiting())
-            .catch(err => console.warn('SW install greška:', err))
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.addAll(URLS_TO_CACHE).catch((err) => {
+                console.warn('[SW] Failed to cache some URLs:', err);
+            });
+        }).then(() => {
+            // Odmah aktiviraj novi SW (ne čekaj da se stari zatvori)
+            return self.skipWaiting();
+        })
     );
 });
 
@@ -43,78 +38,70 @@ self.addEventListener('install', (event) => {
 // ACTIVATE — obriši stare keševe
 // ============================================================
 self.addEventListener('activate', (event) => {
+    console.log('[SW] Activating version:', CACHE_NAME);
     event.waitUntil(
-        caches.keys()
-            .then(keys => Promise.all(
-                keys
-                    .filter(k => k !== CACHE_NAME && k.startsWith('alatika-'))
-                    .map(k => {
-                        console.log('SW: brišem stari keš', k);
-                        return caches.delete(k);
-                    })
-            ))
-            .then(() => self.clients.claim())
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('[SW] Deleting old cache:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        }).then(() => {
+            // Preuzmi kontrolu nad svim otvorenim tabovima
+            return self.clients.claim();
+        })
     );
 });
 
 // ============================================================
-// FETCH — strategija: cache-first za lokalne, network-only za API
+// FETCH — strategija: Cache First, Network Fallback
 // ============================================================
 self.addEventListener('fetch', (event) => {
-    const req = event.request;
-
-    // 1) Ne keširaj API pozive (weather, FX, geocoding)
-    if (req.url.includes('api.open-meteo.com') ||
-        req.url.includes('air-quality-api') ||
-        req.url.includes('open.er-api.com') ||
-        req.url.includes('nominatim.openstreetmap.org') ||
-        req.url.includes('geocoding-api')) {
-        return; // idi direktno na mrežu
+    // Preskoči non-GET zahteve
+    if (event.request.method !== 'GET') {
+        return;
     }
 
-    // 2) Ne keširaj ništa što nije GET
-    if (req.method !== 'GET') return;
-
-    // 3) Ne keširaj chrome-extension:// i sl.
-    if (!req.url.startsWith('http')) return;
+    // Preskoči eksterne domene (API pozivi: open-meteo, er-api, itd.)
+    const url = new URL(event.request.url);
+    if (url.origin !== self.location.origin) {
+        // Za eksterne API pozive — koristi network direktno (ne keširaj)
+        return;
+    }
 
     event.respondWith(
-        caches.match(req).then(cached => {
-            // Uvek pokušaj mrežu u pozadini (da bi se keš osvežio)
-            const networkPromise = fetch(req)
-                .then(res => {
-                    // Keširaj samo uspešne odgovore sa lokalnog origin-a
-                    if (res && res.status === 200 && (res.type === 'basic' || res.type === 'cors')) {
-                        const clone = res.clone();
-                        caches.open(CACHE_NAME).then(c => {
-                            c.put(req, clone).catch(err => {
-                                // Ignoriši greške (npr. nepodržani scheme)
-                            });
-                        });
-                    }
-                    return res;
-                })
-                .catch(() => null);
-
-            // Ako imamo keš — vrati keš odmah, mreža se osvežava u pozadini
-            if (cached) {
-                return cached;
+        caches.match(event.request).then((cachedResponse) => {
+            if (cachedResponse) {
+                // Vrati iz keša
+                return cachedResponse;
             }
 
-            // Ako nemamo keš — čekaj mrežu
-            return networkPromise.then(res => {
-                if (res) return res;
-
-                // Ako nema ni keša ni mreže — za navigacione zahteve vrati index.html
-                if (req.mode === 'navigate') {
-                    return caches.match('./index.html');
+            // Nije u kešu — fetch sa mreže
+            return fetch(event.request).then((networkResponse) => {
+                // Ne keširaj ako nije uspešan odgovor
+                if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+                    return networkResponse;
                 }
 
-                // Fallback: prazan odgovor
-                return new Response('Offline — resurs nije dostupan.', {
+                // Kloniraj i keširaj
+                const responseToCache = networkResponse.clone();
+                caches.open(CACHE_NAME).then((cache) => {
+                    cache.put(event.request, responseToCache);
+                });
+
+                return networkResponse;
+            }).catch(() => {
+                // Ako nema mreže a nije u kešu — fallback na index.html (SPA)
+                if (event.request.mode === 'navigate') {
+                    return caches.match('./index.html');
+                }
+                return new Response('Offline', {
                     status: 503,
                     statusText: 'Service Unavailable',
-                    headers: new Headers({ 'Content-Type': 'text/plain; charset=utf-8' })
+                    headers: new Headers({ 'Content-Type': 'text/plain' })
                 });
             });
         })
@@ -122,57 +109,10 @@ self.addEventListener('fetch', (event) => {
 });
 
 // ============================================================
-// MESSAGE — komunikacija sa klijentom (app.js)
+// MESSAGE — omogući ručno preskakanje čekanja
 // ============================================================
 self.addEventListener('message', (event) => {
-    if (!event.data) return;
-
-    // Skip waiting — forsiraj novu verziju SW-a
-    if (event.data.type === 'SKIP_WAITING') {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
     }
-
-    // Clear cache — očisti sve keševe (ručno iz app-a)
-    if (event.data.type === 'CLEAR_CACHE') {
-        event.waitUntil(
-            caches.keys()
-                .then(keys => Promise.all(keys.map(k => caches.delete(k))))
-                .then(() => {
-                    // Obavesti klijenta
-                    if (event.source) {
-                        event.source.postMessage({ type: 'CACHE_CLEARED' });
-                    }
-                })
-        );
-    }
-
-    // Cache URLs — dinamički dodaj u keš
-    if (event.data.type === 'CACHE_URLS' && Array.isArray(event.data.urls)) {
-        event.waitUntil(
-            caches.open(CACHE_NAME).then(cache => {
-                return Promise.all(
-                    event.data.urls.map(url => {
-                        return cache.add(url).catch(err => {
-                            console.warn('SW: nije mogao keširati', url, err);
-                        });
-                    })
-                );
-            })
-        );
-    }
 });
-
-// ============================================================
-// SYNC — (opciono) pozadinska sinhronizacija
-// ============================================================
-self.addEventListener('sync', (event) => {
-    if (event.tag === 'sync-reminders') {
-        // Ovde bi mogla ići logika za pozadinsku sinhronizaciju podsetnika
-        // Za sada — samo log
-        console.log('SW: sync-reminders pozvan');
-    }
-});
-
-// ============================================================
-// KRAJ sw.js
-// ============================================================
