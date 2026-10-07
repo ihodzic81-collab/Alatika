@@ -635,6 +635,10 @@ const levelState = {
     supported: null
 };
 
+// Dodatne opcije za Nivo (zvuk i vibracija)
+levelState.soundEnabled = true;
+levelState.vibrateEnabled = true;
+
 function levelIsSupported() {
     if (levelState.supported !== null) return levelState.supported;
     levelState.supported = ('DeviceOrientationEvent' in window);
@@ -689,7 +693,8 @@ function levelOnOrientation(e) {
         const now = Date.now();
         if (now - levelState.lastVibrate > 800) {
             levelState.lastVibrate = now;
-            vibrate(20);
+            if (levelState.vibrateEnabled) vibrate(20);
+            if (levelState.soundEnabled) playTick(0, 1800, 0.08, 0.03);
         }
     }
 }
@@ -697,21 +702,28 @@ function levelOnOrientation(e) {
 function levelUpdateDisplay() {
     const betaEl = el('level-beta-val');
     const gammaEl = el('level-gamma-val');
+    const totalEl = el('level-total-val');
     const bubbleEl = el('level-bubble');
     const statusEl = el('level-status');
     if (!betaEl || !gammaEl) return;
+
     betaEl.textContent = levelState.beta.toFixed(1) + '°';
     gammaEl.textContent = levelState.gamma.toFixed(1) + '°';
+
+    const total = Math.sqrt(levelState.beta ** 2 + levelState.gamma ** 2);
+    if (totalEl) totalEl.textContent = total.toFixed(1) + '°';
+
     const isLevel = Math.abs(levelState.beta) < 1.5 && Math.abs(levelState.gamma) < 1.5;
+
     if (bubbleEl) {
-        const maxOffset = 40;
-        const x = Math.max(-maxOffset, Math.min(maxOffset, -levelState.gamma * 2));
-        const y = Math.max(-maxOffset, Math.min(maxOffset, levelState.beta * 2));
+        const maxOffset = 55;
+        const x = Math.max(-maxOffset, Math.min(maxOffset, -levelState.gamma * 2.5));
+        const y = Math.max(-maxOffset, Math.min(maxOffset, levelState.beta * 2.5));
         bubbleEl.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
         bubbleEl.classList.toggle('level-ok', isLevel);
     }
     if (statusEl) {
-        statusEl.textContent = isLevel ? safeT('toolbar.level.isLevel') : safeT('toolbar.level.notLevel');
+        statusEl.textContent = isLevel ? '✓ RAVNO JE' : 'Nagnuto';
         statusEl.classList.toggle('ok', isLevel);
     }
 }
@@ -735,18 +747,25 @@ function openLevelOptions() {
     if (title) title.textContent = safeT('toolbar.level.title');
     const toggleBtn = el('level-toggle-btn');
     if (toggleBtn) toggleBtn.textContent = levelState.listening ? safeT('toolbar.level.stop') : safeT('toolbar.level.start');
+
+    // Učitaj toggle stanja iz localStorage
+    try {
+        const s = localStorage.getItem('cx_level_sound');
+        if (s !== null) levelState.soundEnabled = s === '1';
+        const v = localStorage.getItem('cx_level_vibrate');
+        if (v !== null) levelState.vibrateEnabled = v === '1';
+    } catch(e) {}
+
+    const soundBtn = el('level-sound-toggle');
+    if (soundBtn) soundBtn.classList.toggle('active', levelState.soundEnabled);
+    const vibBtn = el('level-vibrate-toggle');
+    if (vibBtn) vibBtn.classList.toggle('active', levelState.vibrateEnabled);
+
     modal.classList.add('show');
     document.body.classList.add('modal-open');
     vibrate(15);
     playTick(0, 1400, 0.06, 0.02);
     if (!levelState.listening) levelStart();
-}
-
-function toggleLevel() {
-    if (levelState.listening) levelStop();
-    else levelStart();
-    const toggleBtn = el('level-toggle-btn');
-    if (toggleBtn) toggleBtn.textContent = levelState.listening ? safeT('toolbar.level.stop') : safeT('toolbar.level.start');
 }
 
 // ================= ŠTOPERICA (TOOLBAR) =================
@@ -3474,6 +3493,33 @@ function setupBackButton() {
             try { history.pushState({ screen: 'home-screen', home: true }, '', ''); } catch (err) {}
         }
     });
+}
+// ================= NIVO — DODATNE FUNKCIJE =================
+
+function toggleLevelSound() {
+    levelState.soundEnabled = !levelState.soundEnabled;
+    const btn = el('level-sound-toggle');
+    if (btn) btn.classList.toggle('active', levelState.soundEnabled);
+    try { localStorage.setItem('cx_level_sound', levelState.soundEnabled ? '1' : '0'); } catch(e) {}
+    vibrate(10);
+}
+
+function toggleLevelVibrate() {
+    levelState.vibrateEnabled = !levelState.vibrateEnabled;
+    const btn = el('level-vibrate-toggle');
+    if (btn) btn.classList.toggle('active', levelState.vibrateEnabled);
+    try { localStorage.setItem('cx_level_vibrate', levelState.vibrateEnabled ? '1' : '0'); } catch(e) {}
+    vibrate(10);
+}
+
+function levelResetOffset() {
+    levelState.offsetBeta = 0;
+    levelState.offsetGamma = 0;
+    levelState.beta = 0;
+    levelState.gamma = 0;
+    levelUpdateDisplay();
+    vibrate(15);
+    showToast('Nivo resetovan', 'info', 1500);
 }
 
 // ============================================================
