@@ -4641,6 +4641,177 @@ function renderMoneyNapojnica() {
         ${statsRow('tip-stats-row', [['label.money.totalToPay', 'stat-tip-total', '0 RSD'], ['label.money.perPerson', 'stat-tip-per-person', '0 RSD']])}
     `;
 }
+// ===== DODATO: 3 funkcije za Novac tabove (Poređenje, Štednja, Budžet) =====
+
+function renderMoneyPoredjenje() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Uporedi cenu dva proizvoda po jedinici mere.</p>
+            <div class="compare-group">
+                <div class="compare-title">Proizvod A</div>
+                ${inputField('label.shop.price', 'price-a', 'RSD', 'placeholder="200"')}
+                ${inputField('label.shop.quantity', 'qty-a', '', 'placeholder="1"')}
+                ${selectField('label.shop.unit', 'unit-a', [
+                    { value: 'kg', text: 'kg' },
+                    { value: 'g', text: 'g' },
+                    { value: 'L', text: 'L' },
+                    { value: 'ml', text: 'ml' },
+                    { value: 'kom', text: 'kom' }
+                ])}
+            </div>
+            <div class="compare-group">
+                <div class="compare-title">Proizvod B</div>
+                ${inputField('label.shop.price', 'price-b', 'RSD', 'placeholder="180"')}
+                ${inputField('label.shop.quantity', 'qty-b', '', 'placeholder="0.9"')}
+                ${selectField('label.shop.unit', 'unit-b', [
+                    { value: 'kg', text: 'kg' },
+                    { value: 'g', text: 'g' },
+                    { value: 'L', text: 'L' },
+                    { value: 'ml', text: 'ml' },
+                    { value: 'kom', text: 'kom' }
+                ])}
+            </div>
+            ${calcButton('btn.calculate', 'calculateMoneyPoredjenje()')}
+        </div>
+        ${resultCard('poredjenje-result-box', 'scale', 'label.shop.compareResult', 'res-poredjenje-winner', '', 'NOVAC', 'label.shop.compareShort')}
+        ${statsRow('poredjenje-stats-row', [
+            ['label.shop.productA', 'stat-poredjenje-a', '0'],
+            ['label.shop.productB', 'stat-poredjenje-b', '0'],
+            ['label.shop.difference', 'stat-poredjenje-diff', '0%']
+        ])}
+    `;
+}
+
+function renderMoneyStednja() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Izračunaj koliko meseci treba da uštediš za cilj.</p>
+            ${inputField('label.money.stednja.target', 'savings-target', 'RSD', 'placeholder="1000000"')}
+            ${inputField('label.money.stednja.current', 'savings-current', 'RSD', 'placeholder="0"')}
+            ${inputField('label.money.stednja.monthly', 'savings-monthly', 'RSD', 'placeholder="20000"')}
+            ${inputField('label.money.stednja.interest', 'savings-interest', '%', 'value="0" step="0.1"')}
+            ${calcButton('btn.calculate', 'calculateSavings()')}
+        </div>
+        ${resultCard('savings-result-box', 'piggyBank', 'label.money.stednja.months', 'res-savings-months', 'meseci', 'NOVAC', 'label.money.stednja.progress')}
+        ${statsRow('savings-stats-row', [
+            ['label.money.stednja.total', 'stat-savings-total', '0 RSD'],
+            ['label.money.stednja.interestEarned', 'stat-savings-interest', '0 RSD']
+        ])}
+        <div class="savings-progress" id="savings-progress-box" style="display: none;">
+            <div class="savings-amounts">
+                <span class="current" id="savings-current-label">0 RSD</span>
+                <span class="target" id="savings-target-label">0 RSD</span>
+            </div>
+            <div class="savings-progress-bar-wrap">
+                <div class="savings-progress-fill" id="savings-progress-fill" style="width: 0%;"></div>
+            </div>
+            <div class="savings-pct" id="savings-pct">0%</div>
+        </div>
+    `;
+}
+
+function renderMoneyBudzet() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Izračunaj dnevni limit potrošnje na osnovu budžeta.</p>
+            ${inputField('label.shop.totalBudget', 'budzet-total-m', 'RSD', 'placeholder="30000"')}
+            ${selectField('label.shop.period', 'budzet-period-m', [
+                { value: '7', text: 'Nedelja (7 dana)' },
+                { value: '14', text: 'Dve nedelje (14 dana)' },
+                { value: '30', text: 'Mesec (30 dana)' }
+            ])}
+            ${inputField('label.shop.alreadySpent', 'budzet-spent-m', 'RSD', 'placeholder="0"')}
+            ${calcButton('btn.calculate', 'calculateMoneyBudzet()')}
+        </div>
+        ${resultCard('budzet-result-box-m', 'calendarSm', 'label.shop.dailyLimit', 'res-budzet-daily-m', 'RSD', 'NOVAC', 'label.shop.budgetShort')}
+        ${statsRow('budzet-stats-row-m', [
+            ['label.shop.untilEndOfPeriod', 'stat-budzet-left-m', '0 RSD'],
+            ['label.shop.daysCount', 'stat-budzet-days-m', '0'],
+            ['label.shop.dailyUntilEnd', 'stat-budzet-recalc-m', '0 RSD']
+        ])}
+    `;
+}
+
+function calculateMoneyPoredjenje() {
+    const aP = num('price-a'), aQ = num('qty-a');
+    const aU = el('unit-a') ? el('unit-a').value : 'kg';
+    const bP = num('price-b'), bQ = num('qty-b');
+    const bU = el('unit-b') ? el('unit-b').value : 'kg';
+    if (!aP || !aQ || !bP || !bQ) { showToast('Unesi sve vrednosti.', 'error'); return; }
+    function toBase(price, qty, unit) {
+        if (unit === 'g' || unit === 'ml') return price / (qty / 1000);
+        return price / qty;
+    }
+    const aBase = toBase(aP, aQ, aU);
+    const bBase = toBase(bP, bQ, bU);
+    const winner = aBase < bBase ? safeT('label.shop.productACheaper') : (bBase < aBase ? safeT('label.shop.productBCheaper') : safeT('label.shop.samePrice'));
+    const rw = el('res-poredjenje-winner'); if (rw) rw.innerText = winner;
+    const sa = el('stat-poredjenje-a'); if (sa) sa.innerText = money(aBase);
+    const sb = el('stat-poredjenje-b'); if (sb) sb.innerText = money(bBase);
+    const sd = el('stat-poredjenje-diff'); if (sd) sd.innerText = fmt(Math.abs(aBase - bBase) / Math.max(aBase, bBase) * 100, 1) + '%';
+    show('poredjenje-result-box'); show('poredjenje-stats-row');
+}
+
+function calculateSavings() {
+    const target = num('savings-target');
+    const current = num('savings-current') || 0;
+    const monthly = num('savings-monthly');
+    const annualRate = num('savings-interest') || 0;
+    if (!target || target <= 0 || !monthly || monthly <= 0) {
+        showToast('Unesi cilj i mesečni iznos.', 'error');
+        return;
+    }
+    const remaining = Math.max(0, target - current);
+    if (remaining === 0) {
+        const rm = el('res-savings-months');
+        if (rm) rm.innerText = '0';
+        showToast('Cilj je već dostignut!', 'success', 2500);
+        show('savings-result-box');
+        return;
+    }
+    let months;
+    if (annualRate <= 0) {
+        months = Math.ceil(remaining / monthly);
+    } else {
+        const monthlyRate = annualRate / 100 / 12;
+        months = Math.ceil(Math.log(1 + (remaining * monthlyRate) / monthly) / Math.log(1 + monthlyRate));
+    }
+    const totalSaved = monthly * months;
+    const interest = Math.max(0, totalSaved - remaining);
+    const rm = el('res-savings-months');
+    if (rm) rm.innerText = months;
+    const st = el('stat-savings-total');
+    if (st) st.innerText = money(totalSaved) + ' RSD';
+    const si = el('stat-savings-interest');
+    if (si) si.innerText = money(interest) + ' RSD';
+    show('savings-result-box'); show('savings-stats-row');
+    const pct = Math.min(100, (current / target) * 100);
+    const progressBox = el('savings-progress-box');
+    if (progressBox) progressBox.style.display = 'flex';
+    const fill = el('savings-progress-fill');
+    if (fill) fill.style.width = pct + '%';
+    const pctEl = el('savings-pct');
+    if (pctEl) pctEl.textContent = fmt(pct, 1) + '%';
+    const currLabel = el('savings-current-label');
+    if (currLabel) currLabel.textContent = money(current) + ' RSD';
+    const tgtLabel = el('savings-target-label');
+    if (tgtLabel) tgtLabel.textContent = money(target) + ' RSD';
+}
+
+function calculateMoneyBudzet() {
+    const total = num('budzet-total-m');
+    const period = el('budzet-period-m') ? parseInt(el('budzet-period-m').value) : 30;
+    const spent = num('budzet-spent-m') || 0;
+    if (!total || total <= 0) { showToast('Unesi budžet.', 'error'); return; }
+    const daily = total / period, left = Math.max(0, total - spent);
+    const rd = el('res-budzet-daily-m'); if (rd) rd.innerText = money(daily);
+    const sl = el('stat-budzet-left-m'); if (sl) sl.innerText = money(left) + ' RSD';
+    const sd = el('stat-budzet-days-m'); if (sd) sd.innerText = period;
+    const sr = el('stat-budzet-recalc-m'); if (sr) sr.innerText = money(left / period) + ' RSD';
+    show('budzet-result-box-m'); show('budzet-stats-row-m');
+}
+
+// ===== KRAJ DODAVANJA =====
 
 function calculateMoney() {
     const price = num('money-price'), discount = num('money-discount');
