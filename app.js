@@ -1803,125 +1803,86 @@ function openAllToolsModal() {
     try { history.pushState({ modal: 'all-tools' }, '', ''); } catch (e) {}
 }
 
+// Stanje za otvorene kategorije
+const allToolsCatState = {};
+
 function renderAllToolsSections() {
     const container = el('all-tools-sections');
     if (!container) return;
 
     let html = '';
-    Object.entries(SECTIONS).forEach(([secId, section]) => {
-        const sectionAccent = section.accent;
-        const sectionIconName = section.icon;
-        let totalTools = 0;
-        section.cats.forEach(catId => {
-            const cat = CATEGORIES[catId];
-            if (cat) totalTools += cat.tabs.length;
-        });
 
-        const isOpen = allToolsSectionState[secId] === true;
+    // Prolazi kroz sve kategorije
+    Object.entries(CATEGORIES).forEach(([catId, cat]) => {
+        const accent = getCategoryAccent(catId);
+        const totalTools = cat.tabs.length;
+        const isOpen = allToolsCatState[catId] === true;
         const openClass = isOpen ? ' open' : '';
         const ariaExpanded = isOpen ? 'true' : 'false';
 
-        let innerHtml = '';
-        section.cats.forEach(catId => {
-            const cat = CATEGORIES[catId];
-            if (!cat) return;
-            const accent = getCategoryAccent(catId);
-            innerHtml += `
-                <button class="all-tools-item" style="--qt-accent: ${accent};" onclick="openCategoryFromAllTools('${catId}')">
-                    <span class="all-tools-item-icon">${icon(cat.icon)}</span>
-                    <span class="all-tools-item-label">${escapeHtml(safeT('cat.' + catId))}</span>
+        // Grid sa svim tabovima
+        let tabsHtml = '';
+        cat.tabs.forEach(tab => {
+            const tabAccent = accent;
+            const favKey = `${catId}:${tab.id}`;
+            const isFav = isFavorite(favKey);
+            const badgeCount = getTabCount(catId, tab.id);
+            const badgeHtml = badgeCount > 0
+                ? `<span class="all-tools-tab-badge">${badgeCount > 99 ? '99+' : badgeCount}</span>`
+                : '';
+            const favHtml = isFav
+                ? `<span class="all-tools-tab-fav">${icon('starFill')}</span>`
+                : '';
+
+            tabsHtml += `
+                <button class="all-tools-tab" style="--tab-accent: ${tabAccent};"
+                        onclick="event.stopPropagation(); openCalcFromAllTools('${catId}', '${tab.id}')"
+                        title="${escapeHtml(safeT('tab.' + catId + '.' + tab.id))}">
+                    ${badgeHtml}
+                    ${favHtml}
+                    <span class="all-tools-tab-icon">${icon(tab.icon)}</span>
+                    <span class="all-tools-tab-label">${escapeHtml(safeT('tab.' + catId + '.' + tab.id))}</span>
                 </button>
             `;
         });
 
+        // Kartica kategorije
         html += `
-            <div class="all-tools-section${openClass}" data-section-id="${secId}" style="--section-accent: ${sectionAccent};">
-                <button class="all-tools-section-head" onclick="toggleAllToolsSection('${secId}')" aria-expanded="${ariaExpanded}" aria-controls="all-tools-body-${secId}">
-                    <span class="all-tools-section-icon">${icon(sectionIconName)}</span>
-                    <span class="all-tools-section-info">
-                        <span class="all-tools-section-title">${escapeHtml(safeT('section.' + secId))}</span>
-                        <span class="all-tools-section-count">${section.cats.length} ${section.cats.length === 1 ? 'kategorija' : (section.cats.length < 5 ? 'kategorije' : 'kategorija')} • ${totalTools} alata</span>
+            <div class="all-tools-cat${openClass}" data-cat-id="${catId}" style="--cat-accent: ${accent};">
+                <button class="all-tools-cat-head"
+                        onclick="toggleAllToolsCat('${catId}')"
+                        aria-expanded="${ariaExpanded}">
+                    <span class="all-tools-cat-icon">${icon(cat.icon)}</span>
+                    <span class="all-tools-cat-info">
+                        <span class="all-tools-cat-name">${escapeHtml(safeT('cat.' + catId))}</span>
+                        <span class="all-tools-cat-count">${totalTools} ${totalTools === 1 ? 'alat' : (totalTools < 5 ? 'alata' : 'alata')}</span>
                     </span>
-                    <span class="all-tools-section-arrow">
+                    <span class="all-tools-cat-arrow">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                     </span>
                 </button>
-                <div class="all-tools-section-body" id="all-tools-body-${secId}">
-                    <div class="all-tools-section-body-inner">
-                        <div class="all-tools-section-grid">${innerHtml}</div>
+                <div class="all-tools-cat-body">
+                    <div class="all-tools-cat-body-inner">
+                        <div class="all-tools-tabs-grid">${tabsHtml}</div>
                     </div>
                 </div>
             </div>
         `;
     });
+
     container.innerHTML = html;
 }
-function toggleAllToolsSection(secId) {
-    const section = document.querySelector(`.all-tools-section[data-section-id="${secId}"]`);
-    if (!section) return;
-    const isOpen = section.classList.contains('open');
-    section.classList.toggle('open', !isOpen);
-    allToolsSectionState[secId] = !isOpen;
-    const head = section.querySelector('.all-tools-section-head');
+
+function toggleAllToolsCat(catId) {
+    const catEl = document.querySelector(`.all-tools-cat[data-cat-id="${catId}"]`);
+    if (!catEl) return;
+    const isOpen = catEl.classList.contains('open');
+    catEl.classList.toggle('open', !isOpen);
+    allToolsCatState[catId] = !isOpen;
+    const head = catEl.querySelector('.all-tools-cat-head');
     if (head) head.setAttribute('aria-expanded', (!isOpen).toString());
     vibrate(8);
     playTick(0, 1200, 0.04, 0.012);
-}
-function openCategoryFromAllTools(catId) {
-    closeModal('all-tools-modal');
-    setTimeout(() => {
-        openCategory(catId);
-    }, 200);
-}
-
-function handleAllToolsSearch() {
-    const input = el('all-tools-search');
-    if (!input) return;
-    const q = input.value.trim();
-    const clearBtn = el('all-tools-search-clear');
-    if (clearBtn) clearBtn.style.display = q ? 'flex' : 'none';
-
-    const container = el('all-tools-sections');
-    if (!container) return;
-
-    if (!q) {
-        renderAllToolsSections();
-        return;
-    }
-
-    // Pretraga
-    const matches = searchTools(q);
-    if (matches.length === 0) {
-        container.innerHTML = `
-            <div class="all-tools-search-empty">
-                <div class="all-tools-search-empty-title">${safeT('allTools.noResults')}</div>
-                <div>${safeT('allTools.tryAgain')}</div>
-            </div>
-        `;
-        return;
-    }
-
-    // Prikaži rezultate kao listu
-    let html = '<div class="all-tools-search-results">';
-    matches.forEach(tool => {
-        html += `
-            <button class="all-tools-search-item" style="--qt-accent: ${tool.accent};" onclick="openCalcFromAllTools('${tool.catId}', '${tool.tabId}')">
-                <span class="all-tools-search-item-icon">${icon(tool.icon)}</span>
-                <span class="all-tools-search-item-text">
-                    <span class="all-tools-search-item-name">${escapeHtml(safeT('tab.' + tool.catId + '.' + tool.tabId))}</span>
-                    <span class="all-tools-search-item-cat">${escapeHtml(safeT('cat.' + tool.catId))}</span>
-                </span>
-            </button>
-        `;
-    });
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-function clearAllToolsSearch() {
-    const input = el('all-tools-search');
-    if (input) input.value = '';
-    handleAllToolsSearch();
 }
 
 function openCalcFromAllTools(catId, tabId) {
