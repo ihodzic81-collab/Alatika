@@ -13,7 +13,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="web-app-manifest-192x192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="web-app-manifest-512x512.png">
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 
@@ -30,9 +30,7 @@
 <!-- ================= APP ================= -->
 <div class="app-container">
 
-    <!-- ============================================================ -->
-    <!-- TOOLBAR — NIVO, ŠTOPERICA, TAJMER, BRZINOMER (umesto lampe)  -->
-    <!-- ============================================================ -->
+    <!-- TOOLBAR — NIVO, ŠTOPERICA, TAJMER, BRZINOMER -->
     <div id="app-toolbar" class="app-toolbar">
         <button id="toolbar-level-btn" class="toolbar-btn" onclick="openLevelOptions()" title="Nivo" aria-label="Nivo">
             <span class="toolbar-icon"></span>
@@ -52,9 +50,7 @@
         </button>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- EKRAN: POČETNA                                               -->
-    <!-- ============================================================ -->
+    <!-- EKRAN: POČETNA -->
     <div id="home-screen" class="screen active">
 
         <header class="header">
@@ -92,7 +88,7 @@
 
         <div id="home-normal-content">
 
-            <!-- ========== BRZI ALATI ========== -->
+            <!-- BRZI ALATI -->
             <section class="home-section" id="quick-tools-section">
                 <div class="section-head">
                     <h2 class="section-title" id="sec-title-quick">Brzi alati</h2>
@@ -101,7 +97,7 @@
                 <div id="quick-tools-grid" class="quick-tools-grid"></div>
             </section>
 
-            <!-- ========== MOJI ALATI ========== -->
+            <!-- MOJI ALATI -->
             <section class="home-section" id="my-tools-section">
                 <div class="section-head">
                     <h2 class="section-title" id="sec-title-my">Moji alati</h2>
@@ -112,7 +108,7 @@
                 </div>
             </section>
 
-            <!-- ========== DUGME "SVI ALATI" ========== -->
+            <!-- DUGME "SVI ALATI" -->
             <section class="home-section" id="all-tools-button-section">
                 <button class="all-tools-main-btn" onclick="openAllToolsModal()">
                     <span class="all-tools-main-icon">
@@ -130,9 +126,7 @@
         </div>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- EKRAN: DANAS DASHBOARD                                       -->
-    <!-- ============================================================ -->
+    <!-- EKRAN: DANAS DASHBOARD -->
     <div id="today-screen" class="screen">
         <div class="top-bar">
             <div class="top-bar-left">
@@ -149,14 +143,10 @@
             <div class="today-greeting-date" id="today-date"></div>
         </div>
 
-        <div id="today-content" class="today-content">
-            <!-- Dinamički sadržaj -->
-        </div>
+        <div id="today-content" class="today-content"></div>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- EKRAN: MOJI ALATI                                            -->
-    <!-- ============================================================ -->
+    <!-- EKRAN: MOJI ALATI -->
     <div id="mytools-screen" class="screen">
         <div class="top-bar">
             <div class="top-bar-left">
@@ -164,14 +154,10 @@
                 <p id="mytools-subtitle" class="top-bar-sub">Tvoji omiljeni alati</p>
             </div>
         </div>
-        <div id="mytools-content" class="mytools-content">
-            <!-- Dinamički sadržaj -->
-        </div>
+        <div id="mytools-content" class="mytools-content"></div>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- EKRAN: ISTORIJA                                              -->
-    <!-- ============================================================ -->
+    <!-- EKRAN: ISTORIJA -->
     <div id="history-screen" class="screen">
         <div class="top-bar">
             <div class="top-bar-left">
@@ -213,9 +199,7 @@
         </div>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- EKRAN: PODEŠAVANJA                                           -->
-    <!-- ============================================================ -->
+    <!-- EKRAN: PODEŠAVANJA -->
     <div id="settings-screen" class="screen">
         <div class="top-bar">
             <div class="top-bar-left">
@@ -223,7 +207,6 @@
             </div>
         </div>
 
-        <!-- Profil korisnika -->
         <div class="converter-box settings-profile-box">
             <div class="settings-row settings-row-clickable" onclick="openProfileModal()">
                 <div>
@@ -240,7 +223,6 @@
             </div>
         </div>
 
-        <!-- Tema, zvuk, vibracija -->
         <div class="converter-box">
             <div class="settings-row">
                 <div>
@@ -285,7 +267,6 @@
             </div>
         </div>
 
-        <!-- Arhiva -->
         <div class="converter-box">
             <div class="settings-row">
                 <div>
@@ -298,7 +279,6 @@
 
         <p class="section-desc" id="settings-offline-text">Alatika radi u potpunosti lokalno na tvom telefonu — ništa se ne šalje na internet.</p>
 
-        <!-- O aplikaciji -->
         <div class="about-section">
             <div class="settings-row about-row" onclick="openAboutModal()">
                 <div>
@@ -312,9 +292,7 @@
 
 </div>
 
-<!-- ============================================================ -->
-<!-- BOTTOM NAVIGATION — 5 tabova                                 -->
-<!-- ============================================================ -->
+<!-- BOTTOM NAVIGATION -->
 <nav id="bottom-nav" class="bottom-nav">
     <button class="bottom-nav-btn active" data-screen="home-screen" onclick="switchBottomNav('home-screen')" aria-label="Početna">
         <span class="bottom-nav-icon">
@@ -348,9 +326,7 @@
     </button>
 </nav>
 
-<!-- ============================================================ -->
-<!-- MODAL: KATEGORIJA                                             -->
-<!-- ============================================================ -->
+<!-- MODAL: KATEGORIJA -->
 <div id="category-modal" class="modal" onclick="closeModalOnBackdrop(event, 'category-modal')">
     <div class="modal-panel category-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -371,9 +347,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: RAČUNANJE                                              -->
-<!-- ============================================================ -->
+<!-- MODAL: RAČUNANJE -->
 <div id="calc-modal" class="modal" onclick="closeModalOnBackdrop(event, 'calc-modal')">
     <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -394,9 +368,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: SVI ALATI (10 SEKCIJA) — NOVO U 3.0                    -->
-<!-- ============================================================ -->
+<!-- MODAL: SVI ALATI -->
 <div id="all-tools-modal" class="modal all-tools-modal" onclick="closeModalOnBackdrop(event, 'all-tools-modal')">
     <div class="modal-panel all-tools-panel" onclick="event.stopPropagation()">
         <div class="modal-header all-tools-header">
@@ -424,15 +396,11 @@
                 </button>
             </div>
         </div>
-        <div id="all-tools-sections" class="all-tools-sections">
-            <!-- Dinamički sadržaj: 10 sekcija -->
-        </div>
+        <div id="all-tools-sections" class="all-tools-sections"></div>
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: PODEŠAVANJE TABOVA                                     -->
-<!-- ============================================================ -->
+<!-- MODAL: PODEŠAVANJE TABOVA -->
 <div id="tabs-settings-modal" class="modal" onclick="closeModalOnBackdrop(event, 'tabs-settings-modal')">
     <div class="modal-panel tabs-settings-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -468,9 +436,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: IZMENA BRZIH ALATA                                     -->
-<!-- ============================================================ -->
+<!-- MODAL: IZMENA BRZIH ALATA -->
 <div id="editor-modal" class="modal" onclick="closeModalOnBackdrop(event, 'editor-modal')">
     <div class="modal-panel editor-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -487,9 +453,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: LOKACIJA (za Vreme)                                    -->
-<!-- ============================================================ -->
+<!-- MODAL: LOKACIJA -->
 <div id="location-modal" class="modal" onclick="closeModalOnBackdrop(event, 'location-modal')">
     <div class="modal-panel location-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -518,9 +482,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: O APLIKACIJI                                           -->
-<!-- ============================================================ -->
+<!-- MODAL: O APLIKACIJI -->
 <div id="about-modal" class="modal" onclick="closeModalOnBackdrop(event, 'about-modal')">
     <div class="modal-panel about-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -569,9 +531,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: REMINDER FORMA                                         -->
-<!-- ============================================================ -->
+<!-- MODAL: REMINDER FORMA -->
 <div id="reminder-modal" class="modal" onclick="closeModalOnBackdrop(event, 'reminder-modal')">
     <div class="modal-panel reminder-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -589,9 +549,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: NIVO (libela)                                          -->
-<!-- ============================================================ -->
+<!-- MODAL: NIVO -->
 <div id="level-modal" class="modal" onclick="closeModalOnBackdrop(event, 'level-modal')">
     <div class="modal-panel level-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -634,9 +592,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: ŠTOPERICA (toolbar)                                    -->
-<!-- ============================================================ -->
+<!-- MODAL: ŠTOPERICA -->
 <div id="toolbar-stopwatch-modal" class="modal" onclick="closeModalOnBackdrop(event, 'toolbar-stopwatch-modal')">
     <div class="modal-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -662,9 +618,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: TAJMER (toolbar)                                       -->
-<!-- ============================================================ -->
+<!-- MODAL: TAJMER -->
 <div id="toolbar-timer-modal" class="modal" onclick="closeModalOnBackdrop(event, 'toolbar-timer-modal')">
     <div class="modal-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -702,9 +656,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: BRZINOMER (toolbar) — NOVO U 3.0                       -->
-<!-- ============================================================ -->
+<!-- MODAL: BRZINOMER -->
 <div id="speedometer-modal" class="modal" onclick="closeModalOnBackdrop(event, 'speedometer-modal')">
     <div class="modal-panel speedometer-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -764,9 +716,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: PROFIL KORISNIKA                                       -->
-<!-- ============================================================ -->
+<!-- MODAL: PROFIL KORISNIKA -->
 <div id="profile-modal" class="modal" onclick="closeModalOnBackdrop(event, 'profile-modal')">
     <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -829,9 +779,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: ISTORIJA TOČENJA — dodavanje                           -->
-<!-- ============================================================ -->
+<!-- MODAL: ISTORIJA TOČENJA -->
 <div id="fuel-history-modal" class="modal" onclick="closeModalOnBackdrop(event, 'fuel-history-modal')">
     <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -849,9 +797,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: HABIT (nova navika)                                    -->
-<!-- ============================================================ -->
+<!-- MODAL: HABIT -->
 <div id="habit-modal" class="modal" onclick="closeModalOnBackdrop(event, 'habit-modal')">
     <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -869,9 +815,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: JOURNAL (nova beleška)                                 -->
-<!-- ============================================================ -->
+<!-- MODAL: JOURNAL -->
 <div id="journal-modal" class="modal" onclick="closeModalOnBackdrop(event, 'journal-modal')">
     <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -889,9 +833,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: WORKOUT (novi trening)                                 -->
-<!-- ============================================================ -->
+<!-- MODAL: WORKOUT -->
 <div id="workout-modal" class="modal" onclick="closeModalOnBackdrop(event, 'workout-modal')">
     <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -909,9 +851,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: RECIPE (novi recept)                                   -->
-<!-- ============================================================ -->
+<!-- MODAL: RECIPE -->
 <div id="recipes-modal" class="modal" onclick="closeModalOnBackdrop(event, 'recipes-modal')">
     <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -929,9 +869,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: BARCODE (skeniranje)                                   -->
-<!-- ============================================================ -->
+<!-- MODAL: BARCODE -->
 <div id="barcode-modal" class="modal" onclick="closeModalOnBackdrop(event, 'barcode-modal')">
     <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -949,9 +887,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: PRICE TRACKING (novi proizvod)                         -->
-<!-- ============================================================ -->
+<!-- MODAL: PRICE TRACKING -->
 <div id="price-tracking-modal" class="modal" onclick="closeModalOnBackdrop(event, 'price-tracking-modal')">
     <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -969,9 +905,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODAL: COST ESTIMATE (nova stavka u troškovniku)              -->
-<!-- ============================================================ -->
+<!-- MODAL: COST ESTIMATE -->
 <div id="cost-estimate-modal" class="modal" onclick="closeModalOnBackdrop(event, 'cost-estimate-modal')">
     <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -989,9 +923,7 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- HINT-OVI                                                      -->
-<!-- ============================================================ -->
+<!-- HINT-OVI -->
 <div id="fav-hint" class="fav-hint" style="display: none;">
     <div class="fav-hint-icon">⭐</div>
     <div class="fav-hint-text">
@@ -1010,14 +942,10 @@
     <button class="badge-hint-btn" id="badge-hint-btn" onclick="dismissBadgeHint()">Razumem</button>
 </div>
 
-<!-- ============================================================ -->
-<!-- TOAST                                                         -->
-<!-- ============================================================ -->
+<!-- TOAST -->
 <div id="toast-container" class="toast-container"></div>
 
-<!-- ============================================================ -->
-<!-- CONFIRM                                                       -->
-<!-- ============================================================ -->
+<!-- CONFIRM -->
 <div id="confirm-modal" class="confirm-modal">
     <div class="confirm-box">
         <div class="confirm-icon">
@@ -1032,10 +960,8 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- SKRIPTE                                                       -->
-<!-- ============================================================ -->
-<script src="translations.js?v=10"></script>
-<script src="app.js?v=10"></script>
+<!-- SKRIPTE -->
+<script src="translations.js?v=12"></script>
+<script src="app.js?v=12"></script>
 </body>
 </html>
