@@ -4812,6 +4812,1898 @@ function calculateMoneyBudzet() {
 }
 
 // ===== KRAJ DODAVANJA =====
+// ===== DODATO 2: Konverzije, Kupljene, Građevina, Zdravlje, Kuhinja, Navike =====
+
+// ---------- OBUVANJE ----------
+const SHOE_SIZES = {
+    male: {
+        eu: [39, 40, 41, 42, 43, 44, 45, 46, 47, 48],
+        us: [6.5, 7, 8, 8.5, 9.5, 10, 11, 12, 12.5, 13.5],
+        uk: [6, 6.5, 7.5, 8, 9, 9.5, 10.5, 11.5, 12, 13],
+        cm: [24.5, 25, 25.5, 26, 27, 27.5, 28.5, 29.5, 30, 31]
+    },
+    female: {
+        eu: [35, 36, 37, 38, 39, 40, 41, 42, 43],
+        us: [5, 5.5, 6.5, 7.5, 8.5, 9, 10, 10.5, 11.5],
+        uk: [2.5, 3, 4, 5, 6, 6.5, 7.5, 8, 9],
+        cm: [22, 22.5, 23.5, 24, 25, 25.5, 26.5, 27, 28]
+    },
+    kids: {
+        eu: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35],
+        us: [4.5, 5.5, 6.5, 7, 8, 8.5, 9.5, 10.5, 11, 12, 12.5, 13, 1, 2, 2.5, 3.5],
+        uk: [4, 5, 6, 6.5, 7.5, 8, 9, 10, 10.5, 11.5, 12, 12.5, 13.5, 1, 1.5, 2.5],
+        cm: [12, 13, 14, 14.5, 15, 15.5, 16, 17, 17.5, 18, 18.5, 19, 20, 20.5, 21, 22]
+    }
+};
+
+function renderConversionObuca() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Konverzija veličina obuće između EU, US, UK sistema.</p>
+            <div class="input-field">
+                <label>Pol</label>
+                <select id="shoe-gender" class="custom-input" onchange="calculateShoeSize()">
+                    <option value="male">Muški</option>
+                    <option value="female">Ženski</option>
+                    <option value="kids">Deca</option>
+                </select>
+            </div>
+            <div class="conversion-grid">
+                <div class="conversion-field">
+                    <label>Iz sistema</label>
+                    <select id="shoe-from" class="custom-input" onchange="calculateShoeSize()">
+                        <option value="eu">EU</option>
+                        <option value="us">US</option>
+                        <option value="uk">UK</option>
+                        <option value="cm">CM (dužina stopala)</option>
+                    </select>
+                </div>
+                <div class="conversion-field">
+                    <label>U sistem</label>
+                    <select id="shoe-to" class="custom-input" onchange="calculateShoeSize()">
+                        <option value="eu">EU</option>
+                        <option value="us" selected>US</option>
+                        <option value="uk">UK</option>
+                        <option value="cm">CM (dužina stopala)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="input-field">
+                <label>Veličina</label>
+                <div class="input-wrapper">
+                    <input type="number" id="shoe-val" class="custom-input" placeholder="42" inputmode="decimal" oninput="calculateShoeSize()">
+                    <span class="unit" id="shoe-from-unit">EU</span>
+                </div>
+            </div>
+            ${calcButton('btn.calculate', 'calculateShoeSize()')}
+        </div>
+        <div class="conversion-result" id="shoe-result-box" style="display: none;">
+            <div class="conversion-result-label">Veličina</div>
+            <div class="conversion-result-value" id="res-shoe-val">0</div>
+            <div class="conversion-result-sub" id="res-shoe-system">US</div>
+        </div>
+    `;
+}
+
+function calculateShoeSize() {
+    const gender = el('shoe-gender') ? el('shoe-gender').value : 'male';
+    const from = el('shoe-from') ? el('shoe-from').value : 'eu';
+    const to = el('shoe-to') ? el('shoe-to').value : 'us';
+    const val = num('shoe-val');
+    const fromUnit = el('shoe-from-unit');
+    if (fromUnit) fromUnit.textContent = from.toUpperCase();
+    if (val === null) { hide('shoe-result-box'); return; }
+    const table = SHOE_SIZES[gender];
+    if (!table) return;
+    const fromArr = table[from];
+    if (!fromArr) return;
+    let closestIdx = 0;
+    let minDiff = Infinity;
+    fromArr.forEach((size, i) => {
+        const diff = Math.abs(size - val);
+        if (diff < minDiff) { minDiff = diff; closestIdx = i; }
+    });
+    const result = table[to][closestIdx];
+    const resultEl = el('res-shoe-val');
+    const systemEl = el('res-shoe-system');
+    if (resultEl) resultEl.textContent = result;
+    if (systemEl) systemEl.textContent = to.toUpperCase();
+    show('shoe-result-box');
+}
+
+// ---------- ODEĆA ----------
+const CLOTHING_SIZES = {
+    male: [
+        { intl: 'XS', eu: 44, us: '34', uk: '34' },
+        { intl: 'S', eu: 46, us: '36', uk: '36' },
+        { intl: 'M', eu: 48, us: '38', uk: '38' },
+        { intl: 'L', eu: 50, us: '40', uk: '40' },
+        { intl: 'XL', eu: 52, us: '42', uk: '42' },
+        { intl: 'XXL', eu: 54, us: '44', uk: '44' },
+        { intl: '3XL', eu: 56, us: '46', uk: '46' }
+    ],
+    female: [
+        { intl: 'XS', eu: 34, us: '2', uk: '6' },
+        { intl: 'S', eu: 36, us: '4', uk: '8' },
+        { intl: 'M', eu: 38, us: '6', uk: '10' },
+        { intl: 'L', eu: 40, us: '8', uk: '12' },
+        { intl: 'XL', eu: 42, us: '10', uk: '14' },
+        { intl: 'XXL', eu: 44, us: '12', uk: '16' },
+        { intl: '3XL', eu: 46, us: '14', uk: '18' }
+    ]
+};
+
+function renderConversionOdeca() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Konverzija veličina odeće između internacionalnih (S/M/L), EU, US i UK sistema.</p>
+            <div class="input-field">
+                <label>Pol</label>
+                <select id="clothing-gender" class="custom-input" onchange="calculateClothingSize()">
+                    <option value="male">Muški</option>
+                    <option value="female">Ženski</option>
+                </select>
+            </div>
+            <div class="conversion-grid">
+                <div class="conversion-field">
+                    <label>Iz sistema</label>
+                    <select id="clothing-from" class="custom-input" onchange="calculateClothingSize()">
+                        <option value="intl">Internacionalno (S/M/L)</option>
+                        <option value="eu" selected>EU</option>
+                        <option value="us">US</option>
+                        <option value="uk">UK</option>
+                    </select>
+                </div>
+                <div class="conversion-field">
+                    <label>U sistem</label>
+                    <select id="clothing-to" class="custom-input" onchange="calculateClothingSize()">
+                        <option value="intl">Internacionalno (S/M/L)</option>
+                        <option value="eu">EU</option>
+                        <option value="us" selected>US</option>
+                        <option value="uk">UK</option>
+                    </select>
+                </div>
+            </div>
+            <div class="input-field">
+                <label>Veličina</label>
+                <div class="input-wrapper">
+                    <input type="text" id="clothing-val" class="custom-input" placeholder="48 / M" oninput="calculateClothingSize()">
+                </div>
+            </div>
+            ${calcButton('btn.calculate', 'calculateClothingSize()')}
+        </div>
+        <div class="conversion-result" id="clothing-result-box" style="display: none;">
+            <div class="conversion-result-label">Veličina</div>
+            <div class="conversion-result-value" id="res-clothing-val">—</div>
+            <div class="conversion-result-sub" id="res-clothing-system">US</div>
+        </div>
+    `;
+}
+
+function calculateClothingSize() {
+    const gender = el('clothing-gender') ? el('clothing-gender').value : 'male';
+    const from = el('clothing-from') ? el('clothing-from').value : 'eu';
+    const to = el('clothing-to') ? el('clothing-to').value : 'us';
+    const inputEl = el('clothing-val');
+    if (!inputEl) return;
+    const val = inputEl.value.trim().toUpperCase();
+    if (!val) { hide('clothing-result-box'); return; }
+    const table = CLOTHING_SIZES[gender];
+    if (!table) return;
+    let row = null;
+    if (from === 'intl') {
+        row = table.find(r => r.intl === val);
+    } else {
+        const numVal = parseFloat(val);
+        if (!isNaN(numVal)) {
+            row = table.find(r => String(r[from]) === String(numVal));
+        }
+    }
+    if (!row) {
+        const resultEl = el('res-clothing-val');
+        const systemEl = el('res-clothing-system');
+        if (resultEl) resultEl.textContent = '—';
+        if (systemEl) systemEl.textContent = 'Nema podudaranja';
+        show('clothing-result-box');
+        return;
+    }
+    const result = row[to];
+    const resultEl = el('res-clothing-val');
+    const systemEl = el('res-clothing-system');
+    if (resultEl) resultEl.textContent = result;
+    if (systemEl) systemEl.textContent = to === 'intl' ? 'Internacionalno' : to.toUpperCase();
+    show('clothing-result-box');
+}
+
+// ---------- BROJEVI ----------
+function romanFromInt(num) {
+    if (num < 1 || num > 3999 || !Number.isInteger(num)) return null;
+    const romanMap = [
+        [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'],
+        [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'],
+        [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']
+    ];
+    let result = '';
+    for (const [value, symbol] of romanMap) {
+        while (num >= value) { result += symbol; num -= value; }
+    }
+    return result;
+}
+
+function intFromRoman(roman) {
+    const map = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
+    let result = 0;
+    const upper = roman.toUpperCase();
+    for (let i = 0; i < upper.length; i++) {
+        const cur = map[upper[i]];
+        const next = map[upper[i + 1]];
+        if (!cur) return null;
+        if (next && cur < next) result -= cur;
+        else result += cur;
+    }
+    return result;
+}
+
+function renderConversionBrojevi() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Konverzija brojeva između decimalnog, binarnog, oktalnog, heksadecimalnog i rimskog sistema.</p>
+            <div class="input-field">
+                <label>Unesi broj</label>
+                <input type="text" id="num-input" class="custom-input" placeholder="npr. 255 ili MCMXCV" oninput="calculateNumbers()">
+            </div>
+            <div class="input-field">
+                <label>Iz sistema</label>
+                <select id="num-from" class="custom-input" onchange="calculateNumbers()">
+                    <option value="dec" selected>Decimalni</option>
+                    <option value="bin">Binarni</option>
+                    <option value="oct">Oktalni</option>
+                    <option value="hex">Heksadecimalni</option>
+                    <option value="roman">Rimski</option>
+                </select>
+            </div>
+        </div>
+        <div class="numbers-grid" id="numbers-result" style="display: none;">
+            <div class="number-system-row" data-sys="dec">
+                <div class="number-system-label">Decimalni</div>
+                <div class="number-system-value" id="res-num-dec">—</div>
+            </div>
+            <div class="number-system-row" data-sys="bin">
+                <div class="number-system-label">Binarni</div>
+                <div class="number-system-value" id="res-num-bin">—</div>
+            </div>
+            <div class="number-system-row" data-sys="oct">
+                <div class="number-system-label">Oktalni</div>
+                <div class="number-system-value" id="res-num-oct">—</div>
+            </div>
+            <div class="number-system-row" data-sys="hex">
+                <div class="number-system-label">Heksadecimalni</div>
+                <div class="number-system-value" id="res-num-hex">—</div>
+            </div>
+            <div class="number-system-row" data-sys="roman">
+                <div class="number-system-label">Rimski</div>
+                <div class="number-system-value" id="res-num-roman">—</div>
+            </div>
+        </div>
+        <p class="section-desc" style="text-align: center; font-size: 0.72rem;">Rimski brojevi idu od 1 do 3999.</p>
+    `;
+}
+
+function calculateNumbers() {
+    const inputEl = el('num-input');
+    const fromEl = el('num-from');
+    if (!inputEl || !fromEl) return;
+    const raw = inputEl.value.trim();
+    const from = fromEl.value;
+    const resultBox = el('numbers-result');
+    if (!raw) {
+        if (resultBox) resultBox.style.display = 'none';
+        return;
+    }
+    let decimal = null;
+    try {
+        if (from === 'dec') {
+            const n = parseInt(raw, 10);
+            if (!isNaN(n)) decimal = n;
+        } else if (from === 'bin') {
+            if (/^[01]+$/.test(raw)) decimal = parseInt(raw, 2);
+        } else if (from === 'oct') {
+            if (/^[0-7]+$/.test(raw)) decimal = parseInt(raw, 8);
+        } else if (from === 'hex') {
+            if (/^[0-9A-Fa-f]+$/.test(raw)) decimal = parseInt(raw, 16);
+        } else if (from === 'roman') {
+            decimal = intFromRoman(raw);
+        }
+    } catch (e) {}
+    if (decimal === null || isNaN(decimal) || decimal < 0) {
+        if (resultBox) resultBox.style.display = 'block';
+        ['dec','bin','oct','hex','roman'].forEach(s => {
+            const el2 = el('res-num-' + s);
+            if (el2) el2.textContent = '—';
+        });
+        return;
+    }
+    const setV = (id, v) => { const e = el(id); if (e) e.textContent = v; };
+    setV('res-num-dec', decimal.toString(10));
+    setV('res-num-bin', decimal.toString(2));
+    setV('res-num-oct', decimal.toString(8));
+    setV('res-num-hex', decimal.toString(16).toUpperCase());
+    const roman = romanFromInt(decimal);
+    setV('res-num-roman', roman || '—');
+    if (resultBox) resultBox.style.display = 'flex';
+}
+
+// ---------- BARKOD ----------
+let barcodeStream = null;
+let barcodeIntervalId = null;
+let barcodeDetector = null;
+
+function renderBarcodeScanner() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Skeniraj barkod kamerom telefona ili unesi ručno.</p>
+            <div class="barcode-camera-wrap" id="barcode-camera-wrap" style="display: none;">
+                <video id="barcode-video" autoplay playsinline muted></video>
+                <div class="barcode-overlay">
+                    <div class="barcode-frame"></div>
+                    <div class="barcode-scan-line"></div>
+                </div>
+            </div>
+            <button class="calc-btn-main" id="barcode-start-btn" onclick="startBarcodeScanner()">▶ Pokreni kameru</button>
+            <button class="gps-btn-secondary" id="barcode-stop-btn" style="display: none; width: 100%; margin-top: 8px;" onclick="stopBarcodeScanner()">⏹ Zaustavi kameru</button>
+            <div style="margin-top: 14px;">
+                <label style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 700;">Ručni unos barkoda</label>
+                <div class="input-wrapper" style="margin-top: 6px;">
+                    <input type="text" id="barcode-manual" class="custom-input" placeholder="npr. 1234567890123" inputmode="numeric">
+                </div>
+                <button class="calc-btn-main" style="margin-top: 8px;" onclick="useBarcodeManually()">Pretraži proizvod</button>
+            </div>
+        </div>
+        <div class="barcode-detected" id="barcode-detected" style="display: none;">
+            <div class="barcode-detected-label">Detektovan barkod</div>
+            <div class="barcode-detected-code" id="barcode-code">—</div>
+            <button class="calc-btn-main" style="margin-top: 12px;" onclick="addBarcodeToList()">Dodaj u listu za kupovinu</button>
+        </div>
+    `;
+}
+
+function initBarcodeScanner() { stopBarcodeScanner(); }
+
+async function startBarcodeScanner() {
+    const wrap = el('barcode-camera-wrap');
+    const startBtn = el('barcode-start-btn');
+    const stopBtn = el('barcode-stop-btn');
+    const video = el('barcode-video');
+    if (!wrap || !video) return;
+    try {
+        barcodeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = barcodeStream;
+        wrap.style.display = 'block';
+        if (startBtn) startBtn.style.display = 'none';
+        if (stopBtn) stopBtn.style.display = 'block';
+        if ('BarcodeDetector' in window) {
+            try {
+                barcodeDetector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code'] });
+                barcodeIntervalId = setInterval(async () => {
+                    if (!barcodeDetector || !video) return;
+                    try {
+                        const barcodes = await barcodeDetector.detect(video);
+                        if (barcodes && barcodes.length > 0) onBarcodeDetected(barcodes[0].rawValue);
+                    } catch (e) {}
+                }, 500);
+            } catch (e) {}
+        }
+    } catch (e) {
+        showToast('Greška pri pristupu kameri.', 'error', 3000);
+    }
+}
+
+function stopBarcodeScanner() {
+    const wrap = el('barcode-camera-wrap');
+    const startBtn = el('barcode-start-btn');
+    const stopBtn = el('barcode-stop-btn');
+    if (barcodeStream) { barcodeStream.getTracks().forEach(t => t.stop()); barcodeStream = null; }
+    if (barcodeIntervalId) { clearInterval(barcodeIntervalId); barcodeIntervalId = null; }
+    barcodeDetector = null;
+    if (wrap) wrap.style.display = 'none';
+    if (startBtn) startBtn.style.display = 'block';
+    if (stopBtn) stopBtn.style.display = 'none';
+}
+
+function onBarcodeDetected(code) {
+    if (!code) return;
+    stopBarcodeScanner();
+    const box = el('barcode-detected');
+    const codeEl = el('barcode-code');
+    if (box) box.style.display = 'block';
+    if (codeEl) codeEl.textContent = code;
+    vibrate([50, 30, 50]);
+}
+
+function useBarcodeManually() {
+    const input = el('barcode-manual');
+    if (!input) return;
+    const code = input.value.trim();
+    if (!code) { showToast('Unesi barkod.', 'warning'); return; }
+    onBarcodeDetected(code);
+}
+
+function addBarcodeToList() {
+    const codeEl = el('barcode-code');
+    if (!codeEl) return;
+    const code = codeEl.textContent;
+    if (!code || code === '—') return;
+    const list = loadShoppingList();
+    list.push({ id: Date.now() + Math.random(), name: 'Barkod: ' + code, qty: '', price: 0, bought: false, date: Date.now(), barcode: code });
+    saveShoppingList(list);
+    showToast('Dodato u listu za kupovinu.', 'success', 2000);
+}
+
+// ---------- PRICE TRACKING ----------
+const PRICE_TRACKING_KEY = 'cx_price_tracking_v1';
+function loadPriceTracking() {
+    try { const raw = JSON.parse(localStorage.getItem(PRICE_TRACKING_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
+    return [];
+}
+function savePriceTracking(list) {
+    try { localStorage.setItem(PRICE_TRACKING_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function renderPriceTracking() {
+    return `
+        <div class="converter-box">
+            <div class="lista-head">
+                <div class="section-desc" style="margin:0;">Prati cene proizvoda kroz vreme.</div>
+                <button class="section-action-btn" onclick="openPriceTrackingModal()">+ Dodaj</button>
+            </div>
+            <div id="price-tracking-list" class="price-track-list"></div>
+        </div>
+    `;
+}
+function renderPriceTrackingList() {
+    const list = el('price-tracking-list');
+    if (!list) return;
+    const items = loadPriceTracking();
+    if (!items.length) {
+        list.innerHTML = `<div class="price-track-empty"><div class="price-track-empty-icon">📊</div><div>Nema proizvoda. Dodaj prvi!</div></div>`;
+        return;
+    }
+    let html = '';
+    items.forEach(item => {
+        const prices = item.prices || [];
+        const lowest = prices.length ? Math.min(...prices.map(p => p.price)) : 0;
+        const highest = prices.length ? Math.max(...prices.map(p => p.price)) : 0;
+        const avg = prices.length ? prices.reduce((s, p) => s + p.price, 0) / prices.length : 0;
+        const last = prices.length ? prices[prices.length - 1].price : 0;
+        const change = prices.length >= 2 ? last - prices[prices.length - 2].price : 0;
+        const changeClass = change > 0 ? 'up' : (change < 0 ? 'down' : '');
+        const changeText = change === 0 ? '—' : (change > 0 ? '+' : '') + money(change) + ' RSD';
+        html += `
+            <div class="price-track-card">
+                <div class="price-track-head">
+                    <div class="price-track-name">${escapeHtml(item.name)}</div>
+                    ${item.store ? `<div class="price-track-store">${escapeHtml(item.store)}</div>` : ''}
+                </div>
+                <div class="price-track-stats">
+                    <div class="price-track-stat"><div class="price-track-stat-label">Najniža</div><div class="price-track-stat-value low">${money(lowest)}</div></div>
+                    <div class="price-track-stat"><div class="price-track-stat-label">Prosečna</div><div class="price-track-stat-value">${money(avg)}</div></div>
+                    <div class="price-track-stat"><div class="price-track-stat-label">Najviša</div><div class="price-track-stat-value high">${money(highest)}</div></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:0.75rem;color:var(--text-secondary);font-weight:700;">Poslednja: ${money(last)} RSD</span>
+                    ${changeText !== '—' ? `<span class="price-track-change ${changeClass}">${changeText}</span>` : ''}
+                </div>
+                <div style="display:flex;gap:6px;margin-top:10px;">
+                    <button class="section-action-btn" style="flex:1;" onclick="openAddPriceModal('${item.id}')">+ Dodaj cenu</button>
+                    <button class="section-action-btn" style="flex:1;color:#f43f5e;border-color:rgba(244,63,94,0.4);" onclick="deletePriceTracking('${item.id}')">Obriši</button>
+                </div>
+            </div>
+        `;
+    });
+    list.innerHTML = html;
+}
+function openPriceTrackingModal() {
+    const modal = el('price-tracking-modal');
+    const body = el('price-tracking-modal-body');
+    if (!modal || !body) return;
+    body.innerHTML = `
+        <div class="converter-box">
+            ${inputFieldText('label.shop.itemName', 'pt-name', 'npr. Mleko 1L')}
+            ${inputFieldText('label.shop.price', 'pt-store', 'npr. Maxi')}
+            ${calcButton('btn.save', 'savePriceTrackingProduct()')}
+        </div>
+    `;
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+}
+function savePriceTrackingProduct() {
+    const name = el('pt-name') ? el('pt-name').value.trim() : '';
+    const store = el('pt-store') ? el('pt-store').value.trim() : '';
+    if (!name) { showToast('Unesi naziv proizvoda.', 'error'); return; }
+    const list = loadPriceTracking();
+    list.push({ id: 'pt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), name, store, prices: [], createdAt: Date.now() });
+    savePriceTracking(list);
+    closeModal('price-tracking-modal');
+    renderPriceTrackingList();
+    showToast('Proizvod dodat.', 'success', 1500);
+}
+function openAddPriceModal(productId) {
+    const list = loadPriceTracking();
+    const item = list.find(p => p.id === productId);
+    if (!item) return;
+    const price = prompt('Unesi cenu (RSD):');
+    if (!price) return;
+    const priceNum = parseNum(price);
+    if (!priceNum || priceNum <= 0) { showToast('Neispravna cena.', 'error'); return; }
+    const store = prompt('Prodavnica (opciono):') || item.store || '';
+    item.prices = item.prices || [];
+    item.prices.push({ price: priceNum, store: store, date: new Date().toISOString().slice(0, 10) });
+    savePriceTracking(list);
+    renderPriceTrackingList();
+    showToast('Cena dodata.', 'success', 1500);
+}
+function deletePriceTracking(productId) {
+    showConfirm('Obrisati ovaj proizvod i sve cene?').then(ok => {
+        if (!ok) return;
+        let list = loadPriceTracking();
+        list = list.filter(p => p.id !== productId);
+        savePriceTracking(list);
+        renderPriceTrackingList();
+        showToast('Proizvod obrisan.', 'info', 1500);
+    });
+}
+
+// ---------- SKICA ----------
+function renderSketch() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Nacrtaj skicu prostorije na osnovu dimenzija.</p>
+            ${inputField('label.home.length', 'sketch-length', 'm', 'placeholder="5" oninput="drawSketch()"')}
+            ${inputField('label.home.width', 'sketch-width', 'm', 'placeholder="3" oninput="drawSketch()"')}
+        </div>
+        <div class="sketch-wrap">
+            <svg id="sketch-svg" class="sketch-svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet">
+                <rect x="50" y="50" width="300" height="200" fill="none" stroke="var(--border-strong)" stroke-width="2" stroke-dasharray="6,4"/>
+                <text x="200" y="150" text-anchor="middle" fill="var(--text-tertiary)" font-size="14" font-weight="600">Unesi dimenzije</text>
+            </svg>
+        </div>
+        ${statsRow('sketch-stats-row', [
+            ['label.home.area', 'stat-sketch-area', '0 m²'],
+            ['label.home.totalArea', 'stat-sketch-perimeter', '0 m']
+        ])}
+    `;
+}
+function drawSketch() {
+    const svg = el('sketch-svg');
+    if (!svg) return;
+    const l = num('sketch-length');
+    const w = num('sketch-width');
+    if (!l || !w) {
+        svg.innerHTML = `<rect x="50" y="50" width="300" height="200" fill="none" stroke="var(--border-strong)" stroke-width="2" stroke-dasharray="6,4"/><text x="200" y="150" text-anchor="middle" fill="var(--text-tertiary)" font-size="14" font-weight="600">Unesi dimenzije</text>`;
+        return;
+    }
+    const aspect = l / w;
+    let rw, rh;
+    const maxW = 300, maxH = 200;
+    if (aspect >= maxW / maxH) { rw = maxW; rh = maxW / aspect; }
+    else { rh = maxH; rw = maxH * aspect; }
+    const x = (400 - rw) / 2, y = (300 - rh) / 2;
+    svg.innerHTML = `
+        <rect x="${x}" y="${y}" width="${rw}" height="${rh}" fill="rgba(99,102,241,0.1)" stroke="var(--accent-primary)" stroke-width="3" rx="4"/>
+        <text x="${x + rw / 2}" y="${y - 12}" text-anchor="middle" fill="var(--text-main)" font-size="13" font-weight="800">${l} m</text>
+        <text x="${x - 12}" y="${y + rh / 2}" text-anchor="middle" fill="var(--text-main)" font-size="13" font-weight="800" transform="rotate(-90 ${x - 12} ${y + rh / 2})">${w} m</text>
+        <text x="${x + rw / 2}" y="${y + rh / 2 + 6}" text-anchor="middle" fill="var(--accent-primary)" font-size="18" font-weight="900">${(l * w).toFixed(2)} m²</text>
+    `;
+    const sa = el('stat-sketch-area'); if (sa) sa.innerText = (l * w).toFixed(2) + ' m²';
+    const sp = el('stat-sketch-perimeter'); if (sp) sp.innerText = (2 * (l + w)).toFixed(2) + ' m';
+    const row = el('sketch-stats-row'); if (row) row.style.display = 'flex';
+}
+
+// ---------- TROŠKOVNIK ----------
+const COST_ESTIMATE_KEY = 'cx_cost_estimate_v1';
+function loadCostEstimate() {
+    try { const raw = JSON.parse(localStorage.getItem(COST_ESTIMATE_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
+    return [];
+}
+function saveCostEstimate(list) {
+    try { localStorage.setItem(COST_ESTIMATE_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function renderCostEstimate() {
+    return `
+        <div class="converter-box">
+            <div class="lista-head">
+                <div class="section-desc" style="margin:0;">Vodi troškovnik materijala i radova.</div>
+                <button class="section-action-btn" onclick="openCostEstimateModal()">+ Dodaj</button>
+            </div>
+            <div id="cost-estimate-list"></div>
+        </div>
+    `;
+}
+function renderCostEstimateList() {
+    const wrap = el('cost-estimate-list');
+    if (!wrap) return;
+    const items = loadCostEstimate();
+    if (!items.length) {
+        wrap.innerHTML = `<div class="price-track-empty"><div class="price-track-empty-icon">📋</div><div>Nema stavki. Dodaj prvu!</div></div>`;
+        return;
+    }
+    let rowsHtml = '';
+    let grand = 0;
+    items.forEach(item => {
+        const total = (item.qty || 0) * (item.unitPrice || 0);
+        grand += total;
+        rowsHtml += `
+            <div class="cost-estimate-row">
+                <div class="cost-estimate-name">${escapeHtml(item.name)}</div>
+                <div class="cost-estimate-qty">${item.qty}</div>
+                <div class="cost-estimate-unit">${escapeHtml(item.unit || '')}</div>
+                <div class="cost-estimate-total">${money(total)}</div>
+                <button class="cost-estimate-remove" onclick="deleteCostEstimateItem('${item.id}')">✕</button>
+            </div>
+        `;
+    });
+    wrap.innerHTML = `
+        <div class="cost-estimate-table">
+            <div class="cost-estimate-head"><div>Naziv</div><div>Kol.</div><div>Jed.</div><div>Cena</div><div></div></div>
+            ${rowsHtml}
+        </div>
+        <div class="cost-estimate-grand-total"><span class="label">UKUPNO</span><span class="value">${money(grand)} RSD</span></div>
+        <div style="display:flex;gap:8px;">
+            <button class="section-action-btn" style="flex:1;" onclick="shareCostEstimate()">📤 Podeli</button>
+            <button class="section-action-btn" style="flex:1;color:#f43f5e;border-color:rgba(244,63,94,0.4);" onclick="clearCostEstimate()">Obriši sve</button>
+        </div>
+    `;
+}
+function openCostEstimateModal() {
+    const modal = el('cost-estimate-modal');
+    const body = el('cost-estimate-modal-body');
+    if (!modal || !body) return;
+    body.innerHTML = `
+        <div class="converter-box">
+            ${inputFieldText('label.shop.itemName', 'ce-name', 'npr. Blokovi')}
+            ${inputField('label.quantity', 'ce-qty', '', 'placeholder="100"')}
+            ${inputFieldText('label.shop.unit', 'ce-unit', 'kom / m² / kg')}
+            ${inputField('label.shop.price', 'ce-price', 'RSD', 'placeholder="80"')}
+            ${calcButton('btn.save', 'saveCostEstimateItem()')}
+        </div>
+    `;
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+}
+function saveCostEstimateItem() {
+    const name = el('ce-name') ? el('ce-name').value.trim() : '';
+    const qty = num('ce-qty') || 0;
+    const unit = el('ce-unit') ? el('ce-unit').value.trim() : '';
+    const unitPrice = num('ce-price') || 0;
+    if (!name) { showToast('Unesi naziv stavke.', 'error'); return; }
+    const list = loadCostEstimate();
+    list.push({ id: 'ce_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), name, qty, unit, unitPrice, createdAt: Date.now() });
+    saveCostEstimate(list);
+    closeModal('cost-estimate-modal');
+    renderCostEstimateList();
+    showToast('Stavka dodata.', 'success', 1500);
+}
+function deleteCostEstimateItem(id) {
+    let list = loadCostEstimate();
+    list = list.filter(i => i.id !== id);
+    saveCostEstimate(list);
+    renderCostEstimateList();
+    showToast('Stavka obrisana.', 'info', 1200);
+}
+function clearCostEstimate() {
+    showConfirm('Obrisati ceo troškovnik?').then(ok => {
+        if (!ok) return;
+        saveCostEstimate([]);
+        renderCostEstimateList();
+        showToast('Troškovnik obrisan.', 'info', 1500);
+    });
+}
+function shareCostEstimate() {
+    const items = loadCostEstimate();
+    if (!items.length) { showToast('Nema stavki.', 'info'); return; }
+    let text = 'TROŠKOVNIK — Alatika\n\n';
+    let grand = 0;
+    items.forEach(item => {
+        const total = (item.qty || 0) * (item.unitPrice || 0);
+        grand += total;
+        text += `${item.name}: ${item.qty} ${item.unit || ''} × ${money(item.unitPrice)} = ${money(total)} RSD\n`;
+    });
+    text += `\nUKUPNO: ${money(grand)} RSD`;
+    if (navigator.share) { navigator.share({ text }).catch(() => {}); }
+    else fallbackCopy(text, () => showToast('Kopirano.', 'success', 1500));
+}
+
+// ---------- ISTORIJA TOČENJA ----------
+const FUEL_HISTORY_KEY = 'cx_fuel_history_v1';
+function loadFuelHistory() {
+    try { const raw = JSON.parse(localStorage.getItem(FUEL_HISTORY_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
+    return [];
+}
+function saveFuelHistory(list) {
+    try { localStorage.setItem(FUEL_HISTORY_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function renderFuelHistory() {
+    return `
+        <div class="converter-box">
+            <div class="lista-head">
+                <div class="section-desc" style="margin:0;">Prati točenja, potrošnju i troškove goriva.</div>
+                <button class="section-action-btn" onclick="openFuelHistoryModal()">+ Dodaj</button>
+            </div>
+            <div id="fuel-history-list" class="price-track-list"></div>
+        </div>
+    `;
+}
+function renderFuelHistoryList() {
+    const list = el('fuel-history-list');
+    if (!list) return;
+    const items = loadFuelHistory();
+    if (!items.length) {
+        list.innerHTML = `<div class="price-track-empty"><div class="price-track-empty-icon">⛽</div><div>Nema unosa. Dodaj prvo točenje!</div></div>`;
+        return;
+    }
+    const sorted = [...items].sort((a, b) => (a.km || 0) - (b.km || 0));
+    let totalLiters = 0, totalCost = 0, totalKm = 0, consumptionSum = 0, consumptionCount = 0;
+    for (let i = 1; i < sorted.length; i++) {
+        const kmDiff = sorted[i].km - sorted[i - 1].km;
+        if (kmDiff > 0) { consumptionSum += (sorted[i].liters / kmDiff) * 100; consumptionCount++; }
+    }
+    sorted.forEach(i => { totalLiters += i.liters || 0; totalCost += (i.liters || 0) * (i.price || 0); });
+    if (sorted.length >= 2) totalKm = sorted[sorted.length - 1].km - sorted[0].km;
+    const avgCons = consumptionCount > 0 ? consumptionSum / consumptionCount : 0;
+    const costPerKm = totalKm > 0 ? totalCost / totalKm : 0;
+    let rows = sorted.slice().reverse().map(item => `
+        <div class="price-track-card">
+            <div class="price-track-head"><div class="price-track-name">${escapeHtml(item.date)} • ${item.km} km</div><div class="price-track-store">${item.liters} L</div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div style="font-size:0.78rem;color:var(--text-secondary);">Cena/L: <strong style="color:var(--text-main);">${money(item.price)}</strong></div>
+                <div style="font-size:0.78rem;color:var(--text-secondary);text-align:right;">Ukupno: <strong style="color:#10b981;">${money(item.liters * item.price)}</strong></div>
+            </div>
+            <button class="section-action-btn" style="width:100%;margin-top:8px;color:#f43f5e;border-color:rgba(244,63,94,0.4);" onclick="deleteFuelEntry('${item.id}')">Obriši unos</button>
+        </div>
+    `).join('');
+    list.innerHTML = `
+        <div class="converter-box" style="margin-bottom:12px;">
+            <div class="rate-info-card" style="margin:0;">
+                <div class="rate-info-row"><span class="rate-info-label">Prosečna potrošnja</span><span class="rate-info-value accent">${fmt(avgCons, 2)} L/100km</span></div>
+                <div class="rate-info-row"><span class="rate-info-label">Ukupno litara</span><span class="rate-info-value">${fmt(totalLiters, 1)} L</span></div>
+                <div class="rate-info-row"><span class="rate-info-label">Ukupni trošak</span><span class="rate-info-value">${money(totalCost)} RSD</span></div>
+                <div class="rate-info-row"><span class="rate-info-label">Pređeno</span><span class="rate-info-value">${totalKm} km</span></div>
+                <div class="rate-info-row"><span class="rate-info-label">Cena po km</span><span class="rate-info-value">${money(costPerKm)} RSD</span></div>
+            </div>
+        </div>
+        ${rows}
+        <button class="section-action-btn" style="width:100%;color:#f43f5e;border-color:rgba(244,63,94,0.4);margin-top:12px;" onclick="clearFuelHistory()">Obriši sve</button>
+    `;
+}
+function openFuelHistoryModal() {
+    const modal = el('fuel-history-modal');
+    const body = el('fuel-history-modal-body');
+    if (!modal || !body) return;
+    body.innerHTML = `
+        <div class="converter-box">
+            <div class="input-field"><label>Datum</label><input type="date" id="fh-date" class="custom-input" value="${new Date().toISOString().slice(0, 10)}"></div>
+            ${inputField('label.auto.currentKm', 'fh-km', 'km', 'placeholder="150000"')}
+            ${inputField('label.auto.fuel', 'fh-liters', 'L', 'step="0.1" placeholder="45"')}
+            ${inputField('label.auto.price', 'fh-price', 'RSD/L', 'step="0.1" placeholder="180"')}
+            ${calcButton('btn.save', 'saveFuelEntry()')}
+        </div>
+    `;
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+}
+function saveFuelEntry() {
+    const date = el('fh-date') ? el('fh-date').value : '';
+    const km = num('fh-km');
+    const liters = num('fh-liters');
+    const price = num('fh-price');
+    if (!date || km === null || !liters || !price) { showToast('Popuni sva polja.', 'error'); return; }
+    const list = loadFuelHistory();
+    list.push({ id: 'fh_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), date, km, liters, price, createdAt: Date.now() });
+    saveFuelHistory(list);
+    closeModal('fuel-history-modal');
+    renderFuelHistoryList();
+    showToast('Točenje sačuvano.', 'success', 1500);
+}
+function deleteFuelEntry(id) {
+    let list = loadFuelHistory();
+    list = list.filter(i => i.id !== id);
+    saveFuelHistory(list);
+    renderFuelHistoryList();
+    showToast('Unos obrisan.', 'info', 1200);
+}
+function clearFuelHistory() {
+    showConfirm('Obrisati celu istoriju točenja?').then(ok => {
+        if (!ok) return;
+        saveFuelHistory([]);
+        renderFuelHistoryList();
+        showToast('Istorija obrisana.', 'info', 1500);
+    });
+}
+
+// ---------- PROFIL VOZILA ----------
+const VEHICLE_PROFILE_KEY = 'cx_vehicle_profile_v1';
+function loadVehicleProfile() {
+    try { const raw = JSON.parse(localStorage.getItem(VEHICLE_PROFILE_KEY)); if (raw && typeof raw === 'object') return raw; } catch (e) {}
+    return {};
+}
+function saveVehicleProfileStore(p) {
+    try { localStorage.setItem(VEHICLE_PROFILE_KEY, JSON.stringify(p)); } catch (e) {}
+}
+function renderVehicleProfile() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Popuni podatke o vozilu — koristi se u kalkulacijama.</p>
+            ${inputFieldText('label.auto.model', 'vp-model', 'npr. VW Golf 7')}
+            ${inputFieldText('label.auto.plate', 'vp-plate', 'npr. NP123-AB')}
+            ${inputField('label.auto.technical', 'vp-year', '', 'placeholder="2018"')}
+            <div class="input-field">
+                <label>Tip goriva</label>
+                <select id="vp-fuel-type" class="custom-input">
+                    <option value="petrol">Benzin</option>
+                    <option value="diesel">Dizel</option>
+                    <option value="lpg">TNG</option>
+                    <option value="electric">Električni</option>
+                    <option value="hybrid">Hibrid</option>
+                </select>
+            </div>
+            ${inputField('label.auto.fuel', 'vp-tank', 'L', 'placeholder="55"')}
+            ${inputField('label.auto.avgConsumption', 'vp-consumption', 'L/100km', 'step="0.1" placeholder="7"')}
+            ${dateTripleField('label.auto.registrationExpires', 'vp-reg-date')}
+            ${dateTripleField('label.auto.technicalExpires', 'vp-tech-date')}
+            ${dateTripleField('label.auto.registrationAndInsurance', 'vp-ins-date')}
+            ${calcButton('btn.saveCarProfile', 'saveVehicleProfileData()')}
+            <button class="rem-delete-btn" onclick="clearVehicleProfile()">Obriši profil</button>
+        </div>
+        ${statsRow('vp-status-row', [
+            ['label.auto.registration', 'vp-stat-reg', '—'],
+            ['label.auto.technical', 'vp-stat-tech', '—'],
+            ['label.auto.registrationAndInsurance', 'vp-stat-ins', '—']
+        ])}
+    `;
+}
+function loadVehicleProfileIntoForm() {
+    const p = loadVehicleProfile();
+    const setV = (id, v) => { const e = el(id); if (e) e.value = v == null ? '' : v; };
+    setV('vp-model', p.model);
+    setV('vp-plate', p.plate);
+    setV('vp-year', p.year);
+    setV('vp-fuel-type', p.fuelType || 'petrol');
+    setV('vp-tank', p.tankCapacity);
+    setV('vp-consumption', p.avgConsumption);
+    if (p.regDate) setTripleDate('vp-reg-date', p.regDate);
+    if (p.techDate) setTripleDate('vp-tech-date', p.techDate);
+    if (p.insuranceDate) setTripleDate('vp-ins-date', p.insuranceDate);
+    updateVehicleProfileStatus();
+}
+function saveVehicleProfileData() {
+    const v = id => { const e = el(id); return e ? e.value.trim() : ''; };
+    const profile = {
+        model: v('vp-model'), plate: v('vp-plate'), year: v('vp-year'),
+        fuelType: v('vp-fuel-type') || 'petrol', tankCapacity: v('vp-tank'), avgConsumption: v('vp-consumption'),
+        regDate: getTripleDate('vp-reg-date'), techDate: getTripleDate('vp-tech-date'), insuranceDate: getTripleDate('vp-ins-date')
+    };
+    saveVehicleProfileStore(profile);
+    showToast('Profil vozila sačuvan.', 'success', 1800);
+    updateVehicleProfileStatus();
+}
+function clearVehicleProfile() {
+    showConfirm('Obrisati profil vozila?').then(ok => {
+        if (!ok) return;
+        try { localStorage.removeItem(VEHICLE_PROFILE_KEY); } catch (e) {}
+        showToast('Profil obrisan.', 'info', 1500);
+        loadVehicleProfileIntoForm();
+    });
+}
+function updateVehicleProfileStatus() {
+    const p = loadVehicleProfile();
+    const setV = (id, v) => { const e = el(id); if (e) e.innerText = v; };
+    const daysLeft = (iso) => {
+        if (!iso) return null;
+        const parts = iso.split('-').map(Number);
+        if (parts.length !== 3) return null;
+        const target = new Date(parts[0], parts[1] - 1, parts[2]);
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        return Math.round((target - today) / 86400000);
+    };
+    const fmtDays = (d) => {
+        if (d === null) return '—';
+        if (d < 0) return `Isteklo pre ${Math.abs(d)} d.`;
+        if (d === 0) return 'Danas';
+        return `${d} d.`;
+    };
+    setV('vp-stat-reg', fmtDays(daysLeft(p.regDate)));
+    setV('vp-stat-tech', fmtDays(daysLeft(p.techDate)));
+    setV('vp-stat-ins', fmtDays(daysLeft(p.insuranceDate)));
+    const row = el('vp-status-row');
+    if (row) row.style.display = 'flex';
+}
+
+// ---------- SOLARNI PANELI ----------
+function renderSolarPanels() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Izračunaj koliko solarnih panela ti treba za dnevnu potrošnju.</p>
+            ${inputField('label.power.daily', 'solar-consumption', 'kWh', 'step="0.1" placeholder="15"')}
+            ${inputField('label.power.hoursPerDay', 'solar-hours', 'h', 'value="4" step="0.1"')}
+            ${inputField('label.power.powerWatts', 'solar-panel', 'W', 'value="400"')}
+            ${inputField('label.money.calcType', 'solar-efficiency', '%', 'value="80"')}
+            ${calcButton('btn.calculate', 'calculateSolar()')}
+        </div>
+        <div class="solar-result-card" id="solar-result-box" style="display: none;">
+            <div class="solar-result-value" id="res-solar-count">0</div>
+            <div class="solar-result-label">panela</div>
+            <div class="solar-result-sub" id="res-solar-total-power">Ukupno: 0 W</div>
+        </div>
+        ${statsRow('solar-stats-row', [
+            ['label.power.energy', 'stat-solar-prod', '0 kWh'],
+            ['label.power.power', 'stat-solar-system', '0 kW']
+        ])}
+    `;
+}
+function calculateSolar() {
+    const consumption = num('solar-consumption');
+    const sunHours = num('solar-hours') || 4;
+    const panelWatt = num('solar-panel') || 400;
+    const efficiency = (num('solar-efficiency') || 80) / 100;
+    if (!consumption || consumption <= 0) { showToast('Unesi dnevnu potrošnju.', 'error'); return; }
+    const effectivePanelWatt = panelWatt * efficiency;
+    const dailyProductionPerPanel = (effectivePanelWatt * sunHours) / 1000;
+    const panelsNeeded = Math.ceil(consumption / dailyProductionPerPanel);
+    const totalPower = panelsNeeded * panelWatt;
+    const totalProduction = panelsNeeded * dailyProductionPerPanel;
+    const rc = el('res-solar-count'); if (rc) rc.innerText = panelsNeeded;
+    const rtp = el('res-solar-total-power'); if (rtp) rtp.innerText = `Ukupno: ${totalPower} W`;
+    const sp = el('stat-solar-prod'); if (sp) sp.innerText = fmt(totalProduction, 2) + ' kWh';
+    const ss = el('stat-solar-system'); if (ss) ss.innerText = fmt(totalPower / 1000, 2) + ' kW';
+    show('solar-result-box'); show('solar-stats-row');
+}
+
+// ---------- PRAZNICI ----------
+const SR_HOLIDAYS_FIXED = [
+    { d: 1, m: 1, name: 'Nova godina', type: 'national' },
+    { d: 2, m: 1, name: 'Nova godina (drugi dan)', type: 'national' },
+    { d: 7, m: 1, name: 'Božić (pravoslavni)', type: 'religious' },
+    { d: 14, m: 1, name: 'Pravoslavna Nova godina', type: 'religious' },
+    { d: 15, m: 2, name: 'Dan državnosti Srbije', type: 'national' },
+    { d: 16, m: 2, name: 'Dan državnosti Srbije (drugi dan)', type: 'national' },
+    { d: 1, m: 5, name: 'Praznik rada', type: 'national' },
+    { d: 2, m: 5, name: 'Praznik rada (drugi dan)', type: 'national' },
+    { d: 11, m: 11, name: 'Dan primirja u Prvom svetskom ratu', type: 'national' }
+];
+function getHolidaysForYear(year) {
+    const list = SR_HOLIDAYS_FIXED.map(h => ({ date: new Date(year, h.m - 1, h.d), name: h.name, type: h.type }));
+    try {
+        const a = year % 4, b = year % 7, c = year % 19;
+        const d = (19 * c + 15) % 30;
+        const e = (2 * a + 4 * b - d + 34) % 7;
+        const month = Math.floor((d + e + 114) / 31);
+        const day = ((d + e + 114) % 31) + 1;
+        const easterDate = new Date(year, month - 1, day);
+        easterDate.setDate(easterDate.getDate() + 13);
+        list.push({ date: easterDate, name: 'Vaskrs', type: 'religious' });
+        const easterMonday = new Date(easterDate); easterMonday.setDate(easterMonday.getDate() + 1);
+        list.push({ date: easterMonday, name: 'Vaskrsni ponedeljak', type: 'religious' });
+    } catch (e) {}
+    return list.sort((a, b) => a.date - b.date);
+}
+function renderHolidays() {
+    const currentYear = new Date().getFullYear();
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Prikaz državnih i verskih praznika za Srbiju.</p>
+            ${inputField('label.time.years', 'holidays-year', '', `value="${currentYear}" oninput="renderHolidaysList()"`)}
+        </div>
+        <div id="holidays-list" class="holiday-list"></div>
+    `;
+}
+function renderHolidaysList() {
+    const list = el('holidays-list');
+    if (!list) return;
+    const yearEl = el('holidays-year');
+    const year = yearEl ? parseInt(yearEl.value) : new Date().getFullYear();
+    if (!year || year < 1900 || year > 2100) { list.innerHTML = ''; return; }
+    const holidays = getHolidaysForYear(year);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const nowMs = today.getTime();
+    let html = '';
+    holidays.forEach(h => {
+        const hDate = new Date(h.date); hDate.setHours(0, 0, 0, 0);
+        const days = Math.round((hDate - nowMs) / 86400000);
+        const isToday = days === 0, isTomorrow = days === 1, isPast = days < 0;
+        const cls = isToday ? 'today' : (isTomorrow ? 'tomorrow' : (isPast ? 'past' : ''));
+        const dayName = hDate.getDate();
+        const monthName = hDate.toLocaleDateString('sr-RS', { month: 'short' }).replace('.', '');
+        const daysText = isToday ? 'DANAS' : (isTomorrow ? 'SUTRA' : (isPast ? `pre ${Math.abs(days)} d.` : `${days} d.`));
+        html += `
+            <div class="holiday-card ${cls}">
+                <div class="holiday-date-box"><div class="holiday-day">${dayName}</div><div class="holiday-month">${monthName}</div></div>
+                <div class="holiday-info"><div class="holiday-name">${escapeHtml(h.name)}</div><div class="holiday-type">${h.type === 'religious' ? 'Verski' : 'Državni'}</div></div>
+                <div class="holiday-days-until">${daysText}</div>
+            </div>
+        `;
+    });
+    list.innerHTML = html;
+}
+
+// ---------- VREMENSKE ZONE ----------
+const TIMEZONES = [
+    { id: 'UTC-12', offset: -12, label: 'UTC-12:00' }, { id: 'UTC-11', offset: -11, label: 'UTC-11:00' },
+    { id: 'UTC-10', offset: -10, label: 'UTC-10:00 (Havaji)' }, { id: 'UTC-9', offset: -9, label: 'UTC-09:00 (Aljaska)' },
+    { id: 'UTC-8', offset: -8, label: 'UTC-08:00 (LA)' }, { id: 'UTC-7', offset: -7, label: 'UTC-07:00 (Denver)' },
+    { id: 'UTC-6', offset: -6, label: 'UTC-06:00 (Čikago)' }, { id: 'UTC-5', offset: -5, label: 'UTC-05:00 (Njujork)' },
+    { id: 'UTC-4', offset: -4, label: 'UTC-04:00 (Karakaš)' }, { id: 'UTC-3', offset: -3, label: 'UTC-03:00 (Brazil)' },
+    { id: 'UTC-2', offset: -2, label: 'UTC-02:00' }, { id: 'UTC-1', offset: -1, label: 'UTC-01:00 (Azori)' },
+    { id: 'UTC+0', offset: 0, label: 'UTC±00:00 (London)' }, { id: 'UTC+1', offset: 1, label: 'UTC+01:00 (Beograd, Berlin)' },
+    { id: 'UTC+2', offset: 2, label: 'UTC+02:00 (Atina, Kairo)' }, { id: 'UTC+3', offset: 3, label: 'UTC+03:00 (Moskva)' },
+    { id: 'UTC+4', offset: 4, label: 'UTC+04:00 (Dubai)' }, { id: 'UTC+5', offset: 5, label: 'UTC+05:00 (Karachi)' },
+    { id: 'UTC+6', offset: 6, label: 'UTC+06:00 (Daka)' }, { id: 'UTC+7', offset: 7, label: 'UTC+07:00 (Bangkok)' },
+    { id: 'UTC+8', offset: 8, label: 'UTC+08:00 (Peking, Singapur)' }, { id: 'UTC+9', offset: 9, label: 'UTC+09:00 (Tokio)' },
+    { id: 'UTC+10', offset: 10, label: 'UTC+10:00 (Sidnej)' }, { id: 'UTC+11', offset: 11, label: 'UTC+11:00' },
+    { id: 'UTC+12', offset: 12, label: 'UTC+12:00 (Okland)' }
+];
+function renderTimeZone() {
+    const now = new Date();
+    const tzOptions = TIMEZONES.map(tz => `<option value="${tz.id}"${tz.offset === 1 ? ' selected' : ''}>${escapeHtml(tz.label)}</option>`).join('');
+    const tzOptionsTo = TIMEZONES.map(tz => `<option value="${tz.id}"${tz.offset === 8 ? ' selected' : ''}>${escapeHtml(tz.label)}</option>`).join('');
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Konvertuj vreme između vremenskih zona.</p>
+            <div class="timezone-grid">
+                <div class="timezone-field"><label>Iz zone</label><select id="tz-from" class="custom-input" onchange="calculateTimeZone()">${tzOptions}</select></div>
+                <div class="timezone-field"><label>U zonu</label><select id="tz-to" class="custom-input" onchange="calculateTimeZone()">${tzOptionsTo}</select></div>
+            </div>
+            <div class="timezone-grid">
+                <div class="timezone-field"><label>Vreme</label><input type="time" id="tz-time" class="custom-input" value="${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}" oninput="calculateTimeZone()"></div>
+                <div class="timezone-field"><label>Datum</label><input type="date" id="tz-date" class="custom-input" value="${now.toISOString().slice(0, 10)}" oninput="calculateTimeZone()"></div>
+            </div>
+            ${calcButton('btn.calculate', 'calculateTimeZone()')}
+        </div>
+        <div class="timezone-result-card" id="tz-result-box" style="display: none;">
+            <div class="timezone-result-label">Rezultat</div>
+            <div class="timezone-result-time" id="tz-result-time">--:--</div>
+            <div class="timezone-result-date" id="tz-result-date">—</div>
+            <div class="timezone-diff" id="tz-result-diff">Razlika: 0 sati</div>
+        </div>
+    `;
+}
+function calculateTimeZone() {
+    const fromEl = el('tz-from'), toEl = el('tz-to'), timeEl = el('tz-time'), dateEl = el('tz-date');
+    if (!fromEl || !toEl || !timeEl || !dateEl) return;
+    const fromTz = TIMEZONES.find(tz => tz.id === fromEl.value);
+    const toTz = TIMEZONES.find(tz => tz.id === toEl.value);
+    if (!fromTz || !toTz) return;
+    const [h, m] = timeEl.value.split(':').map(Number);
+    const [yy, mm, dd] = dateEl.value.split('-').map(Number);
+    if (isNaN(h) || isNaN(yy)) return;
+    const utcDate = new Date(Date.UTC(yy, mm - 1, dd, h, m));
+    utcDate.setUTCMinutes(utcDate.getUTCMinutes() - fromTz.offset * 60);
+    const targetDate = new Date(utcDate.getTime() + toTz.offset * 60 * 60000);
+    const resultH = String(targetDate.getUTCHours()).padStart(2, '0');
+    const resultM = String(targetDate.getUTCMinutes()).padStart(2, '0');
+    const resultD = targetDate.getUTCDate();
+    const resultMo = targetDate.getUTCMonth() + 1;
+    const resultY = targetDate.getUTCFullYear();
+    const diffHours = toTz.offset - fromTz.offset;
+    const rt = el('tz-result-time'); if (rt) rt.innerText = `${resultH}:${resultM}`;
+    const rd = el('tz-result-date'); if (rd) rd.innerText = `${resultD}.${resultMo}.${resultY}.`;
+    const rdiff = el('tz-result-diff');
+    if (rdiff) rdiff.innerText = `Razlika: ${diffHours >= 0 ? '+' : ''}${diffHours} sati`;
+    show('tz-result-box');
+}
+
+// ---------- WORKOUT ----------
+const WORKOUT_KEY = 'cx_workouts_v1';
+const WORKOUT_TYPES = {
+    strength: { label: 'Snaga', icon: 'dumbbell', color: '#ec4899' },
+    cardio: { label: 'Kardio', icon: 'run', color: '#f43f5e' },
+    flexibility: { label: 'Istezanje', icon: 'activity', color: '#10b981' },
+    sport: { label: 'Sport', icon: 'target', color: '#f59e0b' },
+    other: { label: 'Drugo', icon: 'star', color: '#6366f1' }
+};
+function loadWorkouts() {
+    try { const raw = JSON.parse(localStorage.getItem(WORKOUT_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
+    return [];
+}
+function saveWorkouts(list) {
+    try { localStorage.setItem(WORKOUT_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function renderWorkoutJournal() {
+    return `
+        <div class="converter-box">
+            <div class="lista-head">
+                <div class="section-desc" style="margin:0;">Beleži svoje treninge i prati napredak.</div>
+                <button class="section-action-btn" onclick="openWorkoutModal()">+ Dodaj</button>
+            </div>
+            <div id="workout-list" class="workout-list"></div>
+        </div>
+    `;
+}
+function renderWorkoutList() {
+    const list = el('workout-list');
+    if (!list) return;
+    const items = loadWorkouts().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    if (!items.length) {
+        list.innerHTML = `<div class="workout-empty"><div class="workout-empty-icon">💪</div><div>Nema treninga. Dodaj prvi!</div></div>`;
+        return;
+    }
+    let html = '';
+    items.forEach(w => {
+        const type = WORKOUT_TYPES[w.type] || WORKOUT_TYPES.other;
+        html += `
+            <div class="workout-card" style="--workout-color: ${type.color};">
+                <div class="workout-head">
+                    <span class="workout-type-badge">${escapeHtml(type.label)}</span>
+                    <span class="workout-date">${escapeHtml(w.date)}</span>
+                    ${w.duration ? `<span class="workout-duration">${w.duration} min</span>` : ''}
+                </div>
+                <div class="workout-exercises">
+                    ${(w.exercises || []).map(ex => `
+                        <div class="workout-exercise-row">
+                            <span class="workout-exercise-name">${escapeHtml(ex.name)}</span>
+                            <span class="workout-exercise-detail">${ex.sets || 0}×${ex.reps || 0}</span>
+                            <span class="workout-exercise-detail">${ex.weight || 0} kg</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="section-action-btn" style="width:100%;margin-top:10px;color:#f43f5e;border-color:rgba(244,63,94,0.4);" onclick="deleteWorkout('${w.id}')">Obriši</button>
+            </div>
+        `;
+    });
+    list.innerHTML = html;
+}
+let workoutDraftExercises = [];
+function openWorkoutModal() {
+    const modal = el('workout-modal');
+    const body = el('workout-modal-body');
+    if (!modal || !body) return;
+    workoutDraftExercises = [];
+    body.innerHTML = `
+        <div class="converter-box">
+            <div class="input-field"><label>Datum</label><input type="date" id="wo-date" class="custom-input" value="${new Date().toISOString().slice(0, 10)}"></div>
+            <div class="input-field"><label>Tip treninga</label><select id="wo-type" class="custom-input">${Object.entries(WORKOUT_TYPES).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select></div>
+            ${inputField('label.health.timeMin', 'wo-duration', 'min', 'placeholder="60"')}
+            <div class="section-desc">Vežbe:</div>
+            <div id="wo-exercises-list"></div>
+            <button class="workout-add-exercise-btn" onclick="addWorkoutExercise()">+ Dodaj vežbu</button>
+            ${inputFieldText('label.notes', 'wo-notes', '')}
+            ${calcButton('btn.save', 'saveWorkout()')}
+        </div>
+    `;
+    renderWorkoutExercisesDraft();
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+}
+function addWorkoutExercise() {
+    workoutDraftExercises.push({ name: '', sets: 3, reps: 10, weight: 0 });
+    renderWorkoutExercisesDraft();
+}
+function renderWorkoutExercisesDraft() {
+    const list = el('wo-exercises-list');
+    if (!list) return;
+    list.innerHTML = '';
+    workoutDraftExercises.forEach((ex, idx) => {
+        const row = document.createElement('div');
+        row.className = 'workout-exercise-row';
+        row.style.gridTemplateColumns = '1fr 60px 60px 70px 32px';
+        row.innerHTML = `
+            <input type="text" placeholder="Naziv" value="${escapeHtml(ex.name)}" data-idx="${idx}" data-f="name" class="custom-input" style="font-size:0.8rem;padding:6px;">
+            <input type="number" placeholder="Serije" value="${ex.sets}" data-idx="${idx}" data-f="sets" class="custom-input" style="font-size:0.8rem;padding:6px;">
+            <input type="number" placeholder="Pon." value="${ex.reps}" data-idx="${idx}" data-f="reps" class="custom-input" style="font-size:0.8rem;padding:6px;">
+            <input type="number" placeholder="kg" value="${ex.weight}" data-idx="${idx}" data-f="weight" class="custom-input" style="font-size:0.8rem;padding:6px;">
+            <button class="cost-estimate-remove" onclick="removeWorkoutExercise(${idx})">✕</button>
+        `;
+        list.appendChild(row);
+    });
+    list.querySelectorAll('input').forEach(inp => {
+        inp.addEventListener('input', e => {
+            const idx = parseInt(e.target.dataset.idx);
+            const field = e.target.dataset.f;
+            if (workoutDraftExercises[idx]) {
+                if (field === 'name') workoutDraftExercises[idx][field] = e.target.value;
+                else workoutDraftExercises[idx][field] = parseNum(e.target.value) || 0;
+            }
+        });
+    });
+}
+function removeWorkoutExercise(idx) {
+    workoutDraftExercises.splice(idx, 1);
+    renderWorkoutExercisesDraft();
+}
+function saveWorkout() {
+    const date = el('wo-date') ? el('wo-date').value : '';
+    const type = el('wo-type') ? el('wo-type').value : 'other';
+    const duration = num('wo-duration') || 0;
+    const notes = el('wo-notes') ? el('wo-notes').value.trim() : '';
+    if (!date) { showToast('Unesi datum.', 'error'); return; }
+    const list = loadWorkouts();
+    list.push({ id: 'wo_' + Date.now(), date, type, duration, notes, exercises: [...workoutDraftExercises], createdAt: Date.now() });
+    saveWorkouts(list);
+    closeModal('workout-modal');
+    renderWorkoutList();
+    showToast('Trening sačuvan.', 'success', 1500);
+}
+function deleteWorkout(id) {
+    showConfirm('Obrisati ovaj trening?').then(ok => {
+        if (!ok) return;
+        let list = loadWorkouts();
+        list = list.filter(w => w.id !== id);
+        saveWorkouts(list);
+        renderWorkoutList();
+        showToast('Trening obrisan.', 'info', 1500);
+    });
+}
+
+// ---------- PEDOMETAR ----------
+const PEDOMETER_KEY = 'cx_pedometer_v1';
+const PEDOMETER_GOAL_KEY = 'cx_pedometer_goal';
+let pedometerState = { steps: 0, goal: 10000, active: false, lastStepTime: 0, listener: null };
+function loadPedometerData() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(PEDOMETER_KEY));
+        if (raw && raw.date === new Date().toISOString().slice(0, 10)) pedometerState.steps = raw.steps || 0;
+        else pedometerState.steps = 0;
+    } catch (e) { pedometerState.steps = 0; }
+    try { const g = parseInt(localStorage.getItem(PEDOMETER_GOAL_KEY)); if (g > 0) pedometerState.goal = g; } catch (e) {}
+}
+function savePedometerData() {
+    try { localStorage.setItem(PEDOMETER_KEY, JSON.stringify({ date: new Date().toISOString().slice(0, 10), steps: pedometerState.steps })); } catch (e) {}
+}
+function renderPedometer() {
+    loadPedometerData();
+    const pct = Math.min(100, (pedometerState.steps / pedometerState.goal) * 100);
+    return `
+        <div class="pedometer-wrap">
+            <div class="pedometer-circle" style="--progress: ${pct};">
+                <div class="pedometer-inner">
+                    <div class="pedometer-steps" id="pedometer-steps">${pedometerState.steps}</div>
+                    <div class="pedometer-goal-label">od ${pedometerState.goal}</div>
+                    <div class="pedometer-progress-pct" id="pedometer-pct">${fmt(pct, 0)}%</div>
+                </div>
+            </div>
+            <div class="pedometer-stats">
+                <div class="pedometer-stat"><div class="pedometer-stat-value" id="pedometer-distance">${fmt(pedometerState.steps * 0.00075, 2)}</div><div class="pedometer-stat-label">km</div></div>
+                <div class="pedometer-stat"><div class="pedometer-stat-value" id="pedometer-calories">${fmt(pedometerState.steps * 0.04, 0)}</div><div class="pedometer-stat-label">kcal</div></div>
+            </div>
+            <div class="input-field" style="width:100%;max-width:400px;">
+                <label>Dnevni cilj</label>
+                <div class="input-wrapper"><input type="number" id="pedometer-goal-input" class="custom-input" value="${pedometerState.goal}" step="500"></div>
+            </div>
+            <div style="display:flex;gap:8px;width:100%;max-width:400px;">
+                <button class="gps-btn-main" onclick="startPedometer()" style="flex:1;">▶ Pokreni</button>
+                <button class="gps-btn-secondary" onclick="resetPedometer()">Resetuj</button>
+            </div>
+        </div>
+    `;
+}
+function initPedometer() { loadPedometerData(); }
+function startPedometer() {
+    if (pedometerState.active) { stopPedometer(); return; }
+    if (!window.DeviceMotionEvent) { showToast(safeT('pedometer.unsupported'), 'error', 2500); return; }
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isIOS && typeof DeviceMotionEvent.requestPermission === 'function') {
+        DeviceMotionEvent.requestPermission().then(result => {
+            if (result === 'granted') actuallyStartPedometer();
+            else showToast(safeT('pedometer.permission'), 'error', 2500);
+        }).catch(() => showToast(safeT('pedometer.permission'), 'error', 2500));
+        return;
+    }
+    actuallyStartPedometer();
+}
+function actuallyStartPedometer() {
+    pedometerState.active = true;
+    pedometerState.listener = (e) => {
+        const acc = e.accelerationIncludingGravity;
+        if (!acc) return;
+        const magnitude = Math.sqrt((acc.x || 0) ** 2 + (acc.y || 0) ** 2 + (acc.z || 0) ** 2);
+        const now = Date.now();
+        if (magnitude > 12 && now - pedometerState.lastStepTime > 250) {
+            pedometerState.steps++;
+            pedometerState.lastStepTime = now;
+            updatePedometerDisplay();
+            if (pedometerState.steps % 10 === 0) savePedometerData();
+        }
+    };
+    window.addEventListener('devicemotion', pedometerState.listener);
+    showToast('Pedometar pokrenut.', 'success', 1500);
+}
+function stopPedometer() {
+    if (pedometerState.listener) { window.removeEventListener('devicemotion', pedometerState.listener); pedometerState.listener = null; }
+    pedometerState.active = false;
+    savePedometerData();
+}
+function updatePedometerDisplay() {
+    const stepsEl = el('pedometer-steps');
+    const pctEl = el('pedometer-pct');
+    const distEl = el('pedometer-distance');
+    const calEl = el('pedometer-calories');
+    const circle = document.querySelector('.pedometer-circle');
+    if (stepsEl) stepsEl.textContent = pedometerState.steps;
+    const pct = Math.min(100, (pedometerState.steps / pedometerState.goal) * 100);
+    if (pctEl) pctEl.textContent = fmt(pct, 0) + '%';
+    if (distEl) distEl.textContent = fmt(pedometerState.steps * 0.00075, 2);
+    if (calEl) calEl.textContent = fmt(pedometerState.steps * 0.04, 0);
+    if (circle) circle.style.setProperty('--progress', pct);
+}
+function resetPedometer() {
+    showConfirm(safeT('pedometer.resetConfirm')).then(ok => {
+        if (!ok) return;
+        pedometerState.steps = 0;
+        savePedometerData();
+        updatePedometerDisplay();
+        showToast('Resetovano.', 'info', 1200);
+    });
+}
+
+// ---------- VODA I SAN ----------
+const WATER_KEY = 'cx_water_v1';
+const SLEEP_KEY = 'cx_sleep_v1';
+const WATER_GOAL_KEY = 'cx_water_goal';
+let waterState = { amount: 0, goal: 2000, date: '' };
+function loadWaterData() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(WATER_KEY));
+        const today = new Date().toISOString().slice(0, 10);
+        if (raw && raw.date === today) { waterState.amount = raw.amount || 0; waterState.date = today; }
+        else { waterState.amount = 0; waterState.date = today; }
+    } catch (e) { waterState.amount = 0; }
+    try { const g = parseInt(localStorage.getItem(WATER_GOAL_KEY)); if (g > 0) waterState.goal = g; } catch (e) {}
+}
+function saveWaterData() {
+    try { localStorage.setItem(WATER_KEY, JSON.stringify({ date: waterState.date, amount: waterState.amount })); } catch (e) {}
+}
+function loadSleepHistory() {
+    try { const raw = JSON.parse(localStorage.getItem(SLEEP_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
+    return [];
+}
+function saveSleepHistory(list) {
+    try { localStorage.setItem(SLEEP_KEY, JSON.stringify(list.slice(0, 60))); } catch (e) {}
+}
+function renderWaterSleep() {
+    loadWaterData();
+    const glasses = Math.floor(waterState.amount / 250);
+    const totalGlasses = Math.ceil(waterState.goal / 250);
+    let glassesHtml = '';
+    for (let i = 0; i < totalGlasses; i++) glassesHtml += `<button class="water-glass ${i < glasses ? 'filled' : ''}" onclick="toggleWaterGlass(${i})"></button>`;
+    return `
+        <div class="water-sleep-wrap">
+            <div class="water-section">
+                <div class="water-section-title">${icon('droplet')} Voda — danas</div>
+                <div class="water-progress-text"><span class="current" id="water-amount">${waterState.amount}</span> / ${waterState.goal} ml</div>
+                <div class="water-glasses" id="water-glasses">${glassesHtml}</div>
+                <div class="water-actions">
+                    <button class="water-add-btn" onclick="addWater(250)">+ Čaša (250ml)</button>
+                    <button class="water-add-btn secondary" onclick="resetWater()">Resetuj</button>
+                </div>
+                <div style="margin-top:8px;">
+                    <label style="font-size:0.72rem;color:var(--text-secondary);font-weight:700;">Dnevni cilj (ml)</label>
+                    <input type="number" id="water-goal-input" class="custom-input" value="${waterState.goal}" step="100" onchange="setWaterGoal()" style="margin-top:4px;">
+                </div>
+            </div>
+            <div class="sleep-section">
+                <div class="sleep-section-title">${icon('moon')} San</div>
+                ${renderSleepForm()}
+                <div id="sleep-history-box">${renderSleepHistoryHtml()}</div>
+            </div>
+        </div>
+    `;
+}
+function toggleWaterGlass(idx) {
+    const glasses = Math.floor(waterState.amount / 250);
+    waterState.amount = (idx < glasses) ? idx * 250 : (idx + 1) * 250;
+    saveWaterData();
+    renderWaterSleepTab();
+}
+function addWater(ml) { waterState.amount += ml; saveWaterData(); renderWaterSleepTab(); }
+function resetWater() {
+    showConfirm('Resetovati današnji unos vode?').then(ok => {
+        if (!ok) return;
+        waterState.amount = 0;
+        saveWaterData();
+        renderWaterSleepTab();
+    });
+}
+function setWaterGoal() {
+    const inp = el('water-goal-input');
+    if (!inp) return;
+    const v = parseInt(inp.value);
+    if (v > 0) { waterState.goal = v; try { localStorage.setItem(WATER_GOAL_KEY, String(v)); } catch (e) {} renderWaterSleepTab(); }
+}
+function renderWaterSleepTab() {
+    const body = el('calc-body');
+    if (body && activeTab === 'vodaSan') body.innerHTML = renderWaterSleep();
+}
+function renderSleepForm() {
+    const lastNight = loadSleepHistory()[0];
+    return `
+        <div class="sleep-times">
+            <div class="sleep-time-field"><label>Vreme spavanja</label><input type="time" id="sleep-bedtime" value="${lastNight ? lastNight.bedtime : '23:00'}" oninput="updateSleepDurationDisplay()"></div>
+            <div class="sleep-time-field"><label>Vreme buđenja</label><input type="time" id="sleep-waketime" value="${lastNight ? lastNight.waketime : '07:00'}" oninput="updateSleepDurationDisplay()"></div>
+        </div>
+        <div class="sleep-duration" id="sleep-duration-display">—</div>
+        <div class="sleep-quality-row" id="sleep-quality-row">
+            ${['bad', 'ok', 'good', 'great'].map(q => `<button class="sleep-quality-btn" data-q="${q}" onclick="selectSleepQuality('${q}')">${q === 'bad' ? '😴' : q === 'ok' ? '😐' : q === 'good' ? '🙂' : '😊'}<br>${q === 'bad' ? 'Loše' : q === 'ok' ? 'Onako' : q === 'good' ? 'Dobro' : 'Odlično'}</button>`).join('')}
+        </div>
+        <button class="sleep-save-btn" onclick="saveSleepEntry()">Sačuvaj san</button>
+    `;
+}
+let selectedSleepQuality = 'good';
+function selectSleepQuality(q) {
+    selectedSleepQuality = q;
+    document.querySelectorAll('.sleep-quality-btn').forEach(btn => btn.classList.toggle('selected', btn.dataset.q === q));
+}
+function updateSleepDurationDisplay() {
+    const bedEl = el('sleep-bedtime'), wakeEl = el('sleep-waketime'), disp = el('sleep-duration-display');
+    if (!bedEl || !wakeEl || !disp) return;
+    const [bh, bm] = bedEl.value.split(':').map(Number);
+    const [wh, wm] = wakeEl.value.split(':').map(Number);
+    let bedMin = bh * 60 + bm, wakeMin = wh * 60 + wm;
+    if (wakeMin <= bedMin) wakeMin += 24 * 60;
+    const diff = wakeMin - bedMin;
+    disp.textContent = `${Math.floor(diff / 60)}h ${diff % 60}min`;
+}
+function saveSleepEntry() {
+    const bedEl = el('sleep-bedtime'), wakeEl = el('sleep-waketime');
+    if (!bedEl || !wakeEl) return;
+    const [bh, bm] = bedEl.value.split(':').map(Number);
+    const [wh, wm] = wakeEl.value.split(':').map(Number);
+    let bedMin = bh * 60 + bm, wakeMin = wh * 60 + wm;
+    if (wakeMin <= bedMin) wakeMin += 24 * 60;
+    const list = loadSleepHistory();
+    list.unshift({ date: new Date().toISOString().slice(0, 10), bedtime: bedEl.value, waketime: wakeEl.value, duration: wakeMin - bedMin, quality: selectedSleepQuality });
+    saveSleepHistory(list);
+    renderWaterSleepTab();
+    showToast('San sačuvan.', 'success', 1500);
+}
+function renderSleepHistoryHtml() {
+    const list = loadSleepHistory();
+    if (!list.length) return '';
+    const avg = list.slice(0, 7).reduce((s, e) => s + (e.duration || 0), 0) / Math.min(list.length, 7);
+    return `
+        <div class="rate-info-card" style="margin-top:12px;">
+            <div class="rate-info-row"><span class="rate-info-label">Prosečno (7 dana)</span><span class="rate-info-value accent">${Math.floor(avg / 60)}h ${Math.round(avg % 60)}min</span></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px;">
+            ${list.slice(0, 7).map(e => `<div class="price-track-history-row"><span class="price-track-history-date">${e.date}</span><span class="price-track-history-price">${Math.floor(e.duration / 60)}h ${e.duration % 60}min</span></div>`).join('')}
+        </div>
+    `;
+}
+
+// ---------- RECEPTI ----------
+const RECIPES_KEY = 'cx_recipes_v1';
+function loadRecipes() {
+    try { const raw = JSON.parse(localStorage.getItem(RECIPES_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
+    return [];
+}
+function saveRecipes(list) {
+    try { localStorage.setItem(RECIPES_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function renderRecipes() {
+    return `
+        <div class="converter-box">
+            <div class="lista-head">
+                <div class="section-desc" style="margin:0;">Sačuvaj recepte i prilagodi porcije.</div>
+                <button class="section-action-btn" onclick="openRecipeModal()">+ Dodaj</button>
+            </div>
+            <div id="recipe-list" class="recipe-list"></div>
+        </div>
+    `;
+}
+function renderRecipesList() {
+    const list = el('recipe-list');
+    if (!list) return;
+    const items = loadRecipes();
+    if (!items.length) {
+        list.innerHTML = `<div class="recipe-empty"><div class="recipe-empty-icon">🍳</div><div>Nema recepata. Dodaj prvi!</div></div>`;
+        return;
+    }
+    let html = '';
+    items.forEach(r => {
+        html += `
+            <div class="recipe-card" onclick="openRecipeView('${r.id}')">
+                <div class="recipe-head"><span class="recipe-emoji">🍽️</span><span class="recipe-title">${escapeHtml(r.name)}</span></div>
+                <div class="recipe-meta-row">
+                    <span class="recipe-meta-item">${icon('users')} ${r.servings || 1} porcija</span>
+                    ${r.prepTime ? `<span class="recipe-meta-item">${icon('clock')} ${r.prepTime} min</span>` : ''}
+                </div>
+            </div>
+        `;
+    });
+    list.innerHTML = html;
+}
+let recipeDraftIngredients = [];
+let recipeEditId = null;
+function openRecipeModal(editId = null) {
+    const modal = el('recipes-modal');
+    const body = el('recipes-modal-body');
+    if (!modal || !body) return;
+    recipeEditId = editId;
+    let r = { name: '', description: '', servings: 1, prepTime: 0, ingredients: [], steps: '' };
+    if (editId) { const found = loadRecipes().find(x => x.id === editId); if (found) r = found; }
+    recipeDraftIngredients = (r.ingredients || []).map(i => ({ ...i }));
+    body.innerHTML = `
+        <div class="converter-box">
+            ${inputFieldText('label.shop.itemName', 'recipe-name', 'npr. Palačinke')}
+            ${inputFieldText('label.notes', 'recipe-description', '')}
+            ${inputField('label.kitchen.originalPortions', 'recipe-servings', '', `value="${r.servings || 1}"`)}
+            ${inputField('label.health.timeMin', 'recipe-prep', 'min', `value="${r.prepTime || ''}"`)}
+            <div class="section-desc">Sastojci:</div>
+            <div id="recipe-ingredients-list"></div>
+            <button class="workout-add-exercise-btn" onclick="addRecipeIngredient()">+ Dodaj sastojak</button>
+            <div class="input-field"><label>Priprema</label><textarea id="recipe-steps" class="custom-input rem-textarea" rows="4">${escapeHtml(r.steps || '')}</textarea></div>
+            ${calcButton('btn.save', 'saveRecipe()')}
+        </div>
+    `;
+    renderRecipeIngredientsDraft();
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+}
+function addRecipeIngredient() { recipeDraftIngredients.push({ name: '', amount: '' }); renderRecipeIngredientsDraft(); }
+function renderRecipeIngredientsDraft() {
+    const list = el('recipe-ingredients-list');
+    if (!list) return;
+    list.innerHTML = '';
+    recipeDraftIngredients.forEach((ing, idx) => {
+        const row = document.createElement('div');
+        row.className = 'recipe-ingredient-row';
+        row.style.gridTemplateColumns = '1fr 100px 32px';
+        row.innerHTML = `
+            <input type="text" placeholder="Sastojak" value="${escapeHtml(ing.name)}" data-idx="${idx}" data-f="name" class="custom-input" style="font-size:0.8rem;padding:6px;">
+            <input type="text" placeholder="Količina" value="${escapeHtml(ing.amount)}" data-idx="${idx}" data-f="amount" class="custom-input" style="font-size:0.8rem;padding:6px;">
+            <button class="cost-estimate-remove" onclick="removeRecipeIngredient(${idx})">✕</button>
+        `;
+        list.appendChild(row);
+    });
+    list.querySelectorAll('input').forEach(inp => {
+        inp.addEventListener('input', e => {
+            const idx = parseInt(e.target.dataset.idx);
+            const field = e.target.dataset.f;
+            if (recipeDraftIngredients[idx]) recipeDraftIngredients[idx][field] = e.target.value;
+        });
+    });
+}
+function removeRecipeIngredient(idx) { recipeDraftIngredients.splice(idx, 1); renderRecipeIngredientsDraft(); }
+function saveRecipe() {
+    const name = el('recipe-name') ? el('recipe-name').value.trim() : '';
+    if (!name) { showToast('Unesi naziv recepta.', 'error'); return; }
+    const r = {
+        id: recipeEditId || ('rc_' + Date.now()),
+        name,
+        description: el('recipe-description') ? el('recipe-description').value.trim() : '',
+        servings: num('recipe-servings') || 1,
+        prepTime: num('recipe-prep') || 0,
+        ingredients: [...recipeDraftIngredients].filter(i => i.name),
+        steps: el('recipe-steps') ? el('recipe-steps').value.trim() : '',
+        createdAt: Date.now()
+    };
+    const list = loadRecipes();
+    if (recipeEditId) { const idx = list.findIndex(x => x.id === recipeEditId); if (idx !== -1) list[idx] = r; }
+    else list.push(r);
+    saveRecipes(list);
+    recipeEditId = null;
+    closeModal('recipes-modal');
+    renderRecipesList();
+    showToast('Recept sačuvan.', 'success', 1500);
+}
+function openRecipeView(id) {
+    const r = loadRecipes().find(x => x.id === id);
+    if (!r) return;
+    const modal = el('recipes-modal');
+    const body = el('recipes-modal-body');
+    const titleEl = el('recipes-modal-title');
+    if (!modal || !body) return;
+    if (titleEl) titleEl.textContent = r.name;
+    body.innerHTML = `
+        <div class="converter-box">
+            <div class="section-desc">${escapeHtml(r.description || '')}</div>
+            <div class="recipe-meta-row"><span class="recipe-meta-item">${icon('users')} ${r.servings} porcija</span>${r.prepTime ? `<span class="recipe-meta-item">${icon('clock')} ${r.prepTime} min</span>` : ''}</div>
+        </div>
+        <div class="converter-box">
+            <div class="recipe-scale-inputs"><label>Prilagodi za:</label><input type="number" id="recipe-scale-to" class="custom-input" value="${r.servings}" min="1"><span style="color:var(--text-secondary);font-weight:700;">porcija</span></div>
+            <div id="recipe-scaled-list" style="margin-top:12px;"></div>
+        </div>
+        ${r.steps ? `<div class="converter-box"><div class="section-desc" style="white-space:pre-wrap;line-height:1.6;">${escapeHtml(r.steps)}</div></div>` : ''}
+        <div style="display:flex;gap:8px;">
+            <button class="section-action-btn" style="flex:1;" onclick="closeModal('recipes-modal');openRecipeModal('${r.id}');">Izmeni</button>
+            <button class="section-action-btn" style="flex:1;color:#f43f5e;border-color:rgba(244,63,94,0.4);" onclick="deleteRecipe('${r.id}')">Obriši</button>
+        </div>
+    `;
+    renderScaledIngredients(r);
+    const scaleInput = el('recipe-scale-to');
+    if (scaleInput) scaleInput.addEventListener('input', () => renderScaledIngredients(r));
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+}
+function renderScaledIngredients(r) {
+    const list = el('recipe-scaled-list');
+    if (!list) return;
+    const target = num('recipe-scale-to') || r.servings;
+    const factor = target / r.servings;
+    list.innerHTML = (r.ingredients || []).map(i => {
+        let scaled = i.amount;
+        const match = String(i.amount).match(/^([\d.,]+)\s*(.*)$/);
+        if (match) {
+            const n = parseNum(match[1]);
+            const unit = match[2] || '';
+            if (n !== null) scaled = fmt(n * factor, 2) + ' ' + unit;
+        }
+        return `<div class="recipe-ingredient-row"><span class="recipe-ingredient-name">${escapeHtml(i.name)}</span><span class="recipe-scaled-amount">${escapeHtml(String(scaled))}</span></div>`;
+    }).join('');
+}
+function deleteRecipe(id) {
+    showConfirm('Obrisati ovaj recept?').then(ok => {
+        if (!ok) return;
+        let list = loadRecipes();
+        list = list.filter(x => x.id !== id);
+        saveRecipes(list);
+        closeModal('recipes-modal');
+        renderRecipesList();
+        showToast('Recept obrisan.', 'info', 1500);
+    });
+}
+
+// ---------- HABIT TRACKER ----------
+const HABITS_KEY = 'cx_habits_v1';
+function loadHabits() {
+    try { const raw = JSON.parse(localStorage.getItem(HABITS_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
+    return [];
+}
+function saveHabits(list) {
+    try { localStorage.setItem(HABITS_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function renderHabitTracker() {
+    return `
+        <div class="converter-box">
+            <div class="lista-head">
+                <div class="section-desc" style="margin:0;">Prati svoje navike i nizove.</div>
+                <button class="section-action-btn" onclick="openHabitModal()">+ Dodaj</button>
+            </div>
+            <div id="habit-list" class="habit-list"></div>
+        </div>
+    `;
+}
+function renderHabitsList() {
+    const list = el('habit-list');
+    if (!list) return;
+    const habits = loadHabits();
+    if (!habits.length) {
+        list.innerHTML = `<div class="habit-empty"><div class="habit-empty-icon">✅</div><div>Nema navika. Dodaj prvu!</div></div>`;
+        return;
+    }
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const dayNames = ['Ned', 'Pon', 'Uto', 'Sre', 'Čet', 'Pet', 'Sub'];
+    let html = '';
+    habits.forEach(h => {
+        const history = h.history || {};
+        let weekHtml = '';
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const key = d.toISOString().slice(0, 10);
+            const done = history[key] === true;
+            const isToday = i === 0;
+            weekHtml += `<button class="habit-day-btn ${done ? 'done' : ''} ${isToday ? 'today' : ''}" onclick="toggleHabitDay('${h.id}', '${key}')">
+                <span class="habit-day-label">${dayNames[d.getDay()]}</span>
+                <span class="habit-day-num">${d.getDate()}</span>
+                ${done ? '<span class="habit-day-check">✓</span>' : ''}
+            </button>`;
+        }
+        let streak = 0;
+        let checkDate = new Date(today);
+        while (true) {
+            const key = checkDate.toISOString().slice(0, 10);
+            if (history[key]) { streak++; checkDate.setDate(checkDate.getDate() - 1); }
+            else break;
+        }
+        html += `
+            <div class="habit-card" style="--habit-color: ${h.color || '#10b981'};">
+                <div class="habit-head">
+                    <div class="habit-icon">${icon(h.icon || 'check')}</div>
+                    <div class="habit-info"><div class="habit-name">${escapeHtml(h.name)}</div></div>
+                    ${streak > 0 ? `<span class="habit-streak-badge">🔥 ${streak}</span>` : ''}
+                </div>
+                <div class="habit-week-grid">${weekHtml}</div>
+                <div class="habit-actions">
+                    <button class="habit-action-btn" onclick="openHabitModal('${h.id}')">Izmeni</button>
+                    <button class="habit-action-btn danger" onclick="deleteHabit('${h.id}')">Obriši</button>
+                </div>
+            </div>
+        `;
+    });
+    list.innerHTML = html;
+}
+function toggleHabitDay(habitId, dateKey) {
+    const habits = loadHabits();
+    const h = habits.find(x => x.id === habitId);
+    if (!h) return;
+    h.history = h.history || {};
+    h.history[dateKey] = !h.history[dateKey];
+    saveHabits(habits);
+    renderHabitsList();
+    vibrate(15);
+}
+let habitEditId = null;
+let habitDraftIcon = 'check';
+let habitDraftColor = '#10b981';
+function openHabitModal(editId = null) {
+    const modal = el('habit-modal');
+    const body = el('habit-modal-body');
+    if (!modal || !body) return;
+    habitEditId = editId;
+    let h = { name: '', icon: 'check', color: '#10b981' };
+    if (editId) { const found = loadHabits().find(x => x.id === editId); if (found) h = found; }
+    habitDraftIcon = h.icon || 'check';
+    habitDraftColor = h.color || '#10b981';
+    const iconOptions = ['check', 'run', 'dumbbell', 'book', 'droplet', 'heart', 'sun', 'moon', 'leaf', 'sparkles'];
+    const colorOptions = ['#10b981', '#f43f5e', '#f59e0b', '#06b6d4', '#6366f1', '#a855f7', '#ec4899', '#84cc16'];
+    body.innerHTML = `
+        <div class="converter-box">
+            ${inputFieldText('label.shop.itemName', 'habit-name', 'npr. Trčanje')}
+            <div class="input-field"><label>Ikonica</label><div style="display:flex;gap:8px;flex-wrap:wrap;">
+                ${iconOptions.map(ic => `<button class="gps-color-swatch" style="--swatch-color: var(--card-active);color:var(--text-main);border:2px solid ${habitDraftIcon === ic ? 'var(--accent-primary)' : 'var(--border-strong)'};" onclick="selectHabitIcon('${ic}')">${icon(ic)}</button>`).join('')}
+            </div></div>
+            <div class="input-field"><label>Boja</label><div style="display:flex;gap:8px;flex-wrap:wrap;">
+                ${colorOptions.map(c => `<button class="gps-color-swatch" style="--swatch-color: ${c};" onclick="selectHabitColor('${c}')">${habitDraftColor === c ? '✓' : ''}</button>`).join('')}
+            </div></div>
+            ${calcButton('btn.save', 'saveHabit()')}
+        </div>
+    `;
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+}
+function selectHabitIcon(ic) {
+    habitDraftIcon = ic;
+    document.querySelectorAll('#habit-modal-body .gps-color-swatch').forEach(btn => {
+        const svgInside = btn.querySelector('svg');
+        if (svgInside) btn.style.border = '2px solid var(--border-strong)';
+    });
+    if (event && event.currentTarget) event.currentTarget.style.border = '2px solid var(--accent-primary)';
+}
+function selectHabitColor(c) {
+    habitDraftColor = c;
+    document.querySelectorAll('#habit-modal-body .gps-color-swatch').forEach(btn => {
+        const swatchColor = btn.style.getPropertyValue('--swatch-color');
+        if (swatchColor && swatchColor.trim() === c) btn.textContent = '✓';
+        else if (!btn.querySelector('svg')) btn.textContent = '';
+    });
+}
+function saveHabit() {
+    const name = el('habit-name') ? el('habit-name').value.trim() : '';
+    if (!name) { showToast('Unesi naziv navike.', 'error'); return; }
+    const list = loadHabits();
+    if (habitEditId) {
+        const h = list.find(x => x.id === habitEditId);
+        if (h) { h.name = name; h.icon = habitDraftIcon; h.color = habitDraftColor; }
+    } else {
+        list.push({ id: 'hb_' + Date.now(), name, icon: habitDraftIcon, color: habitDraftColor, history: {}, createdAt: Date.now() });
+    }
+    saveHabits(list);
+    habitEditId = null;
+    closeModal('habit-modal');
+    renderHabitsList();
+    showToast('Navika sačuvana.', 'success', 1500);
+}
+function deleteHabit(id) {
+    showConfirm('Obrisati ovu naviku i sve podatke?').then(ok => {
+        if (!ok) return;
+        let list = loadHabits();
+        list = list.filter(h => h.id !== id);
+        saveHabits(list);
+        renderHabitsList();
+        showToast('Navika obrisana.', 'info', 1500);
+    });
+}
+
+// ---------- DNEVNIK ----------
+const JOURNAL_KEY = 'cx_journal_v1';
+const MOODS = { great: '😄', good: '🙂', ok: '😐', bad: '😔', terrible: '😢' };
+function loadJournal() {
+    try { const raw = JSON.parse(localStorage.getItem(JOURNAL_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
+    return [];
+}
+function saveJournal(list) {
+    try { localStorage.setItem(JOURNAL_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function renderJournal() {
+    return `
+        <div class="converter-box">
+            <div class="lista-head">
+                <div class="section-desc" style="margin:0;">Zapiši svoje misli i osećanja.</div>
+                <button class="section-action-btn" onclick="openJournalModal()">+ Nova beleška</button>
+            </div>
+            <div id="journal-list" class="journal-list"></div>
+        </div>
+    `;
+}
+function renderJournalList() {
+    const list = el('journal-list');
+    if (!list) return;
+    const items = loadJournal().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    if (!items.length) {
+        list.innerHTML = `<div class="journal-empty"><div class="journal-empty-icon">📔</div><div>Nema beleški. Napiši prvu!</div></div>`;
+        return;
+    }
+    let html = '';
+    items.forEach(j => {
+        html += `
+            <div class="journal-card" onclick="openJournalModal('${j.id}')">
+                <div class="journal-head">
+                    <span class="journal-mood">${MOODS[j.mood] || '📝'}</span>
+                    <div class="journal-head-text">
+                        <div class="journal-title">${escapeHtml(j.title)}</div>
+                        <div class="journal-date">${new Date(j.createdAt).toLocaleDateString('sr-RS')}</div>
+                    </div>
+                </div>
+                ${j.text ? `<div class="journal-text">${escapeHtml(j.text)}</div>` : ''}
+                ${(j.tags || []).length ? `<div class="journal-tags">${j.tags.map(t => `<span class="journal-tag">#${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+            </div>
+        `;
+    });
+    list.innerHTML = html;
+}
+let journalEditId = null;
+let selectedJournalMood = 'good';
+function openJournalModal(editId = null) {
+    const modal = el('journal-modal');
+    const body = el('journal-modal-body');
+    const titleEl = el('journal-modal-title');
+    if (!modal || !body) return;
+    journalEditId = editId;
+    let j = { title: '', text: '', mood: 'good', tags: [] };
+    if (editId) { const found = loadJournal().find(x => x.id === editId); if (found) j = found; if (titleEl) titleEl.textContent = 'Izmeni belešku'; }
+    else { if (titleEl) titleEl.textContent = 'Nova beleška'; }
+    selectedJournalMood = j.mood || 'good';
+    body.innerHTML = `
+        <div class="converter-box">
+            ${inputFieldText('label.shop.itemName', 'journal-title', 'Naslov beleške')}
+            <div class="input-field"><label>Raspoloženje</label><div class="journal-mood-picker" id="journal-mood-picker">
+                ${Object.entries(MOODS).map(([k, emoji]) => `<button class="journal-mood-option ${selectedJournalMood === k ? 'selected' : ''}" data-mood="${k}" onclick="selectJournalMood('${k}')">${emoji}</button>`).join('')}
+            </div></div>
+            <div class="input-field"><label>Tekst</label><textarea id="journal-text" class="custom-input rem-textarea" rows="6">${escapeHtml(j.text || '')}</textarea></div>
+            ${inputFieldText('label.time.date', 'journal-tags', 'npr. posao, porodica')}
+            ${calcButton('btn.save', 'saveJournal()')}
+            ${editId ? `<button class="rem-delete-btn" onclick="deleteJournalEntry('${editId}')">Obriši</button>` : ''}
+        </div>
+    `;
+    const tagsInput = el('journal-tags');
+    if (tagsInput && (j.tags || []).length) tagsInput.value = j.tags.join(', ');
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+}
+function selectJournalMood(mood) {
+    selectedJournalMood = mood;
+    document.querySelectorAll('.journal-mood-option').forEach(btn => btn.classList.toggle('selected', btn.dataset.mood === mood));
+}
+function saveJournal() {
+    const title = el('journal-title') ? el('journal-title').value.trim() : '';
+    if (!title) { showToast('Unesi naslov.', 'error'); return; }
+    const text = el('journal-text') ? el('journal-text').value.trim() : '';
+    const tagsRaw = el('journal-tags') ? el('journal-tags').value.trim() : '';
+    const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+    const list = loadJournal();
+    if (journalEditId) {
+        const idx = list.findIndex(x => x.id === journalEditId);
+        if (idx !== -1) list[idx] = { ...list[idx], title, text, mood: selectedJournalMood, tags };
+    } else {
+        list.unshift({ id: 'jn_' + Date.now(), title, text, mood: selectedJournalMood, tags, createdAt: Date.now() });
+    }
+    saveJournal(list);
+    journalEditId = null;
+    closeModal('journal-modal');
+    renderJournalList();
+    showToast('Beleška sačuvana.', 'success', 1500);
+}
+function deleteJournalEntry(id) {
+    showConfirm('Obrisati ovu belešku?').then(ok => {
+        if (!ok) return;
+        let list = loadJournal();
+        list = list.filter(x => x.id !== id);
+        saveJournal(list);
+        closeModal('journal-modal');
+        renderJournalList();
+        showToast('Beleška obrisana.', 'info', 1500);
+    });
+}
+
+// ===== KRAJ DODAVANJA 2 =====
 
 function calculateMoney() {
     const price = num('money-price'), discount = num('money-discount');
