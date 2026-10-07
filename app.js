@@ -10912,6 +10912,13 @@ function initApp() {
     }, 500);
 
     if (typeof t === 'function') document.title = t('app.title');
+        // OČISTI SVE MODALE OD ZAGLAVLJENE 'show' KLASE
+    setTimeout(() => {
+        document.querySelectorAll('.modal').forEach(m => {
+            m.classList.remove('show');
+        });
+        document.body.classList.remove('modal-open');
+    }, 100);
 }
 
 function initToolbarIcons() {
