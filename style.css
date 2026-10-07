@@ -8098,3 +8098,291 @@ input[type="text"].custom-input::placeholder {
         grid-template-columns: repeat(4, 1fr);
     }
 }
+/* ============================================================
+   NIVO — Moderni dizajn
+   ============================================================ */
+
+.level-body-modern {
+    padding: 20px 18px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+}
+
+/* GLAVNI VIZUAL */
+.level-visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.level-circle-modern {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    position: relative;
+    background: radial-gradient(circle at 50% 50%,
+        color-mix(in srgb, var(--card-bg) 90%, white 10%) 0%,
+        var(--card-bg) 70%,
+        color-mix(in srgb, var(--card-bg) 80%, black 20%) 100%);
+    border: 3px solid var(--border-strong);
+    box-shadow:
+        inset 0 4px 12px rgba(0, 0, 0, 0.15),
+        inset 0 -2px 6px rgba(255, 255, 255, 0.1),
+        0 10px 30px rgba(0, 0, 0, 0.25),
+        0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Prsteni oko centra */
+.level-ring-outer,
+.level-ring-middle,
+.level-ring-inner {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    pointer-events: none;
+    transition: border-color 0.3s ease;
+}
+.level-ring-outer {
+    width: 180px; height: 180px;
+    border: 2px dashed rgba(16, 185, 129, 0.25);
+}
+.level-ring-middle {
+    width: 110px; height: 110px;
+    border: 1.5px solid rgba(16, 185, 129, 0.35);
+}
+.level-ring-inner {
+    width: 40px; height: 40px;
+    border: 2px solid rgba(16, 185, 129, 0.5);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Nišani */
+.level-crosshair-h,
+.level-crosshair-v {
+    position: absolute;
+    background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+    pointer-events: none;
+}
+.level-crosshair-h {
+    top: 50%; left: 0; right: 0;
+    height: 1px;
+    transform: translateY(-50%);
+}
+.level-crosshair-v {
+    left: 50%; top: 0; bottom: 0;
+    width: 1px;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, transparent, var(--border-color), transparent);
+}
+
+/* Bubble */
+.level-bubble-modern {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%,
+        #fb7185 0%,
+        #e11d48 50%,
+        #9f1239 100%);
+    box-shadow:
+        inset 0 -4px 8px rgba(0, 0, 0, 0.3),
+        inset 0 3px 6px rgba(255, 255, 255, 0.4),
+        0 6px 20px rgba(225, 29, 72, 0.5),
+        0 0 0 4px rgba(225, 29, 72, 0.15);
+    transform: translate(-50%, -50%);
+    transition: transform 0.12s ease-out, background 0.25s ease, box-shadow 0.25s ease;
+    will-change: transform;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.level-bubble-modern::after {
+    content: '';
+    position: absolute;
+    top: 6px; left: 50%;
+    width: 14px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.75);
+    transform: translateX(-50%);
+    filter: blur(1px);
+}
+.level-bubble-modern.level-ok {
+    background: radial-gradient(circle at 35% 30%,
+        #34d399 0%,
+        #10b981 50%,
+        #047857 100%);
+    box-shadow:
+        inset 0 -4px 8px rgba(0, 0, 0, 0.3),
+        inset 0 3px 6px rgba(255, 255, 255, 0.4),
+        0 6px 24px rgba(16, 185, 129, 0.7),
+        0 0 0 6px rgba(16, 185, 129, 0.2),
+        0 0 40px rgba(16, 185, 129, 0.5);
+    animation: levelPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes levelPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.05); }
+}
+
+/* Status tekst */
+.level-status-modern {
+    font-size: 1rem;
+    font-weight: 900;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 8px 20px;
+    border-radius: 20px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    transition: all 0.3s ease;
+    text-align: center;
+}
+.level-status-modern.ok {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.4);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+}
+
+/* 3 STAT BOXA */
+.level-stats-modern {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+}
+.level-stat-box {
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    padding: 12px 8px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+.level-stat-box.highlight {
+    background: linear-gradient(135deg,
+        color-mix(in srgb, #0ea5e9 15%, var(--input-bg)),
+        var(--input-bg));
+    border-color: color-mix(in srgb, #0ea5e9 40%, var(--border-strong));
+}
+.level-stat-label {
+    font-size: 0.66rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.level-stat-value {
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: var(--text-main);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.5px;
+}
+.level-stat-box.highlight .level-stat-value {
+    color: #0ea5e9;
+}
+
+/* TOGGLE OPCIJE */
+.level-toggles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+}
+.level-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+.level-toggle-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+}
+.level-toggle-btn.active {
+    background: color-mix(in srgb, #0ea5e9 15%, var(--input-bg));
+    border-color: #0ea5e9;
+    color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+}
+.level-toggle-btn:active {
+    transform: scale(0.97);
+}
+
+/* AKCIJE */
+.level-actions-modern {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 10px;
+    width: 100%;
+}
+.level-btn-primary,
+.level-btn-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    font-weight: 800;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    transition: all 0.15s ease;
+}
+.level-btn-primary {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+    color: #ffffff;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 6px 16px rgba(14, 165, 233, 0.35);
+}
+.level-btn-primary:active {
+    transform: scale(0.97);
+    box-shadow:
+        inset 0 2px 6px rgba(0, 0, 0, 0.2),
+        0 2px 8px rgba(14, 165, 233, 0.25);
+}
+.level-btn-secondary {
+    background: var(--card-active);
+    color: var(--text-main);
+    border: 1px solid var(--border-strong);
+}
+.level-btn-secondary:active {
+    transform: scale(0.97);
+    background: var(--input-bg);
+}
+.level-btn-primary svg,
+.level-btn-secondary svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.4;
+}
