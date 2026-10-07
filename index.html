@@ -13,7 +13,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="web-app-manifest-192x192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="web-app-manifest-512x512.png">
-<link rel="stylesheet" href="style.css?v=12">
+<link rel="stylesheet" href="style.css?v=13">
 </head>
 <body>
 
@@ -397,8 +397,9 @@
             </div>
         </div>
         <div id="all-tools-sections" class="all-tools-sections">
-    <!-- Dinamički sadržaj: kategorije kao accordion -->
-</div>
+            <!-- Dinamički sadržaj: kategorije kao accordion -->
+        </div>
+    </div>
 </div>
 
 <!-- MODAL: PODEŠAVANJE TABOVA -->
@@ -549,7 +550,6 @@
         <div class="calc-body" id="reminder-modal-body"></div>
     </div>
 </div>
-        </div>
 
 <!-- MODAL: NIVO -->
 <div id="level-modal" class="modal" onclick="closeModalOnBackdrop(event, 'level-modal')">
@@ -567,7 +567,6 @@
         </div>
 
         <div class="level-body-modern">
-            <!-- GLAVNI VIZUAL -->
             <div class="level-visual">
                 <div class="level-circle-modern">
                     <div class="level-ring-outer"></div>
@@ -582,7 +581,6 @@
                 <div class="level-status-modern" id="level-status">Nagnuto</div>
             </div>
 
-            <!-- 3 STAT BOXA -->
             <div class="level-stats-modern">
                 <div class="level-stat-box">
                     <div class="level-stat-label">X osa</div>
@@ -598,7 +596,6 @@
                 </div>
             </div>
 
-            <!-- TOGGLE OPCIJE -->
             <div class="level-toggles">
                 <button class="level-toggle-btn active" id="level-sound-toggle" onclick="toggleLevelSound()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
@@ -610,7 +607,6 @@
                 </button>
             </div>
 
-            <!-- AKCIJE -->
             <div class="level-actions-modern">
                 <button class="level-btn-primary" onclick="levelCalibrate()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M2 12h3"/><path d="M19 12h3"/></svg>
@@ -625,9 +621,9 @@
     </div>
 </div>
 
-<!-- MODAL: ŠTOPERICA -->
+<!-- MODAL: ŠTOPERICA (MODERNIZOVANA) -->
 <div id="toolbar-stopwatch-modal" class="modal" onclick="closeModalOnBackdrop(event, 'toolbar-stopwatch-modal')">
-    <div class="modal-panel" onclick="event.stopPropagation()">
+    <div class="modal-panel stopwatch-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
             <div class="modal-header-left">
                 <span class="modal-cat-icon" style="--qt-accent: #0ea5e9;">
@@ -639,21 +635,64 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
         </div>
-        <div class="toolbar-stopwatch-body">
-            <div class="toolbar-stopwatch-display" id="toolbar-stopwatch-time">00:00:00.00</div>
-            <div class="gps-actions" style="margin: 16px 0;">
-                <button class="gps-btn-main" id="toolbar-stopwatch-toggle" onclick="toolbarStopwatchToggle()" style="flex: 1;">
-                    ▶ Start / Stop
+
+        <div class="stopwatch-body">
+            <!-- KRUG + VELIKI BROJ -->
+            <div class="stopwatch-circle-wrap">
+                <svg class="stopwatch-ring-svg" viewBox="0 0 220 220">
+                    <circle class="stopwatch-ring-bg" cx="110" cy="110" r="98"></circle>
+                    <circle class="stopwatch-ring-progress" id="stopwatch-ring-progress" cx="110" cy="110" r="98"
+                            stroke-dasharray="615.75" stroke-dashoffset="615.75"></circle>
+                </svg>
+                <div class="stopwatch-time-big" id="toolbar-stopwatch-time">00:00:00.00</div>
+            </div>
+
+            <!-- 3 STAT BOXA -->
+            <div class="stopwatch-stats-row">
+                <div class="stopwatch-stat-box">
+                    <div class="stopwatch-stat-label">Krugova</div>
+                    <div class="stopwatch-stat-value" id="stopwatch-lap-count">0</div>
+                </div>
+                <div class="stopwatch-stat-box best">
+                    <div class="stopwatch-stat-label">Najbolji</div>
+                    <div class="stopwatch-stat-value" id="stopwatch-best-lap">—</div>
+                </div>
+                <div class="stopwatch-stat-box worst">
+                    <div class="stopwatch-stat-label">Najgori</div>
+                    <div class="stopwatch-stat-value" id="stopwatch-worst-lap">—</div>
+                </div>
+            </div>
+
+            <!-- DUGMIĆI -->
+            <div class="stopwatch-actions">
+                <button class="stopwatch-btn start" id="toolbar-stopwatch-btn" onclick="toolbarStopwatchToggle()">
+                    <span id="stopwatch-btn-label">▶ START</span>
                 </button>
-                <button class="gps-btn-secondary" onclick="toolbarStopwatchReset()">↺ Reset</button>
+                <button class="stopwatch-btn lap" id="toolbar-stopwatch-lap-btn" onclick="toolbarStopwatchLap()">
+                    🏁 KRUG
+                </button>
+                <button class="stopwatch-btn reset" onclick="toolbarStopwatchReset()">
+                    ↺ RESET
+                </button>
+            </div>
+
+            <!-- LISTA KRUGOVA (accordion) -->
+            <div class="stopwatch-laps" id="stopwatch-laps-wrap" style="display:none;">
+                <button class="stopwatch-laps-toggle" onclick="toggleStopwatchLaps()">
+                    <span id="stopwatch-laps-title">Krugovi (0)</span>
+                    <span class="stopwatch-laps-arrow" id="stopwatch-laps-arrow">›</span>
+                </button>
+                <div class="stopwatch-laps-body" id="stopwatch-laps-body">
+                    <div class="stopwatch-laps-inner" id="stopwatch-laps-list"></div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- MODAL: TAJMER -->
+<!-- MODAL: TAJMER (MODERNIZOVAN) -->
 <div id="toolbar-timer-modal" class="modal" onclick="closeModalOnBackdrop(event, 'toolbar-timer-modal')">
-    <div class="modal-panel" onclick="event.stopPropagation()">
+    <div class="modal-panel timer-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
             <div class="modal-header-left">
                 <span class="modal-cat-icon" style="--qt-accent: #f59e0b;">
@@ -665,31 +704,93 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
         </div>
-        <div class="toolbar-timer-body">
-            <div class="toolbar-timer-status" id="toolbar-timer-status">Spreman</div>
-            <div class="toolbar-timer-display" id="toolbar-timer-time">00:00:00</div>
-            <div class="toolbar-timer-progress-bar">
-                <div class="toolbar-timer-progress-fill" id="toolbar-timer-progress"></div>
+
+        <div class="timer-body">
+            <!-- KRUG + VELIKI BROJ -->
+            <div class="timer-circle-wrap">
+                <svg class="timer-ring-svg" viewBox="0 0 220 220">
+                    <circle class="timer-ring-bg" cx="110" cy="110" r="98"></circle>
+                    <circle class="timer-ring-progress" id="timer-ring-progress" cx="110" cy="110" r="98"
+                            stroke-dasharray="615.75" stroke-dashoffset="0"></circle>
+                </svg>
+                <div class="timer-time-big" id="toolbar-timer-time">00:00:00</div>
+                <div class="timer-status-small" id="toolbar-timer-status">Spreman</div>
             </div>
-            <div class="gps-timer-presets">
-                <button class="gps-chip" onclick="toolbarTimerPreset(60)">1 min</button>
-                <button class="gps-chip" onclick="toolbarTimerPreset(300)">5 min</button>
-                <button class="gps-chip" onclick="toolbarTimerPreset(600)">10 min</button>
-                <button class="gps-chip" onclick="toolbarTimerPreset(900)">15 min</button>
-                <button class="gps-chip" onclick="toolbarTimerPreset(1800)">30 min</button>
-                <button class="gps-chip" onclick="toolbarTimerPreset(3600)">1 h</button>
-            </div>
-            <div class="gps-actions" style="margin: 16px 0;">
-                <button class="gps-btn-main" id="toolbar-timer-toggle" onclick="toolbarTimerState.running ? (toolbarTimerState.paused ? toolbarTimerResume() : toolbarTimerPause()) : toolbarTimerStart()">
-                    ▶ Start
+
+            <!-- PRESET DUGMIĆI -->
+            <div class="timer-presets">
+                <button class="timer-preset-btn" onclick="toolbarTimerPreset(60)">
+                    <span class="timer-preset-icon">⏱</span>
+                    <span class="timer-preset-text">1min</span>
                 </button>
-                <button class="gps-btn-secondary" onclick="toolbarTimerReset()">↺ Reset</button>
+                <button class="timer-preset-btn" onclick="toolbarTimerPreset(300)">
+                    <span class="timer-preset-icon">⏱</span>
+                    <span class="timer-preset-text">5min</span>
+                </button>
+                <button class="timer-preset-btn" onclick="toolbarTimerPreset(600)">
+                    <span class="timer-preset-icon">⏱</span>
+                    <span class="timer-preset-text">10min</span>
+                </button>
+                <button class="timer-preset-btn" onclick="toolbarTimerPreset(900)">
+                    <span class="timer-preset-icon">⏱</span>
+                    <span class="timer-preset-text">15min</span>
+                </button>
+                <button class="timer-preset-btn" onclick="toolbarTimerPreset(1800)">
+                    <span class="timer-preset-icon">⏱</span>
+                    <span class="timer-preset-text">30min</span>
+                </button>
+                <button class="timer-preset-btn" onclick="toolbarTimerPreset(3600)">
+                    <span class="timer-preset-icon">⏱</span>
+                    <span class="timer-preset-text">1h</span>
+                </button>
+            </div>
+
+            <!-- HH:MM:SS UNOS -->
+            <div class="timer-input-row" id="timer-input-row">
+                <div class="timer-input-group">
+                    <label>HH</label>
+                    <input type="number" id="toolbar-timer-h" class="timer-input" min="0" max="23" placeholder="0" inputmode="numeric">
+                </div>
+                <div class="timer-input-sep">:</div>
+                <div class="timer-input-group">
+                    <label>MM</label>
+                    <input type="number" id="toolbar-timer-m" class="timer-input" min="0" max="59" placeholder="0" inputmode="numeric">
+                </div>
+                <div class="timer-input-sep">:</div>
+                <div class="timer-input-group">
+                    <label>SS</label>
+                    <input type="number" id="toolbar-timer-s" class="timer-input" min="0" max="59" placeholder="0" inputmode="numeric">
+                </div>
+            </div>
+
+            <!-- DUGMIĆI -->
+            <div class="timer-actions">
+                <button class="timer-btn start" id="toolbar-timer-btn" onclick="toolbarTimerToggle()">
+                    <span id="toolbar-timer-btn-label">▶ START</span>
+                </button>
+                <button class="timer-btn reset" onclick="toolbarTimerReset()">↺ RESET</button>
+            </div>
+
+            <!-- OPCIJE: PONAVLJANJE, VIBRACIJA, ZVONO -->
+            <div class="timer-options">
+                <button class="timer-option-btn" id="timer-option-repeat" onclick="toolbarTimerToggleRepeat()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+                    <span>Ponavljanje</span>
+                </button>
+                <button class="timer-option-btn active" id="timer-option-vibrate" onclick="toolbarTimerToggleVibrate()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="4" width="8" height="16" rx="2"/><path d="M4 10v4"/><path d="M20 10v4"/></svg>
+                    <span>Vibracija</span>
+                </button>
+                <button class="timer-option-btn active" id="timer-option-sound" onclick="toolbarTimerToggleSound()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                    <span>Zvuk</span>
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- MODAL: BRZINOMER -->
+<!-- MODAL: BRZINOMER (MODERNIZOVAN) -->
 <div id="speedometer-modal" class="modal" onclick="closeModalOnBackdrop(event, 'speedometer-modal')">
     <div class="modal-panel speedometer-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -703,8 +804,10 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
         </div>
+
         <div class="speedometer-body">
-            <div class="speedometer-unit-row">
+            <!-- STATUS + JEDINICA -->
+            <div class="speedometer-status-row">
                 <div class="gps-status-indicator" id="speedometer-indicator">
                     <span class="gps-status-dot"></span>
                     <span class="gps-status-text" id="speedometer-status">Isključeno</span>
@@ -717,25 +820,82 @@
                     <option value="fts">ft/s</option>
                 </select>
             </div>
-            <div class="speedometer-big-display">
-                <div class="speedometer-big-number" id="speedometer-value">0.0</div>
-                <div class="speedometer-big-unit" id="speedometer-unit-label">km/h</div>
+
+            <!-- ANALOGNI BRZINOMER (SVG) -->
+            <div class="speedometer-analog-wrap" id="speedometer-analog-wrap">
+                <svg class="speedometer-svg" viewBox="0 0 280 280">
+                    <defs>
+                        <linearGradient id="speedGrad" x1="0" y1="1" x2="1" y2="0">
+                            <stop offset="0%" stop-color="#10b981"/>
+                            <stop offset="50%" stop-color="#f59e0b"/>
+                            <stop offset="100%" stop-color="#f43f5e"/>
+                        </linearGradient>
+                        <radialGradient id="speedInner" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="color-mix(in srgb, var(--card-bg) 92%, white 8%)"/>
+                            <stop offset="100%" stop-color="var(--card-bg)"/>
+                        </radialGradient>
+                    </defs>
+
+                    <!-- Tick marks -->
+                    <g id="speed-ticks"></g>
+
+                    <!-- Brojevi -->
+                    <g id="speed-numbers" font-family="-apple-system, sans-serif" font-weight="800" font-size="13" fill="var(--text-secondary)" text-anchor="middle"></g>
+
+                    <!-- Progress arc (obojeni deo) -->
+                    <path id="speed-progress-arc" d="" fill="none" stroke="url(#speedGrad)" stroke-width="10" stroke-linecap="round"/>
+
+                    <!-- Kazaljka -->
+                    <g id="speed-needle-group">
+                        <line id="speed-needle" x1="140" y1="140" x2="140" y2="55" stroke="#f43f5e" stroke-width="4" stroke-linecap="round" style="filter: drop-shadow(0 0 6px #f43f5e);"/>
+                        <circle cx="140" cy="140" r="12" fill="var(--card-bg)" stroke="#f43f5e" stroke-width="3"/>
+                        <circle cx="140" cy="140" r="5" fill="#f43f5e"/>
+                    </g>
+
+                    <!-- Centralni digitalni broj -->
+                    <text id="speedometer-value" x="140" y="215" text-anchor="middle" font-family="-apple-system, sans-serif" font-weight="900" font-size="38" fill="var(--text-main)" letter-spacing="-2">0</text>
+                    <text id="speedometer-unit-label" x="140" y="238" text-anchor="middle" font-family="-apple-system, sans-serif" font-weight="800" font-size="14" fill="#0ea5e9" letter-spacing="2">KM/H</text>
+                </svg>
             </div>
-            <div class="gps-stats-mini">
-                <div class="gps-stat-mini">
-                    <div class="gps-stat-mini-label">Maks.</div>
-                    <div class="gps-stat-mini-value" id="speedometer-max">0.0</div>
+
+            <!-- SPARKLINE (poslednjih 30 sek) -->
+            <div class="speedometer-sparkline-wrap">
+                <div class="speedometer-sparkline-label">Poslednjih 30 sek</div>
+                <svg class="speedometer-sparkline" viewBox="0 0 300 60" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="rgba(14, 165, 233, 0.4)"/>
+                            <stop offset="100%" stop-color="rgba(14, 165, 233, 0)"/>
+                        </linearGradient>
+                    </defs>
+                    <path id="spark-fill" d="" fill="url(#sparkFill)"/>
+                    <path id="spark-line" d="" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+
+            <!-- STAT BOXOVI -->
+            <div class="speedometer-stats-row">
+                <div class="speedometer-stat-box">
+                    <div class="speedometer-stat-label">Maks.</div>
+                    <div class="speedometer-stat-value" id="speedometer-max">0.0</div>
                 </div>
-                <div class="gps-stat-mini">
-                    <div class="gps-stat-mini-label">Prosek</div>
-                    <div class="gps-stat-mini-value" id="speedometer-avg">0.0</div>
+                <div class="speedometer-stat-box">
+                    <div class="speedometer-stat-label">Prosek</div>
+                    <div class="speedometer-stat-value" id="speedometer-avg">0.0</div>
                 </div>
-                <div class="gps-stat-mini">
-                    <div class="gps-stat-mini-label">Preciznost</div>
-                    <div class="gps-stat-mini-value" id="speedometer-accuracy">—</div>
+                <div class="speedometer-stat-box">
+                    <div class="speedometer-stat-label">Preciznost</div>
+                    <div class="speedometer-stat-value" id="speedometer-accuracy">—</div>
                 </div>
+            </div>
+
+            <!-- DISTANCA -->
+            <div class="speedometer-distance-row">
+                <div class="speedometer-distance-label">Pređena distanca</div>
+                <div class="speedometer-distance-value" id="speedometer-distance">0.00 <small>km</small></div>
             </div>
         </div>
+
         <div class="speedometer-actions">
             <button class="gps-btn-main" id="speedometer-btn-start" onclick="speedometerToggle()">
                 <span id="speedometer-btn-label">▶ Start</span>
@@ -994,7 +1154,7 @@
 </div>
 
 <!-- SKRIPTE -->
-<script src="translations.js?v=12"></script>
-<script src="app.js?v=12"></script>
+<script src="translations.js?v=13"></script>
+<script src="app.js?v=13"></script>
 </body>
 </html>
