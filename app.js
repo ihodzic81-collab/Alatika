@@ -2044,7 +2044,7 @@ function createRipple(e) {
     ripple.style.left = x + 'px';
     ripple.style.top = y + 'px';
     if (getComputedStyle(target).position === 'static') target.style.position = 'relative';
-    target.style.overflow = 'hidden';
+    // NE postavljaj overflow — pusti da ripple izađe ako treba
     target.appendChild(ripple);
     setTimeout(() => { if (ripple.parentNode) ripple.remove(); }, 600);
 }
