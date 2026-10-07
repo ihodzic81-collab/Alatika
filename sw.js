@@ -9,9 +9,9 @@ const CACHE_NAME = 'alatika-v12';
 const ASSETS = [
     './',
     './index.html',
-    './style.css?v=9',
-    './app.js?v=9',
-    './translations.js?v=9',
+    './style.css?v=12',
+    './app.js?v=12',
+    './translations.js?v=12',
     './manifest.json',
     './web-app-manifest-192x192.png',
     './web-app-manifest-512x512.png',
