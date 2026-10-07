@@ -194,7 +194,7 @@ body.modal-open { overflow: hidden; }
 .logo-text span { color: var(--accent-primary); }
 
 /* ============================================================
-   TOOLBAR — fiksiran na vrhu
+   TOOLBAR — fiksiran na vrhu (FIX: ikone više nisu isečene)
    ============================================================ */
 .app-toolbar {
     position: fixed;
@@ -225,15 +225,16 @@ body.modal-open { overflow: hidden; }
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 4px;
     padding: 6px 4px;
     border-radius: 12px;
     cursor: pointer;
     transition: background 0.15s ease, transform 0.1s ease;
     min-width: 0;
-    min-height: 48px;
+    min-height: 52px;
     font-family: inherit;
     position: relative;
+    overflow: visible;
 }
 .toolbar-btn:active { transform: scale(0.94); }
 .toolbar-btn:hover { background: var(--card-active); }
@@ -246,16 +247,30 @@ body.modal-open { overflow: hidden; }
     filter: drop-shadow(0 0 6px currentColor);
 }
 
+/* FIX: Ikone u toolbar-u više nisu isečene */
 .toolbar-icon {
-    width: 24px; height: 24px;
-    display: flex; align-items: center; justify-content: center;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+    overflow: visible;
+    position: relative;
 }
 .toolbar-icon svg {
-    width: 22px; height: 22px;
+    width: 23px;
+    height: 23px;
     stroke: currentColor;
     stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
     fill: none;
+    overflow: visible;
+    display: block;
+    flex-shrink: 0;
+    max-width: none;
+    max-height: none;
 }
 
 .toolbar-label {
@@ -268,13 +283,14 @@ body.modal-open { overflow: hidden; }
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+    line-height: 1.1;
 }
 .toolbar-btn.active .toolbar-label {
     color: currentColor;
 }
 
 /* ============================================================
-   BOTTOM NAVIGATION
+   BOTTOM NAVIGATION (FIX: ikone više nisu isečene)
    ============================================================ */
 .bottom-nav {
     position: fixed;
@@ -304,15 +320,16 @@ body.modal-open { overflow: hidden; }
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 4px;
     padding: 6px 2px;
     border-radius: 12px;
     cursor: pointer;
     transition: color 0.15s ease, background 0.15s ease, transform 0.1s ease;
     min-width: 0;
-    min-height: 48px;
+    min-height: 50px;
     font-family: inherit;
     position: relative;
+    overflow: visible;
 }
 .bottom-nav-btn:active { transform: scale(0.94); }
 .bottom-nav-btn.active {
@@ -322,17 +339,30 @@ body.modal-open { overflow: hidden; }
     filter: drop-shadow(0 0 4px currentColor);
 }
 
+/* FIX: Ikone u bottom nav više nisu isečene */
 .bottom-nav-icon {
-    width: 24px; height: 24px;
-    display: flex; align-items: center; justify-content: center;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
     position: relative;
+    overflow: visible;
 }
 .bottom-nav-icon svg {
-    width: 22px; height: 22px;
+    width: 23px;
+    height: 23px;
     stroke: currentColor;
     stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
     fill: none;
+    overflow: visible;
+    display: block;
+    flex-shrink: 0;
+    max-width: none;
+    max-height: none;
 }
 
 .bottom-nav-label {
@@ -344,6 +374,7 @@ body.modal-open { overflow: hidden; }
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+    line-height: 1.1;
 }
 
 /* ============================================================
@@ -385,10 +416,17 @@ body.modal-open { overflow: hidden; }
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
     transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.08s ease;
+    overflow: visible;
 }
 .icon-btn-svg svg {
     width: 19px; height: 19px;
     stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
     transition: transform 0.15s ease;
 }
 .icon-btn-svg:hover {
@@ -447,8 +485,18 @@ body.modal-open { overflow: hidden; }
 .search-icon {
     display: flex; align-items: center; justify-content: center;
     color: var(--text-secondary); flex-shrink: 0;
+    overflow: visible;
 }
-.search-icon svg { width: 18px; height: 18px; }
+.search-icon svg {
+    width: 18px; height: 18px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
+}
 .search-input {
     flex: 1; width: 100%;
     background: transparent;
@@ -472,6 +520,7 @@ body.modal-open { overflow: hidden; }
     flex-shrink: 0;
     padding: 0;
     transition: background 0.15s ease, color 0.15s ease;
+    overflow: visible;
 }
 .search-clear-btn:hover {
     background: var(--card-active);
@@ -480,7 +529,12 @@ body.modal-open { overflow: hidden; }
 .search-clear-btn svg {
     width: 14px; height: 14px;
     stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
     fill: none;
+    overflow: visible;
+    display: block;
 }
 
 /* ============================================================
@@ -520,7 +574,7 @@ body.modal-open { overflow: hidden; }
 .section-action-btn:active { transform: scale(0.95); }
 
 /* ============================================================
-   DUGME "SVI ALATI" (NOVO U 3.0)
+   DUGME "SVI ALATI"
    ============================================================ */
 #all-tools-button-section {
     margin-top: 8px;
@@ -592,6 +646,7 @@ body.modal-open { overflow: hidden; }
         0 3px 6px rgba(0, 0, 0, 0.25);
     flex-shrink: 0;
     position: relative;
+    overflow: visible;
 }
 .all-tools-main-icon::before {
     content: '';
@@ -606,9 +661,13 @@ body.modal-open { overflow: hidden; }
     height: 26px;
     stroke: currentColor;
     stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
     fill: none;
     position: relative;
     z-index: 1;
+    overflow: visible;
+    display: block;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
 }
 
@@ -709,6 +768,7 @@ body.modal-open { overflow: hidden; }
     flex-shrink: 0;
     transition: transform 0.22s ease, box-shadow 0.22s ease;
     position: relative;
+    overflow: visible;
 }
 .quick-tool-icon::before {
     content: ''; position: absolute;
@@ -720,8 +780,13 @@ body.modal-open { overflow: hidden; }
 .quick-tool-icon svg {
     width: 30px;
     height: 30px;
-    stroke: currentColor; stroke-width: 2; fill: none;
+    stroke: currentColor; stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
     position: relative; z-index: 1;
+    overflow: visible;
+    display: block;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
 }
 .quick-tool:hover .quick-tool-icon { transform: translateY(-1px) scale(1.06); }
@@ -759,10 +824,16 @@ body.modal-open { overflow: hidden; }
     width: 20px; height: 20px;
     display: flex; align-items: center; justify-content: center;
     color: var(--accent-primary); flex-shrink: 0;
+    overflow: visible;
 }
 .favorite-chip .fav-icon svg {
     width: 18px; height: 18px;
-    stroke: currentColor; stroke-width: 2; fill: none;
+    stroke: currentColor; stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
 }
 .favorite-chip .fav-text {
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -777,10 +848,16 @@ body.modal-open { overflow: hidden; }
     transition: background 0.15s, color 0.15s;
     line-height: 1;
     display: flex; align-items: center; justify-content: center;
+    overflow: visible;
 }
 .favorite-chip .fav-remove svg {
     width: 14px; height: 14px;
-    stroke: currentColor; stroke-width: 2.4; fill: none;
+    stroke: currentColor; stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
 }
 .favorite-chip .fav-remove:hover {
     background: rgba(244, 63, 94, 0.15);
@@ -845,8 +922,17 @@ body.modal-open { overflow: hidden; }
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.35),
         0 3px 8px rgba(99, 102, 241, 0.35);
+    overflow: visible;
 }
-.qsr-icon svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
+.qsr-icon svg {
+    width: 20px; height: 20px;
+    stroke: currentColor; stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
+}
 .qsr-text { flex: 1; min-width: 0; }
 .qsr-name { font-weight: 800; font-size: 0.95rem; color: var(--text-main); }
 .qsr-desc { font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px; }
@@ -933,8 +1019,18 @@ body.modal-open { overflow: hidden; }
     transition: background 0.2s ease, transform 0.1s;
     padding: 0;
     flex-shrink: 0;
+    overflow: visible;
 }
-.back-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; }
+.back-btn svg {
+    width: 20px; height: 20px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
+}
 .back-btn:hover { background: var(--border-color); }
 .back-btn:active { transform: scale(0.92); }
 .dots { color: var(--text-secondary); letter-spacing: 2px; }
@@ -1032,10 +1128,17 @@ body.modal-open { overflow: hidden; }
         inset 0 1px 0 rgba(255, 255, 255, 0.35),
         0 3px 8px color-mix(in srgb, var(--today-accent, var(--accent-primary)) 40%, transparent);
     flex-shrink: 0;
+    overflow: visible;
 }
 .today-card-icon svg {
     width: 18px; height: 18px;
-    stroke: currentColor; stroke-width: 2; fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
 }
 .today-card-title {
     font-size: 0.85rem;
@@ -1079,10 +1182,17 @@ body.modal-open { overflow: hidden; }
     color: var(--today-item-color, var(--accent-primary));
     background: color-mix(in srgb, var(--today-item-color, var(--accent-primary)) 15%, transparent);
     flex-shrink: 0;
+    overflow: visible;
 }
 .today-item-icon svg {
     width: 16px; height: 16px;
-    stroke: currentColor; fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
 }
 .today-item-body { flex: 1; min-width: 0; }
 .today-item-title {
@@ -1191,6 +1301,7 @@ body.modal-open { overflow: hidden; }
         0 5px 12px color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 45%, transparent);
     flex-shrink: 0;
     position: relative;
+    overflow: visible;
 }
 .mytool-icon::before {
     content: '';
@@ -1202,8 +1313,15 @@ body.modal-open { overflow: hidden; }
 }
 .mytool-icon svg {
     width: 24px; height: 24px;
-    stroke: currentColor; stroke-width: 2; fill: none;
-    position: relative; z-index: 1;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    position: relative;
+    z-index: 1;
+    overflow: visible;
+    display: block;
 }
 .mytool-body { flex: 1; min-width: 0; }
 .mytool-name {
@@ -1335,10 +1453,16 @@ body.modal-open { overflow: hidden; }
     cursor: pointer; padding: 8px;
     flex-shrink: 0; transition: transform 0.15s;
     display: flex; align-items: center; justify-content: center;
+    overflow: visible;
 }
 .delete-item-btn svg {
     width: 18px; height: 18px;
-    stroke: currentColor; stroke-width: 2.2; fill: none;
+    stroke: currentColor; stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
 }
 .delete-item-btn:active { transform: scale(1.2); }
 
@@ -1474,7 +1598,7 @@ body.modal-open { overflow: hidden; }
 .speedometer-panel { max-width: 460px; }
 
 /* ============================================================
-   SVI ALATI MODAL (NOVO U 3.0)
+   SVI ALATI MODAL — ACCORDION (NOVO U 3.0)
    ============================================================ */
 .all-tools-modal {
     padding: 0;
@@ -1546,22 +1670,24 @@ body.modal-open { overflow: hidden; }
     padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
     display: flex;
     flex-direction: column;
-    gap: 28px;
+    gap: 12px;
     background: var(--bg-color);
 }
 
-/* Accordion sekcije */
-.all-tools-accordion {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
+/* Accordion sekcije — FIX: glatka animacija */
 .all-tools-section {
     background: var(--card-bg);
     border: 1px solid var(--border-strong);
     border-radius: 18px;
     overflow: hidden;
     box-shadow: var(--shadow-card);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.all-tools-section.open {
+    border-color: color-mix(in srgb, var(--section-accent, var(--accent-primary)) 40%, var(--border-strong));
+    box-shadow:
+        var(--shadow-card-hover),
+        0 0 0 1px color-mix(in srgb, var(--section-accent, var(--accent-primary)) 25%, transparent);
 }
 .all-tools-section-head {
     display: flex;
@@ -1578,10 +1704,10 @@ body.modal-open { overflow: hidden; }
     color: var(--text-main);
 }
 .all-tools-section-head:hover {
-    background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
+    background: color-mix(in srgb, var(--section-accent, var(--accent-primary)) 6%, transparent);
 }
 .all-tools-section-head:active {
-    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+    background: color-mix(in srgb, var(--section-accent, var(--accent-primary)) 10%, transparent);
 }
 .all-tools-section-icon {
     width: 42px;
@@ -1600,6 +1726,7 @@ body.modal-open { overflow: hidden; }
         0 5px 12px color-mix(in srgb, var(--section-accent, var(--accent-primary)) 45%, transparent);
     flex-shrink: 0;
     position: relative;
+    overflow: visible;
 }
 .all-tools-section-icon::before {
     content: '';
@@ -1614,9 +1741,13 @@ body.modal-open { overflow: hidden; }
     height: 22px;
     stroke: currentColor;
     stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
     fill: none;
     position: relative;
     z-index: 1;
+    overflow: visible;
+    display: block;
 }
 .all-tools-section-info {
     flex: 1;
@@ -1634,31 +1765,40 @@ body.modal-open { overflow: hidden; }
     color: var(--text-secondary);
     margin-top: 2px;
 }
+
+/* FIX: strelica se rotira 90° pri otvaranju */
 .all-tools-section-arrow {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-secondary);
-    transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
     flex-shrink: 0;
+    overflow: visible;
 }
 .all-tools-section-arrow svg {
     width: 18px;
     height: 18px;
     stroke: currentColor;
     stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
     fill: none;
+    overflow: visible;
+    display: block;
 }
 .all-tools-section.open .all-tools-section-arrow {
     transform: rotate(90deg);
+    color: var(--section-accent, var(--accent-primary));
 }
 
+/* FIX: glatka animacija pomoću grid-template-rows 0fr → 1fr */
 .all-tools-section-body {
     display: grid;
     grid-template-rows: 0fr;
-    transition: grid-template-rows 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: grid-template-rows 0.34s cubic-bezier(0.22, 1, 0.36, 1);
     overflow: hidden;
 }
 .all-tools-section.open .all-tools-section-body {
@@ -1667,6 +1807,8 @@ body.modal-open { overflow: hidden; }
 .all-tools-section-body-inner {
     overflow: hidden;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 .all-tools-section-grid {
     display: grid;
@@ -1730,6 +1872,7 @@ body.modal-open { overflow: hidden; }
         0 4px 10px color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 45%, transparent);
     flex-shrink: 0;
     position: relative;
+    overflow: visible;
 }
 .all-tools-item-icon::before {
     content: '';
@@ -1744,9 +1887,13 @@ body.modal-open { overflow: hidden; }
     height: 22px;
     stroke: currentColor;
     stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
     fill: none;
     position: relative;
     z-index: 1;
+    overflow: visible;
+    display: block;
 }
 .all-tools-item-label {
     font-size: 0.72rem;
@@ -1799,13 +1946,18 @@ body.modal-open { overflow: hidden; }
         inset 0 1px 0 rgba(255, 255, 255, 0.4),
         0 3px 8px color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 40%, transparent);
     flex-shrink: 0;
+    overflow: visible;
 }
 .all-tools-search-item-icon svg {
     width: 20px;
     height: 20px;
     stroke: currentColor;
     stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
     fill: none;
+    overflow: visible;
+    display: block;
 }
 .all-tools-search-item-text {
     flex: 1;
@@ -1874,6 +2026,7 @@ body.modal-open { overflow: hidden; }
         inset 0 -3px 5px rgba(0, 0, 0, 0.30),
         0 5px 12px color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 45%, transparent);
     position: relative;
+    overflow: visible;
 }
 .modal-cat-icon::before {
     content: ''; position: absolute;
@@ -1884,8 +2037,15 @@ body.modal-open { overflow: hidden; }
 }
 .modal-cat-icon svg {
     width: 22px; height: 22px;
-    stroke: currentColor; stroke-width: 2; fill: none;
-    position: relative; z-index: 1;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    position: relative;
+    z-index: 1;
+    overflow: visible;
+    display: block;
 }
 .modal-title {
     font-size: 1.15rem; font-weight: 800;
@@ -1904,8 +2064,18 @@ body.modal-open { overflow: hidden; }
     flex-shrink: 0;
     transition: background 0.15s ease, color 0.15s ease, transform 0.1s;
     padding: 0;
+    overflow: visible;
 }
-.modal-close-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; }
+.modal-close-btn svg {
+    width: 18px; height: 18px;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
+}
 .modal-close-btn:hover {
     background: rgba(244, 63, 94, 0.12);
     color: #f43f5e;
@@ -1925,10 +2095,17 @@ body.modal-open { overflow: hidden; }
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
     padding: 0;
     margin-right: 4px;
+    overflow: visible;
 }
 .modal-fav-star svg {
     width: 18px; height: 18px;
-    stroke: currentColor; stroke-width: 2; fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
     transition: fill 0.2s ease;
 }
 .modal-fav-star:hover {
@@ -1958,10 +2135,17 @@ body.modal-open { overflow: hidden; }
     flex-shrink: 0;
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.2s ease;
     padding: 0;
+    overflow: visible;
 }
 .modal-settings-btn svg {
     width: 18px; height: 18px;
-    stroke: currentColor; fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
     transition: transform 0.3s ease;
 }
 .modal-settings-btn:hover {
@@ -2025,6 +2209,7 @@ body.modal-open { overflow: hidden; }
         0 6px 14px color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 45%, transparent),
         0 3px 6px rgba(0, 0, 0, 0.30);
     position: relative;
+    overflow: visible;
 }
 .tab-btn-icon::before {
     content: ''; position: absolute;
@@ -2035,8 +2220,14 @@ body.modal-open { overflow: hidden; }
 }
 .tab-btn-icon svg {
     width: 22px; height: 22px;
-    stroke: currentColor; stroke-width: 2; fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
     position: relative; z-index: 1;
+    overflow: visible;
+    display: block;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
 }
 .tab-btn-label {
@@ -2149,8 +2340,18 @@ body.modal-open { overflow: hidden; }
         inset 0 1px 0 rgba(255, 255, 255, 0.35),
         0 3px 8px color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 40%, transparent);
     flex-shrink: 0;
+    overflow: visible;
 }
-.editor-item-icon svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
+.editor-item-icon svg {
+    width: 20px; height: 20px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
+}
 .editor-item-label {
     font-size: 0.7rem; font-weight: 800;
     color: var(--text-main);
@@ -2309,8 +2510,18 @@ input[type="text"].custom-input::placeholder {
     text-align: center;
     color: #34d399;
     display: flex; align-items: center; justify-content: center;
+    overflow: visible;
 }
-.pump-icon svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; fill: none; }
+.pump-icon svg {
+    width: 24px; height: 24px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
+}
 .res-label {
     font-size: 0.72rem;
     color: #a7f3d0;
@@ -2518,7 +2729,7 @@ input[type="text"].custom-input::placeholder {
 .pct-formula.show { display: block; }
 
 /* ============================================================
-   BRZINOMER (toolbar modal) — NOVO U 3.0
+   BRZINOMER
    ============================================================ */
 .speedometer-body {
     padding: 20px 18px 8px;
@@ -2584,7 +2795,7 @@ input[type="text"].custom-input::placeholder {
 }
 
 /* ============================================================
-   LEVEL MODAL (NIVO)
+   LEVEL MODAL
    ============================================================ */
 .level-body {
     padding: 20px;
@@ -2832,7 +3043,7 @@ input[type="text"].custom-input::placeholder {
 }
 
 /* ============================================================
-   GPS — postojeći stilovi
+   GPS
    ============================================================ */
 .gps-box {
     padding: 18px;
@@ -2977,7 +3188,17 @@ input[type="text"].custom-input::placeholder {
     position: relative;
     overflow: hidden;
 }
-.gps-btn-main svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+.gps-btn-main svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
+}
 .gps-btn-main:active { transform: scale(0.98); }
 .gps-btn-main.active {
     background: linear-gradient(135deg, #f43f5e, #be123c);
@@ -3001,7 +3222,17 @@ input[type="text"].custom-input::placeholder {
     gap: 6px;
     font-family: inherit;
 }
-.gps-btn-secondary svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+.gps-btn-secondary svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
+}
 .gps-btn-secondary:active { transform: scale(0.97); background: var(--input-bg); }
 .gps-info-note {
     display: flex;
@@ -3020,9 +3251,13 @@ input[type="text"].custom-input::placeholder {
     width: 16px;
     height: 16px;
     stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
     fill: none;
     flex-shrink: 0;
     margin-top: 1px;
+    overflow: visible;
 }
 .gps-chip {
     background: var(--input-bg);
@@ -3175,6 +3410,7 @@ input[type="text"].custom-input::placeholder {
     width: 100%;
     height: 100%;
     filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.35));
+    overflow: visible;
 }
 #gps-compass-rose { transition: transform 0.12s ease-out; }
 .gps-compass-info {
@@ -3237,7 +3473,17 @@ input[type="text"].custom-input::placeholder {
     transition: background 0.15s ease;
 }
 .weather-location:hover { background: rgba(255, 255, 255, 0.06); }
-.weather-location svg { width: 16px; height: 16px; stroke: currentColor; fill: none; flex-shrink: 0; }
+.weather-location svg {
+    width: 16px; height: 16px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    flex-shrink: 0;
+    overflow: visible;
+    display: block;
+}
 .weather-location-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .weather-refresh-btn {
     background: var(--card-active);
@@ -3252,6 +3498,7 @@ input[type="text"].custom-input::placeholder {
     padding: 0;
     -webkit-appearance: none;
     appearance: none;
+    overflow: visible;
 }
 .weather-refresh-btn:active { transform: rotate(360deg); }
 .weather-refresh-btn.spinning { animation: fxSpin 0.7s ease; }
@@ -3262,6 +3509,9 @@ input[type="text"].custom-input::placeholder {
     stroke: #38bdf8 !important;
     fill: none !important;
     stroke-width: 2.2 !important;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    overflow: visible;
     pointer-events: none;
 }
 .weather-temp-row {
@@ -3287,7 +3537,16 @@ input[type="text"].custom-input::placeholder {
     color: var(--text-secondary);
     font-weight: 600;
 }
-.weather-meta-item svg { width: 14px; height: 14px; stroke: currentColor; fill: none; }
+.weather-meta-item svg {
+    width: 14px; height: 14px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
+}
 .weather-hourly {
     display: flex; gap: 8px;
     overflow-x: auto;
@@ -3306,11 +3565,22 @@ input[type="text"].custom-input::placeholder {
 }
 .weather-hour-time { font-size: 0.72rem; color: var(--text-secondary); font-weight: 700; }
 .weather-hour-icon {
-    font-size: 1.5rem; line-height: 1;
+    line-height: 1;
     display: flex; align-items: center; justify-content: center;
     color: var(--qt-accent, #38bdf8);
+    overflow: visible;
 }
-.weather-hour-icon svg { width: 28px; height: 28px; stroke: currentColor; fill: none; }
+.weather-hour-icon svg {
+    width: 28px;
+    height: 28px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
+}
 .weather-hour-temp { font-size: 0.95rem; font-weight: 800; color: var(--text-main); }
 .weather-hour-rain { font-size: 0.7rem; color: #38bdf8; font-weight: 700; }
 .weather-section-title {
@@ -3330,8 +3600,23 @@ input[type="text"].custom-input::placeholder {
     padding: 12px 14px;
 }
 .weather-day-name { font-size: 0.85rem; font-weight: 800; color: var(--text-main); }
-.weather-day-icon { display: flex; justify-content: center; color: var(--qt-accent, #38bdf8); }
-.weather-day-icon svg { width: 26px; height: 26px; stroke: currentColor; fill: none; }
+.weather-day-icon {
+    display: flex;
+    justify-content: center;
+    color: var(--qt-accent, #38bdf8);
+    overflow: visible;
+}
+.weather-day-icon svg {
+    width: 26px;
+    height: 26px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
+}
 .weather-day-comment { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.35; }
 .weather-day-temps { font-size: 0.85rem; font-weight: 800; color: var(--text-main); text-align: right; white-space: nowrap; }
 .weather-day-temps small { color: var(--text-secondary); font-weight: 600; font-size: 0.75rem; }
@@ -3415,8 +3700,18 @@ input[type="text"].custom-input::placeholder {
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.35),
         0 3px 8px color-mix(in srgb, var(--smart-accent, var(--accent-primary)) 40%, transparent);
+    overflow: visible;
 }
-.smart-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; }
+.smart-icon svg {
+    width: 18px; height: 18px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
+}
 .smart-title { font-size: 0.85rem; font-weight: 800; color: var(--text-main); }
 .smart-text { font-size: 0.85rem; color: var(--text-main); line-height: 1.45; font-weight: 500; }
 .smart-text strong { color: var(--accent-primary); font-weight: 800; }
@@ -3431,8 +3726,17 @@ input[type="text"].custom-input::placeholder {
     width: 16px; height: 16px;
     margin-top: 2px;
     display: flex; align-items: center; justify-content: center;
+    overflow: visible;
 }
-.smart-list li .check-icon svg { width: 16px; height: 16px; stroke-width: 2.5; fill: none; }
+.smart-list li .check-icon svg {
+    width: 16px; height: 16px;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
+}
 .smart-list li.yes .check-icon { color: #10b981; }
 .smart-list li.no .check-icon { color: #f43f5e; }
 .smart-list li.warn .check-icon { color: #f59e0b; }
@@ -3450,7 +3754,16 @@ input[type="text"].custom-input::placeholder {
     margin-bottom: 10px;
     display: flex; align-items: center; gap: 8px;
 }
-.celestial-title svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
+.celestial-title svg {
+    width: 16px; height: 16px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
+}
 .celestial-row {
     display: flex; justify-content: space-between; align-items: center;
     padding: 10px 0;
@@ -3556,8 +3869,17 @@ input[type="text"].custom-input::placeholder {
 }
 .location-gps-btn:hover { background: var(--input-bg); }
 .location-gps-btn:active { transform: scale(0.98); }
-.location-gps-icon { display: flex; }
-.location-gps-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; }
+.location-gps-icon { display: flex; overflow: visible; }
+.location-gps-icon svg {
+    width: 18px; height: 18px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
+}
 .location-results { display: flex; flex-direction: column; gap: 6px; }
 .location-result-item {
     background: var(--input-bg);
@@ -3577,7 +3899,7 @@ input[type="text"].custom-input::placeholder {
 .location-empty { text-align: center; padding: 24px 10px; color: var(--text-secondary); font-size: 0.85rem; }
 
 /* ============================================================
-   FX (KURSNE LISTE)
+   FX
    ============================================================ */
 .fx-head {
     display: flex; justify-content: space-between;
@@ -3598,6 +3920,7 @@ input[type="text"].custom-input::placeholder {
     -webkit-appearance: none;
     appearance: none;
     padding: 0;
+    overflow: visible;
 }
 .fx-refresh-btn:hover { background: var(--input-bg); }
 .fx-refresh-btn:active { transform: rotate(360deg); }
@@ -3609,6 +3932,9 @@ input[type="text"].custom-input::placeholder {
     stroke: #6366f1 !important;
     fill: none !important;
     stroke-width: 2.2 !important;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    overflow: visible;
     pointer-events: none;
 }
 @keyframes fxSpin {
@@ -3632,6 +3958,7 @@ input[type="text"].custom-input::placeholder {
     -webkit-appearance: none;
     appearance: none;
     padding: 0;
+    overflow: visible;
 }
 .fx-swap-btn:active { transform: scale(0.92); }
 .fx-swap-btn:hover { background: var(--input-bg); }
@@ -3642,6 +3969,9 @@ input[type="text"].custom-input::placeholder {
     stroke: #6366f1 !important;
     fill: none !important;
     stroke-width: 2.2 !important;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    overflow: visible;
     pointer-events: none;
 }
 .fx-rate-info {
@@ -3943,7 +4273,7 @@ input[type="text"].custom-input::placeholder {
 .hr-zone-item strong { color: var(--text-main); font-weight: 800; }
 
 /* ============================================================
-   RATE (INSTALLMENTS)
+   RATE
    ============================================================ */
 .rate-info-card {
     background: var(--card-bg);
@@ -4075,7 +4405,6 @@ input[type="text"].custom-input::placeholder {
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
 }
-
 .rate-actions {
     display: flex;
     flex-direction: column;
@@ -4126,7 +4455,6 @@ input[type="text"].custom-input::placeholder {
     margin-bottom: 12px;
     opacity: 0.6;
 }
-
 .rate-group {
     margin-bottom: 18px;
     padding: 14px;
@@ -4166,7 +4494,7 @@ input[type="text"].custom-input::placeholder {
 }
 
 /* ============================================================
-   PODSETNICI — HISTORY
+   PODSETNICI
    ============================================================ */
 .rem-history {
     display: flex;
@@ -4343,12 +4671,18 @@ input[type="text"].custom-input::placeholder {
     color: var(--rem-color, var(--accent-primary));
     background: color-mix(in srgb, var(--rem-color, var(--accent-primary)) 15%, transparent);
     flex-shrink: 0;
+    overflow: visible;
 }
 .rem-history-icon svg {
     width: 20px;
     height: 20px;
     stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
     fill: none;
+    overflow: visible;
+    display: block;
 }
 .rem-history-body {
     min-width: 0;
@@ -4397,13 +4731,18 @@ input[type="text"].custom-input::placeholder {
     transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
     padding: 0;
     font-family: inherit;
+    overflow: visible;
 }
 .rem-action-btn svg {
     width: 16px;
     height: 16px;
     stroke: currentColor;
     stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
     fill: none;
+    overflow: visible;
+    display: block;
     transition: transform 0.2s ease;
 }
 .rem-action-btn:hover svg { transform: scale(1.15); }
@@ -4462,7 +4801,6 @@ input[type="text"].custom-input::placeholder {
     border: 1px dashed var(--border-strong);
     border-radius: 12px;
 }
-
 .rem-list {
     display: flex; flex-direction: column;
     gap: 8px; margin-bottom: 14px;
@@ -4761,6 +5099,18 @@ input[type="text"].custom-input::placeholder {
     width: 28px; height: 28px;
     display: flex; align-items: center; justify-content: center;
     border-radius: 50%; font-weight: 900;
+    overflow: visible;
+}
+.toast-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
 }
 .toast-success { border-left-color: #10b981; }
 .toast-success .toast-icon { background: rgba(16, 185, 129, 0.15); color: #10b981; }
@@ -4823,10 +5173,17 @@ input[type="text"].custom-input::placeholder {
     margin-bottom: 12px;
     display: flex; align-items: center; justify-content: center;
     color: #f59e0b;
+    overflow: visible;
 }
 .confirm-icon svg {
     width: 44px; height: 44px;
-    stroke: currentColor; stroke-width: 2; fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
 }
 .confirm-title {
     font-size: 1.2rem; font-weight: 800;
@@ -5039,10 +5396,17 @@ input[type="text"].custom-input::placeholder {
         inset 0 1px 0 rgba(255, 255, 255, 0.35),
         0 3px 8px color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 40%, transparent);
     flex-shrink: 0;
+    overflow: visible;
 }
 .tabs-settings-icon svg {
     width: 20px; height: 20px;
-    stroke: currentColor; stroke-width: 2; fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
 }
 .tabs-settings-name {
     font-size: 0.88rem;
@@ -5257,10 +5621,17 @@ input[type="text"].custom-input::placeholder {
         inset 0 1px 0 rgba(255, 255, 255, 0.4),
         0 4px 10px color-mix(in srgb, var(--habit-color, var(--accent-primary)) 45%, transparent);
     flex-shrink: 0;
+    overflow: visible;
 }
 .habit-icon svg {
-    width: 20px; height: 18px;
-    stroke: currentColor; stroke-width: 2; fill: none;
+    width: 20px; height: 20px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
 }
 .habit-info { flex: 1; min-width: 0; }
 .habit-name {
@@ -5373,7 +5744,7 @@ input[type="text"].custom-input::placeholder {
 }
 
 /* ============================================================
-   JOURNAL (DNEVNIK)
+   JOURNAL
    ============================================================ */
 .journal-list {
     display: flex;
@@ -5731,8 +6102,13 @@ input[type="text"].custom-input::placeholder {
     width: 18px;
     height: 18px;
     stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
     fill: none;
     color: #06b6d4;
+    overflow: visible;
+    display: block;
 }
 .water-glasses {
     display: flex;
@@ -5822,8 +6198,13 @@ input[type="text"].custom-input::placeholder {
     width: 18px;
     height: 18px;
     stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
     fill: none;
     color: #a855f7;
+    overflow: visible;
+    display: block;
 }
 .sleep-times {
     display: grid;
@@ -5957,7 +6338,13 @@ input[type="text"].custom-input::placeholder {
 }
 .recipe-meta-item svg {
     width: 12px; height: 12px;
-    stroke: currentColor; fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    overflow: visible;
+    display: block;
 }
 .recipe-ingredients-preview {
     font-size: 0.78rem;
@@ -6304,7 +6691,7 @@ input[type="text"].custom-input::placeholder {
     justify-content: center;
     min-height: 220px;
 }
-.sketch-svg { max-width: 100%; height: auto; }
+.sketch-svg { max-width: 100%; height: auto; overflow: visible; }
 .sketch-dim-label {
     font-size: 0.72rem;
     font-weight: 800;
@@ -7135,17 +7522,16 @@ input[type="text"].custom-input::placeholder {
    RESPONSIVE
    ============================================================ */
 
-/* Mali telefoni (≤400px) */
 @media (max-width: 400px) {
     .app-container { padding: 8px 14px 0; }
 
-    .toolbar-icon { width: 22px; height: 22px; }
-    .toolbar-icon svg { width: 20px; height: 20px; }
-    .toolbar-label { font-size: 0.58rem; }
+    .toolbar-icon { width: 26px; height: 26px; }
+    .toolbar-icon svg { width: 21px; height: 21px; }
+    .toolbar-label { font-size: 0.56rem; }
 
-    .bottom-nav-icon { width: 22px; height: 22px; }
-    .bottom-nav-icon svg { width: 20px; height: 20px; }
-    .bottom-nav-label { font-size: 0.56rem; }
+    .bottom-nav-icon { width: 26px; height: 26px; }
+    .bottom-nav-icon svg { width: 21px; height: 21px; }
+    .bottom-nav-label { font-size: 0.54rem; }
 
     .quick-tools-grid { gap: 8px; }
     .quick-tool { padding: 12px 6px 10px; border-radius: 16px; }
@@ -7160,7 +7546,7 @@ input[type="text"].custom-input::placeholder {
     .all-tools-main-sub { font-size: 0.7rem; }
     .all-tools-main-arrow { font-size: 1.7rem; }
 
-    .all-tools-sections { padding: 12px 14px; gap: 22px; }
+    .all-tools-sections { padding: 12px 14px; gap: 10px; }
     .all-tools-section-head { padding: 12px 14px; gap: 10px; }
     .all-tools-section-icon { width: 38px; height: 38px; border-radius: 11px; }
     .all-tools-section-icon svg { width: 20px; height: 20px; }
@@ -7306,7 +7692,6 @@ input[type="text"].custom-input::placeholder {
     .journal-mood-option { max-width: 48px; font-size: 1.3rem; }
 }
 
-/* Tableti (481-768px) */
 @media (min-width: 481px) and (max-width: 768px) {
     .app-container { max-width: 640px; padding: 16px 24px 0; }
     .quick-tools-grid { grid-template-columns: repeat(4, 1fr); }
@@ -7317,7 +7702,6 @@ input[type="text"].custom-input::placeholder {
     .mytools-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 }
 
-/* Desktop (>769px) */
 @media (min-width: 769px) {
     .app-container { max-width: 720px; padding: 20px 32px 0; }
     .quick-tools-grid { grid-template-columns: repeat(4, 1fr); gap: 14px; }
@@ -7337,7 +7721,6 @@ input[type="text"].custom-input::placeholder {
     .bottom-nav-label { font-size: 0.68rem; }
 }
 
-/* Landscape mode */
 @media (orientation: landscape) and (max-height: 500px) {
     :root {
         --toolbar-height: 52px;
@@ -7350,7 +7733,6 @@ input[type="text"].custom-input::placeholder {
     .speedometer-big-number { font-size: 3.5rem; }
 }
 
-/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
