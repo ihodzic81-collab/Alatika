@@ -50,7 +50,7 @@
         inset 0 -2px 0 rgba(0, 0, 0, 0.15),
         0 6px 16px rgba(99, 102, 241, 0.30);
 
-    --toolbar-height: 64px;
+    --toolbar-height: 72px;
     --bottom-nav-height: 64px;
 
     color-scheme: dark;
