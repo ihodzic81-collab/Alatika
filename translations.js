@@ -1,6 +1,7 @@
 // ============================================================
 // ALATIKA 3.0 — translations.js
-// Svi prevodi (SR + EN)
+// Svi prevodi (SR + EN) — v13 (dodati ključevi za moderne
+// dugmiće štoperice, tajmera i brzinomera)
 // ============================================================
 
 const TRANSLATIONS = {
@@ -32,7 +33,22 @@ const TRANSLATIONS = {
         'toolbar.timer.stopFirst': 'Zaustavi tajmer prvo.',
         'toolbar.timer.enterTime': 'Izaberi vreme za tajmer.',
         'toolbar.timer.timeUp': '⏰ Vreme je isteklo!',
+        'toolbar.timer.start': '▶ START',
+        'toolbar.timer.pause': '⏸ PAUZA',
+        'toolbar.timer.resume': '▶ NASTAVI',
+        'toolbar.timer.stopAlarm': '⏹ ZAUSTAVI ALARM',
+        'toolbar.timer.repeat': 'Ponavljanje',
+        'toolbar.timer.vibrate': 'Vibracija',
+        'toolbar.timer.sound': 'Zvuk',
         'toolbar.stopwatch.title': 'Štoperica',
+        'toolbar.stopwatch.start': '▶ START',
+        'toolbar.stopwatch.pause': '⏸ PAUZA',
+        'toolbar.stopwatch.lap': '🏁 KRUG',
+        'toolbar.stopwatch.reset': '↺ RESET',
+        'toolbar.stopwatch.laps': 'Krugovi',
+        'toolbar.stopwatch.lapsCount': 'Krugova',
+        'toolbar.stopwatch.best': 'Najbolji',
+        'toolbar.stopwatch.worst': 'Najgori',
         'toolbar.speedometer.title': 'Brzinomer (GPS)',
         'toolbar.speedometer.label': 'Brzina',
         'toolbar.speedometer.status.off': 'Isključeno',
@@ -42,10 +58,14 @@ const TRANSLATIONS = {
         'toolbar.speedometer.max': 'Maks.',
         'toolbar.speedometer.avg': 'Prosek',
         'toolbar.speedometer.accuracy': 'Preciznost',
+        'toolbar.speedometer.distance': 'Pređena distanca',
+        'toolbar.speedometer.sparkline': 'Poslednjih 30 sek',
         'toolbar.speedometer.start': 'Start',
         'toolbar.speedometer.stop': 'Stop',
         'toolbar.speedometer.reset': 'Reset',
-        'toolbar.speedometer.note': 'Brzina ispod 3 km/h se prikazuje kao 0.',
+        'toolbar.speedometer.note': 'Brzina ispod 3 km/h se prikazuje kao 0 (GPS šum). Radi najbolje na otvorenom.',
+        'toolbar.speedometer.limit': 'Ograničenje',
+        'toolbar.speedometer.overLimit': 'PREKORAČENJE!',
         'toolbar.speedometer.unit': 'Jedinica',
 
         // ============ NAV ============
@@ -840,7 +860,7 @@ const TRANSLATIONS = {
         'fuelHistory.saved': 'Točenje sačuvano.',
         'fuelHistory.deleted': 'Unos obrisan.',
         'fuelHistory.cleared': 'Istorija obrisana.',
-        
+
         // ============ LABELS — HEALTH ============
         'label.health.weight': 'Težina',
         'label.health.height': 'Visina',
@@ -1024,7 +1044,7 @@ const TRANSLATIONS = {
         'label.home.tapeWord': 'traka',
         'label.home.boxesWord': 'kutija',
         'label.home.cableWord': 'kabla',
-        
+
         // ============ LABELS — AUTO ============
         'label.auto.distance': 'Distanca',
         'label.auto.fuel': 'Gorivo',
@@ -1518,7 +1538,7 @@ const TRANSLATIONS = {
         'desc.kitchen.baking': 'Konverzija temperature pećnice.',
         'desc.kitchen.portions': 'Preračunaj količinu sastojka za drugi broj porcija.',
         'desc.kitchen.coffee': 'Izračunaj količinu kafe ili čaja.',
-        
+
         // ============ REMINDERS — HISTORY (ARHIVA) ============
         'rem.history.search': 'Pretraži podsetnike...',
         'rem.history.filter.all': 'Svi',
@@ -1694,7 +1714,7 @@ const TRANSLATIONS = {
         'rem.note.dueDate': 'Rok (opciono)',
         'rem.note.priority': 'Prioritet',
         'rem.note.done': 'Završeno',
-        
+
         // ============ WEATHER ============
         'weather.location.title': 'Izaberi lokaciju',
         'weather.location.search': 'Ukucaj grad...',
@@ -1943,6 +1963,91 @@ const TRANSLATIONS = {
         'holiday.easter': 'Vaskrs',
         'holiday.easter.monday': 'Vaskrsni ponedeljak',
         'holiday.easter.2': 'Drugi dan Vaskrsa',
+
+        // ============ TILES ============
+        'tiles.floorSection': 'Pod',
+        'tiles.wallsSection': 'Zidovi',
+        'tiles.enableWalls': 'Uključi zidove',
+        'tiles.wallLength': 'Dužina zida',
+        'tiles.wallHeight': 'Visina zida',
+        'tiles.wallCount': 'Broj zidova',
+        'tiles.totalTiles': 'Ukupno pločica',
+        'tiles.floorTiles': 'Za pod',
+        'tiles.wallTiles': 'Za zidove',
+        'tiles.floorArea': 'Površina poda',
+        'tiles.wallsArea': 'Površina zidova',
+        'tiles.totalArea': 'Ukupna površina',
+
+        // ============ HOME — OBLICI ============
+        'option.home.rectangle': 'Pravougaonik',
+        'option.home.square': 'Kvadrat',
+        'option.home.circle': 'Krug',
+        'option.home.triangle': 'Trougao',
+
+        // ============ MISC ============
+        'toast.micError': 'Greška pri pristupu mikrofonu.',
+        'toast.rem.saved': 'Sačuvano.',
+        'toast.rem.deleted': 'Obrisano.',
+        'toast.rem.error.name': 'Unesi naziv.',
+        'toast.rem.error.date': 'Unesi datum.',
+        'toast.error.enterAll': 'Unesi sve vrednosti.',
+        'toast.error.enterAmount': 'Unesi iznos.',
+        'toast.error.enterValue': 'Unesi vrednost.',
+        'toast.error.enterDate': 'Unesi datum.',
+        'toast.error.enterDistance': 'Unesi distancu.',
+        'toast.error.enterDistanceFuel': 'Unesi distancu i gorivo.',
+        'toast.error.enterDistanceSpeed': 'Unesi distancu i brzinu.',
+        'toast.error.enterHeight': 'Unesi visinu.',
+        'toast.error.enterWeightHeight': 'Unesi težinu i visinu.',
+        'toast.error.enterWeightWidth': 'Unesi težinu i širinu gume.',
+        'toast.error.enterWeightReps': 'Unesi težinu i ponavljanja (1-15).',
+        'toast.error.enterAge': 'Unesi godine.',
+        'toast.error.enterArea': 'Unesi površinu.',
+        'toast.error.enterAreaAndPer': 'Unesi površinu i broj po m².',
+        'toast.error.enterLengthWidth': 'Unesi dužinu i širinu.',
+        'toast.error.enterSide': 'Unesi stranu.',
+        'toast.error.enterDiameter': 'Unesi prečnik.',
+        'toast.error.enterBaseHeight': 'Unesi osnovu i visinu.',
+        'toast.error.enterWallDims': 'Unesi dimenzije zida.',
+        'toast.error.enterAllDimensions': 'Unesi sve dimenzije.',
+        'toast.error.enterBlockWallDims': 'Unesi dimenzije zida i bloka.',
+        'toast.error.enterStartEnd': 'Unesi početak i kraj.',
+        'toast.error.enterSalaryHours': 'Unesi platu i sate.',
+        'toast.error.enterHoursRate': 'Unesi sate i satnicu.',
+        'toast.error.enterPriceDiscount': 'Unesi cenu i popust.',
+        'toast.error.enterPricePercent': 'Unesi cenu i procenat.',
+        'toast.error.enterPriceQty': 'Unesi cenu i količinu.',
+        'toast.error.enterPriceMeals': 'Unesi cenu i broj obroka.',
+        'toast.error.enterAmountMonths': 'Unesi iznos i broj meseci.',
+        'toast.error.enterAmountPeople': 'Unesi iznos i broj osoba.',
+        'toast.error.enterAmountPercent': 'Unesi iznos i procenat.',
+        'toast.error.enterFour': 'Unesi sve 4 vrednosti.',
+        'toast.error.enterItemName': 'Unesi naziv stavke.',
+        'toast.error.enterBudget': 'Unesi budžet.',
+        'toast.error.enterSavingsDistance': 'Unesi uštedu i distancu.',
+        'toast.error.enterAtLeastOne': 'Unesi barem jednu vrednost.',
+        'toast.error.enterPowerHours': 'Unesi snagu i sate.',
+        'toast.error.enterCapacityLoad': 'Unesi kapacitet i opterećenje.',
+        'toast.error.enterChords': 'Unesi akorde.',
+        'toast.error.enterChainrings': 'Unesi lančanike.',
+        'toast.error.enterBothDates': 'Unesi oba datuma.',
+        'toast.error.enterDateDays': 'Unesi datum i dane.',
+        'toast.error.enterBirthDate': 'Unesi datum rođenja.',
+        'toast.error.enterTime': 'Unesi vreme.',
+        'toast.error.enterValue': 'Unesi vrednost.',
+        'toast.error.futureDate': 'Datum u budućnosti.',
+        'toast.error.minOneMeal': 'Minimum jedan obrok.',
+        'toast.error.bpmRange': 'BPM mora biti između 30 i 300.',
+        'toast.itemAdded': 'Stavka dodata.',
+        'toast.listEmpty': 'Lista je prazna.',
+        'toast.listCleared': 'Lista obrisana.',
+        'toast.noBoughtItems': 'Nema kupljenih stavki.',
+        'toast.boughtCleared': 'Obrisano.',
+
+        // ============ PEDOMETER ============
+        'pedometer.unsupported': 'Pedometar nije podržan na ovom uređaju.',
+        'pedometer.permission': 'Potrebna je dozvola za senzor pokreta.',
+        'pedometer.resetConfirm': 'Resetovati broj koraka?'
     },
 
     en: {
@@ -1970,7 +2075,22 @@ const TRANSLATIONS = {
         'toolbar.timer.stopFirst': 'Stop the timer first.',
         'toolbar.timer.enterTime': 'Choose a time for the timer.',
         'toolbar.timer.timeUp': '⏰ Time is up!',
+        'toolbar.timer.start': '▶ START',
+        'toolbar.timer.pause': '⏸ PAUSE',
+        'toolbar.timer.resume': '▶ RESUME',
+        'toolbar.timer.stopAlarm': '⏹ STOP ALARM',
+        'toolbar.timer.repeat': 'Repeat',
+        'toolbar.timer.vibrate': 'Vibration',
+        'toolbar.timer.sound': 'Sound',
         'toolbar.stopwatch.title': 'Stopwatch',
+        'toolbar.stopwatch.start': '▶ START',
+        'toolbar.stopwatch.pause': '⏸ PAUSE',
+        'toolbar.stopwatch.lap': '🏁 LAP',
+        'toolbar.stopwatch.reset': '↺ RESET',
+        'toolbar.stopwatch.laps': 'Laps',
+        'toolbar.stopwatch.lapsCount': 'Laps',
+        'toolbar.stopwatch.best': 'Best',
+        'toolbar.stopwatch.worst': 'Worst',
         'toolbar.speedometer.title': 'Speedometer (GPS)',
         'toolbar.speedometer.label': 'Speedometer',
         'toolbar.speedometer.status.off': 'Off',
@@ -1980,10 +2100,14 @@ const TRANSLATIONS = {
         'toolbar.speedometer.max': 'Max',
         'toolbar.speedometer.avg': 'Avg',
         'toolbar.speedometer.accuracy': 'Accuracy',
+        'toolbar.speedometer.distance': 'Distance',
+        'toolbar.speedometer.sparkline': 'Last 30 sec',
         'toolbar.speedometer.start': 'Start',
         'toolbar.speedometer.stop': 'Stop',
         'toolbar.speedometer.reset': 'Reset',
-        'toolbar.speedometer.note': 'Speed below 3 km/h is shown as 0.',
+        'toolbar.speedometer.note': 'Speed below 3 km/h is shown as 0 (GPS noise). Works best outdoors.',
+        'toolbar.speedometer.limit': 'Limit',
+        'toolbar.speedometer.overLimit': 'OVER LIMIT!',
         'toolbar.speedometer.unit': 'Unit',
         'nav.home': 'Home',
         'nav.myTools': 'My tools',
@@ -2521,7 +2645,7 @@ const TRANSLATIONS = {
         'fuelHistory.delete': 'Delete entry', 'fuelHistory.clear': 'Clear all',
         'fuelHistory.clearConfirm': 'Clear the whole fuel history?', 'fuelHistory.saved': 'Refuel saved.',
         'fuelHistory.deleted': 'Entry deleted.', 'fuelHistory.cleared': 'History cleared.',
-        
+
         // ============ HEALTH ============
         'label.health.weight': 'Weight',
         'label.health.height': 'Height',
@@ -2701,7 +2825,7 @@ const TRANSLATIONS = {
         'label.home.tapeWord': 'tape',
         'label.home.boxesWord': 'boxes',
         'label.home.cableWord': 'cable',
-        
+
         // ============ AUTO ============
         'label.auto.distance': 'Distance',
         'label.auto.fuel': 'Fuel',
@@ -3184,8 +3308,8 @@ const TRANSLATIONS = {
         'desc.kitchen.baking': 'Oven temperature conversion.',
         'desc.kitchen.portions': 'Recalculate ingredient quantity for a different number of portions.',
         'desc.kitchen.coffee': 'Calculate coffee or tea quantity.',
-        
-        // ============ REMINDERS — HISTORY ============
+
+        // ============ REMINDERS ============
         'rem.history.search': 'Search reminders...',
         'rem.history.filter.all': 'All',
         'rem.history.filter.active': 'Active',
@@ -3340,7 +3464,7 @@ const TRANSLATIONS = {
         'rem.note.dueDate': 'Due date (optional)',
         'rem.note.priority': 'Priority',
         'rem.note.done': 'Done',
-        
+
         // ============ WEATHER ============
         'weather.location.title': 'Choose location',
         'weather.location.search': 'Type a city...',
@@ -3480,7 +3604,7 @@ const TRANSLATIONS = {
         'weather.comment.frost': 'frost',
         'weather.comment.bigTempDiff': 'big temp. difference',
 
-        // ============ GPS — GENERAL ============
+        // ============ GPS ============
         'gps.start': 'Start',
         'gps.stop': 'Stop',
         'gps.reset': 'Reset',
@@ -3575,6 +3699,91 @@ const TRANSLATIONS = {
         'holiday.easter': 'Easter',
         'holiday.easter.monday': 'Easter Monday',
         'holiday.easter.2': 'Second day of Easter',
+
+        // ============ TILES ============
+        'tiles.floorSection': 'Floor',
+        'tiles.wallsSection': 'Walls',
+        'tiles.enableWalls': 'Enable walls',
+        'tiles.wallLength': 'Wall length',
+        'tiles.wallHeight': 'Wall height',
+        'tiles.wallCount': 'Number of walls',
+        'tiles.totalTiles': 'Total tiles',
+        'tiles.floorTiles': 'For floor',
+        'tiles.wallTiles': 'For walls',
+        'tiles.floorArea': 'Floor area',
+        'tiles.wallsArea': 'Walls area',
+        'tiles.totalArea': 'Total area',
+
+        // ============ HOME SHAPES ============
+        'option.home.rectangle': 'Rectangle',
+        'option.home.square': 'Square',
+        'option.home.circle': 'Circle',
+        'option.home.triangle': 'Triangle',
+
+        // ============ MISC ============
+        'toast.micError': 'Error accessing microphone.',
+        'toast.rem.saved': 'Saved.',
+        'toast.rem.deleted': 'Deleted.',
+        'toast.rem.error.name': 'Enter a name.',
+        'toast.rem.error.date': 'Enter a date.',
+        'toast.error.enterAll': 'Enter all values.',
+        'toast.error.enterAmount': 'Enter an amount.',
+        'toast.error.enterValue': 'Enter a value.',
+        'toast.error.enterDate': 'Enter a date.',
+        'toast.error.enterDistance': 'Enter distance.',
+        'toast.error.enterDistanceFuel': 'Enter distance and fuel.',
+        'toast.error.enterDistanceSpeed': 'Enter distance and speed.',
+        'toast.error.enterHeight': 'Enter height.',
+        'toast.error.enterWeightHeight': 'Enter weight and height.',
+        'toast.error.enterWeightWidth': 'Enter weight and tire width.',
+        'toast.error.enterWeightReps': 'Enter weight and reps (1-15).',
+        'toast.error.enterAge': 'Enter age.',
+        'toast.error.enterArea': 'Enter area.',
+        'toast.error.enterAreaAndPer': 'Enter area and tiles per m².',
+        'toast.error.enterLengthWidth': 'Enter length and width.',
+        'toast.error.enterSide': 'Enter side.',
+        'toast.error.enterDiameter': 'Enter diameter.',
+        'toast.error.enterBaseHeight': 'Enter base and height.',
+        'toast.error.enterWallDims': 'Enter wall dimensions.',
+        'toast.error.enterAllDimensions': 'Enter all dimensions.',
+        'toast.error.enterBlockWallDims': 'Enter wall and block dimensions.',
+        'toast.error.enterStartEnd': 'Enter start and end time.',
+        'toast.error.enterSalaryHours': 'Enter salary and hours.',
+        'toast.error.enterHoursRate': 'Enter hours and hourly rate.',
+        'toast.error.enterPriceDiscount': 'Enter price and discount.',
+        'toast.error.enterPricePercent': 'Enter price and percentage.',
+        'toast.error.enterPriceQty': 'Enter price and quantity.',
+        'toast.error.enterPriceMeals': 'Enter price and number of meals.',
+        'toast.error.enterAmountMonths': 'Enter amount and number of months.',
+        'toast.error.enterAmountPeople': 'Enter amount and number of people.',
+        'toast.error.enterAmountPercent': 'Enter amount and percentage.',
+        'toast.error.enterFour': 'Enter all 4 values.',
+        'toast.error.enterItemName': 'Enter item name.',
+        'toast.error.enterBudget': 'Enter budget.',
+        'toast.error.enterSavingsDistance': 'Enter savings and distance.',
+        'toast.error.enterAtLeastOne': 'Enter at least one value.',
+        'toast.error.enterPowerHours': 'Enter power and hours.',
+        'toast.error.enterCapacityLoad': 'Enter capacity and load.',
+        'toast.error.enterChords': 'Enter chords.',
+        'toast.error.enterChainrings': 'Enter chainrings.',
+        'toast.error.enterBothDates': 'Enter both dates.',
+        'toast.error.enterDateDays': 'Enter date and days.',
+        'toast.error.enterBirthDate': 'Enter birth date.',
+        'toast.error.enterTime': 'Enter time.',
+        'toast.error.enterValue': 'Enter value.',
+        'toast.error.futureDate': 'Date in the future.',
+        'toast.error.minOneMeal': 'Minimum one meal.',
+        'toast.error.bpmRange': 'BPM must be between 30 and 300.',
+        'toast.itemAdded': 'Item added.',
+        'toast.listEmpty': 'List is empty.',
+        'toast.listCleared': 'List cleared.',
+        'toast.noBoughtItems': 'No bought items.',
+        'toast.boughtCleared': 'Cleared.',
+
+        // ============ PEDOMETER ============
+        'pedometer.unsupported': 'Pedometer not supported on this device.',
+        'pedometer.permission': 'Motion sensor permission required.',
+        'pedometer.resetConfirm': 'Reset step count?'
     }
 };
 
@@ -3633,5 +3842,5 @@ function toggleLanguage() {
 setLanguage(detectLanguage());
 
 // ============================================================
-// KRAJ translations.js — Alatika 3.0
+// KRAJ translations.js — Alatika 3.0 (v13)
 // ============================================================
