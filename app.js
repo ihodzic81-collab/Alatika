@@ -96,6 +96,7 @@ const ICONS = {
     calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>',
     calculator: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>',
     gauge: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>',
+    level: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="9" width="20" height="6" rx="3"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><line x1="12" y1="9.5" x2="12" y2="11"/><line x1="9.5" y1="12" x2="11" y2="12"/><line x1="13" y1="12" x2="14.5" y2="12"/><line x1="12" y1="13" x2="12" y2="14.5"/></svg>',
     level: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="20" height="8" rx="2"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/><line x1="12" y1="9.5" x2="12" y2="11"/><line x1="9.5" y1="12" x2="11" y2="12"/><line x1="13" y1="12" x2="14.5" y2="12"/><line x1="12" y1="13" x2="12" y2="14.5"/></svg>',
     wind: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>',
     flame: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
@@ -10920,7 +10921,7 @@ function initToolbarIcons() {
     const timerIcon = document.querySelector('#toolbar-timer-btn .toolbar-icon');
     if (timerIcon) timerIcon.innerHTML = icon('timer');
     const levelBtnIcon = document.querySelector('#toolbar-level-btn .toolbar-icon');
-    if (levelBtnIcon) levelBtnIcon.innerHTML = icon('gauge');
+    if (levelBtnIcon) levelBtnIcon.innerHTML = icon('level');
     const speedometerBtnIcon = document.querySelector('#toolbar-speedometer-btn .toolbar-icon');
     if (speedometerBtnIcon) speedometerBtnIcon.innerHTML = icon('speedometer');
 
