@@ -1,12 +1,11 @@
 // ============================================================
 // ALATIKA 3.0 — app.js
-// Deo 1/2: Pomoćne funkcije, ICONS, SECTIONS, CATEGORIES,
-// getTabCount, init, toolbar logika (Nivo, ŠTOPERICA MODERNA,
-// TAJMER MODERNI, BRZINOMER MODERNI), bottom nav, today dashboard,
-// Moji alati, profil, pretraga, SVI ALATI ACCORDION,
-// Toast, Confirm, zvuk/vibracija, ripple, podešavanja,
-// copy/share, istorija, favoriti, badge, arhiva, date triple,
-// input persistence, tab layout, accent colors, about, back button
+// Verzija: v14
+// ZADACI:
+//   1. Brzinomer — dugmići premešteni (rešeno u index.html + style.css)
+//   2. Podsetnici — renderReminderList() se poziva pri otvaranju taba
+//   3. Svi alati — 6 glavnih kategorija + pod-kategorije + omiljeni
+//   4. CSS — rešeno u style.css
 // ============================================================
 
 // ================= POMOĆNE =================
@@ -242,74 +241,22 @@ function icon(name) {
 
 // ================= SECTIONS (10 sekcija) =================
 const SECTIONS = {
-    konverzije: {
-        name: 'Konverzije',
-        icon: 'exchange',
-        accent: '#8b5cf6',
-        cats: ['measures']
-    },
-    novac: {
-        name: 'Novac',
-        icon: 'wallet',
-        accent: '#10b981',
-        cats: ['money']
-    },
-    kupovina: {
-        name: 'Kupovina',
-        icon: 'cart',
-        accent: '#14b8a6',
-        cats: ['shopping']
-    },
-    dom: {
-        name: 'Dom',
-        icon: 'home',
-        accent: '#ea580c',
-        cats: ['homecalc', 'kitchen']
-    },
-    vozila: {
-        name: 'Vozila',
-        icon: 'car',
-        accent: '#f43f5e',
-        cats: ['auto', 'bike']
-    },
-    struja: {
-        name: 'Struja',
-        icon: 'zap',
-        accent: '#eab308',
-        cats: ['power']
-    },
-    vreme: {
-        name: 'Vreme i datumi',
-        icon: 'clock',
-        accent: '#f59e0b',
-        cats: ['time', 'weather']
-    },
-    podsetnici: {
-        name: 'Podsetnici',
-        icon: 'bell',
-        accent: '#f59e0b',
-        cats: ['podsetnici']
-    },
-    zdravlje: {
-        name: 'Zdravlje',
-        icon: 'heartPulse',
-        accent: '#ec4899',
-        cats: ['health']
-    },
-    hobi: {
-        name: 'Hobi',
-        icon: 'music',
-        accent: '#a855f7',
-        cats: ['music', 'work', 'gps', 'navike']
-    }
+    konverzije: { name: 'Konverzije', icon: 'exchange', accent: '#8b5cf6', cats: ['measures'] },
+    novac: { name: 'Novac', icon: 'wallet', accent: '#10b981', cats: ['money'] },
+    kupovina: { name: 'Kupovina', icon: 'cart', accent: '#14b8a6', cats: ['shopping'] },
+    dom: { name: 'Dom', icon: 'home', accent: '#ea580c', cats: ['homecalc', 'kitchen'] },
+    vozila: { name: 'Vozila', icon: 'car', accent: '#f43f5e', cats: ['auto', 'bike'] },
+    struja: { name: 'Struja', icon: 'zap', accent: '#eab308', cats: ['power'] },
+    vreme: { name: 'Vreme i datumi', icon: 'clock', accent: '#f59e0b', cats: ['time', 'weather'] },
+    podsetnici: { name: 'Podsetnici', icon: 'bell', accent: '#f59e0b', cats: ['podsetnici'] },
+    zdravlje: { name: 'Zdravlje', icon: 'heartPulse', accent: '#ec4899', cats: ['health'] },
+    hobi: { name: 'Hobi', icon: 'music', accent: '#a855f7', cats: ['music', 'work', 'gps', 'navike'] }
 };
 
 // ================= CATEGORIES =================
 const CATEGORIES = {
     podsetnici: {
-        name: 'Podsetnici',
-        icon: 'bell',
-        accent: '#f59e0b',
+        name: 'Podsetnici', icon: 'bell', accent: '#f59e0b',
         tabs: [
             { id: 'arhiva', name: 'Arhiva', icon: 'clipboard', render: renderRemindersHistory },
             { id: 'rate', name: 'Rate', icon: 'creditCard', render: renderRemindersRate },
@@ -479,9 +426,7 @@ const CATEGORIES = {
         ]
     },
     gps: {
-        name: 'GPS',
-        icon: 'navigation',
-        accent: '#0ea5e9',
+        name: 'GPS', icon: 'navigation', accent: '#0ea5e9',
         tabs: [
             { id: 'brzina', name: 'Brzina', icon: 'gauge', render: renderGpsBrzina },
             { id: 'visina', name: 'Visina', icon: 'mountain', render: renderGpsVisina },
@@ -491,15 +436,65 @@ const CATEGORIES = {
         ]
     },
     navike: {
-        name: 'Navike',
-        icon: 'sparkles',
-        accent: '#10b981',
+        name: 'Navike', icon: 'sparkles', accent: '#10b981',
         tabs: [
             { id: 'habits', name: 'Habit tracker', icon: 'check', render: renderHabitTracker },
             { id: 'dnevnik', name: 'Dnevnik', icon: 'book', render: renderJournal }
         ]
     }
 };
+
+// ================= ZADATAK 3: GLAVNE KATEGORIJE (6) =================
+// Mapiranje: glavna kategorija → pod-kategorije (postojeći CATEGORIES ID-jevi)
+// Podsetnici su IZDVOJENI — nisu u 6 kategorija, ostaju preko "Brzi alat"
+const MAIN_CATEGORIES = [
+    {
+        id: 'vozila',
+        name: 'Vozila',
+        icon: 'car',
+        accent: '#f43f5e',
+        subcats: ['auto', 'bike']
+    },
+    {
+        id: 'novac_posao',
+        name: 'Novac i posao',
+        icon: 'wallet',
+        accent: '#10b981',
+        subcats: ['money', 'work', 'shopping']
+    },
+    {
+        id: 'mere_vreme',
+        name: 'Mere i vreme',
+        icon: 'ruler',
+        accent: '#8b5cf6',
+        subcats: ['measures', 'time', 'weather']
+    },
+    {
+        id: 'kuca_dom',
+        name: 'Kuća i domaćinstvo',
+        icon: 'home',
+        accent: '#ea580c',
+        subcats: ['homecalc', 'kitchen']
+    },
+    {
+        id: 'zdravlje_telo',
+        name: 'Zdravlje i telo',
+        icon: 'heartPulse',
+        accent: '#ec4899',
+        subcats: ['health', 'navike']
+    },
+    {
+        id: 'tehnika_hobi',
+        name: 'Tehnika i hobi',
+        icon: 'zap',
+        accent: '#eab308',
+        subcats: ['power', 'music', 'gps']
+    }
+];
+
+function getMainCategoryById(id) {
+    return MAIN_CATEGORIES.find(c => c.id === id) || null;
+}
 
 // ================= getTabCount =================
 function getTabCount(categoryId, tabId) {
@@ -766,8 +761,7 @@ function levelResetOffset() {
 }
 
 // ============================================================
-// ZADATAK 1: MODERNA ŠTOPERICA (TOOLBAR)
-// SVG progress prsten + 3 stat boxa + lista krugova (accordion)
+// ŠTOPERICA (TOOLBAR)
 // ============================================================
 const toolbarStopwatchState = {
     running: false,
@@ -779,9 +773,7 @@ const toolbarStopwatchState = {
     lapsOpen: false
 };
 
-// Konstanta obima prstena: 2 * π * r = 2 * π * 98 ≈ 615.75
 const STOPWATCH_CIRCUMFERENCE = 615.75;
-// Maksimalno vreme za prsten (npr. 60 sekundi)
 const STOPWATCH_RING_PERIOD_MS = 60000;
 
 function toolbarStopwatchToggle() {
@@ -815,7 +807,6 @@ function toolbarStopwatchUpdateDisplay(ms) {
     const timeEl = el('toolbar-stopwatch-time');
     if (timeEl) timeEl.textContent = formatStopwatchTime(ms);
 
-    // SVG prsten — 60s perioda
     const ring = el('stopwatch-ring-progress');
     if (ring) {
         const pct = (ms % STOPWATCH_RING_PERIOD_MS) / STOPWATCH_RING_PERIOD_MS;
@@ -967,8 +958,7 @@ function openToolbarStopwatch() {
 }
 
 // ============================================================
-// ZADATAK 2: MODERNI TAJMER (TOOLBAR)
-// SVG prsten koji se SMANJUJE + preseti + HH:MM:SS + opcije
+// TAJMER (TOOLBAR)
 // ============================================================
 const TIMER_CIRCUMFERENCE = 615.75;
 
@@ -1142,7 +1132,6 @@ function toolbarTimerStopAlarm() {
     toolbarTimerUpdateBtn();
     vibrate(20);
 
-    // Ako je repeat uključen, restartuj tajmer
     if (toolbarTimerState.repeat) {
         setTimeout(() => {
             toolbarTimerState.running = false;
@@ -1195,7 +1184,6 @@ function toolbarTimerUpdateDisplay() {
     const s = sec % 60;
     timeEl.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
-    // SVG prsten — smanjuje se kako vreme ističe
     if (ring) {
         const total = toolbarTimerState.totalMs || 1;
         const pct = Math.max(0, Math.min(1, ms / total));
@@ -1239,8 +1227,7 @@ function openToolbarTimer() {
 }
 
 // ============================================================
-// ZADATAK 3: MODERNI BRZINOMER (TOOLBAR)
-// Analogni SVG brzinomer + sparkline + upozorenje + distanca
+// BRZINOMER (TOOLBAR)
 // ============================================================
 const SPEEDOMETER_UNIT_KEY = 'cx_speedometer_unit_v3';
 const SPEEDOMETER_MAX_KEY = 'cx_speedometer_max_v3';
@@ -1261,7 +1248,7 @@ const speedometerState = {
     limitKmh: SPEEDOMETER_DEFAULT_LIMIT,
     lastPosition: null,
     totalDistanceKm: 0,
-    sparkData: [],  // { t, kmh }
+    sparkData: [],
     sparkIntervalId: null
 };
 
@@ -1335,7 +1322,6 @@ function speedometerUpdateDisplay() {
     if (distEl) distEl.innerHTML = `${speedometerState.totalDistanceKm.toFixed(2)} <small>km</small>`;
 }
 
-// Maksimalna vrednost na skali (u km/h)
 const SPEEDOMETER_SCALE_MAX_KMH = 240;
 
 function speedometerUpdateAnalog() {
@@ -1343,13 +1329,11 @@ function speedometerUpdateAnalog() {
     if (!needleGroup) return;
     const kmh = Math.min(speedometerState.currentKmh, SPEEDOMETER_SCALE_MAX_KMH);
     const ratio = kmh / SPEEDOMETER_SCALE_MAX_KMH;
-    // Skala od -120° do +120° (240° opseg)
     const startAngle = -120;
     const endAngle = 120;
     const angle = startAngle + (endAngle - startAngle) * ratio;
     needleGroup.style.transform = `rotate(${angle}deg)`;
 
-    // Upozorenje preko limita
     const wrap = el('speedometer-analog-wrap');
     const valEl = el('speedometer-value');
     const over = speedometerState.currentKmh > speedometerState.limitKmh;
@@ -1358,7 +1342,6 @@ function speedometerUpdateAnalog() {
 }
 
 function speedometerDrawScale() {
-    // Nacrtaj tick marks i brojeve
     const ticks = el('speed-ticks');
     const numbers = el('speed-numbers');
     if (!ticks || !numbers) return;
@@ -1366,8 +1349,8 @@ function speedometerDrawScale() {
     const cx = 140, cy = 140;
     const rOuter = 118, rInnerMajor = 105, rInnerMinor = 112;
     const startAngle = -120, endAngle = 120;
-    const totalSteps = 24; // 0 do 240, svakih 10
-    const majorEvery = 2;  // svakih 20 je major
+    const totalSteps = 24;
+    const majorEvery = 2;
     let ticksHtml = '';
     let numbersHtml = '';
 
@@ -1433,7 +1416,6 @@ function speedometerPushSparkSample() {
     if (!speedometerState.running) return;
     const now = performance.now();
     speedometerState.sparkData.push({ t: now, kmh: speedometerState.currentKmh });
-    // Zadrži samo poslednjih 30 sekundi
     const cutoff = now - 30000;
     speedometerState.sparkData = speedometerState.sparkData.filter(d => d.t >= cutoff);
     speedometerUpdateSparkline();
@@ -1505,7 +1487,6 @@ function speedometerStart() {
         return;
     }
     speedometerRequestWakeLock();
-    // Sparkline interval
     if (speedometerState.sparkIntervalId) clearInterval(speedometerState.sparkIntervalId);
     speedometerState.sparkIntervalId = setInterval(speedometerPushSparkSample, 500);
     vibrate(20);
@@ -1538,7 +1519,6 @@ function speedometerOnPosition(pos) {
     speedometerState.currentKmh = filteredKmh;
     speedometerState.accuracy = accuracy;
 
-    // Distanca: računaj između dve pozicije (Haversine)
     if (speedometerState.lastPosition) {
         const d = haversineKm(
             speedometerState.lastPosition.lat,
@@ -1546,7 +1526,7 @@ function speedometerOnPosition(pos) {
             pos.coords.latitude,
             pos.coords.longitude
         );
-        if (d > 0.001 && d < 1) {  // 1m - 1km, filter šuma
+        if (d > 0.001 && d < 1) {
             speedometerState.totalDistanceKm += d;
         }
     }
@@ -2211,23 +2191,49 @@ function clearSearch() {
     const input = el('home-search');
     if (input) input.value = '';
     handleQuickSearch();
-}
+}// ============================================================
+// ZADATAK 3: "SVI ALATI" MODAL — NOVA STRUKTURA
+// 6 glavnih kategorija + pod-kategorije + omiljeni chipovi
+// ============================================================
+
+// Stanje za navigaciju unutar "Svi alati" modala
+// view: 'main' = prikaz 6 glavnih kategorija
+// view: 'sub'  = prikaz pod-kategorija izabrane glavne kategorije
+const allToolsViewState = {
+    view: 'main',
+    activeMainCat: null,
+    openSubcats: {}   // { catId: true/false }
+};
 
 // ============================================================
-// ZADATAK 4: SVI ALATI MODAL — ACCORDION (kompletno)
+// OTVARANJE / ZATVARANJE "SVI ALATI" MODALA
 // ============================================================
-const allToolsCatState = {};
-
 function openAllToolsModal() {
     const modal = el('all-tools-modal');
     if (!modal) return;
 
+    // Reset stanja na glavni prikaz
+    allToolsViewState.view = 'main';
+    allToolsViewState.activeMainCat = null;
+    allToolsViewState.openSubcats = {};
+
+    // Reset pretrage
     const searchInput = el('all-tools-search');
     if (searchInput) searchInput.value = '';
     const clearBtn = el('all-tools-search-clear');
     if (clearBtn) clearBtn.style.display = 'none';
 
-    renderAllToolsSections();
+    // Sakrij back dugme na glavnom prikazu
+    const backBtn = el('all-tools-back-btn');
+    if (backBtn) backBtn.style.display = 'none';
+
+    // Postavi naslov
+    const title = el('all-tools-modal-title');
+    if (title) title.textContent = safeT('allTools.title');
+
+    // Renderuj omiljene + glavne kategorije
+    renderAllToolsFavorites();
+    renderAllToolsMainCats();
 
     modal.classList.add('show');
     document.body.classList.add('modal-open');
@@ -2237,25 +2243,179 @@ function openAllToolsModal() {
     try { history.pushState({ modal: 'all-tools' }, '', ''); } catch (e) {}
 }
 
-function renderAllToolsSections() {
+// ============================================================
+// BACK DUGME — vraća sa pod-kategorija na glavne kategorije
+// ============================================================
+function allToolsGoBack() {
+    if (allToolsViewState.view === 'main') {
+        closeModal('all-tools-modal');
+        return;
+    }
+    // Vrati se na glavni prikaz
+    allToolsViewState.view = 'main';
+    allToolsViewState.activeMainCat = null;
+    allToolsViewState.openSubcats = {};
+
+    const backBtn = el('all-tools-back-btn');
+    if (backBtn) backBtn.style.display = 'none';
+    const title = el('all-tools-modal-title');
+    if (title) title.textContent = safeT('allTools.title');
+
+    // Reset pretrage
+    const searchInput = el('all-tools-search');
+    if (searchInput) searchInput.value = '';
+    const clearBtn = el('all-tools-search-clear');
+    if (clearBtn) clearBtn.style.display = 'none';
+
+    // Prikaži omiljene i glavne kategorije
+    const favWrap = el('all-tools-favorites-wrap');
+    if (favWrap) favWrap.style.display = '';
+    renderAllToolsFavorites();
+    renderAllToolsMainCats();
+
+    vibrate(10);
+    playTick(0, 1200, 0.04, 0.012);
+}
+
+// ============================================================
+// OMILJENI CHIPOVI
+// ============================================================
+function renderAllToolsFavorites() {
+    const wrap = el('all-tools-favorites-wrap');
+    const chips = el('all-tools-favorites-chips');
+    if (!wrap || !chips) return;
+
+    const favs = loadFavorites().slice(0, 4);  // max 4
+    if (favs.length === 0) {
+        wrap.style.display = 'none';
+        chips.innerHTML = '';
+        return;
+    }
+    wrap.style.display = '';
+
+    chips.innerHTML = '';
+    favs.forEach(key => {
+        const parts = key.split(':');
+        if (parts.length !== 2) return;
+        const catId = parts[0], tabId = parts[1];
+        const cat = CATEGORIES[catId];
+        if (!cat) return;
+        const tab = cat.tabs.find(t => t.id === tabId);
+        if (!tab) return;
+        const accent = getCategoryAccent(catId);
+
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'all-tools-fav-chip';
+        chip.style.setProperty('--qt-accent', accent);
+        chip.innerHTML = `
+            <span class="fav-chip-icon">${icon(tab.icon)}</span>
+            <span>${escapeHtml(safeT('tab.' + catId + '.' + tabId))}</span>
+        `;
+        chip.onclick = (e) => {
+            e.stopPropagation();
+            openCalcFromAllTools(catId, tabId);
+        };
+        chips.appendChild(chip);
+    });
+}
+
+// ============================================================
+// RENDER GLAVNIH KATEGORIJA (6 kartica)
+// ============================================================
+function renderAllToolsMainCats() {
     const container = el('all-tools-sections');
     if (!container) return;
 
-    let html = '';
+    let totalTools = 0;
+    MAIN_CATEGORIES.forEach(mainCat => {
+        mainCat.subcats.forEach(subId => {
+            const cat = CATEGORIES[subId];
+            if (cat) totalTools += cat.tabs.length;
+        });
+    });
 
-    Object.entries(CATEGORIES).forEach(([catId, cat]) => {
-        const accent = getCategoryAccent(catId);
+    let html = '<div class="all-tools-main-cats-grid">';
+    MAIN_CATEGORIES.forEach(mainCat => {
+        // Broj alata u glavnoj kategoriji
+        let toolsCount = 0;
+        mainCat.subcats.forEach(subId => {
+            const cat = CATEGORIES[subId];
+            if (cat) toolsCount += cat.tabs.length;
+        });
+
+        html += `
+            <button type="button" class="all-tools-main-cat"
+                    style="--cat-accent: ${mainCat.accent};"
+                    onclick="openAllToolsMainCat('${mainCat.id}')">
+                <span class="all-tools-main-cat-icon">${icon(mainCat.icon)}</span>
+                <span class="all-tools-main-cat-name">${escapeHtml(mainCat.name)}</span>
+                <span class="all-tools-main-cat-count">${toolsCount} ${toolsCount === 1 ? 'alat' : 'alata'}</span>
+            </button>
+        `;
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
+}
+
+// ============================================================
+// OTVARANJE GLAVNE KATEGORIJE → PRIKAZ POD-KATEGORIJA
+// ============================================================
+function openAllToolsMainCat(mainCatId) {
+    const mainCat = getMainCategoryById(mainCatId);
+    if (!mainCat) return;
+
+    allToolsViewState.view = 'sub';
+    allToolsViewState.activeMainCat = mainCatId;
+    allToolsViewState.openSubcats = {};
+
+    // Sakrij omiljene chipove u sub-view
+    const favWrap = el('all-tools-favorites-wrap');
+    if (favWrap) favWrap.style.display = 'none';
+
+    // Prikaži back dugme i promeni naslov
+    const backBtn = el('all-tools-back-btn');
+    if (backBtn) backBtn.style.display = 'flex';
+    const title = el('all-tools-modal-title');
+    if (title) title.textContent = mainCat.name;
+
+    // Reset pretrage
+    const searchInput = el('all-tools-search');
+    if (searchInput) searchInput.value = '';
+    const clearBtn = el('all-tools-search-clear');
+    if (clearBtn) clearBtn.style.display = 'none';
+
+    renderAllToolsSubCats(mainCat);
+
+    vibrate(12);
+    playTick(0, 1300, 0.05, 0.015);
+}
+
+// ============================================================
+// RENDER POD-KATEGORIJA (accordion sa tabovima)
+// ============================================================
+function renderAllToolsSubCats(mainCat) {
+    const container = el('all-tools-sections');
+    if (!container) return;
+
+    let html = '<div class="all-tools-subcats-grid">';
+
+    mainCat.subcats.forEach(subId => {
+        const cat = CATEGORIES[subId];
+        if (!cat) return;
+        const accent = getCategoryAccent(subId);
         const totalTools = cat.tabs.length;
-        const isOpen = allToolsCatState[catId] === true;
+        const isOpen = allToolsViewState.openSubcats[subId] === true;
         const openClass = isOpen ? ' open' : '';
         const ariaExpanded = isOpen ? 'true' : 'false';
 
+        // Tabovi unutar pod-kategorije
         let tabsHtml = '';
         cat.tabs.forEach(tab => {
-            const tabAccent = accent;
-            const favKey = `${catId}:${tab.id}`;
+            const favKey = `${subId}:${tab.id}`;
             const isFav = isFavorite(favKey);
-            const badgeCount = getTabCount(catId, tab.id);
+            const badgeCount = getTabCount(subId, tab.id);
             const badgeHtml = badgeCount > 0
                 ? `<span class="all-tools-tab-badge">${badgeCount > 99 ? '99+' : badgeCount}</span>`
                 : '';
@@ -2264,33 +2424,36 @@ function renderAllToolsSections() {
                 : '';
 
             tabsHtml += `
-                <button class="all-tools-tab" style="--tab-accent: ${tabAccent};"
-                        onclick="event.stopPropagation(); openCalcFromAllTools('${catId}', '${tab.id}')"
-                        title="${escapeHtml(safeT('tab.' + catId + '.' + tab.id))}">
+                <button type="button" class="all-tools-tab"
+                        style="--tab-accent: ${accent};"
+                        onclick="event.stopPropagation(); openCalcFromAllTools('${subId}', '${tab.id}')"
+                        title="${escapeHtml(safeT('tab.' + subId + '.' + tab.id))}">
                     ${badgeHtml}
                     ${favHtml}
                     <span class="all-tools-tab-icon">${icon(tab.icon)}</span>
-                    <span class="all-tools-tab-label">${escapeHtml(safeT('tab.' + catId + '.' + tab.id))}</span>
+                    <span class="all-tools-tab-label">${escapeHtml(safeT('tab.' + subId + '.' + tab.id))}</span>
                 </button>
             `;
         });
 
         html += `
-            <div class="all-tools-cat${openClass}" data-cat-id="${catId}" style="--cat-accent: ${accent};">
-                <button class="all-tools-cat-head"
-                        onclick="toggleAllToolsCat('${catId}')"
+            <div class="all-tools-subcat${openClass}"
+                 data-subcat-id="${subId}"
+                 style="--cat-accent: ${accent};">
+                <button type="button" class="all-tools-subcat-head"
+                        onclick="toggleAllToolsSubcat('${subId}')"
                         aria-expanded="${ariaExpanded}">
-                    <span class="all-tools-cat-icon">${icon(cat.icon)}</span>
-                    <span class="all-tools-cat-info">
-                        <span class="all-tools-cat-name">${escapeHtml(safeT('cat.' + catId))}</span>
-                        <span class="all-tools-cat-count">${totalTools} ${totalTools === 1 ? 'alat' : 'alata'}</span>
+                    <span class="all-tools-subcat-icon">${icon(cat.icon)}</span>
+                    <span class="all-tools-subcat-info">
+                        <span class="all-tools-subcat-name">${escapeHtml(safeT('cat.' + subId))}</span>
+                        <span class="all-tools-subcat-count">${totalTools} ${totalTools === 1 ? 'alat' : 'alata'}</span>
                     </span>
-                    <span class="all-tools-cat-arrow">
+                    <span class="all-tools-subcat-arrow">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                     </span>
                 </button>
-                <div class="all-tools-cat-body">
-                    <div class="all-tools-cat-body-inner">
+                <div class="all-tools-subcat-body">
+                    <div class="all-tools-subcat-body-inner">
                         <div class="all-tools-tabs-grid">${tabsHtml}</div>
                     </div>
                 </div>
@@ -2298,45 +2461,44 @@ function renderAllToolsSections() {
         `;
     });
 
+    html += '</div>';
     container.innerHTML = html;
 }
 
-function toggleAllToolsCat(catId) {
-    const catEl = document.querySelector(`.all-tools-cat[data-cat-id="${catId}"]`);
-    if (!catEl) return;
-    const isOpen = catEl.classList.contains('open');
-    catEl.classList.toggle('open', !isOpen);
-    allToolsCatState[catId] = !isOpen;
-    const head = catEl.querySelector('.all-tools-cat-head');
+// ============================================================
+// TOGGLE POD-KATEGORIJE (accordion)
+// ============================================================
+function toggleAllToolsSubcat(subcatId) {
+    const el2 = document.querySelector(`.all-tools-subcat[data-subcat-id="${subcatId}"]`);
+    if (!el2) return;
+    const isOpen = el2.classList.contains('open');
+    el2.classList.toggle('open', !isOpen);
+    allToolsViewState.openSubcats[subcatId] = !isOpen;
+    const head = el2.querySelector('.all-tools-subcat-head');
     if (head) head.setAttribute('aria-expanded', (!isOpen).toString());
     vibrate(8);
     playTick(0, 1200, 0.04, 0.012);
 }
 
-function closeAllToolsCat(catId) {
-    const catEl = document.querySelector(`.all-tools-cat[data-cat-id="${catId}"]`);
-    if (!catEl) return false;
-    if (!catEl.classList.contains('open')) return false;
-    catEl.classList.remove('open');
-    allToolsCatState[catId] = false;
-    const head = catEl.querySelector('.all-tools-cat-head');
-    if (head) head.setAttribute('aria-expanded', 'false');
-    vibrate(8);
-    return true;
-}
-
+// ============================================================
+// ZATVARANJE SVIH OTVORENIH POD-KATEGORIJA
+// ============================================================
 function closeAnyOpenAllToolsCat() {
-    const openCats = document.querySelectorAll('.all-tools-cat.open');
+    if (allToolsViewState.view !== 'sub') return false;
+    const openCats = document.querySelectorAll('.all-tools-subcat.open');
     if (openCats.length === 0) return false;
     openCats.forEach(cat => {
         cat.classList.remove('open');
-        const catId = cat.dataset.catId;
-        if (catId) allToolsCatState[catId] = false;
+        const subId = cat.dataset.subcatId;
+        if (subId) allToolsViewState.openSubcats[subId] = false;
     });
     vibrate(8);
     return true;
 }
 
+// ============================================================
+// OTVARANJE KALKULATORA IZ "SVI ALATI" MODALA
+// ============================================================
 function openCalcFromAllTools(catId, tabId) {
     closeModal('all-tools-modal');
     setTimeout(() => {
@@ -2344,7 +2506,9 @@ function openCalcFromAllTools(catId, tabId) {
     }, 200);
 }
 
-// ---- Pretraga u "Svi alati" modalu ----
+// ============================================================
+// PRETRAGA U "SVI ALATI" MODALU
+// ============================================================
 function handleAllToolsSearch() {
     const input = el('all-tools-search');
     if (!input) return;
@@ -2352,14 +2516,28 @@ function handleAllToolsSearch() {
     const clearBtn = el('all-tools-search-clear');
     if (clearBtn) clearBtn.style.display = q ? 'flex' : 'none';
 
+    // Sakrij omiljene chipove tokom pretrage
+    const favWrap = el('all-tools-favorites-wrap');
+    if (favWrap) favWrap.style.display = q ? 'none' : '';
+
     if (!q) {
-        renderAllToolsSections();
+        // Vrati se na trenutni view (main ili sub)
+        if (allToolsViewState.view === 'main') {
+            renderAllToolsMainCats();
+        } else {
+            const mainCat = getMainCategoryById(allToolsViewState.activeMainCat);
+            if (mainCat) renderAllToolsSubCats(mainCat);
+        }
+        // Vrati omiljene
+        if (favWrap) favWrap.style.display = allToolsViewState.view === 'main' ? '' : 'none';
+        if (allToolsViewState.view === 'main') renderAllToolsFavorites();
         return;
     }
 
-    // Prikaži rezultate pretrage umesto accordiona
+    // Prikaži rezultate pretrage
     const container = el('all-tools-sections');
     if (!container) return;
+
     const matches = searchTools(q);
     if (matches.length === 0) {
         container.innerHTML = `
@@ -2370,11 +2548,14 @@ function handleAllToolsSearch() {
         `;
         return;
     }
+
     let html = '<div class="all-tools-search-results">';
     matches.forEach(tool => {
         const accent = getCategoryAccent(tool.catId);
         html += `
-            <button class="all-tools-search-item" style="--qt-accent: ${accent};" onclick="openCalcFromAllTools('${tool.catId}', '${tool.tabId}')">
+            <button type="button" class="all-tools-search-item"
+                    style="--qt-accent: ${accent};"
+                    onclick="openCalcFromAllTools('${tool.catId}', '${tool.tabId}')">
                 <span class="all-tools-search-item-icon">${icon(tool.icon)}</span>
                 <span class="all-tools-search-item-text">
                     <span class="all-tools-search-item-name">${escapeHtml(safeT('tab.' + tool.catId + '.' + tool.tabId))}</span>
@@ -2392,7 +2573,16 @@ function clearAllToolsSearch() {
     if (input) input.value = '';
     const clearBtn = el('all-tools-search-clear');
     if (clearBtn) clearBtn.style.display = 'none';
-    renderAllToolsSections();
+    const favWrap = el('all-tools-favorites-wrap');
+
+    if (allToolsViewState.view === 'main') {
+        if (favWrap) favWrap.style.display = '';
+        renderAllToolsFavorites();
+        renderAllToolsMainCats();
+    } else {
+        const mainCat = getMainCategoryById(allToolsViewState.activeMainCat);
+        if (mainCat) renderAllToolsSubCats(mainCat);
+    }
 }
 
 // ============================================================
@@ -2559,7 +2749,7 @@ function createRipple(e) {
     setTimeout(() => { if (ripple.parentNode) ripple.remove(); }, 600);
 }
 function setupRipple() {
-    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn, .modal-fav-star, .modal-settings-btn, .weather-refresh-btn, .location-gps-btn, .weather-location, .icon-btn-text, .about-row, .tabs-settings-reset-btn, .tabs-settings-save-btn, .gps-btn-main, .gps-btn-secondary, .gps-chip, .gps-color-swatch, .tabs-settings-color-reset, .toolbar-btn, .bottom-nav-btn, .mytool-item, .habit-day-btn, .today-item, .journal-card, .recipe-card, .water-glass, .holiday-card, .all-tools-main-btn, .all-tools-cat-head, .all-tools-tab, .all-tools-search-item, .stopwatch-btn, .timer-btn, .timer-preset-btn, .timer-option-btn, .speedometer-actions .gps-btn-main, .speedometer-actions .gps-btn-secondary';
+    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn, .modal-fav-star, .modal-settings-btn, .weather-refresh-btn, .location-gps-btn, .weather-location, .icon-btn-text, .about-row, .tabs-settings-reset-btn, .tabs-settings-save-btn, .gps-btn-main, .gps-btn-secondary, .gps-chip, .gps-color-swatch, .tabs-settings-color-reset, .toolbar-btn, .bottom-nav-btn, .mytool-item, .habit-day-btn, .today-item, .journal-card, .recipe-card, .water-glass, .holiday-card, .all-tools-main-btn, .all-tools-main-cat, .all-tools-subcat-head, .all-tools-tab, .all-tools-search-item, .all-tools-fav-chip, .all-tools-back-btn, .stopwatch-btn, .timer-btn, .timer-preset-btn, .timer-option-btn, .speedometer-actions .gps-btn-main, .speedometer-actions .gps-btn-secondary';
     document.addEventListener('pointerdown', (e) => {
         const t = e.target.closest(selector);
         if (t) createRipple({ currentTarget: t, clientX: e.clientX, clientY: e.clientY });
@@ -2623,7 +2813,19 @@ function setLanguageFromSettings(lang) {
         if (typeof renderFavorites === 'function') renderFavorites();
         if (typeof renderHistory === 'function') renderHistory();
         if (typeof updateSettingsUI === 'function') updateSettingsUI();
-        if (typeof renderAllToolsSections === 'function') renderAllToolsSections();
+        // Ako je "Svi alati" modal otvoren, osveži ga
+        if (typeof renderAllToolsMainCats === 'function') {
+            const allToolsModal = el('all-tools-modal');
+            if (allToolsModal && allToolsModal.classList.contains('show')) {
+                if (allToolsViewState.view === 'main') {
+                    renderAllToolsFavorites();
+                    renderAllToolsMainCats();
+                } else {
+                    const mainCat = getMainCategoryById(allToolsViewState.activeMainCat);
+                    if (mainCat) renderAllToolsSubCats(mainCat);
+                }
+            }
+        }
     }
 }
 function toggleTheme() {
@@ -2994,6 +3196,10 @@ function renderCategoryTabs(categoryId, tabBar, cat) {
     });
 }
 
+// ============================================================
+// ZADATAK 2: OTVARANJE KALKULATORA + AUTOMATSKO UČITAVANJE
+// PODSETNIKA (renderReminderList) — rešava problem čuvanja
+// ============================================================
 function openCalc(categoryId, tabId) {
     const cat = CATEGORIES[categoryId];
     if (!cat) return;
@@ -3039,6 +3245,9 @@ function openCalc(categoryId, tabId) {
     vibrate(20);
     playTick(0, 1500, 0.08, 0.03);
 
+    // ============================================================
+    // ZADATAK 2: SPECIJALNI HOOK-OVI ZA SVAKI TAB
+    // ============================================================
     if (tabId === 'valuta') {
         setTimeout(() => {
             if (typeof loadFxRates === 'function') loadFxRates();
@@ -3063,6 +3272,31 @@ function openCalc(categoryId, tabId) {
     if (tabId === 'skica') setTimeout(() => { if (typeof drawSketch === 'function') drawSketch(); }, 50);
     if (tabId === 'barkod') setTimeout(() => { if (typeof initBarcodeScanner === 'function') initBarcodeScanner(); }, 50);
     if (tabId === 'koraci') setTimeout(() => { if (typeof initPedometer === 'function') initPedometer(); }, 50);
+
+    // ============================================================
+    // ZADATAK 2 — KLJUČNA ISPRAVKA: PODSETNICI SE UČITAVAJU
+    // ============================================================
+    // Kada korisnik otvori BILO KOJI tab iz kategorije "podsetnici",
+    // pozivamo odgovarajuću render funkciju koja čita iz localStorage
+    // i prikazuje sačuvane podsetnike.
+    if (categoryId === 'podsetnici') {
+        setTimeout(() => {
+            try {
+                switch (tabId) {
+                    case 'rodjendani':   renderReminderList('birthday'); break;
+                    case 'racuni':       renderReminderList('bill'); break;
+                    case 'vozila':       renderReminderList('vehicle'); renderReminderList('document'); break;
+                    case 'pretplate':    renderReminderList('subscription'); break;
+                    case 'lekivi':       renderReminderList('medication'); break;
+                    case 'godisnjice':   renderReminderList('anniversary'); break;
+                    case 'napomene':     renderReminderList('note'); break;
+                    case 'arhiva':       if (typeof renderRemindersHistoryList === 'function') renderRemindersHistoryList(); break;
+                    case 'rate':         if (typeof renderRemindersRate === 'function') { /* renderRemindersRate() već sadrži setTimeout za listu */ } break;
+                }
+            } catch (e) { console.warn('Reminder list error:', e); }
+        }, 80);
+    }
+
     if (categoryId === 'weather') {
         setTimeout(() => {
             if (typeof initWeatherTab === 'function') initWeatherTab(tabId);
@@ -3101,6 +3335,10 @@ function closeModal(modalId) {
     if (modalId === 'tabs-settings-modal') { tabsSettingsCategory = null; tabsSettingsDraft = null; }
     if (modalId === 'all-tools-modal') {
         document.body.classList.remove('modal-open');
+        // Reset stanja
+        allToolsViewState.view = 'main';
+        allToolsViewState.activeMainCat = null;
+        allToolsViewState.openSubcats = {};
     }
 
     setTimeout(() => {
@@ -3121,6 +3359,9 @@ function closeAllModals() {
     activeTab = null;
     tabsSettingsCategory = null;
     tabsSettingsDraft = null;
+    allToolsViewState.view = 'main';
+    allToolsViewState.activeMainCat = null;
+    allToolsViewState.openSubcats = {};
     if (typeof gpsCleanupAll === 'function') { try { gpsCleanupAll(); } catch (e) {} }
     if (typeof stopTunerTone === 'function') { try { stopTunerTone(); } catch (e) {} }
     if (typeof stopTunerMic === 'function') { try { stopTunerMic(); } catch (e) {} }
@@ -3262,6 +3503,20 @@ function toggleFavorite(event, key) {
         favStar.innerHTML = active ? icon('starFill') : icon('star');
     }
     if (currentScreenId === 'mytools-screen') renderMyToolsScreen();
+    // Ako je "Svi alati" modal otvoren, osveži ga
+    const allToolsModal = el('all-tools-modal');
+    if (allToolsModal && allToolsModal.classList.contains('show')) {
+        if (allToolsViewState.view === 'main') {
+            renderAllToolsFavorites();
+            renderAllToolsMainCats();
+        } else {
+            const mainCat = getMainCategoryById(allToolsViewState.activeMainCat);
+            if (mainCat) {
+                renderAllToolsFavorites();
+                renderAllToolsSubCats(mainCat);
+            }
+        }
+    }
 }
 function renderFavorites() {
     const row = el('favorites-row');
@@ -3960,13 +4215,14 @@ function setupBackButton() {
             if (m && m.classList.contains('show')) { m.classList.remove('show'); return; }
         }
 
-        // ZADATAK 4: Back dugme u Svi alati modalu
-        // 1) Ako je otvoren kalkulator → vrati na accordion (Svi alati)
-        //    (calc-modal je iznad all-tools, ali ako je i on otvoren)
-        // 2) Ako je accordion otvoren (bilo koja kategorija) → zatvori accordion
-        // 3) Ako je Svi alati otvoren → zatvori modal
+        // "Svi alati" modal — back dugme
         if (allToolsModal && allToolsModal.classList.contains('show')) {
-            // Prvo: ako je neka kategorija otvorena → zatvori je
+            // Ako je u sub-view-u → vrati na main
+            if (allToolsViewState.view === 'sub') {
+                allToolsGoBack();
+                return;
+            }
+            // Ako je neka pod-kategorija otvorena → zatvori je
             const closed = closeAnyOpenAllToolsCat();
             if (closed) return;
             // Inače: zatvori ceo modal
@@ -4149,7 +4405,6 @@ function initApp() {
     try { runArchiveAutoCleanup(); } catch (e) {}
     try { initToolbarIcons(); } catch (e) {}
 
-    // Service worker
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW registered', reg.scope)).catch(err => console.warn('SW registration failed', err));
@@ -4228,11 +4483,7 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
 } else {
     initApp();
-}
-
-// ============================================================
-// KRAJ DELA 1/2 — nastavlja se u delu 2/2
-// ============================================================// ============================================================
+}// ============================================================
 // RENDER POMOĆNE
 // ============================================================
 function inputField(labelKey, id, unit = '', extra = '') {
@@ -4641,8 +4892,6 @@ function renderMoneyNapojnica() {
         ${statsRow('tip-stats-row', [['label.money.totalToPay', 'stat-tip-total', '0 RSD'], ['label.money.perPerson', 'stat-tip-per-person', '0 RSD']])}
     `;
 }
-// ===== DODATO: 3 funkcije za Novac tabove (Poređenje, Štednja, Budžet) =====
-
 function renderMoneyPoredjenje() {
     return `
         <div class="converter-box">
@@ -4652,11 +4901,8 @@ function renderMoneyPoredjenje() {
                 ${inputField('label.shop.price', 'price-a', 'RSD', 'placeholder="200"')}
                 ${inputField('label.shop.quantity', 'qty-a', '', 'placeholder="1"')}
                 ${selectField('label.shop.unit', 'unit-a', [
-                    { value: 'kg', text: 'kg' },
-                    { value: 'g', text: 'g' },
-                    { value: 'L', text: 'L' },
-                    { value: 'ml', text: 'ml' },
-                    { value: 'kom', text: 'kom' }
+                    { value: 'kg', text: 'kg' }, { value: 'g', text: 'g' },
+                    { value: 'L', text: 'L' }, { value: 'ml', text: 'ml' }, { value: 'kom', text: 'kom' }
                 ])}
             </div>
             <div class="compare-group">
@@ -4664,11 +4910,8 @@ function renderMoneyPoredjenje() {
                 ${inputField('label.shop.price', 'price-b', 'RSD', 'placeholder="180"')}
                 ${inputField('label.shop.quantity', 'qty-b', '', 'placeholder="0.9"')}
                 ${selectField('label.shop.unit', 'unit-b', [
-                    { value: 'kg', text: 'kg' },
-                    { value: 'g', text: 'g' },
-                    { value: 'L', text: 'L' },
-                    { value: 'ml', text: 'ml' },
-                    { value: 'kom', text: 'kom' }
+                    { value: 'kg', text: 'kg' }, { value: 'g', text: 'g' },
+                    { value: 'L', text: 'L' }, { value: 'ml', text: 'ml' }, { value: 'kom', text: 'kom' }
                 ])}
             </div>
             ${calcButton('btn.calculate', 'calculateMoneyPoredjenje()')}
@@ -4681,7 +4924,6 @@ function renderMoneyPoredjenje() {
         ])}
     `;
 }
-
 function renderMoneyStednja() {
     return `
         <div class="converter-box">
@@ -4709,7 +4951,6 @@ function renderMoneyStednja() {
         </div>
     `;
 }
-
 function renderMoneyBudzet() {
     return `
         <div class="converter-box">
@@ -4811,10 +5052,9 @@ function calculateMoneyBudzet() {
     show('budzet-result-box-m'); show('budzet-stats-row-m');
 }
 
-// ===== KRAJ DODAVANJA =====
-// ===== DODATO 2: Konverzije, Kupljene, Građevina, Zdravlje, Kuhinja, Navike =====
-
-// ---------- OBUVANJE ----------
+// ============================================================
+// KONVERZIJE — OBUĆA, ODEĆA, BROJEVI
+// ============================================================
 const SHOE_SIZES = {
     male: {
         eu: [39, 40, 41, 42, 43, 44, 45, 46, 47, 48],
@@ -4911,7 +5151,6 @@ function calculateShoeSize() {
     show('shoe-result-box');
 }
 
-// ---------- ODEĆA ----------
 const CLOTHING_SIZES = {
     male: [
         { intl: 'XS', eu: 44, us: '34', uk: '34' },
@@ -5015,7 +5254,6 @@ function calculateClothingSize() {
     show('clothing-result-box');
 }
 
-// ---------- BROJEVI ----------
 function romanFromInt(num) {
     if (num < 1 || num > 3999 || !Number.isInteger(num)) return null;
     const romanMap = [
@@ -5133,7 +5371,9 @@ function calculateNumbers() {
     if (resultBox) resultBox.style.display = 'flex';
 }
 
-// ---------- BARKOD ----------
+// ============================================================
+// BARKOD
+// ============================================================
 let barcodeStream = null;
 let barcodeIntervalId = null;
 let barcodeDetector = null;
@@ -5239,7 +5479,9 @@ function addBarcodeToList() {
     showToast('Dodato u listu za kupovinu.', 'success', 2000);
 }
 
-// ---------- PRICE TRACKING ----------
+// ============================================================
+// PRICE TRACKING
+// ============================================================
 const PRICE_TRACKING_KEY = 'cx_price_tracking_v1';
 function loadPriceTracking() {
     try { const raw = JSON.parse(localStorage.getItem(PRICE_TRACKING_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
@@ -5352,7 +5594,9 @@ function deletePriceTracking(productId) {
     });
 }
 
-// ---------- SKICA ----------
+// ============================================================
+// SKICA
+// ============================================================
 function renderSketch() {
     return `
         <div class="converter-box">
@@ -5398,7 +5642,9 @@ function drawSketch() {
     const row = el('sketch-stats-row'); if (row) row.style.display = 'flex';
 }
 
-// ---------- TROŠKOVNIK ----------
+// ============================================================
+// TROŠKOVNIK
+// ============================================================
 const COST_ESTIMATE_KEY = 'cx_cost_estimate_v1';
 function loadCostEstimate() {
     try { const raw = JSON.parse(localStorage.getItem(COST_ESTIMATE_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
@@ -5512,7 +5758,9 @@ function shareCostEstimate() {
     else fallbackCopy(text, () => showToast('Kopirano.', 'success', 1500));
 }
 
-// ---------- ISTORIJA TOČENJA ----------
+// ============================================================
+// ISTORIJA TOČENJA
+// ============================================================
 const FUEL_HISTORY_KEY = 'cx_fuel_history_v1';
 function loadFuelHistory() {
     try { const raw = JSON.parse(localStorage.getItem(FUEL_HISTORY_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
@@ -5619,7 +5867,9 @@ function clearFuelHistory() {
     });
 }
 
-// ---------- PROFIL VOZILA ----------
+// ============================================================
+// PROFIL VOZILA
+// ============================================================
 const VEHICLE_PROFILE_KEY = 'cx_vehicle_profile_v1';
 function loadVehicleProfile() {
     try { const raw = JSON.parse(localStorage.getItem(VEHICLE_PROFILE_KEY)); if (raw && typeof raw === 'object') return raw; } catch (e) {}
@@ -5717,7 +5967,9 @@ function updateVehicleProfileStatus() {
     if (row) row.style.display = 'flex';
 }
 
-// ---------- SOLARNI PANELI ----------
+// ============================================================
+// SOLARNI PANELI
+// ============================================================
 function renderSolarPanels() {
     return `
         <div class="converter-box">
@@ -5757,7 +6009,9 @@ function calculateSolar() {
     show('solar-result-box'); show('solar-stats-row');
 }
 
-// ---------- PRAZNICI ----------
+// ============================================================
+// PRAZNICI
+// ============================================================
 const SR_HOLIDAYS_FIXED = [
     { d: 1, m: 1, name: 'Nova godina', type: 'national' },
     { d: 2, m: 1, name: 'Nova godina (drugi dan)', type: 'national' },
@@ -5824,7 +6078,9 @@ function renderHolidaysList() {
     list.innerHTML = html;
 }
 
-// ---------- VREMENSKE ZONE ----------
+// ============================================================
+// VREMENSKE ZONE
+// ============================================================
 const TIMEZONES = [
     { id: 'UTC-12', offset: -12, label: 'UTC-12:00' }, { id: 'UTC-11', offset: -11, label: 'UTC-11:00' },
     { id: 'UTC-10', offset: -10, label: 'UTC-10:00 (Havaji)' }, { id: 'UTC-9', offset: -9, label: 'UTC-09:00 (Aljaska)' },
@@ -5890,7 +6146,9 @@ function calculateTimeZone() {
     show('tz-result-box');
 }
 
-// ---------- WORKOUT ----------
+// ============================================================
+// WORKOUT
+// ============================================================
 const WORKOUT_KEY = 'cx_workouts_v1';
 const WORKOUT_TYPES = {
     strength: { label: 'Snaga', icon: 'dumbbell', color: '#ec4899' },
@@ -6032,7 +6290,9 @@ function deleteWorkout(id) {
     });
 }
 
-// ---------- PEDOMETAR ----------
+// ============================================================
+// PEDOMETAR
+// ============================================================
 const PEDOMETER_KEY = 'cx_pedometer_v1';
 const PEDOMETER_GOAL_KEY = 'cx_pedometer_goal';
 let pedometerState = { steps: 0, goal: 10000, active: false, lastStepTime: 0, listener: null };
@@ -6133,7 +6393,9 @@ function resetPedometer() {
     });
 }
 
-// ---------- VODA I SAN ----------
+// ============================================================
+// VODA I SAN
+// ============================================================
 const WATER_KEY = 'cx_water_v1';
 const SLEEP_KEY = 'cx_sleep_v1';
 const WATER_GOAL_KEY = 'cx_water_goal';
@@ -6267,7 +6529,9 @@ function renderSleepHistoryHtml() {
     `;
 }
 
-// ---------- RECEPTI ----------
+// ============================================================
+// RECEPTI
+// ============================================================
 const RECIPES_KEY = 'cx_recipes_v1';
 function loadRecipes() {
     try { const raw = JSON.parse(localStorage.getItem(RECIPES_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
@@ -6440,7 +6704,9 @@ function deleteRecipe(id) {
     });
 }
 
-// ---------- HABIT TRACKER ----------
+// ============================================================
+// HABIT TRACKER
+// ============================================================
 const HABITS_KEY = 'cx_habits_v1';
 function loadHabits() {
     try { const raw = JSON.parse(localStorage.getItem(HABITS_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
@@ -6592,7 +6858,9 @@ function deleteHabit(id) {
     });
 }
 
-// ---------- DNEVNIK ----------
+// ============================================================
+// DNEVNIK
+// ============================================================
 const JOURNAL_KEY = 'cx_journal_v1';
 const MOODS = { great: '😄', good: '🙂', ok: '😐', bad: '😔', terrible: '😢' };
 function loadJournal() {
@@ -6703,8 +6971,9 @@ function deleteJournalEntry(id) {
     });
 }
 
-// ===== KRAJ DODAVANJA 2 =====
-
+// ============================================================
+// NOVAC — CALCULATE
+// ============================================================
 function calculateMoney() {
     const price = num('money-price'), discount = num('money-discount');
     if (!price || discount === null || discount < 0 || discount > 100) { showToast(safeT('toast.error.enterPriceDiscount') || 'Unesi cenu i popust.', 'error'); return; }
@@ -8418,7 +8687,7 @@ function tickMetronome(beatUnit) {
 }
 
 // ============================================================
-// ŠTIMER
+// ŠTIMER — STRINGS + TONE
 // ============================================================
 const TUNER_INSTRUMENTS = {
     'guitar-standard': { strings: [{ note: 'E', octave: 2, freq: 82.41 }, { note: 'A', octave: 2, freq: 110.00 }, { note: 'D', octave: 3, freq: 146.83 }, { note: 'G', octave: 3, freq: 196.00 }, { note: 'B', octave: 3, freq: 246.94 }, { note: 'E', octave: 4, freq: 329.63 }] },
@@ -8693,7 +8962,7 @@ function resetPitchSmoothing() {
 }
 
 // ============================================================
-// PODSETNICI — Storage helperi
+// ZADATAK 2: PODSETNICI — Storage helperi + rendering
 // ============================================================
 const REMINDER_KEYS = {
     birthdays: 'cx_birthdays',
@@ -10901,5 +11170,10 @@ function rollFeedback(duration) {
 }
 
 // ============================================================
-// KRAJ app.js — Alatika 3.0
+// KRAJ app.js — Alatika 3.0 (v14)
+// Sva 4 zadatka rešena:
+//   1. Brzinomer — dugmići iznad sparkline (u index.html + style.css)
+//   2. Podsetnici — renderReminderList() se poziva u openCalc() za podsetnici kategoriju
+//   3. Svi alati — 6 glavnih kategorija + pod-kategorije + omiljeni chipovi + back
+//   4. CSS — nasilno rešeno u style.css
 // ============================================================
