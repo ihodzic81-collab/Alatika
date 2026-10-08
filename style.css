@@ -1,5 +1,6 @@
 /* ============================================================
    ALATIKA 3.0 — style.css
+   Verzija: v14
    Kompletna verzija — tamna/svetla tema, toolbar, bottom nav,
    brzinomer, "Svi alati" accordion, moderna štoperica,
    moderni tajmer, analogni brzinomer
@@ -1605,459 +1606,6 @@ body.modal-open { overflow: hidden; }
 .timer-panel { max-width: 460px; }
 
 /* ============================================================
-   SVI ALATI MODAL — ACCORDION (ZADATAK 4)
-   ============================================================ */
-.all-tools-modal {
-    padding: 0;
-    background: var(--bg-color);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-}
-.all-tools-modal.show { display: flex; }
-.all-tools-panel {
-    max-width: 100%;
-    max-height: 100%;
-    height: 100%;
-    width: 100%;
-    border-radius: 0;
-    border: none;
-    animation: allToolsSlideUp 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@keyframes allToolsSlideUp {
-    from { transform: translateY(40px); opacity: 0; }
-    to   { transform: translateY(0); opacity: 1; }
-}
-
-.all-tools-header {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: var(--card-bg);
-    border-bottom: 1px solid var(--border-color);
-    padding: 12px 18px;
-    padding-top: calc(12px + env(safe-area-inset-top, 0px));
-    min-height: 60px;
-}
-
-.all-tools-search-wrap {
-    position: sticky;
-    top: calc(60px + env(safe-area-inset-top, 0px));
-    z-index: 9;
-    background: var(--card-bg);
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border-color);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-.all-tools-search-box {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--input-bg);
-    border: 1px solid var(--border-strong);
-    border-radius: 14px;
-    padding: 0 14px;
-    transition: border-color 0.18s ease, box-shadow 0.18s ease;
-}
-.all-tools-search-box:focus-within {
-    border-color: var(--accent-primary);
-    box-shadow:
-        0 0 0 3px rgba(99, 102, 241, 0.18),
-        0 0 12px rgba(99, 102, 241, 0.12);
-}
-.all-tools-search-box .search-input {
-    font-size: 0.94rem;
-    padding: 12px 0;
-    min-height: 46px;
-}
-
-/* Accordion kontejner */
-.all-tools-sections {
-    flex: 1;
-    overflow-y: auto;
-    padding: 12px 14px;
-    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    background: var(--bg-color);
-    max-width: 720px;
-    margin: 0 auto;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-/* Kartica kategorije (accordion) */
-.all-tools-cat {
-    background: var(--card-bg);
-    border: 1px solid var(--border-strong);
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: var(--shadow-input);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-.all-tools-cat.open {
-    border-color: color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 45%, var(--border-strong));
-    box-shadow:
-        var(--shadow-card-hover),
-        0 0 0 1px color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 20%, transparent);
-}
-
-/* Header kategorije */
-.all-tools-cat-head {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 11px 12px;
-    width: 100%;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-family: inherit;
-    color: var(--text-main);
-    text-align: left;
-    transition: background 0.15s ease;
-    -webkit-tap-highlight-color: transparent;
-}
-.all-tools-cat-head:hover {
-    background: color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 6%, transparent);
-}
-.all-tools-cat-head:active {
-    background: color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 10%, transparent);
-}
-
-/* Ikona kategorije */
-.all-tools-cat-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #ffffff;
-    background: linear-gradient(145deg,
-        color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 95%, white 5%),
-        color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 75%, black 25%));
-    box-shadow:
-        inset 0 2px 1px rgba(255, 255, 255, 0.4),
-        inset 0 -3px 5px rgba(0, 0, 0, 0.3),
-        0 4px 10px color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 40%, transparent);
-    flex-shrink: 0;
-    overflow: visible;
-    position: relative;
-}
-.all-tools-cat-icon::before {
-    content: '';
-    position: absolute;
-    top: 2px; left: 14%; right: 14%; height: 32%;
-    border-radius: 10px 10px 50% 50%;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.45), transparent);
-    pointer-events: none;
-}
-.all-tools-cat-icon svg {
-    width: 18px;
-    height: 18px;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    fill: none;
-    overflow: visible;
-    display: block;
-    position: relative;
-    z-index: 1;
-}
-
-/* Info kategorije */
-.all-tools-cat-info {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-}
-.all-tools-cat-name {
-    font-size: 0.88rem;
-    font-weight: 800;
-    color: var(--text-main);
-    letter-spacing: 0.1px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.all-tools-cat-count {
-    font-size: 0.66rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    letter-spacing: 0.1px;
-}
-
-/* Strelica */
-.all-tools-cat-arrow {
-    width: 22px;
-    height: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-tertiary);
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
-    flex-shrink: 0;
-    overflow: visible;
-}
-.all-tools-cat-arrow svg {
-    width: 14px;
-    height: 14px;
-    stroke: currentColor;
-    stroke-width: 2.5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    fill: none;
-    overflow: visible;
-    display: block;
-}
-.all-tools-cat.open .all-tools-cat-arrow {
-    transform: rotate(90deg);
-    color: var(--cat-accent, var(--accent-primary));
-}
-
-/* Accordion body — glatka animacija */
-.all-tools-cat-body {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-    overflow: hidden;
-}
-.all-tools-cat.open .all-tools-cat-body {
-    grid-template-rows: 1fr;
-}
-.all-tools-cat-body-inner {
-    overflow: hidden;
-    min-height: 0;
-}
-
-/* Grid tabova unutar kategorije */
-.all-tools-tabs-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    padding: 8px 12px 12px;
-}
-
-/* Kartica taba */
-.all-tools-tab {
-    background: var(--input-bg);
-    border: 1px solid var(--border-strong);
-    border-radius: 10px;
-    padding: 8px 6px 7px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    cursor: pointer;
-    transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1),
-                border-color 0.15s ease,
-                background 0.15s ease;
-    font-family: inherit;
-    text-align: center;
-    color: var(--text-main);
-    position: relative;
-    overflow: hidden;
-    -webkit-tap-highlight-color: transparent;
-}
-.all-tools-tab:hover {
-    transform: translateY(-2px);
-    border-color: color-mix(in srgb, var(--tab-accent, var(--accent-primary)) 55%, var(--border-strong));
-    background: var(--card-active);
-}
-.all-tools-tab:active {
-    transform: scale(0.96);
-}
-
-/* Ikona taba */
-.all-tools-tab-icon {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #ffffff;
-    background: linear-gradient(145deg,
-        color-mix(in srgb, var(--tab-accent, var(--accent-primary)) 95%, white 5%),
-        color-mix(in srgb, var(--tab-accent, var(--accent-primary)) 80%, black 20%));
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.4),
-        0 3px 8px color-mix(in srgb, var(--tab-accent, var(--accent-primary)) 40%, transparent);
-    flex-shrink: 0;
-    overflow: visible;
-    position: relative;
-}
-.all-tools-tab-icon::before {
-    content: '';
-    position: absolute;
-    top: 2px; left: 14%; right: 14%; height: 32%;
-    border-radius: 10px 10px 50% 50%;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.45), transparent);
-    pointer-events: none;
-}
-.all-tools-tab-icon svg {
-    width: 18px;
-    height: 18px;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    fill: none;
-    overflow: visible;
-    display: block;
-    position: relative;
-    z-index: 1;
-}
-
-/* Labela taba */
-.all-tools-tab-label {
-    font-size: 0.66rem;
-    font-weight: 700;
-    color: var(--text-main);
-    line-height: 1.15;
-    letter-spacing: -0.1px;
-    word-break: break-word;
-    text-align: center;
-    width: 100%;
-}
-
-/* Badge */
-.all-tools-tab-badge {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    min-width: 16px;
-    height: 16px;
-    padding: 0 4px;
-    background: #059669;
-    color: #fff;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.58rem;
-    font-weight: 900;
-    border: 1.5px solid var(--input-bg);
-    z-index: 2;
-    pointer-events: none;
-}
-
-/* Favorit zvezdica */
-.all-tools-tab-fav {
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 14px;
-    height: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #facc15;
-    z-index: 2;
-    pointer-events: none;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
-}
-.all-tools-tab-fav svg {
-    width: 11px;
-    height: 11px;
-    fill: currentColor;
-    stroke: currentColor;
-    stroke-width: 2;
-}
-
-/* Search rezultati */
-.all-tools-search-results {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 0;
-}
-.all-tools-search-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: var(--card-bg);
-    border: 1px solid var(--border-strong);
-    border-radius: 14px;
-    padding: 12px 14px;
-    cursor: pointer;
-    transition: transform 0.12s ease, border-color 0.15s ease, background 0.15s ease;
-    font-family: inherit;
-    text-align: left;
-    color: var(--text-main);
-    width: 100%;
-}
-.all-tools-search-item:hover {
-    border-color: var(--accent-primary);
-    background: var(--card-active);
-}
-.all-tools-search-item:active { transform: scale(0.985); }
-.all-tools-search-item-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 11px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #ffffff;
-    background: linear-gradient(145deg,
-        color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 95%, white 5%),
-        color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 80%, black 20%));
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.4),
-        0 3px 8px color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 40%, transparent);
-    flex-shrink: 0;
-    overflow: visible;
-}
-.all-tools-search-item-icon svg {
-    width: 20px;
-    height: 20px;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    fill: none;
-    overflow: visible;
-    display: block;
-}
-.all-tools-search-item-text {
-    flex: 1;
-    min-width: 0;
-}
-.all-tools-search-item-name {
-    font-size: 0.9rem;
-    font-weight: 800;
-    color: var(--text-main);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.all-tools-search-item-cat {
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: var(--accent-primary);
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    margin-top: 3px;
-}
-.all-tools-search-empty {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
-.all-tools-search-empty-title {
-    font-weight: 800;
-    color: var(--text-main);
-    margin-bottom: 6px;
-    font-size: 1rem;
-}
-
-/* ============================================================
    MODAL HEADER
    ============================================================ */
 .modal-header {
@@ -2967,7 +2515,6 @@ input[type="text"].custom-input::placeholder {
     color: #f43f5e;
 }
 
-/* Accordion za krugove */
 .stopwatch-laps {
     width: 100%;
     background: var(--input-bg);
@@ -3308,7 +2855,6 @@ input[type="text"].custom-input::placeholder {
 }
 .timer-option-btn:active { transform: scale(0.96); }
 
-/* Animacija kad istekne */
 @keyframes timerFlash {
     0%, 100% {
         box-shadow:
@@ -3329,6 +2875,7 @@ input[type="text"].custom-input::placeholder {
 
 /* ============================================================
    ZADATAK 3: BRZINOMER — MODERNI DIZAJN
+   ZADATAK 1: DUGMIĆI PREMEŠTENI IZNAD SPARKLINE
    ============================================================ */
 .speedometer-body {
     padding: 20px 18px 12px;
@@ -3381,7 +2928,17 @@ input[type="text"].custom-input::placeholder {
     50% { opacity: 0.55; }
 }
 
-/* Sparkline */
+/* ZADATAK 1: DUGMIĆI START + RESET — SADA UNUTAR .speedometer-body, IZNAD SPARKLINE */
+.speedometer-actions {
+    display: flex;
+    gap: 10px;
+    padding: 4px 0;
+    width: 100%;
+}
+.speedometer-actions .gps-btn-main {
+    flex: 1;
+}
+
 .speedometer-sparkline-wrap {
     background: var(--input-bg);
     border: 1px solid var(--border-strong);
@@ -3409,7 +2966,6 @@ input[type="text"].custom-input::placeholder {
     transition: d 0.2s ease;
 }
 
-/* Stat boxovi */
 .speedometer-stats-row {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -3440,7 +2996,6 @@ input[type="text"].custom-input::placeholder {
     letter-spacing: -0.3px;
 }
 
-/* Distanca */
 .speedometer-distance-row {
     display: flex;
     justify-content: space-between;
@@ -3472,7 +3027,6 @@ input[type="text"].custom-input::placeholder {
     font-weight: 700;
 }
 
-/* Wrapper za upozorenje */
 .speedometer-analog-wrap.over-limit .speedometer-svg {
     animation: speedWarnPulse 0.8s ease-in-out infinite;
 }
@@ -3480,15 +3034,6 @@ input[type="text"].custom-input::placeholder {
 @keyframes speedWarnPulse {
     0%, 100% { filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.5)); }
     50% { filter: drop-shadow(0 0 24px rgba(244, 63, 94, 0.9)); }
-}
-
-.speedometer-actions {
-    display: flex;
-    gap: 10px;
-    padding: 14px 18px 8px;
-}
-.speedometer-actions .gps-btn-main {
-    flex: 1;
 }
 
 /* ============================================================
@@ -4122,7 +3667,6 @@ input[type="text"].custom-input::placeholder {
 .gps-lap-row.worst .gps-lap-num { color: #f43f5e; font-weight: 900; }
 .gps-lap-row.worst .gps-lap-total { color: #f43f5e; }
 
-/* COMPASS */
 .gps-compass-box { align-items: center; }
 .gps-compass-visual {
     width: 220px;
@@ -8264,18 +7808,6 @@ input[type="text"].custom-input::placeholder {
     .all-tools-main-sub { font-size: 0.7rem; }
     .all-tools-main-arrow { font-size: 1.7rem; }
 
-    .all-tools-sections { padding: 12px 14px; gap: 8px; }
-    .all-tools-cat-head { padding: 10px 12px; gap: 10px; }
-    .all-tools-cat-icon { width: 34px; height: 34px; border-radius: 10px; }
-    .all-tools-cat-icon svg { width: 18px; height: 18px; }
-    .all-tools-cat-name { font-size: 0.84rem; }
-    .all-tools-cat-count { font-size: 0.62rem; }
-    .all-tools-tabs-grid { grid-template-columns: repeat(3, 1fr); gap: 7px; padding: 6px 10px 10px; }
-    .all-tools-tab { padding: 7px 5px 6px; border-radius: 9px; }
-    .all-tools-tab-icon { width: 30px; height: 30px; border-radius: 9px; }
-    .all-tools-tab-icon svg { width: 16px; height: 16px; }
-    .all-tools-tab-label { font-size: 0.62rem; }
-
     .modal-panel { border-radius: 18px; }
     .modal-header { padding: 12px 16px; min-height: 56px; }
     .modal-cat-icon { width: 36px; height: 36px; }
@@ -8304,7 +7836,6 @@ input[type="text"].custom-input::placeholder {
     .level-ring-outer { width: 148px; height: 148px; }
     .level-ring-middle { width: 92px; height: 92px; }
 
-    /* ZADATAK 1: Štoperica mobilna */
     .stopwatch-circle-wrap { width: 190px; height: 190px; }
     .stopwatch-time-big { font-size: 1.85rem; letter-spacing: -1.2px; }
     .stopwatch-stats-row { gap: 8px; }
@@ -8314,7 +7845,6 @@ input[type="text"].custom-input::placeholder {
     .stopwatch-btn { font-size: 0.78rem; padding: 12px 8px; border-radius: 12px; }
     .stopwatch-lap-row { font-size: 0.76rem; padding: 8px 12px; grid-template-columns: 38px 1fr 1fr; }
 
-    /* ZADATAK 2: Tajmer mobilni */
     .timer-circle-wrap { width: 190px; height: 190px; }
     .timer-time-big { font-size: 1.85rem; letter-spacing: -1.2px; }
     .timer-status-small { font-size: 0.62rem; margin-top: 8px; }
@@ -8328,7 +7858,6 @@ input[type="text"].custom-input::placeholder {
     .timer-option-btn { padding: 8px 4px; font-size: 0.62rem; border-radius: 10px; }
     .timer-option-btn svg { width: 16px; height: 16px; }
 
-    /* ZADATAK 3: Brzinomer mobilni */
     .speedometer-analog-wrap { max-width: 280px; }
     .speedometer-stats-row { gap: 6px; }
     .speedometer-stat-box { padding: 8px 4px; border-radius: 10px; }
@@ -8337,6 +7866,7 @@ input[type="text"].custom-input::placeholder {
     .speedometer-sparkline { height: 40px; }
     .speedometer-distance-value { font-size: 1rem; }
     .speedometer-distance-label { font-size: 0.66rem; }
+    .speedometer-actions { gap: 8px; padding: 4px 0; }
 
     .gps-big-number { font-size: 3.2rem; }
     .gps-compass-visual { width: 190px; height: 190px; }
@@ -8442,30 +7972,16 @@ input[type="text"].custom-input::placeholder {
 @media (min-width: 481px) and (max-width: 768px) {
     .app-container { max-width: 640px; padding: 16px 24px 0; }
     .quick-tools-grid { grid-template-columns: repeat(4, 1fr); }
-    .all-tools-sections { padding: 16px 20px; gap: 10px; }
-    .all-tools-tabs-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
-    .all-tools-cat-head { padding: 13px 14px; }
-    .all-tools-cat-icon { width: 40px; height: 40px; border-radius: 11px; }
-    .all-tools-cat-icon svg { width: 20px; height: 20px; }
-    .all-tools-cat-name { font-size: 0.95rem; }
-    .all-tools-tab-icon { width: 38px; height: 38px; border-radius: 11px; }
-    .all-tools-tab-icon svg { width: 20px; height: 20px; }
-    .all-tools-tab-label { font-size: 0.7rem; }
     .mytools-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 }
 
 @media (min-width: 769px) {
     .app-container { max-width: 720px; padding: 20px 32px 0; }
     .quick-tools-grid { grid-template-columns: repeat(4, 1fr); gap: 14px; }
-    .all-tools-sections { padding: 20px 32px; }
-    .all-tools-tabs-grid { grid-template-columns: repeat(4, 1fr); gap: 14px; }
     .quick-tool { padding: 18px 12px 16px; }
     .quick-tool-icon { width: 64px; height: 64px; }
     .quick-tool-icon svg { width: 32px; height: 32px; }
     .quick-tool-label { font-size: 0.84rem; }
-    .all-tools-item-icon { width: 46px; height: 46px; }
-    .all-tools-item-icon svg { width: 24px; height: 24px; }
-    .all-tools-item-label { font-size: 0.78rem; }
     .tab-btn { font-size: 0.92rem; padding: 14px 16px; }
     .gps-big-number { font-size: 4.5rem; }
     .mytools-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
@@ -8495,119 +8011,805 @@ input[type="text"].custom-input::placeholder {
         transition-duration: 0.01ms !important;
     }
 }
+
 /* ============================================================
-   FIX: Svi alati — accordion (bolji prikaz)
+   ============================================================
+   ZADATAK 3 + 4: "SVI ALATI" MODAL — NOVA STRUKTURA
+   Nasilno rešeno sečenje kartica + 6 glavnih kategorija
+   ============================================================
    ============================================================ */
 
-.all-tools-modal .all-tools-panel {
+/* ---------- MODAL: full-screen, bez sečenja ---------- */
+.all-tools-modal {
+    padding: 0 !important;
+    background: var(--bg-color) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+}
+.all-tools-modal.show { display: flex !important; }
+
+.all-tools-panel {
     max-width: 100% !important;
+    max-height: 100% !important;
+    height: 100% !important;
     width: 100% !important;
+    border-radius: 0 !important;
+    border: none !important;
+    animation: allToolsSlideUp 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+@keyframes allToolsSlideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
 }
 
-.all-tools-sections {
-    padding: 16px 24px !important;
-    max-width: 900px !important;
-    margin: 0 auto !important;
+/* ---------- HEADER sa BACK dugmetom ---------- */
+.all-tools-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+    background: var(--card-bg) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    padding: 12px 16px !important;
+    padding-top: calc(12px + env(safe-area-inset-top, 0px)) !important;
+    min-height: 60px !important;
+    flex-shrink: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
     gap: 10px !important;
 }
 
-.all-tools-cat {
-    border-radius: 16px !important;
+.all-tools-back-btn {
+    background: var(--card-active) !important;
+    border: 1px solid var(--border-strong) !important;
+    color: var(--text-main) !important;
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 11px !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    padding: 0 !important;
+    transition: background 0.15s ease, transform 0.1s ease !important;
+    margin-right: 4px !important;
+}
+.all-tools-back-btn:hover {
+    background: var(--input-bg) !important;
+    border-color: var(--accent-primary) !important;
+}
+.all-tools-back-btn:active { transform: scale(0.92) !important; }
+.all-tools-back-btn svg {
+    width: 20px !important;
+    height: 20px !important;
+    stroke: currentColor !important;
+    stroke-width: 2.4 !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+    fill: none !important;
+    display: block !important;
 }
 
-.all-tools-cat-head {
-    padding: 14px 18px !important;
-    gap: 14px !important;
+/* ---------- PRETRAGA (sticky, NETAKNUTA) ---------- */
+.all-tools-search-wrap {
+    position: sticky !important;
+    top: calc(60px + env(safe-area-inset-top, 0px)) !important;
+    z-index: 9 !important;
+    background: var(--card-bg) !important;
+    padding: 10px 16px !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    flex-shrink: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+.all-tools-search-box {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    background: var(--input-bg) !important;
+    border: 1px solid var(--border-strong) !important;
+    border-radius: 14px !important;
+    padding: 0 14px !important;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+.all-tools-search-box:focus-within {
+    border-color: var(--accent-primary) !important;
+    box-shadow:
+        0 0 0 3px rgba(99, 102, 241, 0.18),
+        0 0 12px rgba(99, 102, 241, 0.12) !important;
+}
+.all-tools-search-box .search-input {
+    font-size: 0.94rem !important;
+    padding: 12px 0 !important;
+    min-height: 46px !important;
 }
 
-.all-tools-cat-icon {
-    width: 44px !important;
-    height: 44px !important;
+/* ---------- OMILJENI CHIPOVI ---------- */
+.all-tools-favorites-wrap {
+    background: var(--card-bg) !important;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    flex-shrink: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+.all-tools-favorites-wrap:empty,
+.all-tools-favorites-wrap[style*="display: none"] {
+    display: none !important;
+}
+.all-tools-favorites-title {
+    font-size: 0.68rem !important;
+    font-weight: 800 !important;
+    color: var(--text-secondary) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.6px !important;
+    margin-bottom: 8px !important;
+}
+.all-tools-favorites-chips {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    padding-bottom: 2px !important;
+    scrollbar-width: none !important;
+}
+.all-tools-favorites-chips::-webkit-scrollbar { display: none !important; }
+.all-tools-fav-chip {
+    flex: 0 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border-strong) !important;
     border-radius: 12px !important;
+    padding: 8px 12px !important;
+    color: var(--text-main) !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: transform 0.12s ease, border-color 0.15s ease !important;
+    font-family: inherit !important;
+    white-space: nowrap !important;
 }
-
-.all-tools-cat-icon svg {
-    width: 22px !important;
-    height: 22px !important;
+.all-tools-fav-chip:hover {
+    border-color: var(--qt-accent, var(--accent-primary)) !important;
+    transform: translateY(-1px) !important;
 }
-
-.all-tools-cat-name {
-    font-size: 1rem !important;
-}
-
-.all-tools-cat-count {
-    font-size: 0.72rem !important;
-}
-
-.all-tools-cat-arrow {
-    width: 28px !important;
-    height: 28px !important;
-}
-
-.all-tools-cat-arrow svg {
+.all-tools-fav-chip:active { transform: scale(0.95) !important; }
+.all-tools-fav-chip .fav-chip-icon {
     width: 18px !important;
     height: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: var(--qt-accent, var(--accent-primary)) !important;
+}
+.all-tools-fav-chip .fav-chip-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+    stroke: currentColor !important;
+    stroke-width: 2 !important;
+    fill: none !important;
+    display: block !important;
 }
 
-/* Grid sa tabovima — RESPONSIVE */
+/* ---------- KONTEJNER SEKCIJA ---------- */
+.all-tools-sections {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 16px !important;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    background: var(--bg-color) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* ---------- GRID GLAVNIH KATEGORIJA (2 mobilni / 4 desktop) ---------- */
+.all-tools-main-cats-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* ---------- KARTICA GLAVNE KATEGORIJE ---------- */
+.all-tools-main-cat {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border-strong) !important;
+    border-radius: 16px !important;
+    padding: 16px 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    cursor: pointer !important;
+    transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 0.15s ease,
+                box-shadow 0.2s ease !important;
+    box-shadow: var(--shadow-card) !important;
+    position: relative !important;
+    overflow: visible !important;
+    min-height: 130px !important;
+    font-family: inherit !important;
+    color: var(--text-main) !important;
+    text-align: center !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+.all-tools-main-cat::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 !important;
+    background: radial-gradient(
+        circle at 70% 25%,
+        color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 18%, transparent) 0%,
+        transparent 60%
+    ) !important;
+    pointer-events: none !important;
+    z-index: 0 !important;
+    border-radius: inherit !important;
+}
+.all-tools-main-cat > * { position: relative !important; z-index: 1 !important; }
+.all-tools-main-cat:hover {
+    transform: translateY(-3px) !important;
+    border-color: color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 55%, var(--border-strong)) !important;
+    box-shadow: var(--shadow-card-hover) !important;
+}
+.all-tools-main-cat:active { transform: scale(0.97) !important; }
+
+/* Ikona glavne kategorije */
+.all-tools-main-cat-icon {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #ffffff !important;
+    background: linear-gradient(145deg,
+        color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 95%, white 5%),
+        color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 75%, black 25%)) !important;
+    box-shadow:
+        inset 0 2px 1px rgba(255, 255, 255, 0.4),
+        inset 0 -3px 5px rgba(0, 0, 0, 0.3),
+        0 6px 14px color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 45%, transparent),
+        0 3px 6px rgba(0, 0, 0, 0.25) !important;
+    flex-shrink: 0 !important;
+    position: relative !important;
+    overflow: visible !important;
+}
+.all-tools-main-cat-icon::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 3px !important; left: 14% !important; right: 14% !important; height: 32% !important;
+    border-radius: 12px 12px 50% 50% !important;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.45), transparent) !important;
+    pointer-events: none !important;
+}
+.all-tools-main-cat-icon svg {
+    width: 28px !important;
+    height: 28px !important;
+    stroke: currentColor !important;
+    stroke-width: 2 !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+    fill: none !important;
+    display: block !important;
+    position: relative !important;
+    z-index: 1 !important;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25)) !important;
+}
+
+/* Naziv glavne kategorije */
+.all-tools-main-cat-name {
+    font-size: 0.88rem !important;
+    font-weight: 800 !important;
+    color: var(--text-main) !important;
+    letter-spacing: -0.1px !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+    width: 100% !important;
+    word-break: break-word !important;
+    overflow: visible !important;
+}
+.all-tools-main-cat-count {
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    color: var(--text-secondary) !important;
+    text-align: center !important;
+    letter-spacing: 0.2px !important;
+}
+
+/* ---------- STRANICA POD-KATEGORIJA ---------- */
+.all-tools-subcats-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Kartica pod-kategorije (npr. Auto, Bicikl) */
+.all-tools-subcat {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border-strong) !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    box-shadow: var(--shadow-input) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+.all-tools-subcat.open {
+    border-color: color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 45%, var(--border-strong)) !important;
+    box-shadow:
+        var(--shadow-card-hover),
+        0 0 0 1px color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 20%, transparent) !important;
+}
+
+.all-tools-subcat-head {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 14px 14px !important;
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+    font-family: inherit !important;
+    color: var(--text-main) !important;
+    text-align: left !important;
+    transition: background 0.15s ease !important;
+    box-sizing: border-box !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+.all-tools-subcat-head:hover {
+    background: color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 6%, transparent) !important;
+}
+.all-tools-subcat-head:active {
+    background: color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 10%, transparent) !important;
+}
+
+.all-tools-subcat-icon {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 11px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #ffffff !important;
+    background: linear-gradient(145deg,
+        color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 95%, white 5%),
+        color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 75%, black 25%)) !important;
+    box-shadow:
+        inset 0 2px 1px rgba(255, 255, 255, 0.4),
+        inset 0 -3px 5px rgba(0, 0, 0, 0.3),
+        0 4px 10px color-mix(in srgb, var(--cat-accent, var(--accent-primary)) 40%, transparent) !important;
+    flex-shrink: 0 !important;
+    position: relative !important;
+    overflow: visible !important;
+}
+.all-tools-subcat-icon::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 2px !important; left: 14% !important; right: 14% !important; height: 32% !important;
+    border-radius: 10px 10px 50% 50% !important;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.45), transparent) !important;
+    pointer-events: none !important;
+}
+.all-tools-subcat-icon svg {
+    width: 20px !important;
+    height: 20px !important;
+    stroke: currentColor !important;
+    stroke-width: 2 !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+    fill: none !important;
+    display: block !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+.all-tools-subcat-info {
+    flex: 1 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+}
+.all-tools-subcat-name {
+    font-size: 0.92rem !important;
+    font-weight: 800 !important;
+    color: var(--text-main) !important;
+    letter-spacing: 0.1px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+.all-tools-subcat-count {
+    font-size: 0.68rem !important;
+    font-weight: 600 !important;
+    color: var(--text-secondary) !important;
+}
+
+.all-tools-subcat-arrow {
+    width: 24px !important;
+    height: 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: var(--text-tertiary) !important;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease !important;
+    flex-shrink: 0 !important;
+}
+.all-tools-subcat-arrow svg {
+    width: 16px !important;
+    height: 16px !important;
+    stroke: currentColor !important;
+    stroke-width: 2.5 !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+    fill: none !important;
+    display: block !important;
+}
+.all-tools-subcat.open .all-tools-subcat-arrow {
+    transform: rotate(90deg) !important;
+    color: var(--cat-accent, var(--accent-primary)) !important;
+}
+
+/* Accordion body */
+.all-tools-subcat-body {
+    display: grid !important;
+    grid-template-rows: 0fr !important;
+    transition: grid-template-rows 0.32s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    overflow: hidden !important;
+}
+.all-tools-subcat.open .all-tools-subcat-body {
+    grid-template-rows: 1fr !important;
+}
+.all-tools-subcat-body-inner {
+    overflow: hidden !important;
+    min-height: 0 !important;
+}
+
+/* ---------- GRID TABOVA (3 mobilni / 4 desktop) ---------- */
 .all-tools-tabs-grid {
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 12px !important;
-    padding: 12px 18px 18px !important;
+    gap: 8px !important;
+    padding: 10px 12px 14px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
 }
 
+/* ---------- KARTICA TABA ---------- */
 .all-tools-tab {
-    padding: 14px 10px 12px !important;
+    background: var(--input-bg) !important;
+    border: 1px solid var(--border-strong) !important;
     border-radius: 12px !important;
-    min-height: 110px !important;
-    min-width: 0 !important;
+    padding: 12px 6px 10px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    cursor: pointer !important;
+    transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 0.15s ease,
+                background 0.15s ease !important;
+    font-family: inherit !important;
+    text-align: center !important;
+    color: var(--text-main) !important;
+    position: relative !important;
     overflow: visible !important;
+    min-height: 100px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    -webkit-tap-highlight-color: transparent !important;
 }
+.all-tools-tab:hover {
+    transform: translateY(-2px) !important;
+    border-color: color-mix(in srgb, var(--tab-accent, var(--accent-primary)) 55%, var(--border-strong)) !important;
+    background: var(--card-active) !important;
+}
+.all-tools-tab:active { transform: scale(0.96) !important; }
 
 .all-tools-tab-icon {
-    width: 44px !important;
-    height: 44px !important;
-    border-radius: 12px !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 11px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #ffffff !important;
+    background: linear-gradient(145deg,
+        color-mix(in srgb, var(--tab-accent, var(--accent-primary)) 95%, white 5%),
+        color-mix(in srgb, var(--tab-accent, var(--accent-primary)) 80%, black 20%)) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 3px 8px color-mix(in srgb, var(--tab-accent, var(--accent-primary)) 40%, transparent) !important;
     flex-shrink: 0 !important;
+    position: relative !important;
+    overflow: visible !important;
 }
-
+.all-tools-tab-icon::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 2px !important; left: 14% !important; right: 14% !important; height: 32% !important;
+    border-radius: 10px 10px 50% 50% !important;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.45), transparent) !important;
+    pointer-events: none !important;
+}
 .all-tools-tab-icon svg {
-    width: 22px !important;
-    height: 22px !important;
+    width: 20px !important;
+    height: 20px !important;
+    stroke: currentColor !important;
+    stroke-width: 2 !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+    fill: none !important;
+    display: block !important;
+    position: relative !important;
+    z-index: 1 !important;
 }
 
 .all-tools-tab-label {
-    font-size: 0.75rem !important;
-    line-height: 1.25 !important;
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    color: var(--text-main) !important;
+    line-height: 1.2 !important;
+    letter-spacing: -0.1px !important;
     word-break: break-word !important;
-    white-space: normal !important;
+    text-align: center !important;
+    width: 100% !important;
     overflow: visible !important;
-    text-overflow: clip !important;
-    max-width: 100% !important;
-    padding: 0 2px !important;
+    display: block !important;
 }
 
-/* Tablet */
+.all-tools-tab-badge {
+    position: absolute !important;
+    top: 4px !important;
+    right: 4px !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    padding: 0 4px !important;
+    background: #059669 !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.56rem !important;
+    font-weight: 900 !important;
+    border: 1.5px solid var(--input-bg) !important;
+    z-index: 5 !important;
+    pointer-events: none !important;
+}
+
+.all-tools-tab-fav {
+    position: absolute !important;
+    top: 3px !important;
+    left: 3px !important;
+    width: 14px !important;
+    height: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #facc15 !important;
+    z-index: 5 !important;
+    pointer-events: none !important;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5)) !important;
+}
+.all-tools-tab-fav svg {
+    width: 11px !important;
+    height: 11px !important;
+    fill: currentColor !important;
+    stroke: currentColor !important;
+    stroke-width: 2 !important;
+}
+
+/* ---------- SEARCH REZULTATI ---------- */
+.all-tools-search-results {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+}
+.all-tools-search-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border-strong) !important;
+    border-radius: 14px !important;
+    padding: 12px 14px !important;
+    cursor: pointer !important;
+    transition: transform 0.12s ease, border-color 0.15s ease, background 0.15s ease !important;
+    font-family: inherit !important;
+    text-align: left !important;
+    color: var(--text-main) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+.all-tools-search-item:hover {
+    border-color: var(--accent-primary) !important;
+    background: var(--card-active) !important;
+}
+.all-tools-search-item:active { transform: scale(0.985) !important; }
+.all-tools-search-item-icon {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 11px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #ffffff !important;
+    background: linear-gradient(145deg,
+        color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 95%, white 5%),
+        color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 80%, black 20%)) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 3px 8px color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 40%, transparent) !important;
+    flex-shrink: 0 !important;
+}
+.all-tools-search-item-icon svg {
+    width: 20px !important;
+    height: 20px !important;
+    stroke: currentColor !important;
+    stroke-width: 2 !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+    fill: none !important;
+    display: block !important;
+}
+.all-tools-search-item-text {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+.all-tools-search-item-name {
+    font-size: 0.9rem !important;
+    font-weight: 800 !important;
+    color: var(--text-main) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+.all-tools-search-item-cat {
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    color: var(--accent-primary) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.4px !important;
+    margin-top: 3px !important;
+}
+.all-tools-search-empty {
+    text-align: center !important;
+    padding: 40px 20px !important;
+    color: var(--text-secondary) !important;
+    font-size: 0.9rem !important;
+}
+.all-tools-search-empty-title {
+    font-weight: 800 !important;
+    color: var(--text-main) !important;
+    margin-bottom: 6px !important;
+    font-size: 1rem !important;
+}
+
+/* ---------- RESPONSIVE ---------- */
 @media (min-width: 481px) {
-    .all-tools-tabs-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    .all-tools-sections {
+        padding: 18px 24px !important;
+        max-width: 900px !important;
+        margin: 0 auto !important;
+    }
+    .all-tools-main-cats-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
         gap: 14px !important;
     }
-}
-
-/* Desktop */
-@media (min-width: 769px) {
-    .all-tools-sections {
-        max-width: 1000px !important;
-        padding: 20px 32px !important;
+    .all-tools-main-cat {
+        min-height: 140px !important;
+        padding: 18px 14px !important;
+    }
+    .all-tools-main-cat-icon {
+        width: 60px !important;
+        height: 60px !important;
+        border-radius: 17px !important;
+    }
+    .all-tools-main-cat-icon svg {
+        width: 30px !important;
+        height: 30px !important;
+    }
+    .all-tools-main-cat-name {
+        font-size: 0.95rem !important;
     }
     .all-tools-tabs-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+        padding: 12px 16px 16px !important;
+    }
+    .all-tools-tab {
+        min-height: 110px !important;
+        padding: 14px 8px 12px !important;
+    }
+    .all-tools-tab-icon {
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 12px !important;
+    }
+    .all-tools-tab-icon svg {
+        width: 22px !important;
+        height: 22px !important;
+    }
+    .all-tools-tab-label {
+        font-size: 0.74rem !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .all-tools-sections {
+        padding: 24px 32px !important;
+        max-width: 1100px !important;
+    }
+    .all-tools-main-cats-grid {
         grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
         gap: 16px !important;
     }
+    .all-tools-main-cat {
+        min-height: 150px !important;
+        padding: 22px 16px !important;
+    }
+    .all-tools-main-cat-icon {
+        width: 68px !important;
+        height: 68px !important;
+        border-radius: 19px !important;
+    }
+    .all-tools-main-cat-icon svg {
+        width: 34px !important;
+        height: 34px !important;
+    }
+    .all-tools-main-cat-name {
+        font-size: 1rem !important;
+    }
+    .all-tools-main-cat-count {
+        font-size: 0.72rem !important;
+    }
+    .all-tools-tabs-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+        padding: 14px 18px 18px !important;
+    }
     .all-tools-tab {
         min-height: 120px !important;
+        padding: 16px 10px 14px !important;
     }
     .all-tools-tab-icon {
         width: 48px !important;
@@ -8622,62 +8824,74 @@ input[type="text"].custom-input::placeholder {
     }
 }
 
-/* Mobilni — 3 kolone, prilagođeno */
-@media (max-width: 480px) {
+@media (max-width: 400px) {
     .all-tools-sections {
-        padding: 12px 14px !important;
-        max-width: 100% !important;
+        padding: 12px !important;
         gap: 8px !important;
     }
-    .all-tools-cat-head {
-        padding: 12px 14px !important;
+    .all-tools-main-cats-grid {
         gap: 10px !important;
     }
-    .all-tools-cat-icon {
-        width: 38px !important;
-        height: 38px !important;
-        border-radius: 11px !important;
+    .all-tools-main-cat {
+        padding: 14px 10px !important;
+        min-height: 120px !important;
+        border-radius: 14px !important;
     }
-    .all-tools-cat-icon svg {
-        width: 20px !important;
-        height: 20px !important;
+    .all-tools-main-cat-icon {
+        width: 48px !important;
+        height: 48px !important;
+        border-radius: 14px !important;
     }
-    .all-tools-cat-name {
-        font-size: 0.9rem !important;
+    .all-tools-main-cat-icon svg {
+        width: 24px !important;
+        height: 24px !important;
     }
-    .all-tools-cat-count {
-        font-size: 0.66rem !important;
+    .all-tools-main-cat-name {
+        font-size: 0.8rem !important;
     }
-    .all-tools-tabs-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        gap: 8px !important;
-        padding: 10px 12px 14px !important;
+    .all-tools-main-cat-count {
+        font-size: 0.62rem !important;
     }
-    .all-tools-tab {
-        padding: 10px 6px 8px !important;
-        border-radius: 10px !important;
-        min-height: 95px !important;
+    .all-tools-subcat-head {
+        padding: 12px !important;
+        gap: 10px !important;
     }
-    .all-tools-tab-icon {
+    .all-tools-subcat-icon {
         width: 36px !important;
         height: 36px !important;
         border-radius: 10px !important;
     }
-    .all-tools-tab-icon svg {
+    .all-tools-subcat-icon svg {
         width: 18px !important;
         height: 18px !important;
     }
+    .all-tools-subcat-name {
+        font-size: 0.86rem !important;
+    }
+    .all-tools-tabs-grid {
+        gap: 6px !important;
+        padding: 8px 10px 12px !important;
+    }
+    .all-tools-tab {
+        min-height: 92px !important;
+        padding: 10px 4px 8px !important;
+        border-radius: 10px !important;
+    }
+    .all-tools-tab-icon {
+        width: 34px !important;
+        height: 34px !important;
+        border-radius: 9px !important;
+    }
+    .all-tools-tab-icon svg {
+        width: 17px !important;
+        height: 17px !important;
+    }
     .all-tools-tab-label {
-        font-size: 0.66rem !important;
+        font-size: 0.6rem !important;
         line-height: 1.15 !important;
     }
 }
 
-/* Badge i fav zvezdica — da ne budu isečeni */
-.all-tools-tab-badge,
-.all-tools-tab-fav {
-    z-index: 5 !important;
-}
 /* ============================================================
-   KRAJ style.css — Alatika 3.0 (v13)
+   KRAJ style.css — Alatika 3.0 (v14)
    ============================================================ */
