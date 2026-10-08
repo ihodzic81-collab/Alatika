@@ -1601,7 +1601,7 @@ body.modal-open { overflow: hidden; }
 .reminder-panel { max-width: 520px; max-height: 94vh; }
 .location-panel { max-width: 480px; }
 .level-panel { max-width: 440px; }
-.speedometer-panel { max-width: 460px; }
+.speedometer-panel { max-width: 460px; max-height: 94vh; }
 .stopwatch-panel { max-width: 460px; }
 .timer-panel { max-width: 460px; }
 
@@ -2392,16 +2392,16 @@ input[type="text"].custom-input::placeholder {
 }
 
 .stopwatch-time-big {
-    font-size: 2.2rem;
+    font-size: 2.9rem;
     font-weight: 900;
     color: var(--text-main);
     font-variant-numeric: tabular-nums;
-    letter-spacing: -1.5px;
+    letter-spacing: -2px;
     line-height: 1;
     text-align: center;
     position: relative;
     z-index: 1;
-    text-shadow: 0 4px 20px color-mix(in srgb, #0ea5e9 30%, transparent);
+    text-shadow: 0 4px 24px color-mix(in srgb, #0ea5e9 40%, transparent);
 }
 
 .stopwatch-stats-row {
@@ -2653,16 +2653,16 @@ input[type="text"].custom-input::placeholder {
 }
 
 .timer-time-big {
-    font-size: 2.2rem;
+    font-size: 2.9rem;
     font-weight: 900;
     color: var(--text-main);
     font-variant-numeric: tabular-nums;
-    letter-spacing: -1.5px;
+    letter-spacing: -2px;
     line-height: 1;
     text-align: center;
     position: relative;
     z-index: 1;
-    text-shadow: 0 4px 20px color-mix(in srgb, #f59e0b 30%, transparent);
+    text-shadow: 0 4px 24px color-mix(in srgb, #f59e0b 40%, transparent);
 }
 
 .timer-status-small {
@@ -2878,10 +2878,14 @@ input[type="text"].custom-input::placeholder {
    ZADATAK 1: DUGMIĆI PREMEŠTENI IZNAD SPARKLINE
    ============================================================ */
 .speedometer-body {
-    padding: 20px 18px 12px;
+    padding: 14px 16px 10px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 10px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
 }
 
 .speedometer-status-row {
@@ -2894,12 +2898,13 @@ input[type="text"].custom-input::placeholder {
 .speedometer-analog-wrap {
     position: relative;
     width: 100%;
-    max-width: 320px;
+    max-width: 280px;
     aspect-ratio: 1 / 1;
-    margin: 8px auto 4px;
+    margin: 4px auto 2px;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .speedometer-svg {
@@ -2931,9 +2936,10 @@ input[type="text"].custom-input::placeholder {
 /* ZADATAK 1: DUGMIĆI START + RESET — SADA UNUTAR .speedometer-body, IZNAD SPARKLINE */
 .speedometer-actions {
     display: flex;
-    gap: 10px;
-    padding: 4px 0;
+    gap: 8px;
+    padding: 2px 0;
     width: 100%;
+    flex-shrink: 0;
 }
 .speedometer-actions .gps-btn-main {
     flex: 1;
@@ -7836,37 +7842,42 @@ input[type="text"].custom-input::placeholder {
     .level-ring-outer { width: 148px; height: 148px; }
     .level-ring-middle { width: 92px; height: 92px; }
 
-    .stopwatch-circle-wrap { width: 190px; height: 190px; }
-    .stopwatch-time-big { font-size: 1.85rem; letter-spacing: -1.2px; }
+    .stopwatch-circle-wrap { width: 200px; height: 200px; }
+    .stopwatch-time-big { font-size: 2.4rem; letter-spacing: -1.5px; }
     .stopwatch-stats-row { gap: 8px; }
-    .stopwatch-stat-box { padding: 8px 4px; }
-    .stopwatch-stat-label { font-size: 0.56rem; }
-    .stopwatch-stat-value { font-size: 0.85rem; }
-    .stopwatch-btn { font-size: 0.78rem; padding: 12px 8px; border-radius: 12px; }
-    .stopwatch-lap-row { font-size: 0.76rem; padding: 8px 12px; grid-template-columns: 38px 1fr 1fr; }
+    .stopwatch-stat-box { padding: 10px 4px; }
+    .stopwatch-stat-label { font-size: 0.6rem; }
+    .stopwatch-stat-value { font-size: 1rem; }
+    .stopwatch-btn { font-size: 0.82rem; padding: 13px 8px; border-radius: 12px; }
+    .stopwatch-lap-row { font-size: 0.78rem; padding: 9px 12px; grid-template-columns: 38px 1fr 1fr; }
 
-    .timer-circle-wrap { width: 190px; height: 190px; }
-    .timer-time-big { font-size: 1.85rem; letter-spacing: -1.2px; }
-    .timer-status-small { font-size: 0.62rem; margin-top: 8px; }
+    .timer-circle-wrap { width: 200px; height: 200px; }
+    .timer-time-big { font-size: 2.4rem; letter-spacing: -1.5px; }
+    .timer-status-small { font-size: 0.7rem; margin-top: 10px; }
     .timer-presets { gap: 5px; }
-    .timer-preset-btn { padding: 7px 2px; border-radius: 9px; }
-    .timer-preset-icon { font-size: 0.75rem; }
-    .timer-preset-text { font-size: 0.58rem; }
-    .timer-input { font-size: 1.2rem; padding: 9px 4px; border-radius: 10px; }
-    .timer-input-sep { font-size: 1.4rem; padding-bottom: 10px; }
-    .timer-btn { font-size: 0.82rem; padding: 12px; border-radius: 12px; }
-    .timer-option-btn { padding: 8px 4px; font-size: 0.62rem; border-radius: 10px; }
-    .timer-option-btn svg { width: 16px; height: 16px; }
+    .timer-preset-btn { padding: 8px 2px; border-radius: 9px; }
+    .timer-preset-icon { font-size: 0.8rem; }
+    .timer-preset-text { font-size: 0.62rem; }
+    .timer-input { font-size: 1.5rem; padding: 10px 4px; border-radius: 10px; }
+    .timer-input-sep { font-size: 1.6rem; padding-bottom: 12px; }
+    .timer-btn { font-size: 0.88rem; padding: 13px; border-radius: 12px; }
+    .timer-option-btn { padding: 9px 4px; font-size: 0.66rem; border-radius: 10px; }
+    .timer-option-btn svg { width: 17px; height: 17px; }
 
-    .speedometer-analog-wrap { max-width: 280px; }
+    .speedometer-body { padding: 10px 12px 8px; gap: 8px; }
+    .speedometer-analog-wrap { max-width: 240px; margin: 2px auto; }
     .speedometer-stats-row { gap: 6px; }
-    .speedometer-stat-box { padding: 8px 4px; border-radius: 10px; }
-    .speedometer-stat-label { font-size: 0.58rem; }
+    .speedometer-stat-box { padding: 7px 4px; border-radius: 10px; }
+    .speedometer-stat-label { font-size: 0.56rem; }
     .speedometer-stat-value { font-size: 0.85rem; }
-    .speedometer-sparkline { height: 40px; }
+    .speedometer-sparkline-wrap { padding: 8px 10px; }
+    .speedometer-sparkline-label { font-size: 0.6rem; margin-bottom: 4px; }
+    .speedometer-sparkline { height: 36px; }
+    .speedometer-distance-row { padding: 9px 12px; }
     .speedometer-distance-value { font-size: 1rem; }
-    .speedometer-distance-label { font-size: 0.66rem; }
-    .speedometer-actions { gap: 8px; padding: 4px 0; }
+    .speedometer-distance-label { font-size: 0.64rem; }
+    .speedometer-actions { gap: 6px; padding: 2px 0; }
+    .speedometer-status-row { gap: 6px; }
 
     .gps-big-number { font-size: 3.2rem; }
     .gps-compass-visual { width: 190px; height: 190px; }
@@ -8891,7 +8902,29 @@ input[type="text"].custom-input::placeholder {
         line-height: 1.15 !important;
     }
 }
+/* Brzinomer — niski ekrani (mali telefoni, landscape) */
+@media (max-height: 750px) {
+    .speedometer-body { gap: 8px; padding: 10px 14px 8px; }
+    .speedometer-analog-wrap { max-width: 220px; }
+    .speedometer-sparkline { height: 32px; }
+    .speedometer-sparkline-wrap { padding: 7px 10px; }
+    .speedometer-stat-box { padding: 6px 4px; }
+    .speedometer-distance-row { padding: 8px 12px; }
+    .speedometer-actions { padding: 2px 0; gap: 6px; }
+    .speedometer-actions .gps-btn-main,
+    .speedometer-actions .gps-btn-secondary { padding: 11px 14px; font-size: 0.88rem; }
+}
 
+@media (max-height: 620px) {
+    .speedometer-analog-wrap { max-width: 180px; }
+    .speedometer-sparkline { height: 28px; }
+    .speedometer-stats-row { gap: 5px; }
+    .speedometer-stat-box { padding: 5px 3px; }
+    .speedometer-stat-label { font-size: 0.54rem; }
+    .speedometer-stat-value { font-size: 0.8rem; }
+    .speedometer-distance-row { padding: 7px 10px; }
+    .speedometer-distance-value { font-size: 0.92rem; }
+}
 /* ============================================================
    KRAJ style.css — Alatika 3.0 (v14)
    ============================================================ */
