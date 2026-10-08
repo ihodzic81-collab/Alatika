@@ -1,16 +1,16 @@
 // ============================================================
 // ALATIKA 3.0 — Service Worker
-// Verzija keša: v13
+// Verzija keša: v14
 // ============================================================
 
-const CACHE_NAME = 'alatika-v13';
+const CACHE_NAME = 'alatika-v14';
 
 const URLS_TO_CACHE = [
     './',
     './index.html',
-    './style.css?v=13',
-    './app.js?v=13',
-    './translations.js?v=13',
+    './style.css?v=14',
+    './app.js?v=14',
+    './translations.js?v=14',
     './manifest.json',
     './apple-touch-icon.png',
     './web-app-manifest-192x192.png',
@@ -28,7 +28,6 @@ self.addEventListener('install', (event) => {
                 console.warn('[SW] Failed to cache some URLs:', err);
             });
         }).then(() => {
-            // Odmah aktiviraj novi SW (ne čekaj da se stari zatvori)
             return self.skipWaiting();
         })
     );
@@ -50,7 +49,6 @@ self.addEventListener('activate', (event) => {
                 })
             );
         }).then(() => {
-            // Preuzmi kontrolu nad svim otvorenim tabovima
             return self.clients.claim();
         })
     );
@@ -60,33 +58,26 @@ self.addEventListener('activate', (event) => {
 // FETCH — strategija: Cache First, Network Fallback
 // ============================================================
 self.addEventListener('fetch', (event) => {
-    // Preskoči non-GET zahteve
     if (event.request.method !== 'GET') {
         return;
     }
 
-    // Preskoči eksterne domene (API pozivi: open-meteo, er-api, itd.)
     const url = new URL(event.request.url);
     if (url.origin !== self.location.origin) {
-        // Za eksterne API pozive — koristi network direktno (ne keširaj)
         return;
     }
 
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
             if (cachedResponse) {
-                // Vrati iz keša
                 return cachedResponse;
             }
 
-            // Nije u kešu — fetch sa mreže
             return fetch(event.request).then((networkResponse) => {
-                // Ne keširaj ako nije uspešan odgovor
                 if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
                     return networkResponse;
                 }
 
-                // Kloniraj i keširaj
                 const responseToCache = networkResponse.clone();
                 caches.open(CACHE_NAME).then((cache) => {
                     cache.put(event.request, responseToCache);
@@ -94,7 +85,6 @@ self.addEventListener('fetch', (event) => {
 
                 return networkResponse;
             }).catch(() => {
-                // Ako nema mreže a nije u kešu — fallback na index.html (SPA)
                 if (event.request.mode === 'navigate') {
                     return caches.match('./index.html');
                 }
