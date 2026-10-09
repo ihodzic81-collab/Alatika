@@ -1,11 +1,13 @@
 // ============================================================
 // ALATIKA 3.0 — app.js
-// Verzija: v14
-// ZADACI:
-//   1. Brzinomer — dugmići premešteni (rešeno u index.html + style.css)
-//   2. Podsetnici — renderReminderList() se poziva pri otvaranju taba
-//   3. Svi alati — 6 glavnih kategorija + pod-kategorije + omiljeni
-//   4. CSS — rešeno u style.css
+// Verzija: v16
+// FAZA 1 — svi zadaci:
+//   1. Brzi pregled (bivši Danas) + scroll fix + 16393 bug fix
+//   2. Svi alati — 3 koraka (5 → 3), accordion + chip separator
+//   3. Moderniji brojevi / badge-ovi
+//   4. Uklanjanje 23 taba + kategorije "navike"
+//   5. Profesionalizacija Faza 1 (top 10) — auto-fill, chain
+//   6. Moji računi — IndexedDB + cx_receipts + 3-smerna veza
 // ============================================================
 
 // ================= POMOĆNE =================
@@ -127,25 +129,18 @@ const ICONS = {
     briefcaseSm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>',
     square: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>',
     bricks: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="1"/><path d="M12 6v12"/><path d="M2 12h20"/></svg>',
-    board: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>',
     home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
     building: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>',
     paint: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>',
     tiles: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>',
     layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>',
-    flask: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 9h4"/><path d="M11 3v6l-5 9a2 2 0 0 0 1.7 3h8.6a2 2 0 0 0 1.7-3l-5-9V3"/></svg>',
-    wall: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="18" x="2" y="3" rx="2"/><path d="M2 9h20"/><path d="M2 15h20"/><path d="M8 3v6"/><path d="M16 9v6"/><path d="M8 15v6"/></svg>',
     droplet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>',
     plug: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg>',
-    door: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4h3a2 2 0 0 1 2 2v14"/><path d="M2 20h3"/><path d="M13 20h9"/><path d="M10 12v.01"/><path d="M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.562Z"/></svg>',
-    plug2: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg>',
     battery: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="10" x="2" y="7" rx="2"/><line x1="22" x2="22" y1="11" y2="13"/></svg>',
     trending: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
     cable: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-1"/><path d="M3 21v-2a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H6"/><path d="M8 7V3"/><path d="M16 7V3"/><path d="M8 7h8"/><path d="M8 7v5a4 4 0 0 0 8 0V7"/></svg>',
-    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>',
     chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>',
     lightbulb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>',
-    thermometer2: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></svg>',
     timer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>',
     dollarSign: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
     banknote: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>',
@@ -155,7 +150,6 @@ const ICONS = {
     spoon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-2-3-2-8 2-12 2-12 2 7 2 12-2 8-2 8z"/></svg>',
     glassWater: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 22H8.8a2 2 0 0 1-2-1.79l-1.78-14A2 2 0 0 1 7 4h10a2 2 0 0 1 1.98 2.21l-1.79 14A2 2 0 0 1 15.2 22Z"/><path d="M6 10h12"/></svg>',
     utensils: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>',
-    coffee: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg>',
     oven: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="18" x="2" y="3" rx="2"/><path d="M2 11h20"/><path d="M8 11v.01"/><path d="M16 11v.01"/><path d="M6 7h2"/><path d="M12 7h2"/><path d="M18 7h2"/></svg>',
     barcode: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5v14"/><path d="M8 5v14"/><path d="M12 5v14"/><path d="M17 5v14"/><path d="M21 5v14"/></svg>',
     split: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M21 3 13 11"/><path d="M3 3 11 11"/><path d="M21 21 13 13"/><path d="M3 21 11 13"/></svg>',
@@ -167,10 +161,6 @@ const ICONS = {
     guitar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11.9 12.1 4.514-4.514"/><path d="M20.1 2.3a1 1 0 0 0-1.4 0l-1.114 1.114A2 2 0 0 0 17 4.828v1.344a2 2 0 0 1-.586 1.414A2 2 0 0 1 17.828 7h1.344a2 2 0 0 0 1.414-.586L21.7 5.3a1 1 0 0 0 0-1.4z"/><path d="m6 16 2 2"/><path d="M8.23 9.85A3 3 0 0 1 11 8a5 5 0 0 1 5 5 3 3 0 0 1-1.85 2.77l-.92.38A2 2 0 0 0 12 18a4 4 0 0 1-4 4 6 6 0 0 1-6-6 4 4 0 0 1 4-4 2 2 0 0 0 1.85-1.23z"/></svg>',
     musicNote: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="18" r="4"/><path d="M12 18V2l7 4"/></svg>',
     mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19v3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><rect x="9" y="2" width="6" height="13" rx="3"/></svg>',
-    piano: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="M6 5v14"/><path d="M10 5v14"/><path d="M14 5v14"/><path d="M18 5v14"/></svg>',
-    sliders: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></svg>',
-    drum: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="8" rx="10" ry="3"/><path d="M2 8v8c0 1.66 4.48 3 10 3s10-1.34 10-3V8"/><path d="M6 11.5v3"/><path d="M10 12v3"/><path d="M14 12v3"/><path d="M18 11.5v3"/></svg>',
-    waves: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>',
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
     x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
     star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
@@ -197,9 +187,6 @@ const ICONS = {
     navigation: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>',
     eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
     bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
-    bellRing: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/><path d="M22 8c0-2.3-.8-4.3-2-6"/></svg>',
-    satellite: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m13.5 6.5 4 4"/><path d="m16 3.5 4.5 4.5"/><path d="M9.5 10.5 13 14"/><path d="M6.5 13.5 3 17l4 4 3.5-3.5"/><path d="M13.5 6.5 17 3l4 4-3.5 3.5"/><path d="m9.5 10.5-3.5 3.5"/><path d="M17.5 17.5 21 14l-4-4"/><path d="m13 11 4 4"/></svg>',
-    compass: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>',
     stopwatch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/><path d="M12 2v3"/><path d="m19 5-1.5 1.5"/><path d="m5 5 1.5 1.5"/></svg>',
     mountain: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>',
     play: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>',
@@ -208,52 +195,30 @@ const ICONS = {
     rotateCcw: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>',
     volume2: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>',
     save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>',
-    save2: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>',
-    graduation: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>',
-    book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>',
-    bookOpen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
-    clipboardCheck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>',
-    footPrints: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path d="M16 17h4"/><path d="M4 13h4"/></svg>',
-    smartwatch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="5" y="5" rx="2"/><path d="M12 9v3l1 1"/><path d="M16 5V3a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v2"/><path d="M8 19v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2"/></svg>',
-    water: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>',
-    bed: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/></svg>',
-    recipe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>',
-    piggyBank: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2h0V5z"/><path d="M2 9v1c0 1.1.9 2 2 2h1"/><path d="M16 11h.01"/></svg>',
     qrCode: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>',
     pencil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>',
-    sunDim: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 4h.01"/><path d="M20 12h.01"/><path d="M12 20h.01"/><path d="M4 12h.01"/><path d="M17.657 6.343h.01"/><path d="M17.657 17.657h.01"/><path d="M6.343 17.657h.01"/><path d="M6.343 6.343h.01"/></svg>',
     globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
     foot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/></svg>',
     shirt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>',
     binary: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="14" width="4" height="6" rx="2"/><rect x="6" y="4" width="4" height="6" rx="2"/><path d="M6 20h4"/><path d="M14 10h4"/><path d="M6 14h2v6"/><path d="M14 4h2v6"/></svg>',
-    calendarClock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M12 14v4"/><path d="M14 15l-2 1"/></svg>',
     heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>',
     sparkles: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>',
     leaf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>',
-    sunrise2: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6"/><path d="m4.22 10.22 1.42 1.42"/><path d="M1 18h2"/><path d="M21 18h2"/><path d="m18.36 11.64 1.42-1.42"/><path d="M23 22H1"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>',
-    ruler2: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 8.7 15.3 2.7a1 1 0 0 0-1.4 0L2.7 13.9a1 1 0 0 0 0 1.4l6 6a1 1 0 0 0 1.4 0L21.3 10a1 1 0 0 0 0-1.4Z"/><path d="m7.5 10.5 2 2"/><path d="m10.5 7.5 2 2"/><path d="m13.5 4.5 2 2"/><path d="m4.5 13.5 2 2"/></svg>',
-    hash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></svg>'
+    camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>',
+    image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>',
+    fileText: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>'
 };
 
 function icon(name) {
     return ICONS[name] || ICONS.info;
 }
 
-// ================= SECTIONS (10 sekcija) =================
-const SECTIONS = {
-    konverzije: { name: 'Konverzije', icon: 'exchange', accent: '#8b5cf6', cats: ['measures'] },
-    novac: { name: 'Novac', icon: 'wallet', accent: '#10b981', cats: ['money'] },
-    kupovina: { name: 'Kupovina', icon: 'cart', accent: '#14b8a6', cats: ['shopping'] },
-    dom: { name: 'Dom', icon: 'home', accent: '#ea580c', cats: ['homecalc', 'kitchen'] },
-    vozila: { name: 'Vozila', icon: 'car', accent: '#f43f5e', cats: ['auto', 'bike'] },
-    struja: { name: 'Struja', icon: 'zap', accent: '#eab308', cats: ['power'] },
-    vreme: { name: 'Vreme i datumi', icon: 'clock', accent: '#f59e0b', cats: ['time', 'weather'] },
-    podsetnici: { name: 'Podsetnici', icon: 'bell', accent: '#f59e0b', cats: ['podsetnici'] },
-    zdravlje: { name: 'Zdravlje', icon: 'heartPulse', accent: '#ec4899', cats: ['health'] },
-    hobi: { name: 'Hobi', icon: 'music', accent: '#a855f7', cats: ['music', 'work', 'gps', 'navike'] }
-};
-
-// ================= CATEGORIES =================
+// ============================================================
+// CATEGORIES — v16
+// Uklonjeno: "navike" kategorija (Zadatak 4)
+// Uklonjeni tabovi: 23 taba (vidi spisak u header-u)
+// Dodato: "racuni" tab u money kategoriji (Zadatak 6)
+// ============================================================
 const CATEGORIES = {
     podsetnici: {
         name: 'Podsetnici', icon: 'bell', accent: '#f59e0b',
@@ -273,9 +238,7 @@ const CATEGORIES = {
         name: 'Vreme', icon: 'cloudSun', accent: '#38bdf8',
         tabs: [
             { id: 'prognoza', name: 'Prognoza', icon: 'cloudSun', render: renderWeatherPrognoza },
-            { id: 'vazduh', name: 'Vazduh', icon: 'wind', render: renderWeatherVazduh },
-            { id: 'pametni', name: 'Pametni dan', icon: 'sunrise', render: renderWeatherPametni },
-            { id: 'sunce', name: 'Sunce i mesec', icon: 'moon', render: renderWeatherSunce }
+            { id: 'vazduh', name: 'Vazduh', icon: 'wind', render: renderWeatherVazduh }
         ]
     },
     money: {
@@ -289,7 +252,8 @@ const CATEGORIES = {
             { id: 'poredjenje', name: 'Poređenje cena', icon: 'scale', render: renderMoneyPoredjenje },
             { id: 'budzet', name: 'Budžet', icon: 'calendarSm', render: renderMoneyBudzet },
             { id: 'stednja', name: 'Štednja', icon: 'piggyBank', render: renderMoneyStednja },
-            { id: 'valuta', name: 'Kursna lista', icon: 'exchange', render: renderMoneyValuta }
+            { id: 'valuta', name: 'Kursna lista', icon: 'exchange', render: renderMoneyValuta },
+            { id: 'racuni', name: 'Računi', icon: 'receipt', render: renderRacuni }
         ]
     },
     measures: {
@@ -326,13 +290,11 @@ const CATEGORIES = {
         name: 'Auto', icon: 'car', accent: '#f43f5e',
         tabs: [
             { id: 'potrosnja', name: 'Potrošnja', icon: 'fuel', render: renderAutoPotrosnja },
-            { id: 'planer', name: 'Planer puta', icon: 'route', render: renderAutoPlaner },
             { id: 'trosakputa', name: 'Trošak puta', icon: 'coins', render: renderAutoTrosakPuta },
             { id: 'servis', name: 'Servis', icon: 'wrench', render: renderAutoServis },
             { id: 'istorijatocenja', name: 'Istorija točenja', icon: 'trending', render: renderFuelHistory },
             { id: 'profil', name: 'Profil vozila', icon: 'car', render: renderVehicleProfile },
-            { id: 'godisnji', name: 'Godišnji trošak', icon: 'calendar', render: renderAutoGodisnji },
-            { id: 'pokm', name: 'Po kilometru', icon: 'calculator', render: renderAutoPoKm }
+            { id: 'godisnji', name: 'Godišnji trošak', icon: 'calendar', render: renderAutoGodisnji }
         ]
     },
     bike: {
@@ -341,8 +303,7 @@ const CATEGORIES = {
             { id: 'brzina', name: 'Brzina', icon: 'gauge', render: renderBikeBrzina },
             { id: 'pritisak', name: 'Pritisak guma', icon: 'wind', render: renderBikePritisak },
             { id: 'rama', name: 'Veličina rama', icon: 'ruler', render: renderBikeRama },
-            { id: 'kalorije', name: 'Kalorije', icon: 'flame', render: renderBikeKalorije },
-            { id: 'tabela', name: 'Tabela prenosa', icon: 'settings', render: renderBikeTabela }
+            { id: 'kalorije', name: 'Kalorije', icon: 'flame', render: renderBikeKalorije }
         ]
     },
     health: {
@@ -352,10 +313,7 @@ const CATEGORIES = {
             { id: 'kalorije', name: 'Kalorije (BMR)', icon: 'flame', render: renderHealthBMR },
             { id: 'puls', name: 'Puls', icon: 'heartPulse', render: renderHealthPuls },
             { id: 'kardio', name: 'Kardio', icon: 'run', render: renderHealthTrcanje },
-            { id: 'snaga', name: 'Snaga', icon: 'dumbbell', render: renderHealth1RM },
-            { id: 'dnevnikTreninga', name: 'Dnevnik treninga', icon: 'clipboard', render: renderWorkoutJournal },
-            { id: 'koraci', name: 'Koraci', icon: 'footPrints', render: renderPedometer },
-            { id: 'vodaSan', name: 'Voda i san', icon: 'droplet', render: renderWaterSleep }
+            { id: 'snaga', name: 'Snaga', icon: 'dumbbell', render: renderHealth1RM }
         ]
     },
     time: {
@@ -374,13 +332,9 @@ const CATEGORIES = {
         name: 'Građevina', icon: 'hammer', accent: '#ea580c',
         tabs: [
             { id: 'povrsina', name: 'Površina', icon: 'square', render: renderHomePovrsina },
-            { id: 'skica', name: 'Skica prostorije', icon: 'pencil', render: renderSketch },
             { id: 'blokovi', name: 'Zidanje (blokovi + malter)', icon: 'bricks', render: renderHomeBlokovi },
-            { id: 'crep', name: 'Krov (crep + izolacija)', icon: 'home', render: renderHomeCrep },
             { id: 'beton', name: 'Beton i temelj', icon: 'building', render: renderHomeBeton },
             { id: 'farbanje', name: 'Farbanje', icon: 'paint', render: renderHomeFarbanje },
-            { id: 'plocice', name: 'Podovi (pločice + laminat)', icon: 'tiles', render: renderHomePlocice },
-            { id: 'gips', name: 'Plafon (gips + table)', icon: 'wall', render: renderHomeGips },
             { id: 'troskovnik', name: 'Troškovnik', icon: 'receipt', render: renderCostEstimate }
         ]
     },
@@ -388,10 +342,8 @@ const CATEGORIES = {
         name: 'Kuhinja', icon: 'chef', accent: '#84cc16',
         tabs: [
             { id: 'kasike', name: 'Kašike', icon: 'spoon', render: renderKitchenKasike },
-            { id: 'case', name: 'Čaše', icon: 'glassWater', render: renderKitchenCase },
             { id: 'pecenje', name: 'Pečenje', icon: 'oven', render: renderKitchenPecenje },
-            { id: 'porcije', name: 'Porcije', icon: 'utensils', render: renderKitchenPorcije },
-            { id: 'recepti', name: 'Recepti', icon: 'recipe', render: renderRecipes }
+            { id: 'porcije', name: 'Porcije', icon: 'utensils', render: renderKitchenPorcije }
         ]
     },
     power: {
@@ -411,42 +363,29 @@ const CATEGORIES = {
             { id: 'plata', name: 'Plata', icon: 'banknote', render: renderWorkPlata },
             { id: 'odmor', name: 'Godišnji odmor', icon: 'calendar', render: renderWorkOdmor },
             { id: 'nocni', name: 'Noćni rad', icon: 'moon', render: renderWorkNocni },
-            { id: 'prekovremeno', name: 'Prekovremeno', icon: 'activity', render: renderWorkPrekovremeno },
-            { id: 'putni', name: 'Putni troškovi', icon: 'car', render: renderWorkPutni },
-            { id: 'bonusi', name: 'Bonusi', icon: 'gift', render: renderWorkBonusi }
+            { id: 'prekovremeno', name: 'Prekovremeno', icon: 'activity', render: renderWorkPrekovremeno }
         ]
     },
     music: {
         name: 'Muzika', icon: 'music', accent: '#a855f7',
         tabs: [
-            { id: 'stimer', name: 'Štimer', icon: 'guitar', render: renderMusicStimer },
-            { id: 'teorija', name: 'Teorija muzike', icon: 'piano', render: renderMusicLestvice },
-            { id: 'transponovanje', name: 'Transponovanje', icon: 'musicNote', render: renderMusicTranspozicija },
-            { id: 'ritam', name: 'Ritam', icon: 'drum', render: renderMusicMetronom }
+            { id: 'stimer', name: 'Štimer', icon: 'guitar', render: renderMusicStimer }
         ]
     },
     gps: {
         name: 'GPS', icon: 'navigation', accent: '#0ea5e9',
         tabs: [
             { id: 'brzina', name: 'Brzina', icon: 'gauge', render: renderGpsBrzina },
-            { id: 'visina', name: 'Visina', icon: 'mountain', render: renderGpsVisina },
-            { id: 'kompas', name: 'Kompas', icon: 'compass', render: renderGpsKompas },
             { id: 'stoperica', name: 'Štoperica', icon: 'stopwatch', render: renderGpsStoperica },
             { id: 'tajmer', name: 'Tajmer', icon: 'timer', render: renderGpsTajmer }
-        ]
-    },
-    navike: {
-        name: 'Navike', icon: 'sparkles', accent: '#10b981',
-        tabs: [
-            { id: 'habits', name: 'Habit tracker', icon: 'check', render: renderHabitTracker },
-            { id: 'dnevnik', name: 'Dnevnik', icon: 'book', render: renderJournal }
         ]
     }
 };
 
-// ================= ZADATAK 3: GLAVNE KATEGORIJE (6) =================
+// ================= ZADATAK 3 + 4: MAIN_CATEGORIES (6) =================
 // Mapiranje: glavna kategorija → pod-kategorije (postojeći CATEGORIES ID-jevi)
-// Podsetnici su IZDVOJENI — nisu u 6 kategorija, ostaju preko "Brzi alat"
+// "navike" UKLONJENA iz zdravlje_telo.subcats (Zadatak 4)
+// "racuni" je tab unutar money kategorije, ne pod-kategorija
 const MAIN_CATEGORIES = [
     {
         id: 'vozila',
@@ -481,7 +420,7 @@ const MAIN_CATEGORIES = [
         name: 'Zdravlje i telo',
         icon: 'heartPulse',
         accent: '#ec4899',
-        subcats: ['health', 'navike']
+        subcats: ['health']
     },
     {
         id: 'tehnika_hobi',
@@ -1601,6 +1540,8 @@ function speedometerReleaseWakeLock() {
     }
 }
 
+
+
 // ============================================================
 // BOTTOM NAVIGATION
 // ============================================================
@@ -1669,18 +1610,23 @@ function goHome() {
 }
 
 // ============================================================
-// DANAS DASHBOARD
+// ZADATAK 1: BRZI PREGLED (bivši "Danas")
+// Nova struktura: HITNO / OVE NEDELJE / OVAJ MESEC / KASNIJE
+// + REZIME + VREME + SAVET DANA
+// + FIX bug 16393 dana (daysToBirthday/daysToAnniversary)
+// + FIX scroll (rešeno u CSS)
 // ============================================================
+
 function renderTodayDashboard() {
     const content = el('today-content');
     const greeting = el('today-greeting');
     if (!content) return;
 
     const hour = new Date().getHours();
-    let greetKey = 'today.greeting.morning';
-    if (hour >= 12 && hour < 18) greetKey = 'today.greeting.afternoon';
-    else if (hour >= 18 && hour < 23) greetKey = 'today.greeting.evening';
-    else if (hour >= 23 || hour < 5) greetKey = 'today.greeting.night';
+    let greetKey = 'brziPregled.greeting.morning';
+    if (hour >= 12 && hour < 18) greetKey = 'brziPregled.greeting.afternoon';
+    else if (hour >= 18 && hour < 23) greetKey = 'brziPregled.greeting.evening';
+    else if (hour >= 23 || hour < 5) greetKey = 'brziPregled.greeting.night';
 
     if (greeting) {
         const textEl = greeting.querySelector('.today-greeting-text');
@@ -1693,11 +1639,19 @@ function renderTodayDashboard() {
     }
 
     let html = '';
-    html += renderTodayUrgent();
-    html += renderTodayWeather();
-    html += renderTodayUV();
-    html += renderTodayTip();
+    html += renderBrziPregledCategories();
+    html += renderBrziPregledSummary();
+    html += renderBrziPregledWeather();
+    html += renderBrziPregledTip();
     content.innerHTML = html;
+
+    // Chain za "Sledeći korak" — dugmići za kategorije
+    content.querySelectorAll('[data-chain]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const cat = btn.dataset.chain;
+            if (cat) openCalc(cat.split(':')[0], cat.split(':')[1]);
+        });
+    });
 }
 
 function refreshTodayDashboard() {
@@ -1706,7 +1660,8 @@ function refreshTodayDashboard() {
     playTick(0, 1400, 0.06, 0.02);
 }
 
-function renderTodayUrgent() {
+// ZADATAK 1: Nova struktura — HITNO (0-3), OVE NEDELJE (4-7), OVAJ MESEC (8-30), KASNIJE (30+)
+function renderBrziPregledCategories() {
     try {
         if (typeof getAllReminderItems !== 'function') return '';
         const allItems = getAllReminderItems();
@@ -1714,77 +1669,276 @@ function renderTodayUrgent() {
         const nowMs = now.getTime();
         const dayMs = 86400000;
 
-        const urgent = [];
-        allItems.forEach(item => {
-            if (item.isDone || !item.dueDate) return;
-            const target = new Date(item.dueDate);
-            target.setHours(0, 0, 0, 0);
-            const days = Math.round((target.getTime() - nowMs) / dayMs);
-            if (days <= 7) {
-                urgent.push({ ...item, days });
-            }
-        });
-        urgent.sort((a, b) => a.days - b.days);
+        // Grupisanje po prioritetu
+        const groups = {
+            urgent: [],    // 0-3 dana (uključujući prekoračene)
+            week: [],      // 4-7 dana
+            month: [],     // 8-30 dana
+            later: []      // 30+ dana ili bez datuma
+        };
 
-        if (urgent.length === 0) {
-            return `
+        allItems.forEach(item => {
+            if (item.isDone) return;
+
+            // ZADATAK 1 — BUG FIX: Za rođendane i godišnjice koristimo
+            // daysToBirthday/daysToAnniversary umesto daysUntilDate
+            // jer daysUntilDate računa od pune godine rođenja (npr. 1980),
+            // što daje 16393 dana umesto stvarnog broja do sledećeg rođendana.
+            let days = null;
+            let targetDate = null;
+
+            if (item.type === 'birthday' && item.raw && item.raw.date) {
+                days = daysToBirthday(item.raw.date);
+                targetDate = computeNextBirthdayDate(item.raw.date);
+            } else if (item.type === 'anniversary' && item.raw && item.raw.date) {
+                days = daysToAnniversary(item.raw.date);
+                targetDate = computeNextAnniversaryDate(item.raw.date);
+            } else if (item.dueDate) {
+                days = daysUntilDate(item.dueDate);
+                targetDate = item.dueDate;
+            } else if (item.type === 'bill' && item.raw && item.raw.dayOfMonth) {
+                days = daysToBillDay(item.raw.dayOfMonth);
+                targetDate = computeNextBillDate(item.raw.dayOfMonth);
+            } else if (item.type === 'subscription' && item.raw && item.raw.dayOfMonth) {
+                days = daysToBillDay(item.raw.dayOfMonth);
+                targetDate = computeNextBillDate(item.raw.dayOfMonth);
+            } else if (item.type === 'medication' && item.raw && item.raw.endDate) {
+                days = daysUntilDate(item.raw.endDate);
+                targetDate = item.raw.endDate;
+            } else if (item.type === 'receipt' && item.raw && item.raw.dueDate) {
+                days = daysUntilDate(item.raw.dueDate);
+                targetDate = item.raw.dueDate;
+            } else {
+                // Nema datuma → KASNIJE
+                groups.later.push({ ...item, days: null, targetDate: null });
+                return;
+            }
+
+            if (days === null) {
+                groups.later.push({ ...item, days: null, targetDate: null });
+                return;
+            }
+
+            const enriched = { ...item, days, targetDate };
+            if (days <= 3) groups.urgent.push(enriched);
+            else if (days <= 7) groups.week.push(enriched);
+            else if (days <= 30) groups.month.push(enriched);
+            else groups.later.push(enriched);
+        });
+
+        // Sortiranje po danima
+        groups.urgent.sort((a, b) => (a.days ?? 999) - (b.days ?? 999));
+        groups.week.sort((a, b) => (a.days ?? 999) - (b.days ?? 999));
+        groups.month.sort((a, b) => (a.days ?? 999) - (b.days ?? 999));
+        groups.later.sort((a, b) => (a.days ?? 9999) - (b.days ?? 9999));
+
+        let html = '';
+
+        if (groups.urgent.length) {
+            html += renderBrziPregledGroup('urgent', safeT('brziPregled.urgent'), '#f43f5e', groups.urgent);
+        }
+        if (groups.week.length) {
+            html += renderBrziPregledGroup('week', safeT('brziPregled.thisWeek'), '#f59e0b', groups.week);
+        }
+        if (groups.month.length) {
+            html += renderBrziPregledGroup('month', safeT('brziPregled.thisMonth'), '#10b981', groups.month);
+        }
+        if (groups.later.length) {
+            html += renderBrziPregledGroup('later', safeT('brziPregled.later'), '#64748b', groups.later);
+        }
+
+        if (!html) {
+            html = `
                 <div class="today-card today-info">
                     <div class="today-card-head">
                         <div class="today-card-icon" style="--today-accent: #10b981;">${icon('check')}</div>
-                        <div class="today-card-title">${safeT('today.urgent')}</div>
+                        <div class="today-card-title">${safeT('brziPregled.title')}</div>
                     </div>
-                    <div class="today-empty">${safeT('today.noItems')}</div>
+                    <div class="today-empty">${safeT('brziPregled.noItems')}</div>
                 </div>
             `;
         }
 
-        let itemsHtml = '';
-        urgent.slice(0, 5).forEach(item => {
-            const daysTxt = item.days < 0 ? `${Math.abs(item.days)} ${safeT('rem.dashboard.daysLeft')}` :
-                            (item.days === 0 ? safeT('rem.dashboard.today') :
-                            (item.days === 1 ? safeT('rem.dashboard.tomorrow') : `${item.days} ${safeT('rem.dashboard.daysLeft')}`));
-            const color = item.days < 0 ? '#f43f5e' : (item.days <= 3 ? '#f43f5e' : '#f59e0b');
-            itemsHtml += `
-                <div class="today-item" style="--today-item-color: ${color};">
-                    <div class="today-item-icon">${icon(item.icon || 'bell')}</div>
-                    <div class="today-item-body">
-                        <div class="today-item-title">${escapeHtml(item.title || '')}</div>
-                        ${item.subtitle ? `<div class="today-item-sub">${escapeHtml(item.subtitle)}</div>` : ''}
-                    </div>
-                    <div class="today-item-days">${daysTxt}</div>
-                </div>
-            `;
-        });
-
-        return `
-            <div class="today-card today-urgent">
-                <div class="today-card-head">
-                    <div class="today-card-icon" style="--today-accent: #f43f5e;">${icon('bell')}</div>
-                    <div class="today-card-title">${safeT('today.urgent')}</div>
-                    <div class="today-card-count">${urgent.length}</div>
-                </div>
-                ${itemsHtml}
-            </div>
-        `;
+        return html;
     } catch (e) {
-        console.warn('renderTodayUrgent error:', e);
+        console.warn('renderBrziPregledCategories error:', e);
         return '';
     }
 }
 
-function renderTodayWeather() {
+function renderBrziPregledGroup(groupKey, title, color, items) {
+    const itemsHtml = items.slice(0, 8).map(item => {
+        const daysTxt = formatBrziPregledDays(item.days);
+        const itemColor = item.days !== null && item.days < 0 ? '#dc2626' : color;
+
+        // Ikonica zavisno od tipa
+        let itemIcon = 'bell';
+        if (item.type === 'birthday') itemIcon = 'cake';
+        else if (item.type === 'anniversary') itemIcon = 'gift';
+        else if (item.type === 'bill') itemIcon = 'receipt';
+        else if (item.type === 'subscription') itemIcon = 'creditCard';
+        else if (item.type === 'medication') itemIcon = 'heartPulse';
+        else if (item.type === 'vehicle-reg') itemIcon = 'car';
+        else if (item.type === 'vehicle-tech') itemIcon = 'wrench';
+        else if (item.type === 'document') itemIcon = 'clipboard';
+        else if (item.type === 'note') itemIcon = 'clipboard';
+        else if (item.type === 'receipt') itemIcon = 'receipt';
+        else if (item.type === 'installment') itemIcon = 'creditCard';
+
+        // Klik target — vodi na odgovarajući modal
+        let clickTarget = '';
+        if (item.type === 'birthday') clickTarget = `openCalc('podsetnici', 'rodjendani')`;
+        else if (item.type === 'anniversary') clickTarget = `openCalc('podsetnici', 'godisnjice')`;
+        else if (item.type === 'bill') clickTarget = `openCalc('podsetnici', 'racuni')`;
+        else if (item.type === 'subscription') clickTarget = `openCalc('podsetnici', 'pretplate')`;
+        else if (item.type === 'medication') clickTarget = `openCalc('podsetnici', 'lekivi')`;
+        else if (item.type === 'vehicle-reg' || item.type === 'vehicle-tech') clickTarget = `openCalc('podsetnici', 'vozila')`;
+        else if (item.type === 'document') clickTarget = `openCalc('podsetnici', 'vozila')`;
+        else if (item.type === 'note') clickTarget = `openCalc('podsetnici', 'napomene')`;
+        else if (item.type === 'receipt') clickTarget = `openCalc('money', 'racuni')`;
+        else if (item.type === 'installment') clickTarget = `openCalc('podsetnici', 'rate')`;
+
+        return `
+            <div class="today-item" style="--today-item-color: ${itemColor};" onclick="${clickTarget}">
+                <div class="today-item-icon">${icon(itemIcon)}</div>
+                <div class="today-item-body">
+                    <div class="today-item-title">${escapeHtml(item.title || '')}</div>
+                    ${item.subtitle ? `<div class="today-item-sub">${escapeHtml(item.subtitle)}</div>` : ''}
+                </div>
+                <div class="today-item-days">${daysTxt}</div>
+            </div>
+        `;
+    }).join('');
+
+    const moreCount = items.length - 8;
+    const moreHtml = moreCount > 0
+        ? `<div class="today-empty" style="padding: 8px 0 0;">+ još ${moreCount} ${moreCount === 1 ? 'stavka' : 'stavki'}</div>`
+        : '';
+
+    return `
+        <div class="today-card" style="border-left: 4px solid ${color};">
+            <div class="today-card-head">
+                <div class="today-card-icon" style="--today-accent: ${color};">${icon('bell')}</div>
+                <div class="today-card-title">${title}</div>
+                <div class="today-card-count">${items.length}</div>
+            </div>
+            ${itemsHtml}
+            ${moreHtml}
+        </div>
+    `;
+}
+
+function formatBrziPregledDays(days) {
+    if (days === null || days === undefined) return '';
+    if (days < 0) return `${Math.abs(days)} ${safeT('brziPregled.days')} ${safeT('brziPregled.overdue')}`;
+    if (days === 0) return safeT('brziPregled.today');
+    if (days === 1) return safeT('brziPregled.tomorrow');
+    return `${safeT('brziPregled.daysTo')} ${days} ${safeT('brziPregled.days')}`;
+}
+
+function computeNextBirthdayDate(isoDate) {
+    if (!isoDate) return null;
+    const parts = isoDate.split('-').map(Number);
+    if (parts.length < 3) return null;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    let next = new Date(today.getFullYear(), parts[1] - 1, parts[2]);
+    next.setHours(0, 0, 0, 0);
+    if (next < today) next.setFullYear(today.getFullYear() + 1);
+    return next.toISOString().slice(0, 10);
+}
+
+function computeNextAnniversaryDate(isoDate) {
+    return computeNextBirthdayDate(isoDate);
+}
+
+function computeNextBillDate(dayOfMonth) {
+    if (!dayOfMonth) return null;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const d = Math.max(1, Math.min(31, parseInt(dayOfMonth)));
+    let next = new Date(today.getFullYear(), today.getMonth(), d);
+    next.setHours(0, 0, 0, 0);
+    if (next < today) {
+        let nm = today.getMonth() + 1;
+        let ny = today.getFullYear();
+        if (nm > 11) { nm = 0; ny++; }
+        next = new Date(ny, nm, d);
+    }
+    return next.toISOString().slice(0, 10);
+}
+
+// ZADATAK 1: REZIME kartica
+function renderBrziPregledSummary() {
+    try {
+        if (typeof getAllReminderItems !== 'function') return '';
+        const allItems = getAllReminderItems().filter(i => !i.isDone);
+
+        let totalCount = allItems.length;
+        let urgentCount = 0;
+        let weekCount = 0;
+        let monthCount = 0;
+
+        const now = new Date(); now.setHours(0, 0, 0, 0);
+
+        allItems.forEach(item => {
+            let days = null;
+            if (item.type === 'birthday' && item.raw && item.raw.date) days = daysToBirthday(item.raw.date);
+            else if (item.type === 'anniversary' && item.raw && item.raw.date) days = daysToAnniversary(item.raw.date);
+            else if (item.dueDate) days = daysUntilDate(item.dueDate);
+            else if ((item.type === 'bill' || item.type === 'subscription') && item.raw && item.raw.dayOfMonth) days = daysToBillDay(item.raw.dayOfMonth);
+            else if (item.type === 'medication' && item.raw && item.raw.endDate) days = daysUntilDate(item.raw.endDate);
+
+            if (days === null) return;
+            if (days <= 3) urgentCount++;
+            else if (days <= 7) weekCount++;
+            else if (days <= 30) monthCount++;
+        });
+
+        return `
+            <div class="today-card today-summary">
+                <div class="today-card-head">
+                    <div class="today-card-icon" style="--today-accent: var(--accent-primary);">${icon('chart')}</div>
+                    <div class="today-card-title">${safeT('brziPregled.summary')}</div>
+                </div>
+                <div class="today-summary-grid">
+                    <div class="today-summary-item">
+                        <div class="today-summary-value">${totalCount}</div>
+                        <div class="today-summary-label">${safeT('brziPregled.summary.total')}</div>
+                    </div>
+                    <div class="today-summary-item">
+                        <div class="today-summary-value urgent">${urgentCount}</div>
+                        <div class="today-summary-label">${safeT('brziPregled.summary.urgent')}</div>
+                    </div>
+                    <div class="today-summary-item">
+                        <div class="today-summary-value week">${weekCount}</div>
+                        <div class="today-summary-label">${safeT('brziPregled.summary.thisWeek')}</div>
+                    </div>
+                    <div class="today-summary-item">
+                        <div class="today-summary-value month">${monthCount}</div>
+                        <div class="today-summary-label">${safeT('brziPregled.summary.thisMonth')}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } catch (e) {
+        console.warn('renderBrziPregledSummary error:', e);
+        return '';
+    }
+}
+
+// ZADATAK 1: VREME kartica
+function renderBrziPregledWeather() {
     try {
         if (typeof weatherState === 'undefined') return '';
         const loc = weatherState.location;
         const current = weatherState.current;
         if (!loc) {
             return `
-                <div class="today-card today-weather">
+                <div class="today-card today-weather" onclick="openLocationModal()" style="cursor:pointer;">
                     <div class="today-card-head">
                         <div class="today-card-icon" style="--today-accent: #38bdf8;">${icon('cloudSun')}</div>
-                        <div class="today-card-title">${safeT('today.weather')}</div>
+                        <div class="today-card-title">${safeT('brziPregled.weather')}</div>
                     </div>
-                    <div class="today-empty">${safeT('today.weather.noLocation')}</div>
+                    <div class="today-empty">${safeT('brziPregled.weather.noLocation')}</div>
                 </div>
             `;
         }
@@ -1793,9 +1947,9 @@ function renderTodayWeather() {
                 <div class="today-card today-weather">
                     <div class="today-card-head">
                         <div class="today-card-icon" style="--today-accent: #38bdf8;">${icon('cloudSun')}</div>
-                        <div class="today-card-title">${safeT('today.weather')}</div>
+                        <div class="today-card-title">${safeT('brziPregled.weather')}</div>
                     </div>
-                    <div class="today-empty">${safeT('today.weather.loading')}</div>
+                    <div class="today-empty">${safeT('brziPregled.weather.loading')}</div>
                 </div>
             `;
         }
@@ -1805,10 +1959,10 @@ function renderTodayWeather() {
         const locName = loc.name || '';
 
         return `
-            <div class="today-card today-weather">
+            <div class="today-card today-weather" onclick="openCalc('weather', 'prognoza')" style="cursor:pointer;">
                 <div class="today-card-head">
                     <div class="today-card-icon" style="--today-accent: #38bdf8;">${icon('cloudSun')}</div>
-                    <div class="today-card-title">${safeT('today.weather')}</div>
+                    <div class="today-card-title">${safeT('brziPregled.weather')}</div>
                 </div>
                 <div class="today-weather-main">
                     <div class="today-weather-temp">${temp}°</div>
@@ -1822,39 +1976,71 @@ function renderTodayWeather() {
     } catch (e) { return ''; }
 }
 
-function renderTodayUV() {
+// ZADATAK 1: SAVET DANA — pametni tip (prioritet: obaveze u sledeća 3 dana)
+function renderBrziPregledTip() {
     try {
-        if (typeof weatherState === 'undefined' || !weatherState.current) return '';
-        const uv = Math.round(weatherState.current.uv_index || 0);
-        let uvKey = 'today.uv.low';
-        let uvColor = '#10b981';
-        if (uv >= 6) { uvKey = 'today.uv.high'; uvColor = '#f43f5e'; }
-        else if (uv >= 3) { uvKey = 'today.uv.moderate'; uvColor = '#f59e0b'; }
-        return `
-            <div class="today-card today-info" style="border-left-color: ${uvColor};">
-                <div class="today-card-head">
-                    <div class="today-card-icon" style="--today-accent: ${uvColor};">${icon('sun')}</div>
-                    <div class="today-card-title">UV — ${uv}</div>
+        const allItems = (typeof getAllReminderItems === 'function') ? getAllReminderItems().filter(i => !i.isDone) : [];
+        const now = new Date(); now.setHours(0, 0, 0, 0);
+
+        // Skupi stavke koje dospevaju u sledeća 3 dana
+        const upcoming = [];
+        allItems.forEach(item => {
+            let days = null;
+            let name = item.title || '';
+            if (item.type === 'birthday' && item.raw && item.raw.date) {
+                days = daysToBirthday(item.raw.date);
+                name = item.raw.name || item.title;
+            } else if (item.type === 'anniversary' && item.raw && item.raw.date) {
+                days = daysToAnniversary(item.raw.date);
+                name = item.raw.name || item.title;
+            } else if (item.dueDate) {
+                days = daysUntilDate(item.dueDate);
+            } else if ((item.type === 'bill' || item.type === 'subscription') && item.raw && item.raw.dayOfMonth) {
+                days = daysToBillDay(item.raw.dayOfMonth);
+            } else if (item.type === 'medication' && item.raw && item.raw.endDate) {
+                days = daysUntilDate(item.raw.endDate);
+            }
+
+            if (days !== null && days >= 0 && days <= 3) {
+                upcoming.push({ name, days, amount: item.raw && item.raw.amount });
+            }
+        });
+
+        if (upcoming.length > 0) {
+            const itemsText = upcoming.slice(0, 5).map(u => {
+                const dayTxt = u.days === 0 ? safeT('brziPregled.today') : `${u.days} ${safeT('brziPregled.days')}`;
+                const amountTxt = u.amount ? ` (${fmt(u.amount, 0)} RSD)` : '';
+                return `${escapeHtml(u.name)} — ${dayTxt}${amountTxt}`;
+            }).join('<br>');
+
+            return `
+                <div class="today-card today-tip">
+                    <div class="today-card-head">
+                        <div class="today-card-icon" style="--today-accent: #facc15;">${icon('sparkles')}</div>
+                        <div class="today-card-title">${safeT('brziPregled.tip')}</div>
+                    </div>
+                    <div class="today-tip-text">
+                        <strong>${safeT('brziPregled.tip.prioritet')}</strong><br>
+                        ${itemsText}
+                    </div>
                 </div>
-                <div class="today-tip-text">${safeT(uvKey)}</div>
+            `;
+        }
+
+        // Inače — rotirajući savet
+        const tips = ['brziPregled.tip.1', 'brziPregled.tip.2', 'brziPregled.tip.3', 'brziPregled.tip.4', 'brziPregled.tip.5', 'brziPregled.tip.6'];
+        const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+        const tipKey = tips[dayOfYear % tips.length];
+        return `
+            <div class="today-card today-tip">
+                <div class="today-card-head">
+                    <div class="today-card-icon" style="--today-accent: #facc15;">${icon('sparkles')}</div>
+                    <div class="today-card-title">${safeT('brziPregled.tip')}</div>
+                </div>
+                <div class="today-tip-text">${safeT(tipKey)}</div>
             </div>
         `;
     } catch (e) { return ''; }
-}
-
-function renderTodayTip() {
-    const tips = ['today.tip.1', 'today.tip.2', 'today.tip.3', 'today.tip.4', 'today.tip.5', 'today.tip.6'];
-    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
-    const tipKey = tips[dayOfYear % tips.length];
-    return `
-        <div class="today-card today-tip">
-            <div class="today-card-head">
-                <div class="today-card-icon" style="--today-accent: #facc15;">${icon('sparkles')}</div>
-                <div class="today-card-title">${safeT('today.tip')}</div>
-            </div>
-            <div class="today-tip-text">${safeT(tipKey)}</div>
-        </div>
-    `;
 }
 
 // ============================================================
@@ -2191,47 +2377,41 @@ function clearSearch() {
     const input = el('home-search');
     if (input) input.value = '';
     handleQuickSearch();
-}// ============================================================
-// ZADATAK 3: "SVI ALATI" MODAL — NOVA STRUKTURA
-// 6 glavnih kategorija + pod-kategorije + omiljeni chipovi
-// ============================================================
+}
 
-// Stanje za navigaciju unutar "Svi alati" modala
-// view: 'main' = prikaz 6 glavnih kategorija
-// view: 'sub'  = prikaz pod-kategorija izabrane glavne kategorije
+// ============================================================
+// ZADATAK 2: "SVI ALATI" MODAL — 3 KORAKA
+//   1. Home → "SVI ALATI"
+//   2. Grid 6 glavnih kategorija (SVE COLLAPSED)
+//   3. Klik na glavnu kategoriju → EXPAND → tabovi grupisani
+//      po pod-kategorijama + chip separator + sticky header
+//   4. Klik na tab → otvara kalkulator
+// ============================================================
 const allToolsViewState = {
     view: 'main',
     activeMainCat: null,
-    openSubcats: {}   // { catId: true/false }
+    openSubcats: {}
 };
 
-// ============================================================
-// OTVARANJE / ZATVARANJE "SVI ALATI" MODALA
-// ============================================================
 function openAllToolsModal() {
     const modal = el('all-tools-modal');
     if (!modal) return;
 
-    // Reset stanja na glavni prikaz
     allToolsViewState.view = 'main';
     allToolsViewState.activeMainCat = null;
     allToolsViewState.openSubcats = {};
 
-    // Reset pretrage
     const searchInput = el('all-tools-search');
     if (searchInput) searchInput.value = '';
     const clearBtn = el('all-tools-search-clear');
     if (clearBtn) clearBtn.style.display = 'none';
 
-    // Sakrij back dugme na glavnom prikazu
     const backBtn = el('all-tools-back-btn');
     if (backBtn) backBtn.style.display = 'none';
 
-    // Postavi naslov
     const title = el('all-tools-modal-title');
     if (title) title.textContent = safeT('allTools.title');
 
-    // Renderuj omiljene + glavne kategorije
     renderAllToolsFavorites();
     renderAllToolsMainCats();
 
@@ -2243,15 +2423,11 @@ function openAllToolsModal() {
     try { history.pushState({ modal: 'all-tools' }, '', ''); } catch (e) {}
 }
 
-// ============================================================
-// BACK DUGME — vraća sa pod-kategorija na glavne kategorije
-// ============================================================
 function allToolsGoBack() {
     if (allToolsViewState.view === 'main') {
         closeModal('all-tools-modal');
         return;
     }
-    // Vrati se na glavni prikaz
     allToolsViewState.view = 'main';
     allToolsViewState.activeMainCat = null;
     allToolsViewState.openSubcats = {};
@@ -2261,13 +2437,11 @@ function allToolsGoBack() {
     const title = el('all-tools-modal-title');
     if (title) title.textContent = safeT('allTools.title');
 
-    // Reset pretrage
     const searchInput = el('all-tools-search');
     if (searchInput) searchInput.value = '';
     const clearBtn = el('all-tools-search-clear');
     if (clearBtn) clearBtn.style.display = 'none';
 
-    // Prikaži omiljene i glavne kategorije
     const favWrap = el('all-tools-favorites-wrap');
     if (favWrap) favWrap.style.display = '';
     renderAllToolsFavorites();
@@ -2277,15 +2451,12 @@ function allToolsGoBack() {
     playTick(0, 1200, 0.04, 0.012);
 }
 
-// ============================================================
-// OMILJENI CHIPOVI
-// ============================================================
 function renderAllToolsFavorites() {
     const wrap = el('all-tools-favorites-wrap');
     const chips = el('all-tools-favorites-chips');
     if (!wrap || !chips) return;
 
-    const favs = loadFavorites().slice(0, 4);  // max 4
+    const favs = loadFavorites().slice(0, 4);
     if (favs.length === 0) {
         wrap.style.display = 'none';
         chips.innerHTML = '';
@@ -2320,24 +2491,13 @@ function renderAllToolsFavorites() {
     });
 }
 
-// ============================================================
-// RENDER GLAVNIH KATEGORIJA (6 kartica)
-// ============================================================
+// ZADATAK 2: Grid 6 glavnih kategorija (SVE COLLAPSED po defaultu)
 function renderAllToolsMainCats() {
     const container = el('all-tools-sections');
     if (!container) return;
 
-    let totalTools = 0;
-    MAIN_CATEGORIES.forEach(mainCat => {
-        mainCat.subcats.forEach(subId => {
-            const cat = CATEGORIES[subId];
-            if (cat) totalTools += cat.tabs.length;
-        });
-    });
-
     let html = '<div class="all-tools-main-cats-grid">';
     MAIN_CATEGORIES.forEach(mainCat => {
-        // Broj alata u glavnoj kategoriji
         let toolsCount = 0;
         mainCat.subcats.forEach(subId => {
             const cat = CATEGORIES[subId];
@@ -2359,9 +2519,7 @@ function renderAllToolsMainCats() {
     container.innerHTML = html;
 }
 
-// ============================================================
-// OTVARANJE GLAVNE KATEGORIJE → PRIKAZ POD-KATEGORIJA
-// ============================================================
+// ZADATAK 2: Klik na glavnu kategoriju → EXPAND → prikaz pod-kategorija
 function openAllToolsMainCat(mainCatId) {
     const mainCat = getMainCategoryById(mainCatId);
     if (!mainCat) return;
@@ -2370,17 +2528,14 @@ function openAllToolsMainCat(mainCatId) {
     allToolsViewState.activeMainCat = mainCatId;
     allToolsViewState.openSubcats = {};
 
-    // Sakrij omiljene chipove u sub-view
     const favWrap = el('all-tools-favorites-wrap');
     if (favWrap) favWrap.style.display = 'none';
 
-    // Prikaži back dugme i promeni naslov
     const backBtn = el('all-tools-back-btn');
     if (backBtn) backBtn.style.display = 'flex';
     const title = el('all-tools-modal-title');
     if (title) title.textContent = mainCat.name;
 
-    // Reset pretrage
     const searchInput = el('all-tools-search');
     if (searchInput) searchInput.value = '';
     const clearBtn = el('all-tools-search-clear');
@@ -2392,9 +2547,7 @@ function openAllToolsMainCat(mainCatId) {
     playTick(0, 1300, 0.05, 0.015);
 }
 
-// ============================================================
-// RENDER POD-KATEGORIJA (accordion sa tabovima)
-// ============================================================
+// ZADATAK 2: Render pod-kategorija (accordion sa tabovima) + chip separator
 function renderAllToolsSubCats(mainCat) {
     const container = el('all-tools-sections');
     if (!container) return;
@@ -2410,7 +2563,9 @@ function renderAllToolsSubCats(mainCat) {
         const openClass = isOpen ? ' open' : '';
         const ariaExpanded = isOpen ? 'true' : 'false';
 
-        // Tabovi unutar pod-kategorije
+        // ZADATAK 2: CHIP SEPARATOR — mali chip label sa akcentom pod-kategorije
+        const chipHtml = `<div class="all-tools-subcat-chip" style="--cat-accent: ${accent};">${icon(cat.icon)} ${escapeHtml(safeT('cat.' + subId))}</div>`;
+
         let tabsHtml = '';
         cat.tabs.forEach(tab => {
             const favKey = `${subId}:${tab.id}`;
@@ -2440,6 +2595,7 @@ function renderAllToolsSubCats(mainCat) {
             <div class="all-tools-subcat${openClass}"
                  data-subcat-id="${subId}"
                  style="--cat-accent: ${accent};">
+                ${chipHtml}
                 <button type="button" class="all-tools-subcat-head"
                         onclick="toggleAllToolsSubcat('${subId}')"
                         aria-expanded="${ariaExpanded}">
@@ -2465,9 +2621,6 @@ function renderAllToolsSubCats(mainCat) {
     container.innerHTML = html;
 }
 
-// ============================================================
-// TOGGLE POD-KATEGORIJE (accordion)
-// ============================================================
 function toggleAllToolsSubcat(subcatId) {
     const el2 = document.querySelector(`.all-tools-subcat[data-subcat-id="${subcatId}"]`);
     if (!el2) return;
@@ -2480,9 +2633,6 @@ function toggleAllToolsSubcat(subcatId) {
     playTick(0, 1200, 0.04, 0.012);
 }
 
-// ============================================================
-// ZATVARANJE SVIH OTVORENIH POD-KATEGORIJA
-// ============================================================
 function closeAnyOpenAllToolsCat() {
     if (allToolsViewState.view !== 'sub') return false;
     const openCats = document.querySelectorAll('.all-tools-subcat.open');
@@ -2496,9 +2646,6 @@ function closeAnyOpenAllToolsCat() {
     return true;
 }
 
-// ============================================================
-// OTVARANJE KALKULATORA IZ "SVI ALATI" MODALA
-// ============================================================
 function openCalcFromAllTools(catId, tabId) {
     closeModal('all-tools-modal');
     setTimeout(() => {
@@ -2506,9 +2653,6 @@ function openCalcFromAllTools(catId, tabId) {
     }, 200);
 }
 
-// ============================================================
-// PRETRAGA U "SVI ALATI" MODALU
-// ============================================================
 function handleAllToolsSearch() {
     const input = el('all-tools-search');
     if (!input) return;
@@ -2516,25 +2660,21 @@ function handleAllToolsSearch() {
     const clearBtn = el('all-tools-search-clear');
     if (clearBtn) clearBtn.style.display = q ? 'flex' : 'none';
 
-    // Sakrij omiljene chipove tokom pretrage
     const favWrap = el('all-tools-favorites-wrap');
     if (favWrap) favWrap.style.display = q ? 'none' : '';
 
     if (!q) {
-        // Vrati se na trenutni view (main ili sub)
         if (allToolsViewState.view === 'main') {
             renderAllToolsMainCats();
         } else {
             const mainCat = getMainCategoryById(allToolsViewState.activeMainCat);
             if (mainCat) renderAllToolsSubCats(mainCat);
         }
-        // Vrati omiljene
         if (favWrap) favWrap.style.display = allToolsViewState.view === 'main' ? '' : 'none';
         if (allToolsViewState.view === 'main') renderAllToolsFavorites();
         return;
     }
 
-    // Prikaži rezultate pretrage
     const container = el('all-tools-sections');
     if (!container) return;
 
@@ -2749,7 +2889,7 @@ function createRipple(e) {
     setTimeout(() => { if (ripple.parentNode) ripple.remove(); }, 600);
 }
 function setupRipple() {
-    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn, .modal-fav-star, .modal-settings-btn, .weather-refresh-btn, .location-gps-btn, .weather-location, .icon-btn-text, .about-row, .tabs-settings-reset-btn, .tabs-settings-save-btn, .gps-btn-main, .gps-btn-secondary, .gps-chip, .gps-color-swatch, .tabs-settings-color-reset, .toolbar-btn, .bottom-nav-btn, .mytool-item, .habit-day-btn, .today-item, .journal-card, .recipe-card, .water-glass, .holiday-card, .all-tools-main-btn, .all-tools-main-cat, .all-tools-subcat-head, .all-tools-tab, .all-tools-search-item, .all-tools-fav-chip, .all-tools-back-btn, .stopwatch-btn, .timer-btn, .timer-preset-btn, .timer-option-btn, .speedometer-actions .gps-btn-main, .speedometer-actions .gps-btn-secondary';
+    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn, .modal-fav-star, .modal-settings-btn, .weather-refresh-btn, .location-gps-btn, .weather-location, .icon-btn-text, .about-row, .tabs-settings-reset-btn, .tabs-settings-save-btn, .gps-btn-main, .gps-btn-secondary, .gps-chip, .gps-color-swatch, .tabs-settings-color-reset, .toolbar-btn, .bottom-nav-btn, .mytool-item, .today-item, .holiday-card, .all-tools-main-btn, .all-tools-main-cat, .all-tools-subcat-head, .all-tools-tab, .all-tools-search-item, .all-tools-fav-chip, .all-tools-back-btn, .stopwatch-btn, .timer-btn, .timer-preset-btn, .timer-option-btn, .speedometer-actions .gps-btn-main, .speedometer-actions .gps-btn-secondary, .receipt-card, .receipt-chip, .receipt-card-action, .receipt-details-action, .receipt-status-btn, .receipt-add-btn';
     document.addEventListener('pointerdown', (e) => {
         const t = e.target.closest(selector);
         if (t) createRipple({ currentTarget: t, clientX: e.clientX, clientY: e.clientY });
@@ -2813,7 +2953,6 @@ function setLanguageFromSettings(lang) {
         if (typeof renderFavorites === 'function') renderFavorites();
         if (typeof renderHistory === 'function') renderHistory();
         if (typeof updateSettingsUI === 'function') updateSettingsUI();
-        // Ako je "Svi alati" modal otvoren, osveži ga
         if (typeof renderAllToolsMainCats === 'function') {
             const allToolsModal = el('all-tools-modal');
             if (allToolsModal && allToolsModal.classList.contains('show')) {
@@ -3197,8 +3336,7 @@ function renderCategoryTabs(categoryId, tabBar, cat) {
 }
 
 // ============================================================
-// ZADATAK 2: OTVARANJE KALKULATORA + AUTOMATSKO UČITAVANJE
-// PODSETNIKA (renderReminderList) — rešava problem čuvanja
+// OTVARANJE KALKULATORA
 // ============================================================
 function openCalc(categoryId, tabId) {
     const cat = CATEGORIES[categoryId];
@@ -3245,9 +3383,7 @@ function openCalc(categoryId, tabId) {
     vibrate(20);
     playTick(0, 1500, 0.08, 0.03);
 
-    // ============================================================
-    // ZADATAK 2: SPECIJALNI HOOK-OVI ZA SVAKI TAB
-    // ============================================================
+    // Specifični hook-ovi za tabove
     if (tabId === 'valuta') {
         setTimeout(() => {
             if (typeof loadFxRates === 'function') loadFxRates();
@@ -3261,24 +3397,20 @@ function openCalc(categoryId, tabId) {
     if (tabId === 'stimer') setTimeout(() => { if (typeof renderTunerStrings === 'function') renderTunerStrings(); }, 50);
     if (tabId === 'istorijatocenja') setTimeout(() => { if (typeof renderFuelHistoryList === 'function') renderFuelHistoryList(); }, 50);
     if (tabId === 'profil') setTimeout(() => { if (typeof loadVehicleProfileIntoForm === 'function') loadVehicleProfileIntoForm(); }, 50);
-    if (tabId === 'habits') setTimeout(() => { if (typeof renderHabitsList === 'function') renderHabitsList(); }, 50);
-    if (tabId === 'dnevnik') setTimeout(() => { if (typeof renderJournalList === 'function') renderJournalList(); }, 50);
-    if (tabId === 'dnevnikTreninga') setTimeout(() => { if (typeof renderWorkoutList === 'function') renderWorkoutList(); }, 50);
-    if (tabId === 'vodaSan') setTimeout(() => { if (typeof renderWaterSleepTab === 'function') renderWaterSleepTab(); }, 50);
-    if (tabId === 'recepti') setTimeout(() => { if (typeof renderRecipesList === 'function') renderRecipesList(); }, 50);
     if (tabId === 'pracenje') setTimeout(() => { if (typeof renderPriceTrackingList === 'function') renderPriceTrackingList(); }, 50);
     if (tabId === 'troskovnik') setTimeout(() => { if (typeof renderCostEstimateList === 'function') renderCostEstimateList(); }, 50);
     if (tabId === 'praznici') setTimeout(() => { if (typeof renderHolidaysList === 'function') renderHolidaysList(); }, 50);
-    if (tabId === 'skica') setTimeout(() => { if (typeof drawSketch === 'function') drawSketch(); }, 50);
     if (tabId === 'barkod') setTimeout(() => { if (typeof initBarcodeScanner === 'function') initBarcodeScanner(); }, 50);
-    if (tabId === 'koraci') setTimeout(() => { if (typeof initPedometer === 'function') initPedometer(); }, 50);
+    if (tabId === 'racuni' && categoryId === 'money') {
+        setTimeout(() => {
+            if (typeof renderRacuni === 'function') {
+                // renderRacuni() je već pozvan preko tab.render() — sada učitavamo slike iz IndexedDB
+                if (typeof loadReceiptThumbnails === 'function') loadReceiptThumbnails();
+            }
+        }, 100);
+    }
 
-    // ============================================================
-    // ZADATAK 2 — KLJUČNA ISPRAVKA: PODSETNICI SE UČITAVAJU
-    // ============================================================
-    // Kada korisnik otvori BILO KOJI tab iz kategorije "podsetnici",
-    // pozivamo odgovarajuću render funkciju koja čita iz localStorage
-    // i prikazuje sačuvane podsetnike.
+    // Podsetnici — render liste pri otvaranju
     if (categoryId === 'podsetnici') {
         setTimeout(() => {
             try {
@@ -3291,7 +3423,7 @@ function openCalc(categoryId, tabId) {
                     case 'godisnjice':   renderReminderList('anniversary'); break;
                     case 'napomene':     renderReminderList('note'); break;
                     case 'arhiva':       if (typeof renderRemindersHistoryList === 'function') renderRemindersHistoryList(); break;
-                    case 'rate':         if (typeof renderRemindersRate === 'function') { /* renderRemindersRate() već sadrži setTimeout za listu */ } break;
+                    case 'rate':         if (typeof renderRemindersRate === 'function') { /* već pozvano */ } break;
                 }
             } catch (e) { console.warn('Reminder list error:', e); }
         }, 80);
@@ -3335,10 +3467,16 @@ function closeModal(modalId) {
     if (modalId === 'tabs-settings-modal') { tabsSettingsCategory = null; tabsSettingsDraft = null; }
     if (modalId === 'all-tools-modal') {
         document.body.classList.remove('modal-open');
-        // Reset stanja
         allToolsViewState.view = 'main';
         allToolsViewState.activeMainCat = null;
         allToolsViewState.openSubcats = {};
+    }
+    if (modalId === 'receipt-modal' || modalId === 'receipt-details-modal') {
+        // Oslobodi Object URL ako postoji
+        if (receiptState && receiptState.currentObjectUrl) {
+            try { URL.revokeObjectURL(receiptState.currentObjectUrl); } catch (e) {}
+            receiptState.currentObjectUrl = null;
+        }
     }
 
     setTimeout(() => {
@@ -3367,7 +3505,10 @@ function closeAllModals() {
     if (typeof stopTunerMic === 'function') { try { stopTunerMic(); } catch (e) {} }
     if (typeof stopMetronome === 'function') { try { stopMetronome(); } catch (e) {} }
     if (typeof stopBarcodeScanner === 'function') { try { stopBarcodeScanner(); } catch (e) {} }
-    if (typeof stopPedometer === 'function') { try { stopPedometer(); } catch (e) {} }
+    if (receiptState && receiptState.currentObjectUrl) {
+        try { URL.revokeObjectURL(receiptState.currentObjectUrl); } catch (e) {}
+        receiptState.currentObjectUrl = null;
+    }
 }
 
 // ============================================================
@@ -3503,7 +3644,6 @@ function toggleFavorite(event, key) {
         favStar.innerHTML = active ? icon('starFill') : icon('star');
     }
     if (currentScreenId === 'mytools-screen') renderMyToolsScreen();
-    // Ako je "Svi alati" modal otvoren, osveži ga
     const allToolsModal = el('all-tools-modal');
     if (allToolsModal && allToolsModal.classList.contains('show')) {
         if (allToolsViewState.view === 'main') {
@@ -4208,24 +4348,42 @@ function setupBackButton() {
         const timerModal = el('toolbar-timer-modal');
         const speedometerModal = el('speedometer-modal');
         const allToolsModal = el('all-tools-modal');
+        const receiptModal = el('receipt-modal');
+        const receiptDetailsModal = el('receipt-details-modal');
+        const imageViewerModal = el('image-viewer-modal');
 
-        const noviModali = ['fuel-history-modal','habit-modal','journal-modal','workout-modal','water-sleep-modal','recipes-modal','savings-modal','barcode-modal','price-tracking-modal','cost-estimate-modal','solar-modal','holidays-modal','timezone-modal','shoe-modal','clothing-modal','numbers-modal'];
+        // Zatvori image viewer prvi
+        if (imageViewerModal && imageViewerModal.classList.contains('show')) {
+            closeImageViewer(e);
+            return;
+        }
+
+        // Receipt modali
+        if (receiptDetailsModal && receiptDetailsModal.classList.contains('show')) {
+            receiptDetailsModal.classList.remove('show');
+            document.body.classList.remove('modal-open');
+            return;
+        }
+        if (receiptModal && receiptModal.classList.contains('show')) {
+            receiptModal.classList.remove('show');
+            document.body.classList.remove('modal-open');
+            return;
+        }
+
+        const noviModali = ['fuel-history-modal','price-tracking-modal','cost-estimate-modal'];
         for (const id of noviModali) {
             const m = el(id);
             if (m && m.classList.contains('show')) { m.classList.remove('show'); return; }
         }
 
-        // "Svi alati" modal — back dugme
+        // "Svi alati" modal — back
         if (allToolsModal && allToolsModal.classList.contains('show')) {
-            // Ako je u sub-view-u → vrati na main
             if (allToolsViewState.view === 'sub') {
                 allToolsGoBack();
                 return;
             }
-            // Ako je neka pod-kategorija otvorena → zatvori je
             const closed = closeAnyOpenAllToolsCat();
             if (closed) return;
-            // Inače: zatvori ceo modal
             allToolsModal.classList.remove('show');
             document.body.classList.remove('modal-open');
             vibrate(10);
@@ -4349,8 +4507,8 @@ function refreshUIText() {
         const toolbarTimer = el('toolbar-timer-label'); if (toolbarTimer) toolbarTimer.textContent = safeT('toolbar.timer.title');
         const toolbarSpeedometer = el('toolbar-speedometer-label'); if (toolbarSpeedometer) toolbarSpeedometer.textContent = safeT('toolbar.speedometer.label');
 
-        const todayTitle = el('today-title'); if (todayTitle) todayTitle.textContent = safeT('today.title');
-        const todaySubtitle = el('today-subtitle'); if (todaySubtitle) todaySubtitle.textContent = safeT('today.subtitle');
+        const todayTitle = el('today-title'); if (todayTitle) todayTitle.textContent = safeT('brziPregled.title');
+        const todaySubtitle = el('today-subtitle'); if (todaySubtitle) todaySubtitle.textContent = safeT('brziPregled.subtitle');
 
         const mytoolsTitle = el('mytools-title'); if (mytoolsTitle) mytoolsTitle.textContent = safeT('nav.myTools');
         const mytoolsSubtitle = el('mytools-subtitle'); if (mytoolsSubtitle) mytoolsSubtitle.textContent = 'Tvoji omiljeni alati';
@@ -4366,6 +4524,16 @@ function refreshUIText() {
         const speedometerTitle = el('speedometer-modal-title'); if (speedometerTitle) speedometerTitle.textContent = safeT('toolbar.speedometer.title');
 
         const splashTagline = el('splash-tagline'); if (splashTagline) splashTagline.textContent = safeT('app.subtitle');
+
+        // Receipt modali
+        const receiptModalTitle = el('receipt-modal-title');
+        if (receiptModalTitle && receiptState && receiptState.editingId) {
+            receiptModalTitle.textContent = safeT('receipt.edit');
+        } else if (receiptModalTitle) {
+            receiptModalTitle.textContent = safeT('receipt.new');
+        }
+        const receiptDetailsTitle = el('receipt-details-title');
+        if (receiptDetailsTitle) receiptDetailsTitle.textContent = safeT('receipt.details');
     } catch (e) { console.warn('refreshUIText greška:', e); }
 }
 
@@ -4404,6 +4572,13 @@ function initApp() {
     try { restoreInputsFor(document); } catch (e) {}
     try { runArchiveAutoCleanup(); } catch (e) {}
     try { initToolbarIcons(); } catch (e) {}
+
+    // ZADATAK 6: Inicijalizacija IndexedDB za slike računa
+    try {
+        if (typeof initReceiptsDB === 'function') {
+            initReceiptsDB().catch(err => console.warn('IndexedDB init failed:', err));
+        }
+    } catch (e) { console.warn('IndexedDB init error:', e); }
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -4483,7 +4658,9 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
 } else {
     initApp();
-}// ============================================================
+}
+
+// ============================================================
 // RENDER POMOĆNE
 // ============================================================
 function inputField(labelKey, id, unit = '', extra = '') {
@@ -5595,54 +5772,6 @@ function deletePriceTracking(productId) {
 }
 
 // ============================================================
-// SKICA
-// ============================================================
-function renderSketch() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Nacrtaj skicu prostorije na osnovu dimenzija.</p>
-            ${inputField('label.home.length', 'sketch-length', 'm', 'placeholder="5" oninput="drawSketch()"')}
-            ${inputField('label.home.width', 'sketch-width', 'm', 'placeholder="3" oninput="drawSketch()"')}
-        </div>
-        <div class="sketch-wrap">
-            <svg id="sketch-svg" class="sketch-svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet">
-                <rect x="50" y="50" width="300" height="200" fill="none" stroke="var(--border-strong)" stroke-width="2" stroke-dasharray="6,4"/>
-                <text x="200" y="150" text-anchor="middle" fill="var(--text-tertiary)" font-size="14" font-weight="600">Unesi dimenzije</text>
-            </svg>
-        </div>
-        ${statsRow('sketch-stats-row', [
-            ['label.home.area', 'stat-sketch-area', '0 m²'],
-            ['label.home.totalArea', 'stat-sketch-perimeter', '0 m']
-        ])}
-    `;
-}
-function drawSketch() {
-    const svg = el('sketch-svg');
-    if (!svg) return;
-    const l = num('sketch-length');
-    const w = num('sketch-width');
-    if (!l || !w) {
-        svg.innerHTML = `<rect x="50" y="50" width="300" height="200" fill="none" stroke="var(--border-strong)" stroke-width="2" stroke-dasharray="6,4"/><text x="200" y="150" text-anchor="middle" fill="var(--text-tertiary)" font-size="14" font-weight="600">Unesi dimenzije</text>`;
-        return;
-    }
-    const aspect = l / w;
-    let rw, rh;
-    const maxW = 300, maxH = 200;
-    if (aspect >= maxW / maxH) { rw = maxW; rh = maxW / aspect; }
-    else { rh = maxH; rw = maxH * aspect; }
-    const x = (400 - rw) / 2, y = (300 - rh) / 2;
-    svg.innerHTML = `
-        <rect x="${x}" y="${y}" width="${rw}" height="${rh}" fill="rgba(99,102,241,0.1)" stroke="var(--accent-primary)" stroke-width="3" rx="4"/>
-        <text x="${x + rw / 2}" y="${y - 12}" text-anchor="middle" fill="var(--text-main)" font-size="13" font-weight="800">${l} m</text>
-        <text x="${x - 12}" y="${y + rh / 2}" text-anchor="middle" fill="var(--text-main)" font-size="13" font-weight="800" transform="rotate(-90 ${x - 12} ${y + rh / 2})">${w} m</text>
-        <text x="${x + rw / 2}" y="${y + rh / 2 + 6}" text-anchor="middle" fill="var(--accent-primary)" font-size="18" font-weight="900">${(l * w).toFixed(2)} m²</text>
-    `;
-    const sa = el('stat-sketch-area'); if (sa) sa.innerText = (l * w).toFixed(2) + ' m²';
-    const sp = el('stat-sketch-perimeter'); if (sp) sp.innerText = (2 * (l + w)).toFixed(2) + ' m';
-    const row = el('sketch-stats-row'); if (row) row.style.display = 'flex';
-}
-
-// ============================================================
 // TROŠKOVNIK
 // ============================================================
 const COST_ESTIMATE_KEY = 'cx_cost_estimate_v1';
@@ -6146,1228 +6275,10 @@ function calculateTimeZone() {
     show('tz-result-box');
 }
 
-// ============================================================
-// WORKOUT
-// ============================================================
-const WORKOUT_KEY = 'cx_workouts_v1';
-const WORKOUT_TYPES = {
-    strength: { label: 'Snaga', icon: 'dumbbell', color: '#ec4899' },
-    cardio: { label: 'Kardio', icon: 'run', color: '#f43f5e' },
-    flexibility: { label: 'Istezanje', icon: 'activity', color: '#10b981' },
-    sport: { label: 'Sport', icon: 'target', color: '#f59e0b' },
-    other: { label: 'Drugo', icon: 'star', color: '#6366f1' }
-};
-function loadWorkouts() {
-    try { const raw = JSON.parse(localStorage.getItem(WORKOUT_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
-    return [];
-}
-function saveWorkouts(list) {
-    try { localStorage.setItem(WORKOUT_KEY, JSON.stringify(list)); } catch (e) {}
-}
-function renderWorkoutJournal() {
-    return `
-        <div class="converter-box">
-            <div class="lista-head">
-                <div class="section-desc" style="margin:0;">Beleži svoje treninge i prati napredak.</div>
-                <button class="section-action-btn" onclick="openWorkoutModal()">+ Dodaj</button>
-            </div>
-            <div id="workout-list" class="workout-list"></div>
-        </div>
-    `;
-}
-function renderWorkoutList() {
-    const list = el('workout-list');
-    if (!list) return;
-    const items = loadWorkouts().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    if (!items.length) {
-        list.innerHTML = `<div class="workout-empty"><div class="workout-empty-icon">💪</div><div>Nema treninga. Dodaj prvi!</div></div>`;
-        return;
-    }
-    let html = '';
-    items.forEach(w => {
-        const type = WORKOUT_TYPES[w.type] || WORKOUT_TYPES.other;
-        html += `
-            <div class="workout-card" style="--workout-color: ${type.color};">
-                <div class="workout-head">
-                    <span class="workout-type-badge">${escapeHtml(type.label)}</span>
-                    <span class="workout-date">${escapeHtml(w.date)}</span>
-                    ${w.duration ? `<span class="workout-duration">${w.duration} min</span>` : ''}
-                </div>
-                <div class="workout-exercises">
-                    ${(w.exercises || []).map(ex => `
-                        <div class="workout-exercise-row">
-                            <span class="workout-exercise-name">${escapeHtml(ex.name)}</span>
-                            <span class="workout-exercise-detail">${ex.sets || 0}×${ex.reps || 0}</span>
-                            <span class="workout-exercise-detail">${ex.weight || 0} kg</span>
-                        </div>
-                    `).join('')}
-                </div>
-                <button class="section-action-btn" style="width:100%;margin-top:10px;color:#f43f5e;border-color:rgba(244,63,94,0.4);" onclick="deleteWorkout('${w.id}')">Obriši</button>
-            </div>
-        `;
-    });
-    list.innerHTML = html;
-}
-let workoutDraftExercises = [];
-function openWorkoutModal() {
-    const modal = el('workout-modal');
-    const body = el('workout-modal-body');
-    if (!modal || !body) return;
-    workoutDraftExercises = [];
-    body.innerHTML = `
-        <div class="converter-box">
-            <div class="input-field"><label>Datum</label><input type="date" id="wo-date" class="custom-input" value="${new Date().toISOString().slice(0, 10)}"></div>
-            <div class="input-field"><label>Tip treninga</label><select id="wo-type" class="custom-input">${Object.entries(WORKOUT_TYPES).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select></div>
-            ${inputField('label.health.timeMin', 'wo-duration', 'min', 'placeholder="60"')}
-            <div class="section-desc">Vežbe:</div>
-            <div id="wo-exercises-list"></div>
-            <button class="workout-add-exercise-btn" onclick="addWorkoutExercise()">+ Dodaj vežbu</button>
-            ${inputFieldText('label.notes', 'wo-notes', '')}
-            ${calcButton('btn.save', 'saveWorkout()')}
-        </div>
-    `;
-    renderWorkoutExercisesDraft();
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-}
-function addWorkoutExercise() {
-    workoutDraftExercises.push({ name: '', sets: 3, reps: 10, weight: 0 });
-    renderWorkoutExercisesDraft();
-}
-function renderWorkoutExercisesDraft() {
-    const list = el('wo-exercises-list');
-    if (!list) return;
-    list.innerHTML = '';
-    workoutDraftExercises.forEach((ex, idx) => {
-        const row = document.createElement('div');
-        row.className = 'workout-exercise-row';
-        row.style.gridTemplateColumns = '1fr 60px 60px 70px 32px';
-        row.innerHTML = `
-            <input type="text" placeholder="Naziv" value="${escapeHtml(ex.name)}" data-idx="${idx}" data-f="name" class="custom-input" style="font-size:0.8rem;padding:6px;">
-            <input type="number" placeholder="Serije" value="${ex.sets}" data-idx="${idx}" data-f="sets" class="custom-input" style="font-size:0.8rem;padding:6px;">
-            <input type="number" placeholder="Pon." value="${ex.reps}" data-idx="${idx}" data-f="reps" class="custom-input" style="font-size:0.8rem;padding:6px;">
-            <input type="number" placeholder="kg" value="${ex.weight}" data-idx="${idx}" data-f="weight" class="custom-input" style="font-size:0.8rem;padding:6px;">
-            <button class="cost-estimate-remove" onclick="removeWorkoutExercise(${idx})">✕</button>
-        `;
-        list.appendChild(row);
-    });
-    list.querySelectorAll('input').forEach(inp => {
-        inp.addEventListener('input', e => {
-            const idx = parseInt(e.target.dataset.idx);
-            const field = e.target.dataset.f;
-            if (workoutDraftExercises[idx]) {
-                if (field === 'name') workoutDraftExercises[idx][field] = e.target.value;
-                else workoutDraftExercises[idx][field] = parseNum(e.target.value) || 0;
-            }
-        });
-    });
-}
-function removeWorkoutExercise(idx) {
-    workoutDraftExercises.splice(idx, 1);
-    renderWorkoutExercisesDraft();
-}
-function saveWorkout() {
-    const date = el('wo-date') ? el('wo-date').value : '';
-    const type = el('wo-type') ? el('wo-type').value : 'other';
-    const duration = num('wo-duration') || 0;
-    const notes = el('wo-notes') ? el('wo-notes').value.trim() : '';
-    if (!date) { showToast('Unesi datum.', 'error'); return; }
-    const list = loadWorkouts();
-    list.push({ id: 'wo_' + Date.now(), date, type, duration, notes, exercises: [...workoutDraftExercises], createdAt: Date.now() });
-    saveWorkouts(list);
-    closeModal('workout-modal');
-    renderWorkoutList();
-    showToast('Trening sačuvan.', 'success', 1500);
-}
-function deleteWorkout(id) {
-    showConfirm('Obrisati ovaj trening?').then(ok => {
-        if (!ok) return;
-        let list = loadWorkouts();
-        list = list.filter(w => w.id !== id);
-        saveWorkouts(list);
-        renderWorkoutList();
-        showToast('Trening obrisan.', 'info', 1500);
-    });
-}
+
 
 // ============================================================
-// PEDOMETAR
-// ============================================================
-const PEDOMETER_KEY = 'cx_pedometer_v1';
-const PEDOMETER_GOAL_KEY = 'cx_pedometer_goal';
-let pedometerState = { steps: 0, goal: 10000, active: false, lastStepTime: 0, listener: null };
-function loadPedometerData() {
-    try {
-        const raw = JSON.parse(localStorage.getItem(PEDOMETER_KEY));
-        if (raw && raw.date === new Date().toISOString().slice(0, 10)) pedometerState.steps = raw.steps || 0;
-        else pedometerState.steps = 0;
-    } catch (e) { pedometerState.steps = 0; }
-    try { const g = parseInt(localStorage.getItem(PEDOMETER_GOAL_KEY)); if (g > 0) pedometerState.goal = g; } catch (e) {}
-}
-function savePedometerData() {
-    try { localStorage.setItem(PEDOMETER_KEY, JSON.stringify({ date: new Date().toISOString().slice(0, 10), steps: pedometerState.steps })); } catch (e) {}
-}
-function renderPedometer() {
-    loadPedometerData();
-    const pct = Math.min(100, (pedometerState.steps / pedometerState.goal) * 100);
-    return `
-        <div class="pedometer-wrap">
-            <div class="pedometer-circle" style="--progress: ${pct};">
-                <div class="pedometer-inner">
-                    <div class="pedometer-steps" id="pedometer-steps">${pedometerState.steps}</div>
-                    <div class="pedometer-goal-label">od ${pedometerState.goal}</div>
-                    <div class="pedometer-progress-pct" id="pedometer-pct">${fmt(pct, 0)}%</div>
-                </div>
-            </div>
-            <div class="pedometer-stats">
-                <div class="pedometer-stat"><div class="pedometer-stat-value" id="pedometer-distance">${fmt(pedometerState.steps * 0.00075, 2)}</div><div class="pedometer-stat-label">km</div></div>
-                <div class="pedometer-stat"><div class="pedometer-stat-value" id="pedometer-calories">${fmt(pedometerState.steps * 0.04, 0)}</div><div class="pedometer-stat-label">kcal</div></div>
-            </div>
-            <div class="input-field" style="width:100%;max-width:400px;">
-                <label>Dnevni cilj</label>
-                <div class="input-wrapper"><input type="number" id="pedometer-goal-input" class="custom-input" value="${pedometerState.goal}" step="500"></div>
-            </div>
-            <div style="display:flex;gap:8px;width:100%;max-width:400px;">
-                <button class="gps-btn-main" onclick="startPedometer()" style="flex:1;">▶ Pokreni</button>
-                <button class="gps-btn-secondary" onclick="resetPedometer()">Resetuj</button>
-            </div>
-        </div>
-    `;
-}
-function initPedometer() { loadPedometerData(); }
-function startPedometer() {
-    if (pedometerState.active) { stopPedometer(); return; }
-    if (!window.DeviceMotionEvent) { showToast(safeT('pedometer.unsupported'), 'error', 2500); return; }
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    if (isIOS && typeof DeviceMotionEvent.requestPermission === 'function') {
-        DeviceMotionEvent.requestPermission().then(result => {
-            if (result === 'granted') actuallyStartPedometer();
-            else showToast(safeT('pedometer.permission'), 'error', 2500);
-        }).catch(() => showToast(safeT('pedometer.permission'), 'error', 2500));
-        return;
-    }
-    actuallyStartPedometer();
-}
-function actuallyStartPedometer() {
-    pedometerState.active = true;
-    pedometerState.listener = (e) => {
-        const acc = e.accelerationIncludingGravity;
-        if (!acc) return;
-        const magnitude = Math.sqrt((acc.x || 0) ** 2 + (acc.y || 0) ** 2 + (acc.z || 0) ** 2);
-        const now = Date.now();
-        if (magnitude > 12 && now - pedometerState.lastStepTime > 250) {
-            pedometerState.steps++;
-            pedometerState.lastStepTime = now;
-            updatePedometerDisplay();
-            if (pedometerState.steps % 10 === 0) savePedometerData();
-        }
-    };
-    window.addEventListener('devicemotion', pedometerState.listener);
-    showToast('Pedometar pokrenut.', 'success', 1500);
-}
-function stopPedometer() {
-    if (pedometerState.listener) { window.removeEventListener('devicemotion', pedometerState.listener); pedometerState.listener = null; }
-    pedometerState.active = false;
-    savePedometerData();
-}
-function updatePedometerDisplay() {
-    const stepsEl = el('pedometer-steps');
-    const pctEl = el('pedometer-pct');
-    const distEl = el('pedometer-distance');
-    const calEl = el('pedometer-calories');
-    const circle = document.querySelector('.pedometer-circle');
-    if (stepsEl) stepsEl.textContent = pedometerState.steps;
-    const pct = Math.min(100, (pedometerState.steps / pedometerState.goal) * 100);
-    if (pctEl) pctEl.textContent = fmt(pct, 0) + '%';
-    if (distEl) distEl.textContent = fmt(pedometerState.steps * 0.00075, 2);
-    if (calEl) calEl.textContent = fmt(pedometerState.steps * 0.04, 0);
-    if (circle) circle.style.setProperty('--progress', pct);
-}
-function resetPedometer() {
-    showConfirm(safeT('pedometer.resetConfirm')).then(ok => {
-        if (!ok) return;
-        pedometerState.steps = 0;
-        savePedometerData();
-        updatePedometerDisplay();
-        showToast('Resetovano.', 'info', 1200);
-    });
-}
-
-// ============================================================
-// VODA I SAN
-// ============================================================
-const WATER_KEY = 'cx_water_v1';
-const SLEEP_KEY = 'cx_sleep_v1';
-const WATER_GOAL_KEY = 'cx_water_goal';
-let waterState = { amount: 0, goal: 2000, date: '' };
-function loadWaterData() {
-    try {
-        const raw = JSON.parse(localStorage.getItem(WATER_KEY));
-        const today = new Date().toISOString().slice(0, 10);
-        if (raw && raw.date === today) { waterState.amount = raw.amount || 0; waterState.date = today; }
-        else { waterState.amount = 0; waterState.date = today; }
-    } catch (e) { waterState.amount = 0; }
-    try { const g = parseInt(localStorage.getItem(WATER_GOAL_KEY)); if (g > 0) waterState.goal = g; } catch (e) {}
-}
-function saveWaterData() {
-    try { localStorage.setItem(WATER_KEY, JSON.stringify({ date: waterState.date, amount: waterState.amount })); } catch (e) {}
-}
-function loadSleepHistory() {
-    try { const raw = JSON.parse(localStorage.getItem(SLEEP_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
-    return [];
-}
-function saveSleepHistory(list) {
-    try { localStorage.setItem(SLEEP_KEY, JSON.stringify(list.slice(0, 60))); } catch (e) {}
-}
-function renderWaterSleep() {
-    loadWaterData();
-    const glasses = Math.floor(waterState.amount / 250);
-    const totalGlasses = Math.ceil(waterState.goal / 250);
-    let glassesHtml = '';
-    for (let i = 0; i < totalGlasses; i++) glassesHtml += `<button class="water-glass ${i < glasses ? 'filled' : ''}" onclick="toggleWaterGlass(${i})"></button>`;
-    return `
-        <div class="water-sleep-wrap">
-            <div class="water-section">
-                <div class="water-section-title">${icon('droplet')} Voda — danas</div>
-                <div class="water-progress-text"><span class="current" id="water-amount">${waterState.amount}</span> / ${waterState.goal} ml</div>
-                <div class="water-glasses" id="water-glasses">${glassesHtml}</div>
-                <div class="water-actions">
-                    <button class="water-add-btn" onclick="addWater(250)">+ Čaša (250ml)</button>
-                    <button class="water-add-btn secondary" onclick="resetWater()">Resetuj</button>
-                </div>
-                <div style="margin-top:8px;">
-                    <label style="font-size:0.72rem;color:var(--text-secondary);font-weight:700;">Dnevni cilj (ml)</label>
-                    <input type="number" id="water-goal-input" class="custom-input" value="${waterState.goal}" step="100" onchange="setWaterGoal()" style="margin-top:4px;">
-                </div>
-            </div>
-            <div class="sleep-section">
-                <div class="sleep-section-title">${icon('moon')} San</div>
-                ${renderSleepForm()}
-                <div id="sleep-history-box">${renderSleepHistoryHtml()}</div>
-            </div>
-        </div>
-    `;
-}
-function toggleWaterGlass(idx) {
-    const glasses = Math.floor(waterState.amount / 250);
-    waterState.amount = (idx < glasses) ? idx * 250 : (idx + 1) * 250;
-    saveWaterData();
-    renderWaterSleepTab();
-}
-function addWater(ml) { waterState.amount += ml; saveWaterData(); renderWaterSleepTab(); }
-function resetWater() {
-    showConfirm('Resetovati današnji unos vode?').then(ok => {
-        if (!ok) return;
-        waterState.amount = 0;
-        saveWaterData();
-        renderWaterSleepTab();
-    });
-}
-function setWaterGoal() {
-    const inp = el('water-goal-input');
-    if (!inp) return;
-    const v = parseInt(inp.value);
-    if (v > 0) { waterState.goal = v; try { localStorage.setItem(WATER_GOAL_KEY, String(v)); } catch (e) {} renderWaterSleepTab(); }
-}
-function renderWaterSleepTab() {
-    const body = el('calc-body');
-    if (body && activeTab === 'vodaSan') body.innerHTML = renderWaterSleep();
-}
-function renderSleepForm() {
-    const lastNight = loadSleepHistory()[0];
-    return `
-        <div class="sleep-times">
-            <div class="sleep-time-field"><label>Vreme spavanja</label><input type="time" id="sleep-bedtime" value="${lastNight ? lastNight.bedtime : '23:00'}" oninput="updateSleepDurationDisplay()"></div>
-            <div class="sleep-time-field"><label>Vreme buđenja</label><input type="time" id="sleep-waketime" value="${lastNight ? lastNight.waketime : '07:00'}" oninput="updateSleepDurationDisplay()"></div>
-        </div>
-        <div class="sleep-duration" id="sleep-duration-display">—</div>
-        <div class="sleep-quality-row" id="sleep-quality-row">
-            ${['bad', 'ok', 'good', 'great'].map(q => `<button class="sleep-quality-btn" data-q="${q}" onclick="selectSleepQuality('${q}')">${q === 'bad' ? '😴' : q === 'ok' ? '😐' : q === 'good' ? '🙂' : '😊'}<br>${q === 'bad' ? 'Loše' : q === 'ok' ? 'Onako' : q === 'good' ? 'Dobro' : 'Odlično'}</button>`).join('')}
-        </div>
-        <button class="sleep-save-btn" onclick="saveSleepEntry()">Sačuvaj san</button>
-    `;
-}
-let selectedSleepQuality = 'good';
-function selectSleepQuality(q) {
-    selectedSleepQuality = q;
-    document.querySelectorAll('.sleep-quality-btn').forEach(btn => btn.classList.toggle('selected', btn.dataset.q === q));
-}
-function updateSleepDurationDisplay() {
-    const bedEl = el('sleep-bedtime'), wakeEl = el('sleep-waketime'), disp = el('sleep-duration-display');
-    if (!bedEl || !wakeEl || !disp) return;
-    const [bh, bm] = bedEl.value.split(':').map(Number);
-    const [wh, wm] = wakeEl.value.split(':').map(Number);
-    let bedMin = bh * 60 + bm, wakeMin = wh * 60 + wm;
-    if (wakeMin <= bedMin) wakeMin += 24 * 60;
-    const diff = wakeMin - bedMin;
-    disp.textContent = `${Math.floor(diff / 60)}h ${diff % 60}min`;
-}
-function saveSleepEntry() {
-    const bedEl = el('sleep-bedtime'), wakeEl = el('sleep-waketime');
-    if (!bedEl || !wakeEl) return;
-    const [bh, bm] = bedEl.value.split(':').map(Number);
-    const [wh, wm] = wakeEl.value.split(':').map(Number);
-    let bedMin = bh * 60 + bm, wakeMin = wh * 60 + wm;
-    if (wakeMin <= bedMin) wakeMin += 24 * 60;
-    const list = loadSleepHistory();
-    list.unshift({ date: new Date().toISOString().slice(0, 10), bedtime: bedEl.value, waketime: wakeEl.value, duration: wakeMin - bedMin, quality: selectedSleepQuality });
-    saveSleepHistory(list);
-    renderWaterSleepTab();
-    showToast('San sačuvan.', 'success', 1500);
-}
-function renderSleepHistoryHtml() {
-    const list = loadSleepHistory();
-    if (!list.length) return '';
-    const avg = list.slice(0, 7).reduce((s, e) => s + (e.duration || 0), 0) / Math.min(list.length, 7);
-    return `
-        <div class="rate-info-card" style="margin-top:12px;">
-            <div class="rate-info-row"><span class="rate-info-label">Prosečno (7 dana)</span><span class="rate-info-value accent">${Math.floor(avg / 60)}h ${Math.round(avg % 60)}min</span></div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px;">
-            ${list.slice(0, 7).map(e => `<div class="price-track-history-row"><span class="price-track-history-date">${e.date}</span><span class="price-track-history-price">${Math.floor(e.duration / 60)}h ${e.duration % 60}min</span></div>`).join('')}
-        </div>
-    `;
-}
-
-// ============================================================
-// RECEPTI
-// ============================================================
-const RECIPES_KEY = 'cx_recipes_v1';
-function loadRecipes() {
-    try { const raw = JSON.parse(localStorage.getItem(RECIPES_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
-    return [];
-}
-function saveRecipes(list) {
-    try { localStorage.setItem(RECIPES_KEY, JSON.stringify(list)); } catch (e) {}
-}
-function renderRecipes() {
-    return `
-        <div class="converter-box">
-            <div class="lista-head">
-                <div class="section-desc" style="margin:0;">Sačuvaj recepte i prilagodi porcije.</div>
-                <button class="section-action-btn" onclick="openRecipeModal()">+ Dodaj</button>
-            </div>
-            <div id="recipe-list" class="recipe-list"></div>
-        </div>
-    `;
-}
-function renderRecipesList() {
-    const list = el('recipe-list');
-    if (!list) return;
-    const items = loadRecipes();
-    if (!items.length) {
-        list.innerHTML = `<div class="recipe-empty"><div class="recipe-empty-icon">🍳</div><div>Nema recepata. Dodaj prvi!</div></div>`;
-        return;
-    }
-    let html = '';
-    items.forEach(r => {
-        html += `
-            <div class="recipe-card" onclick="openRecipeView('${r.id}')">
-                <div class="recipe-head"><span class="recipe-emoji">🍽️</span><span class="recipe-title">${escapeHtml(r.name)}</span></div>
-                <div class="recipe-meta-row">
-                    <span class="recipe-meta-item">${icon('users')} ${r.servings || 1} porcija</span>
-                    ${r.prepTime ? `<span class="recipe-meta-item">${icon('clock')} ${r.prepTime} min</span>` : ''}
-                </div>
-            </div>
-        `;
-    });
-    list.innerHTML = html;
-}
-let recipeDraftIngredients = [];
-let recipeEditId = null;
-function openRecipeModal(editId = null) {
-    const modal = el('recipes-modal');
-    const body = el('recipes-modal-body');
-    if (!modal || !body) return;
-    recipeEditId = editId;
-    let r = { name: '', description: '', servings: 1, prepTime: 0, ingredients: [], steps: '' };
-    if (editId) { const found = loadRecipes().find(x => x.id === editId); if (found) r = found; }
-    recipeDraftIngredients = (r.ingredients || []).map(i => ({ ...i }));
-    body.innerHTML = `
-        <div class="converter-box">
-            ${inputFieldText('label.shop.itemName', 'recipe-name', 'npr. Palačinke')}
-            ${inputFieldText('label.notes', 'recipe-description', '')}
-            ${inputField('label.kitchen.originalPortions', 'recipe-servings', '', `value="${r.servings || 1}"`)}
-            ${inputField('label.health.timeMin', 'recipe-prep', 'min', `value="${r.prepTime || ''}"`)}
-            <div class="section-desc">Sastojci:</div>
-            <div id="recipe-ingredients-list"></div>
-            <button class="workout-add-exercise-btn" onclick="addRecipeIngredient()">+ Dodaj sastojak</button>
-            <div class="input-field"><label>Priprema</label><textarea id="recipe-steps" class="custom-input rem-textarea" rows="4">${escapeHtml(r.steps || '')}</textarea></div>
-            ${calcButton('btn.save', 'saveRecipe()')}
-        </div>
-    `;
-    renderRecipeIngredientsDraft();
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-}
-function addRecipeIngredient() { recipeDraftIngredients.push({ name: '', amount: '' }); renderRecipeIngredientsDraft(); }
-function renderRecipeIngredientsDraft() {
-    const list = el('recipe-ingredients-list');
-    if (!list) return;
-    list.innerHTML = '';
-    recipeDraftIngredients.forEach((ing, idx) => {
-        const row = document.createElement('div');
-        row.className = 'recipe-ingredient-row';
-        row.style.gridTemplateColumns = '1fr 100px 32px';
-        row.innerHTML = `
-            <input type="text" placeholder="Sastojak" value="${escapeHtml(ing.name)}" data-idx="${idx}" data-f="name" class="custom-input" style="font-size:0.8rem;padding:6px;">
-            <input type="text" placeholder="Količina" value="${escapeHtml(ing.amount)}" data-idx="${idx}" data-f="amount" class="custom-input" style="font-size:0.8rem;padding:6px;">
-            <button class="cost-estimate-remove" onclick="removeRecipeIngredient(${idx})">✕</button>
-        `;
-        list.appendChild(row);
-    });
-    list.querySelectorAll('input').forEach(inp => {
-        inp.addEventListener('input', e => {
-            const idx = parseInt(e.target.dataset.idx);
-            const field = e.target.dataset.f;
-            if (recipeDraftIngredients[idx]) recipeDraftIngredients[idx][field] = e.target.value;
-        });
-    });
-}
-function removeRecipeIngredient(idx) { recipeDraftIngredients.splice(idx, 1); renderRecipeIngredientsDraft(); }
-function saveRecipe() {
-    const name = el('recipe-name') ? el('recipe-name').value.trim() : '';
-    if (!name) { showToast('Unesi naziv recepta.', 'error'); return; }
-    const r = {
-        id: recipeEditId || ('rc_' + Date.now()),
-        name,
-        description: el('recipe-description') ? el('recipe-description').value.trim() : '',
-        servings: num('recipe-servings') || 1,
-        prepTime: num('recipe-prep') || 0,
-        ingredients: [...recipeDraftIngredients].filter(i => i.name),
-        steps: el('recipe-steps') ? el('recipe-steps').value.trim() : '',
-        createdAt: Date.now()
-    };
-    const list = loadRecipes();
-    if (recipeEditId) { const idx = list.findIndex(x => x.id === recipeEditId); if (idx !== -1) list[idx] = r; }
-    else list.push(r);
-    saveRecipes(list);
-    recipeEditId = null;
-    closeModal('recipes-modal');
-    renderRecipesList();
-    showToast('Recept sačuvan.', 'success', 1500);
-}
-function openRecipeView(id) {
-    const r = loadRecipes().find(x => x.id === id);
-    if (!r) return;
-    const modal = el('recipes-modal');
-    const body = el('recipes-modal-body');
-    const titleEl = el('recipes-modal-title');
-    if (!modal || !body) return;
-    if (titleEl) titleEl.textContent = r.name;
-    body.innerHTML = `
-        <div class="converter-box">
-            <div class="section-desc">${escapeHtml(r.description || '')}</div>
-            <div class="recipe-meta-row"><span class="recipe-meta-item">${icon('users')} ${r.servings} porcija</span>${r.prepTime ? `<span class="recipe-meta-item">${icon('clock')} ${r.prepTime} min</span>` : ''}</div>
-        </div>
-        <div class="converter-box">
-            <div class="recipe-scale-inputs"><label>Prilagodi za:</label><input type="number" id="recipe-scale-to" class="custom-input" value="${r.servings}" min="1"><span style="color:var(--text-secondary);font-weight:700;">porcija</span></div>
-            <div id="recipe-scaled-list" style="margin-top:12px;"></div>
-        </div>
-        ${r.steps ? `<div class="converter-box"><div class="section-desc" style="white-space:pre-wrap;line-height:1.6;">${escapeHtml(r.steps)}</div></div>` : ''}
-        <div style="display:flex;gap:8px;">
-            <button class="section-action-btn" style="flex:1;" onclick="closeModal('recipes-modal');openRecipeModal('${r.id}');">Izmeni</button>
-            <button class="section-action-btn" style="flex:1;color:#f43f5e;border-color:rgba(244,63,94,0.4);" onclick="deleteRecipe('${r.id}')">Obriši</button>
-        </div>
-    `;
-    renderScaledIngredients(r);
-    const scaleInput = el('recipe-scale-to');
-    if (scaleInput) scaleInput.addEventListener('input', () => renderScaledIngredients(r));
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-}
-function renderScaledIngredients(r) {
-    const list = el('recipe-scaled-list');
-    if (!list) return;
-    const target = num('recipe-scale-to') || r.servings;
-    const factor = target / r.servings;
-    list.innerHTML = (r.ingredients || []).map(i => {
-        let scaled = i.amount;
-        const match = String(i.amount).match(/^([\d.,]+)\s*(.*)$/);
-        if (match) {
-            const n = parseNum(match[1]);
-            const unit = match[2] || '';
-            if (n !== null) scaled = fmt(n * factor, 2) + ' ' + unit;
-        }
-        return `<div class="recipe-ingredient-row"><span class="recipe-ingredient-name">${escapeHtml(i.name)}</span><span class="recipe-scaled-amount">${escapeHtml(String(scaled))}</span></div>`;
-    }).join('');
-}
-function deleteRecipe(id) {
-    showConfirm('Obrisati ovaj recept?').then(ok => {
-        if (!ok) return;
-        let list = loadRecipes();
-        list = list.filter(x => x.id !== id);
-        saveRecipes(list);
-        closeModal('recipes-modal');
-        renderRecipesList();
-        showToast('Recept obrisan.', 'info', 1500);
-    });
-}
-
-// ============================================================
-// HABIT TRACKER
-// ============================================================
-const HABITS_KEY = 'cx_habits_v1';
-function loadHabits() {
-    try { const raw = JSON.parse(localStorage.getItem(HABITS_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
-    return [];
-}
-function saveHabits(list) {
-    try { localStorage.setItem(HABITS_KEY, JSON.stringify(list)); } catch (e) {}
-}
-function renderHabitTracker() {
-    return `
-        <div class="converter-box">
-            <div class="lista-head">
-                <div class="section-desc" style="margin:0;">Prati svoje navike i nizove.</div>
-                <button class="section-action-btn" onclick="openHabitModal()">+ Dodaj</button>
-            </div>
-            <div id="habit-list" class="habit-list"></div>
-        </div>
-    `;
-}
-function renderHabitsList() {
-    const list = el('habit-list');
-    if (!list) return;
-    const habits = loadHabits();
-    if (!habits.length) {
-        list.innerHTML = `<div class="habit-empty"><div class="habit-empty-icon">✅</div><div>Nema navika. Dodaj prvu!</div></div>`;
-        return;
-    }
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const dayNames = ['Ned', 'Pon', 'Uto', 'Sre', 'Čet', 'Pet', 'Sub'];
-    let html = '';
-    habits.forEach(h => {
-        const history = h.history || {};
-        let weekHtml = '';
-        for (let i = 6; i >= 0; i--) {
-            const d = new Date(today);
-            d.setDate(d.getDate() - i);
-            const key = d.toISOString().slice(0, 10);
-            const done = history[key] === true;
-            const isToday = i === 0;
-            weekHtml += `<button class="habit-day-btn ${done ? 'done' : ''} ${isToday ? 'today' : ''}" onclick="toggleHabitDay('${h.id}', '${key}')">
-                <span class="habit-day-label">${dayNames[d.getDay()]}</span>
-                <span class="habit-day-num">${d.getDate()}</span>
-                ${done ? '<span class="habit-day-check">✓</span>' : ''}
-            </button>`;
-        }
-        let streak = 0;
-        let checkDate = new Date(today);
-        while (true) {
-            const key = checkDate.toISOString().slice(0, 10);
-            if (history[key]) { streak++; checkDate.setDate(checkDate.getDate() - 1); }
-            else break;
-        }
-        html += `
-            <div class="habit-card" style="--habit-color: ${h.color || '#10b981'};">
-                <div class="habit-head">
-                    <div class="habit-icon">${icon(h.icon || 'check')}</div>
-                    <div class="habit-info"><div class="habit-name">${escapeHtml(h.name)}</div></div>
-                    ${streak > 0 ? `<span class="habit-streak-badge">🔥 ${streak}</span>` : ''}
-                </div>
-                <div class="habit-week-grid">${weekHtml}</div>
-                <div class="habit-actions">
-                    <button class="habit-action-btn" onclick="openHabitModal('${h.id}')">Izmeni</button>
-                    <button class="habit-action-btn danger" onclick="deleteHabit('${h.id}')">Obriši</button>
-                </div>
-            </div>
-        `;
-    });
-    list.innerHTML = html;
-}
-function toggleHabitDay(habitId, dateKey) {
-    const habits = loadHabits();
-    const h = habits.find(x => x.id === habitId);
-    if (!h) return;
-    h.history = h.history || {};
-    h.history[dateKey] = !h.history[dateKey];
-    saveHabits(habits);
-    renderHabitsList();
-    vibrate(15);
-}
-let habitEditId = null;
-let habitDraftIcon = 'check';
-let habitDraftColor = '#10b981';
-function openHabitModal(editId = null) {
-    const modal = el('habit-modal');
-    const body = el('habit-modal-body');
-    if (!modal || !body) return;
-    habitEditId = editId;
-    let h = { name: '', icon: 'check', color: '#10b981' };
-    if (editId) { const found = loadHabits().find(x => x.id === editId); if (found) h = found; }
-    habitDraftIcon = h.icon || 'check';
-    habitDraftColor = h.color || '#10b981';
-    const iconOptions = ['check', 'run', 'dumbbell', 'book', 'droplet', 'heart', 'sun', 'moon', 'leaf', 'sparkles'];
-    const colorOptions = ['#10b981', '#f43f5e', '#f59e0b', '#06b6d4', '#6366f1', '#a855f7', '#ec4899', '#84cc16'];
-    body.innerHTML = `
-        <div class="converter-box">
-            ${inputFieldText('label.shop.itemName', 'habit-name', 'npr. Trčanje')}
-            <div class="input-field"><label>Ikonica</label><div style="display:flex;gap:8px;flex-wrap:wrap;">
-                ${iconOptions.map(ic => `<button class="gps-color-swatch" style="--swatch-color: var(--card-active);color:var(--text-main);border:2px solid ${habitDraftIcon === ic ? 'var(--accent-primary)' : 'var(--border-strong)'};" onclick="selectHabitIcon('${ic}')">${icon(ic)}</button>`).join('')}
-            </div></div>
-            <div class="input-field"><label>Boja</label><div style="display:flex;gap:8px;flex-wrap:wrap;">
-                ${colorOptions.map(c => `<button class="gps-color-swatch" style="--swatch-color: ${c};" onclick="selectHabitColor('${c}')">${habitDraftColor === c ? '✓' : ''}</button>`).join('')}
-            </div></div>
-            ${calcButton('btn.save', 'saveHabit()')}
-        </div>
-    `;
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-}
-function selectHabitIcon(ic) {
-    habitDraftIcon = ic;
-    document.querySelectorAll('#habit-modal-body .gps-color-swatch').forEach(btn => {
-        const svgInside = btn.querySelector('svg');
-        if (svgInside) btn.style.border = '2px solid var(--border-strong)';
-    });
-    if (event && event.currentTarget) event.currentTarget.style.border = '2px solid var(--accent-primary)';
-}
-function selectHabitColor(c) {
-    habitDraftColor = c;
-    document.querySelectorAll('#habit-modal-body .gps-color-swatch').forEach(btn => {
-        const swatchColor = btn.style.getPropertyValue('--swatch-color');
-        if (swatchColor && swatchColor.trim() === c) btn.textContent = '✓';
-        else if (!btn.querySelector('svg')) btn.textContent = '';
-    });
-}
-function saveHabit() {
-    const name = el('habit-name') ? el('habit-name').value.trim() : '';
-    if (!name) { showToast('Unesi naziv navike.', 'error'); return; }
-    const list = loadHabits();
-    if (habitEditId) {
-        const h = list.find(x => x.id === habitEditId);
-        if (h) { h.name = name; h.icon = habitDraftIcon; h.color = habitDraftColor; }
-    } else {
-        list.push({ id: 'hb_' + Date.now(), name, icon: habitDraftIcon, color: habitDraftColor, history: {}, createdAt: Date.now() });
-    }
-    saveHabits(list);
-    habitEditId = null;
-    closeModal('habit-modal');
-    renderHabitsList();
-    showToast('Navika sačuvana.', 'success', 1500);
-}
-function deleteHabit(id) {
-    showConfirm('Obrisati ovu naviku i sve podatke?').then(ok => {
-        if (!ok) return;
-        let list = loadHabits();
-        list = list.filter(h => h.id !== id);
-        saveHabits(list);
-        renderHabitsList();
-        showToast('Navika obrisana.', 'info', 1500);
-    });
-}
-
-// ============================================================
-// DNEVNIK
-// ============================================================
-const JOURNAL_KEY = 'cx_journal_v1';
-const MOODS = { great: '😄', good: '🙂', ok: '😐', bad: '😔', terrible: '😢' };
-function loadJournal() {
-    try { const raw = JSON.parse(localStorage.getItem(JOURNAL_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
-    return [];
-}
-function saveJournal(list) {
-    try { localStorage.setItem(JOURNAL_KEY, JSON.stringify(list)); } catch (e) {}
-}
-function renderJournal() {
-    return `
-        <div class="converter-box">
-            <div class="lista-head">
-                <div class="section-desc" style="margin:0;">Zapiši svoje misli i osećanja.</div>
-                <button class="section-action-btn" onclick="openJournalModal()">+ Nova beleška</button>
-            </div>
-            <div id="journal-list" class="journal-list"></div>
-        </div>
-    `;
-}
-function renderJournalList() {
-    const list = el('journal-list');
-    if (!list) return;
-    const items = loadJournal().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    if (!items.length) {
-        list.innerHTML = `<div class="journal-empty"><div class="journal-empty-icon">📔</div><div>Nema beleški. Napiši prvu!</div></div>`;
-        return;
-    }
-    let html = '';
-    items.forEach(j => {
-        html += `
-            <div class="journal-card" onclick="openJournalModal('${j.id}')">
-                <div class="journal-head">
-                    <span class="journal-mood">${MOODS[j.mood] || '📝'}</span>
-                    <div class="journal-head-text">
-                        <div class="journal-title">${escapeHtml(j.title)}</div>
-                        <div class="journal-date">${new Date(j.createdAt).toLocaleDateString('sr-RS')}</div>
-                    </div>
-                </div>
-                ${j.text ? `<div class="journal-text">${escapeHtml(j.text)}</div>` : ''}
-                ${(j.tags || []).length ? `<div class="journal-tags">${j.tags.map(t => `<span class="journal-tag">#${escapeHtml(t)}</span>`).join('')}</div>` : ''}
-            </div>
-        `;
-    });
-    list.innerHTML = html;
-}
-let journalEditId = null;
-let selectedJournalMood = 'good';
-function openJournalModal(editId = null) {
-    const modal = el('journal-modal');
-    const body = el('journal-modal-body');
-    const titleEl = el('journal-modal-title');
-    if (!modal || !body) return;
-    journalEditId = editId;
-    let j = { title: '', text: '', mood: 'good', tags: [] };
-    if (editId) { const found = loadJournal().find(x => x.id === editId); if (found) j = found; if (titleEl) titleEl.textContent = 'Izmeni belešku'; }
-    else { if (titleEl) titleEl.textContent = 'Nova beleška'; }
-    selectedJournalMood = j.mood || 'good';
-    body.innerHTML = `
-        <div class="converter-box">
-            ${inputFieldText('label.shop.itemName', 'journal-title', 'Naslov beleške')}
-            <div class="input-field"><label>Raspoloženje</label><div class="journal-mood-picker" id="journal-mood-picker">
-                ${Object.entries(MOODS).map(([k, emoji]) => `<button class="journal-mood-option ${selectedJournalMood === k ? 'selected' : ''}" data-mood="${k}" onclick="selectJournalMood('${k}')">${emoji}</button>`).join('')}
-            </div></div>
-            <div class="input-field"><label>Tekst</label><textarea id="journal-text" class="custom-input rem-textarea" rows="6">${escapeHtml(j.text || '')}</textarea></div>
-            ${inputFieldText('label.time.date', 'journal-tags', 'npr. posao, porodica')}
-            ${calcButton('btn.save', 'saveJournal()')}
-            ${editId ? `<button class="rem-delete-btn" onclick="deleteJournalEntry('${editId}')">Obriši</button>` : ''}
-        </div>
-    `;
-    const tagsInput = el('journal-tags');
-    if (tagsInput && (j.tags || []).length) tagsInput.value = j.tags.join(', ');
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-}
-function selectJournalMood(mood) {
-    selectedJournalMood = mood;
-    document.querySelectorAll('.journal-mood-option').forEach(btn => btn.classList.toggle('selected', btn.dataset.mood === mood));
-}
-function saveJournal() {
-    const title = el('journal-title') ? el('journal-title').value.trim() : '';
-    if (!title) { showToast('Unesi naslov.', 'error'); return; }
-    const text = el('journal-text') ? el('journal-text').value.trim() : '';
-    const tagsRaw = el('journal-tags') ? el('journal-tags').value.trim() : '';
-    const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
-    const list = loadJournal();
-    if (journalEditId) {
-        const idx = list.findIndex(x => x.id === journalEditId);
-        if (idx !== -1) list[idx] = { ...list[idx], title, text, mood: selectedJournalMood, tags };
-    } else {
-        list.unshift({ id: 'jn_' + Date.now(), title, text, mood: selectedJournalMood, tags, createdAt: Date.now() });
-    }
-    saveJournal(list);
-    journalEditId = null;
-    closeModal('journal-modal');
-    renderJournalList();
-    showToast('Beleška sačuvana.', 'success', 1500);
-}
-function deleteJournalEntry(id) {
-    showConfirm('Obrisati ovu belešku?').then(ok => {
-        if (!ok) return;
-        let list = loadJournal();
-        list = list.filter(x => x.id !== id);
-        saveJournal(list);
-        closeModal('journal-modal');
-        renderJournalList();
-        showToast('Beleška obrisana.', 'info', 1500);
-    });
-}
-
-// ============================================================
-// NOVAC — CALCULATE
-// ============================================================
-function calculateMoney() {
-    const price = num('money-price'), discount = num('money-discount');
-    if (!price || discount === null || discount < 0 || discount > 100) { showToast(safeT('toast.error.enterPriceDiscount') || 'Unesi cenu i popust.', 'error'); return; }
-    const saved = price * (discount / 100);
-    const mf = el('res-money-final'); if (mf) mf.innerText = money(price - saved);
-    const ms = el('stat-money-saved'); if (ms) ms.innerText = money(saved) + ' RSD';
-    show('money-result-box'); show('money-stats-row');
-}
-function calculatePDV() {
-    const amount = num('pdv-amount');
-    let rate = num('pdv-rate');
-    const type = el('pdv-type') ? el('pdv-type').value : 'add';
-    if (!amount) { showToast(safeT('toast.error.enterAmount') || 'Unesi iznos.', 'error'); return; }
-    if (rate === null) rate = 20;
-    let base, tax, total;
-    if (type === 'add') { base = amount; tax = base * (rate / 100); total = base + tax; }
-    else { total = amount; base = total / (1 + rate / 100); tax = total - base; }
-    const pt = el('res-pdv-total'); if (pt) pt.innerText = money(total);
-    const pb = el('stat-pdv-base'); if (pb) pb.innerText = money(base) + ' RSD';
-    const px = el('stat-pdv-tax'); if (px) px.innerText = money(tax) + ' RSD';
-    show('pdv-result-box'); show('pdv-stats-row');
-}
-function percentAddSub(base, pct, op) {
-    if (base === null || pct === null) return null;
-    const factor = op === 'add' ? 1 + pct / 100 : 1 - pct / 100;
-    const result = base * factor;
-    const sign = op === 'add' ? '+' : '−';
-    return { result, formula: `${fmt(base)} ${sign} ${fmt(pct)}% = ${fmt(base)} × ${fmt(factor, 4)} = ${fmt(result)}` };
-}
-function setFormula(id, text) {
-    const e = el(id);
-    if (!e) return;
-    if (text) { e.textContent = text; e.classList.add('show'); }
-    else { e.textContent = ''; e.classList.remove('show'); }
-}
-function calculateMoneyPercent1() {
-    const base = num('np-base'), pct = num('np-val');
-    const op = el('np-op') ? el('np-op').value : 'add';
-    if (base === null || pct === null) { showToast(safeT('toast.error.enterPricePercent') || 'Unesi cenu i procenat.', 'error'); return; }
-    const res = percentAddSub(base, pct, op);
-    if (!res) return;
-    const rv = el('res-np1-val'); if (rv) rv.innerText = money(res.result);
-    const ru = el('res-np1-unit'); if (ru) ru.innerText = 'RSD';
-    setFormula('np1-formula', res.formula + ' RSD');
-    show('np1-result-box');
-}
-let currentAmortData = null;
-let amortShowAll = false;
-function calculateLoan() {
-    const currency = el('credit-currency') ? el('credit-currency').value : 'RSD';
-    const amount = num('loan-amount'), rateYear = num('loan-rate') || 0, months = num('loan-months');
-    if (!amount || !months) { showToast(safeT('toast.error.enterAmountMonths') || 'Unesi iznos i broj meseci.', 'error'); return; }
-    const rateMonth = (rateYear / 100) / 12;
-    let monthly;
-    if (rateMonth === 0) monthly = amount / months;
-    else monthly = (amount * rateMonth * Math.pow(1 + rateMonth, months)) / (Math.pow(1 + rateMonth, months) - 1);
-    const totalReturn = monthly * months;
-    const totalInterest = totalReturn - amount;
-    const lm = el('res-loan-monthly'); if (lm) lm.innerText = money(monthly);
-    const lmu = el('res-loan-monthly-unit'); if (lmu) lmu.innerText = currency + '/' + safeT('unit.month');
-    const li = el('stat-loan-interest'); if (li) li.innerText = money(totalInterest) + ' ' + currency;
-    const lt = el('stat-loan-total'); if (lt) lt.innerText = money(totalReturn) + ' ' + currency;
-    show('loan-result-box'); show('loan-stats-row');
-    currentAmortData = buildAmortPlan(amount, rateMonth, monthly, months);
-    amortShowAll = false;
-    renderAmortPlan();
-    const w = el('loan-amort-wrap'); if (w) w.style.display = 'block';
-}
-function buildAmortPlan(principal, rateMonth, monthly, months) {
-    const plan = [];
-    let remaining = principal;
-    for (let m = 1; m <= months; m++) {
-        const interest = remaining * rateMonth;
-        const principalPart = monthly - interest;
-        remaining -= principalPart;
-        if (remaining < 0) remaining = 0;
-        plan.push({ month: m, payment: monthly, interest, principal: principalPart, balance: remaining });
-    }
-    return plan;
-}
-function renderAmortPlan() {
-    if (!currentAmortData) return;
-    const body = el('amort-body');
-    if (body) {
-        body.innerHTML = '';
-        const rows = amortShowAll ? currentAmortData : currentAmortData.slice(0, 12);
-        rows.forEach(row => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${row.month}</td><td>${fmt(row.payment, 0)}</td><td style="color:#f43f5e;">${fmt(row.interest, 0)}</td><td style="color:#10b981;">${fmt(row.principal, 0)}</td><td>${fmt(row.balance, 0)}</td>`;
-            body.appendChild(tr);
-        });
-    }
-    const btn = el('amort-toggle-btn');
-    if (btn) {
-        if (currentAmortData.length <= 12) btn.style.display = 'none';
-        else {
-            btn.style.display = 'block';
-            btn.textContent = amortShowAll ? safeT('btn.showOnly12') : safeT('btn.showAll') + ' (' + currentAmortData.length + ') ' + safeT('unit.monthsShort');
-        }
-    }
-}
-function toggleAmortPreview() { amortShowAll = !amortShowAll; renderAmortPlan(); }
-function calculateSplit() {
-    const total = num('split-total'), people = num('split-people'), tip = num('split-tip') || 0;
-    if (!total || !people || people < 1) { showToast(safeT('toast.error.enterAmountPeople') || 'Unesi iznos i broj osoba.', 'error'); return; }
-    const totalWithTip = total * (1 + tip / 100);
-    const sv = el('res-split-val'); if (sv) sv.innerText = money(totalWithTip / people);
-    const st = el('stat-split-total'); if (st) st.innerText = money(totalWithTip) + ' RSD';
-    show('split-result-box'); show('split-stats-row');
-}
-function calculateTip() {
-    const bill = num('tip-bill'), percent = num('tip-percent'), people = num('tip-people') || 1;
-    if (!bill || percent === null) { showToast(safeT('toast.error.enterAmountPercent') || 'Unesi iznos i procenat.', 'error'); return; }
-    const tipAmount = bill * (percent / 100);
-    const total = bill + tipAmount;
-    const tv = el('res-tip-val'); if (tv) tv.innerText = money(tipAmount);
-    const tt = el('stat-tip-total'); if (tt) tt.innerText = money(total) + ' RSD';
-    const tp = el('stat-tip-per-person'); if (tp) tp.innerText = money(total / people) + ' RSD';
-    show('tip-result-box'); show('tip-stats-row');
-}
-
-let currentInstallmentData = null;
-function calculateInstallments() {
-    const startAmount = num('rate-start');
-    const count = parseInt(num('rate-count')) || 0;
-    const firstDate = getTripleDate('rate-first-date');
-    const period = el('rate-period') ? el('rate-period').value : 'monthly';
-    const interestRate = num('rate-interest') || 0;
-    const description = el('rate-description') ? el('rate-description').value.trim() : '';
-    if (!startAmount || startAmount <= 0) { showToast(safeT('toast.error.enterAmount') || 'Unesi iznos.', 'error'); return; }
-    if (!count || count < 1 || count > 120) { showToast(safeT('toast.error.enterValue') || 'Unesi vrednost.', 'error'); return; }
-    if (!firstDate) { showToast(safeT('toast.error.enterDate') || 'Unesi datum.', 'error'); return; }
-    let monthlyRate = 0;
-    if (interestRate > 0) {
-        const periodsPerYear = period === 'monthly' ? 12 : (period === 'biweekly' ? 26 : 52);
-        monthlyRate = (interestRate / 100) / periodsPerYear;
-    }
-    let perInstallment;
-    if (monthlyRate === 0) perInstallment = startAmount / count;
-    else {
-        const factor = Math.pow(1 + monthlyRate, count);
-        perInstallment = (startAmount * monthlyRate * factor) / (factor - 1);
-    }
-    const totalPayment = perInstallment * count;
-    const totalInterest = totalPayment - startAmount;
-    const installments = [];
-    const firstDateObj = parseDate(firstDate);
-    for (let i = 0; i < count; i++) {
-        const date = new Date(firstDateObj);
-        if (period === 'monthly') date.setMonth(date.getMonth() + i);
-        else if (period === 'biweekly') date.setDate(date.getDate() + i * 14);
-        else date.setDate(date.getDate() + i * 7);
-        installments.push({
-            number: i + 1,
-            date: date.toISOString().slice(0, 10),
-            amount: perInstallment,
-            paid: false
-        });
-    }
-    currentInstallmentData = {
-        startAmount, count, period, interestRate,
-        description: description || safeT('label.rate.installment'),
-        installments, totalPayment, totalInterest,
-        createdAt: Date.now()
-    };
-    const rp = el('res-rate-per'); if (rp) rp.innerText = money(perInstallment) + ' RSD';
-    const rt = el('res-rate-total'); if (rt) rt.innerText = money(totalPayment) + ' RSD';
-    const ri = el('res-rate-interest'); if (ri) ri.innerText = money(totalInterest) + ' RSD';
-    const tableBody = el('rate-table-body');
-    if (tableBody) {
-        tableBody.innerHTML = installments.map(inst => `
-            <div class="rate-item">
-                <div class="rate-item-check" style="cursor: default;"></div>
-                <div class="rate-item-number">${safeT('label.rate.rate')} ${inst.number}/${count}</div>
-                <div class="rate-item-date">${inst.date}</div>
-                <div class="rate-item-amount">${money(inst.amount)} RSD</div>
-            </div>
-        `).join('');
-    }
-    const box = el('rate-calc-result-box'); if (box) box.style.display = 'block';
-    vibrate(20);
-    playTick(0, 1500, 0.08, 0.03);
-}
-function saveInstallmentsAsReminders() {
-    if (!currentInstallmentData) { showToast('Prvo izračunaj rate', 'error'); return; }
-    const groups = loadInstallmentGroups();
-    const newGroup = {
-        id: 'inst_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-        description: currentInstallmentData.description,
-        startAmount: currentInstallmentData.startAmount,
-        count: currentInstallmentData.count,
-        period: currentInstallmentData.period,
-        interestRate: currentInstallmentData.interestRate,
-        installments: currentInstallmentData.installments.map(i => ({ ...i })),
-        createdAt: Date.now()
-    };
-    groups.push(newGroup);
-    saveInstallmentGroups(groups);
-    showToast(safeT('label.rate.savedAsReminders'), 'success', 2500);
-    vibrate(20);
-    playTick(0, 1500, 0.08, 0.03);
-    updateAppBadge();
-}
-
-// ============================================================
-// KUPOVINA
-// ============================================================
-function renderShopUnit() {
-    return `<div class="converter-box">${sectionDescKey('desc.shop.unitPrice')}${inputField('label.shop.totalPrice', 'unit-price', 'RSD', 'placeholder="250"')}${inputField('label.shop.quantity', 'unit-qty', '', 'placeholder="1"')}${selectField('label.shop.unit', 'unit-type', [{ value: 'kg', text: 'kg' }, { value: 'g100', text: '100g' }, { value: 'L', text: 'L' }, { value: 'ml100', text: '100ml' }, { value: 'kom', text: 'kom' }, { value: 'm', text: 'm' }])}${calcButton('btn.calculate', 'calculateUnitPrice()')}</div><div id="unit-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('barcode')}</div><div><div class="res-label">${safeT('label.shop.pricePerUnit')}</div><h2><span id="res-unit-price">0</span> <small id="res-unit-label">RSD/kg</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-unit-price', 'res-unit-label', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Cena po jedinici" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Cena po jedinici" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>`;
-}
-function renderShopCompare() {
-    return `<div class="converter-box">${sectionDescKey('desc.shop.compare')}<div class="compare-group"><div class="compare-title">${safeT('label.shop.productA')}</div>${inputField('label.shop.price', 'cmp-a-price', 'RSD', 'placeholder="200"')}${inputField('label.shop.quantity', 'cmp-a-qty', '', 'placeholder="1"')}${selectField('label.shop.unit', 'cmp-a-unit', [{ value: 'kg', text: 'kg' }, { value: 'g', text: 'g' }, { value: 'L', text: 'L' }, { value: 'ml', text: 'ml' }, { value: 'kom', text: 'kom' }])}</div><div class="compare-group"><div class="compare-title">${safeT('label.shop.productB')}</div>${inputField('label.shop.price', 'cmp-b-price', 'RSD', 'placeholder="180"')}${inputField('label.shop.quantity', 'cmp-b-qty', '', 'placeholder="0.9"')}${selectField('label.shop.unit', 'cmp-b-unit', [{ value: 'kg', text: 'kg' }, { value: 'g', text: 'g' }, { value: 'L', text: 'L' }, { value: 'ml', text: 'ml' }, { value: 'kom', text: 'kom' }])}</div>${calcButton('btn.calculate', 'calculateCompare()')}</div><div id="compare-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('scale')}</div><div><div class="res-label">${safeT('label.shop.compareResult')}</div><h3 id="res-cmp-winner" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-cmp-winner', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Poređenje" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Poređenje" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('compare-stats-row', [['label.shop.productA', 'stat-cmp-a', '0'], ['label.shop.productB', 'stat-cmp-b', '0'], ['label.shop.difference', 'stat-cmp-diff', '0%']])}`;
-}
-function renderShopLista() {
-    return `<div class="converter-box"><div class="lista-head"><div class="section-desc" style="margin:0;">${safeT('desc.shop.list')}</div><button class="lista-clear-btn" onclick="clearShoppingList()">${safeT('btn.clearWholeList')}</button></div>${inputFieldText('label.shop.itemName', 'lista-name', 'npr. Mleko')}${inputFieldText('label.shop.qtyOptional', 'lista-qty', 'npr. 2L')}${inputField('label.shop.estimatedPrice', 'lista-price', 'RSD', 'placeholder="120"')}${calcButton('btn.shop.addItem', 'addShoppingItem()')}</div><div id="lista-box" class="converter-box" style="display:none;"><div class="lista-head"><div class="lista-progress" id="lista-progress">0 / 0</div><button class="lista-clear-btn" onclick="clearBoughtItems()">${safeT('btn.clearBought')}</button></div><div id="lista-items"></div><div class="lista-total"><div class="lista-total-left"><div class="lista-total-label">${safeT('label.shop.total')}</div><div class="lista-total-value" id="lista-total">0 RSD</div></div><div class="lista-total-right"><div class="lista-total-label">${safeT('label.shop.remaining')}</div><div class="lista-total-value" id="lista-remaining">0 RSD</div></div></div></div>`;
-}
-function renderShopBudzet() {
-    return `<div class="converter-box">${sectionDescKey('desc.shop.budget')}${inputField('label.shop.totalBudget', 'budzet-total', 'RSD', 'placeholder="30000"')}${selectField('label.shop.period', 'budzet-period', [{ value: '7', text: safeT('option.shop.week') }, { value: '14', text: safeT('option.shop.twoWeeks') }, { value: '30', text: safeT('option.shop.month') }])}${inputField('label.shop.alreadySpent', 'budzet-spent', 'RSD', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateBudget()')}</div>${resultCard('budzet-result-box', 'calendarSm', 'label.shop.dailyLimit', 'res-budzet-daily', 'RSD', 'KUPOVINA', 'label.shop.budgetShort')}${statsRow('budzet-stats-row', [['label.shop.untilEndOfPeriod', 'stat-budzet-left', '0 RSD'], ['label.shop.daysCount', 'stat-budzet-days', '0'], ['label.shop.dailyUntilEnd', 'stat-budzet-recalc', '0 RSD']])}`;
-}
-function renderShopIsplati() {
-    return `<div class="converter-box">${sectionDescKey('desc.shop.worthTrip')}${inputField('label.shop.savingsPerItem', 'isplati-usteda', 'RSD', 'placeholder="200"')}${inputField('label.shop.itemsCount', 'isplati-br', '', 'value="5"')}${inputField('label.shop.oneWayDistance', 'isplati-dist', 'km', 'placeholder="20"')}${inputField('label.shop.carConsumption', 'isplati-potrosnja', 'L/100km', 'value="7"')}${inputField('label.shop.fuelPrice', 'isplati-gorivo', 'RSD', 'value="180"')}${calcButton('btn.calculate', 'calculateWorthTrip()')}</div><div id="isplati-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('target')}</div><div><div class="res-label">${safeT('label.shop.worthIt')}</div><h3 id="res-isplati-verdict" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-isplati-verdict', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Isplati" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="KUPOVINA" data-label="Isplati" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('isplati-stats-row', [['label.shop.savings', 'stat-isplati-usteda', '0 RSD'], ['label.shop.tripCost', 'stat-isplati-trosak', '0 RSD'], ['label.shop.net', 'stat-isplati-neto', '0 RSD']])}`;
-}
-function renderShopRasipanje() {
-    return `<div class="converter-box">${sectionDescKey('desc.shop.mealCost')}${inputField('label.shop.groceryPrice', 'rasip-cena', 'RSD', 'placeholder="500"')}${inputField('label.shop.mealsCount', 'rasip-porcija', '', 'placeholder="4"')}${inputField('label.shop.wastePercent', 'rasip-bacanje', '%', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateMealCost()')}</div>${resultCard('rasip-result-box', 'packageSm', 'label.shop.costPerMeal', 'res-rasip-val', 'RSD', 'KUPOVINA', 'label.shop.perMealShort')}${statsRow('rasip-stats-row', [['label.shop.withoutWaste', 'stat-rasip-base', '0 RSD'], ['label.shop.wasteCost', 'stat-rasip-waste', '0 RSD']])}`;
-}
-
-function calculateUnitPrice() {
-    const price = num('unit-price'), qty = num('unit-qty');
-    const type = el('unit-type') ? el('unit-type').value : 'kg';
-    if (!price || !qty) { showToast(safeT('toast.error.enterPriceQty') || 'Unesi cenu i količinu.', 'error'); return; }
-    let result, label;
-    if (type === 'kg') { result = price / qty; label = 'RSD/kg'; }
-    else if (type === 'g100') { result = (price / qty) * 100; label = 'RSD/100g'; }
-    else if (type === 'L') { result = price / qty; label = 'RSD/L'; }
-    else if (type === 'ml100') { result = (price / qty) * 100; label = 'RSD/100ml'; }
-    else if (type === 'kom') { result = price / qty; label = 'RSD/' + safeT('unit.pcsShort'); }
-    else { result = price / qty; label = 'RSD/m'; }
-    const up = el('res-unit-price'); if (up) up.innerText = money(result);
-    const ul = el('res-unit-label'); if (ul) ul.innerText = label;
-    show('unit-result-box');
-}
-function calculateCompare() {
-    const aPrice = num('cmp-a-price'), aQty = num('cmp-a-qty');
-    const aUnit = el('cmp-a-unit') ? el('cmp-a-unit').value : 'kg';
-    const bPrice = num('cmp-b-price'), bQty = num('cmp-b-qty');
-    const bUnit = el('cmp-b-unit') ? el('cmp-b-unit').value : 'kg';
-    if (!aPrice || !aQty || !bPrice || !bQty) { showToast(safeT('toast.error.enterAll') || 'Unesi sve vrednosti.', 'error'); return; }
-    function toBase(price, qty, unit) {
-        if (unit === 'kg' || unit === 'L' || unit === 'kom') return price / qty;
-        if (unit === 'g' || unit === 'ml') return price / (qty / 1000);
-        return price / qty;
-    }
-    const aBase = toBase(aPrice, aQty, aUnit), bBase = toBase(bPrice, bQty, bUnit);
-    const winner = aBase < bBase ? safeT('label.shop.productACheaper') : (bBase < aBase ? safeT('label.shop.productBCheaper') : safeT('label.shop.samePrice'));
-    const cw = el('res-cmp-winner'); if (cw) cw.innerText = winner;
-    const ca = el('stat-cmp-a'); if (ca) ca.innerText = money(aBase);
-    const cb = el('stat-cmp-b'); if (cb) cb.innerText = money(bBase);
-    const cd = el('stat-cmp-diff'); if (cd) cd.innerText = fmt(Math.abs(aBase - bBase) / Math.max(aBase, bBase) * 100, 1) + '%';
-    show('compare-result-box'); show('compare-stats-row');
-}
-function loadShoppingList() {
-    try { const raw = JSON.parse(localStorage.getItem('cx_shopping_list_v1')); if (Array.isArray(raw)) return raw; } catch (e) {}
-    return [];
-}
-function saveShoppingList(list) {
-    try { localStorage.setItem('cx_shopping_list_v1', JSON.stringify(list)); } catch (e) {}
-}
-function addShoppingItem() {
-    const nameEl = el('lista-name'), qtyEl = el('lista-qty'), priceEl = el('lista-price');
-    if (!nameEl) return;
-    const name = nameEl.value.trim();
-    if (!name) { showToast(safeT('toast.error.enterItemName') || 'Unesi naziv stavke.', 'error'); return; }
-    const list = loadShoppingList();
-    list.push({ id: Date.now() + Math.random(), name, qty: qtyEl ? qtyEl.value.trim() : '', price: priceEl ? (parseNum(priceEl.value) || 0) : 0, bought: false, date: Date.now() });
-    saveShoppingList(list);
-    renderShoppingList();
-    nameEl.value = '';
-    if (qtyEl) qtyEl.value = '';
-    if (priceEl) priceEl.value = '';
-    showToast(safeT('toast.itemAdded') || 'Stavka dodata.', 'success', 1400);
-    vibrate(15);
-    nameEl.focus();
-}
-function toggleShoppingItem(id) {
-    const list = loadShoppingList();
-    const item = list.find(i => i.id === id);
-    if (!item) return;
-    item.bought = !item.bought;
-    saveShoppingList(list); renderShoppingList(); vibrate(10);
-}
-function removeShoppingItem(id) {
-    let list = loadShoppingList();
-    list = list.filter(i => i.id !== id);
-    saveShoppingList(list); renderShoppingList(); vibrate(15);
-}
-async function clearBoughtItems() {
-    const list = loadShoppingList();
-    const boughtCount = list.filter(i => i.bought).length;
-    if (!boughtCount) { showToast(safeT('toast.noBoughtItems') || 'Nema kupljenih stavki.', 'info', 1500); return; }
-    const ok = await showConfirm(safeT('confirm.clearBought').replace('{0}', boughtCount));
-    if (!ok) return;
-    saveShoppingList(list.filter(i => !i.bought)); renderShoppingList();
-    showToast(safeT('toast.boughtCleared') || 'Obrisano.', 'success', 1500);
-}
-async function clearShoppingList() {
-    const list = loadShoppingList();
-    if (!list.length) { showToast(safeT('toast.listEmpty') || 'Lista je prazna.', 'info', 1500); return; }
-    const ok = await showConfirm(safeT('confirm.clearList'));
-    if (!ok) return;
-    saveShoppingList([]); renderShoppingList();
-    showToast(safeT('toast.listCleared') || 'Lista obrisana.', 'success', 1500);
-}
-function renderShoppingList() {
-    const list = loadShoppingList();
-    const box = el('lista-box'), itemsWrap = el('lista-items');
-    const progress = el('lista-progress'), totalEl = el('lista-total'), remainEl = el('lista-remaining');
-    if (!box || !itemsWrap) return;
-    if (!list.length) { box.style.display = 'none'; return; }
-    box.style.display = 'flex';
-    itemsWrap.innerHTML = '';
-    const boughtCount = list.filter(i => i.bought).length;
-    if (progress) progress.textContent = `${boughtCount} / ${list.length} ${safeT('label.shop.bought')}`;
-    let total = 0, remaining = 0;
-    list.forEach(item => {
-        total += item.price || 0;
-        if (!item.bought) remaining += item.price || 0;
-        const row = document.createElement('div');
-        row.className = 'lista-item' + (item.bought ? ' bought' : '');
-        const check = document.createElement('button');
-        check.className = 'lista-check';
-        check.textContent = item.bought ? '✓' : '';
-        check.addEventListener('click', () => toggleShoppingItem(item.id));
-        const info = document.createElement('div');
-        info.className = 'lista-item-info';
-        const nameEl = document.createElement('div');
-        nameEl.className = 'lista-item-name';
-        nameEl.textContent = item.name;
-        info.appendChild(nameEl);
-        if (item.qty) { const q = document.createElement('div'); q.className = 'lista-item-qty'; q.textContent = item.qty; info.appendChild(q); }
-        const priceEl = document.createElement('div');
-        priceEl.className = 'lista-item-price';
-        priceEl.textContent = item.price > 0 ? money(item.price) + ' RSD' : '—';
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'lista-item-remove';
-        removeBtn.textContent = '✕';
-        removeBtn.addEventListener('click', () => removeShoppingItem(item.id));
-        row.appendChild(check); row.appendChild(info); row.appendChild(priceEl); row.appendChild(removeBtn);
-        itemsWrap.appendChild(row);
-    });
-    if (totalEl) totalEl.textContent = money(total) + ' RSD';
-    if (remainEl) remainEl.textContent = money(remaining) + ' RSD';
-}
-function calculateBudget() {
-    const total = num('budzet-total');
-    const period = el('budzet-period') ? parseInt(el('budzet-period').value) : 30;
-    const spent = num('budzet-spent') || 0;
-    if (!total || total <= 0) { showToast(safeT('toast.error.enterBudget') || 'Unesi budžet.', 'error'); return; }
-    const daily = total / period, left = Math.max(0, total - spent);
-    const rd = el('res-budzet-daily'); if (rd) rd.innerText = money(daily);
-    const sl = el('stat-budzet-left'); if (sl) sl.innerText = money(left) + ' RSD';
-    const sd = el('stat-budzet-days'); if (sd) sd.innerText = period + ' ' + safeT('unit.daysShort');
-    const sr = el('stat-budzet-recalc'); if (sr) sr.innerText = money(left / period) + ' RSD';
-    show('budzet-result-box'); show('budzet-stats-row');
-}
-function calculateWorthTrip() {
-    const usteda = num('isplati-usteda'), br = num('isplati-br') || 1, dist = num('isplati-dist');
-    const potrosnja = num('isplati-potrosnja') || 7, gorivo = num('isplati-gorivo') || 180;
-    if (!usteda || !dist) { showToast(safeT('toast.error.enterSavingsDistance') || 'Unesi uštedu i distancu.', 'error'); return; }
-    const ukupnaUsteda = usteda * br;
-    const trosakPuta = ((dist * 2 / 100) * potrosnja) * gorivo;
-    const neto = ukupnaUsteda - trosakPuta;
-    let verdict;
-    if (neto > 0) verdict = safeT('label.shop.worthItYes').replace('{0}', money(neto));
-    else if (neto < 0) verdict = safeT('label.shop.worthItNo').replace('{0}', money(-neto));
-    else verdict = safeT('label.shop.worthItSame');
-    const rv = el('res-isplati-verdict'); if (rv) rv.innerText = verdict;
-    const su = el('stat-isplati-usteda'); if (su) su.innerText = money(ukupnaUsteda) + ' RSD';
-    const st = el('stat-isplati-trosak'); if (st) st.innerText = money(trosakPuta) + ' RSD';
-    const sn = el('stat-isplati-neto'); if (sn) sn.innerText = money(neto) + ' RSD';
-    show('isplati-result-box'); show('isplati-stats-row');
-}
-function calculateMealCost() {
-    const cena = num('rasip-cena'), porcija = num('rasip-porcija'), bacanje = num('rasip-bacanje') || 0;
-    if (!cena || !porcija) { showToast(safeT('toast.error.enterPriceMeals') || 'Unesi cenu i broj obroka.', 'error'); return; }
-    if (porcija < 1) { showToast(safeT('toast.error.minOneMeal') || 'Minimum jedan obrok.', 'error'); return; }
-    const base = cena / porcija, waste = cena * (bacanje / 100);
-    const rv = el('res-rasip-val'); if (rv) rv.innerText = money((cena + waste) / porcija);
-    const sb = el('stat-rasip-base'); if (sb) sb.innerText = money(base) + ' RSD';
-    const sw = el('stat-rasip-waste'); if (sw) sw.innerText = money(waste) + ' RSD';
-    show('rasip-result-box'); show('rasip-stats-row');
-}
-
-// ============================================================
-// AUTO
+// AUTO — RENDER
 // ============================================================
 function renderAutoPotrosnja() {
     return `
@@ -7379,20 +6290,6 @@ function renderAutoPotrosnja() {
         </div>
         ${resultCard('result-box', 'fuel', 'label.auto.avgConsumption', 'res-consumption', 'L/100km', 'AUTO', 'label.auto.fuelConsumption')}
         ${statsRow('stats-row', [['label.auto.distance', 'stat-dist', '0 km'], ['label.auto.fuel', 'stat-fuel', '0 L'], ['label.auto.total', 'stat-cost', '—']])}
-    `;
-}
-function renderAutoPlaner() {
-    return `
-        <div class="converter-box">
-            ${sectionDescKey('desc.auto.tripPlanner')}
-            ${inputField('label.auto.distance', 'trip-distance', 'km', 'placeholder="300"')}
-            ${inputField('label.auto.avgSpeed', 'trip-speed', 'km/h', 'placeholder="80"')}
-            <div class="input-field"><label>${safeT('label.auto.departTime')}</label><div class="input-wrapper"><input type="time" id="trip-depart" class="custom-input"></div></div>
-            ${inputField('label.auto.breakDuration', 'trip-breaks', 'min', 'placeholder="30"')}
-            ${calcButton('btn.calculate', 'calculateTripPlanner()')}
-        </div>
-        ${resultCard('trip-result-box', 'route', 'label.auto.tripTime', 'res-trip-time', '', 'PUTOVANJE', 'label.auto.tripPlanner')}
-        ${statsRow('trip-stats-row', [['label.auto.eta', 'stat-trip-eta', '—'], ['label.auto.totalWithBreaks', 'stat-trip-total', '0']])}
     `;
 }
 function renderAutoTrosakPuta() {
@@ -7444,20 +6341,6 @@ function renderAutoGodisnji() {
         ${statsRow('annual-stats-row', [['label.auto.avgMonthly', 'stat-annual-month', '0 RSD']])}
     `;
 }
-function renderAutoPoKm() {
-    return `
-        <div class="converter-box">
-            ${sectionDescKey('desc.auto.costPerKm')}
-            ${inputField('label.auto.distancePeriod', 'pokm-dist', 'km', 'placeholder="15000"')}
-            ${inputField('label.auto.fuel', 'pokm-fuel-cost', 'RSD', 'placeholder="0"')}
-            ${inputField('label.auto.serviceAndMaintenance', 'pokm-service-cost', 'RSD', 'placeholder="0"')}
-            ${inputField('label.auto.registrationAndInsurance', 'pokm-reg-cost', 'RSD', 'placeholder="0"')}
-            ${calcButton('btn.calculate', 'calculateCostPerKm()')}
-        </div>
-        ${resultCard('pokm-result-box', 'calculator', 'label.auto.costPerKmFull', 'res-pokm-val', 'RSD/km', 'AUTO', 'label.auto.costPerKm')}
-        ${statsRow('pokm-stats-row', [['label.auto.totalCost', 'stat-pokm-total', '0 RSD']])}
-    `;
-}
 
 function calculateAuto() {
     const dist = num('distance'), fuel = num('fuel');
@@ -7490,36 +6373,6 @@ function calculateAnnualCost() {
     const at = el('res-annual-total'); if (at) at.innerText = money(total);
     const am = el('stat-annual-month'); if (am) am.innerText = money(total / 12) + ' RSD';
     show('annual-result-box'); show('annual-stats-row');
-}
-function calculateCostPerKm() {
-    const dist = num('pokm-dist');
-    const fuelCost = num('pokm-fuel-cost') || 0, serviceCost = num('pokm-service-cost') || 0, regCost = num('pokm-reg-cost') || 0;
-    if (!dist) { showToast(safeT('toast.error.enterDistance') || 'Unesi distancu.', 'error'); return; }
-    const total = fuelCost + serviceCost + regCost;
-    const perKm = total / dist;
-    const pv = el('res-pokm-val'); if (pv) pv.innerText = fmt(perKm, 2);
-    const pt = el('stat-pokm-total'); if (pt) pt.innerText = money(total) + ' RSD';
-    show('pokm-result-box'); show('pokm-stats-row');
-}
-function calculateTripPlanner() {
-    const distance = num('trip-distance'), speed = num('trip-speed');
-    const departVal = el('trip-depart') ? el('trip-depart').value : '';
-    const breaks = num('trip-breaks') || 0;
-    if (!distance || !speed) { showToast(safeT('toast.error.enterDistanceSpeed') || 'Unesi distancu i brzinu.', 'error'); return; }
-    const driveHours = distance / speed;
-    const totalMinutes = driveHours * 60 + breaks;
-    const dh = Math.floor(driveHours), dm = Math.round((driveHours - dh) * 60);
-    const rt = el('res-trip-time'); if (rt) rt.innerText = dh > 0 ? `${dh}h ${dm}min` : `${dm}min`;
-    const th = Math.floor(totalMinutes / 60), tm = Math.round(totalMinutes % 60);
-    const st = el('stat-trip-total'); if (st) st.innerText = th > 0 ? `${th}h ${tm}min` : `${tm}min`;
-    const e = el('stat-trip-eta');
-    if (departVal && e) {
-        const [h, m] = departVal.split(':').map(Number);
-        const departDate = new Date(); departDate.setHours(h, m, 0, 0);
-        const etaDate = new Date(departDate.getTime() + totalMinutes * 60000);
-        e.innerText = String(etaDate.getHours()).padStart(2, '0') + ':' + String(etaDate.getMinutes()).padStart(2, '0');
-    } else if (e) e.innerText = '—';
-    show('trip-result-box'); show('trip-stats-row');
 }
 function calculateRoadTrip() {
     const distance = num('road-distance'), consumption = num('road-consumption'), price = num('road-price');
@@ -7605,23 +6458,6 @@ function renderBikeKalorije() {
         ${resultCard('bike-cal-result-box', 'flame', 'label.bike.caloriesBurned', 'res-bike-calories', 'kcal', 'BICIKL', 'label.bike.calories')}
     `;
 }
-function renderBikeTabela() {
-    return `
-        <div class="converter-box">
-            ${sectionDescKey('desc.bike.gearTable')}
-            ${inputFieldText('label.bike.frontChainrings', 'gear-fronts', '34,50')}
-            ${inputFieldText('label.bike.rearChainrings', 'gear-rears', '11,13,15,17,19,21,23,25,28,32')}
-            ${inputField('label.bike.wheelSize', 'gear-wheel', 'inča', 'placeholder="29"')}
-            ${inputField('label.bike.cadence', 'gear-cadence', 'rpm', 'placeholder="90"')}
-            ${calcButton('btn.calculate', 'calculateGearTable()')}
-        </div>
-        <div id="gear-table-wrap" style="display:none;">
-            <div id="gear-table-real" class="converter-box gear-table-box">
-                <div id="gear-table-scroll"><table id="gear-table" class="gear-table"></table></div>
-            </div>
-        </div>
-    `;
-}
 
 function calculateBike() {
     const front = num('bike-front'), rear = num('bike-rear'), cadence = num('bike-cadence'), wheelInch = num('bike-wheel-inch');
@@ -7673,32 +6509,9 @@ function calculateBikeCalories() {
     const bc = el('res-bike-calories'); if (bc) bc.innerText = fmt(met * weight * (timeMinutes / 60), 0);
     show('bike-cal-result-box');
 }
-function calculateGearTable() {
-    const frontsRaw = el('gear-fronts') ? el('gear-fronts').value : '';
-    const rearsRaw = el('gear-rears') ? el('gear-rears').value : '';
-    const wheelInch = num('gear-wheel') || 29, cadence = num('gear-cadence') || 90;
-    const fronts = frontsRaw.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n) && n > 0);
-    const rears = rearsRaw.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n) && n > 0);
-    if (!fronts.length || !rears.length) { showToast(safeT('toast.error.enterChainrings') || 'Unesi lančanike.', 'error'); return; }
-    const wheelCircumference = wheelInch * 0.0254 * Math.PI;
-    const table = el('gear-table'); if (!table) return;
-    table.innerHTML = '';
-    const headRow = document.createElement('tr');
-    headRow.innerHTML = '<th>' + safeT('table.rearFront') + '</th>' + fronts.map(f => `<th>${f}</th>`).join('');
-    table.appendChild(headRow);
-    rears.forEach(r => {
-        const row = document.createElement('tr');
-        let cells = `<td class="gear-row-label">${r}</td>`;
-        fronts.forEach(f => { cells += `<td>${fmt((cadence * (f / r) * wheelCircumference * 60) / 1000, 1)}</td>`; });
-        row.innerHTML = cells;
-        table.appendChild(row);
-    });
-    const wrap = el('gear-table-wrap'); if (wrap) wrap.style.display = 'block';
-    vibrate(15);
-}
 
 // ============================================================
-// ZDRAVLJE
+// ZDRAVLJE — ZADATAK 5: auto-fill iz profila
 // ============================================================
 function renderHealthBMI() {
     return `<div class="converter-box">${sectionDescKey('desc.health.bmi')}${inputField('label.health.weight', 'health-weight', 'kg', 'placeholder="70"')}${inputField('label.health.height', 'health-height', 'cm', 'placeholder="175"')}${inputField('label.health.ageOptional', 'health-bmi-age', '', 'placeholder="30"')}${calcButton('btn.calculate', 'calculateBMI()')}</div>${resultCard('health-bmi-result-box', 'scale', 'label.health.yourBmi', 'res-bmi-val', '', 'ZDRAVLJE', 'label.health.bmi')}${statsRow('health-bmi-stats-row', [['label.health.category', 'stat-bmi-category', '—']])}`;
@@ -7993,83 +6806,13 @@ function renderHomePovrsina() {
 function renderHomeBlokovi() {
     return `<div class="converter-box">${sectionDescKey('desc.home.blocks')}${inputField('label.home.wallLength', 'block-wall-l', 'm', 'placeholder="10"')}${inputField('label.home.wallHeight', 'block-wall-h', 'm', 'placeholder="2.8"')}${inputField('label.home.blockDimensions', 'block-l', 'cm', 'placeholder="25"')}${inputField('label.home.blockDimensions', 'block-h', 'cm', 'placeholder="19"')}${inputField('label.home.pricePerPiece', 'block-price', '€', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateBlocks()')}</div>${resultCard('blocks-result-box', 'bricks', 'label.home.blocksNeeded', 'res-blocks-count', '', 'GRAĐEVINA', 'Blokovi')}${statsRow('blocks-stats-row', [['label.home.netArea', 'stat-blocks-area', '0 m²'], ['label.home.totalPrice', 'stat-blocks-price', '—']])}`;
 }
-function renderHomeCrep() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.roofTiles')}${inputField('label.home.roofArea', 'crep-area', 'm²', 'placeholder="100"')}${inputField('label.home.tilesPerM2', 'crep-per-m2', '', 'placeholder="15.5"')}${inputField('label.home.reserve', 'crep-reserve', '%', 'placeholder="5"')}${calcButton('btn.calculate', 'calculateCrep()')}</div>${resultCard('crep-result-box', 'home', 'label.home.tilesNeeded', 'res-crep-count', '', 'GRAĐEVINA', 'Crep')}${statsRow('crep-stats-row', [['label.home.withoutReserve', 'stat-crep-base', '0']])}`;
-}
 function renderHomeBeton() {
     return `<div class="converter-box">${sectionDescKey('desc.home.concrete')}${inputField('label.home.length', 'beton-l', 'm', 'placeholder="5"')}${inputField('label.home.width', 'beton-w', 'm', 'placeholder="3"')}${inputField('label.home.thickness', 'beton-h', 'm', 'placeholder="0.2"')}${calcButton('btn.calculate', 'calculateConcrete()')}</div>${resultCard('beton-result-box', 'building', 'label.home.concreteNeeded', 'res-beton-m3', 'm³', 'GRAĐEVINA', 'Beton')}`;
 }
 function renderHomeFarbanje() {
     return `<div class="converter-box">${sectionDescKey('desc.home.painting')}${inputField('label.home.wallLength', 'paint-width', 'm', 'placeholder="10"')}${inputField('label.home.wallHeight', 'paint-height', 'm', 'placeholder="2.8"')}${inputField('label.home.wallCount', 'paint-walls', '', 'placeholder="4"')}${inputField('label.home.paintCoverage', 'paint-coverage', 'm²/L', 'placeholder="10"')}${calcButton('btn.calculate', 'calculatePaint()')}</div>${resultCard('paint-result-box', 'paint', 'label.home.paintNeeded', 'res-paint-liters', 'L', 'GRAĐEVINA', 'Farbanje')}${statsRow('paint-stats-row', [['label.home.totalArea', 'stat-paint-area', '0 m²'], ['label.home.openingsDeducted', 'stat-paint-openings', '0 m²']])}`;
 }
-function renderHomePlocice() {
-    return `
-        <div class="converter-box">
-            ${sectionDescKey('desc.home.tiles')}
-            <div class="tiles-section">
-                <div class="tiles-section-title">${safeT('tiles.floorSection')}</div>
-                ${inputField('label.home.roomLength', 'tile-room-l', 'm', 'placeholder="4"')}
-                ${inputField('label.home.roomWidth', 'tile-room-w', 'm', 'placeholder="3"')}
-            </div>
-            <div class="tiles-section">
-                <div class="tiles-section-title">
-                    <span>${safeT('tiles.wallsSection')}</span>
-                    <label class="tiles-toggle">
-                        <input type="checkbox" id="tile-walls-enable" onchange="toggleTilesWalls()">
-                        <span>${safeT('tiles.enableWalls')}</span>
-                    </label>
-                </div>
-                <div id="tile-walls-fields" class="tiles-walls-fields" style="display:none;">
-                    ${inputField('tiles.wallLength', 'tile-wall-l', 'm', 'placeholder="4"')}
-                    ${inputField('tiles.wallHeight', 'tile-wall-h', 'm', 'placeholder="2.5"')}
-                    ${inputField('tiles.wallCount', 'tile-wall-n', '', 'value="1" min="1"')}
-                </div>
-            </div>
-            ${inputField('label.home.tileLength', 'tile-l', 'cm', 'placeholder="30"')}
-            ${inputField('label.home.tileWidth', 'tile-w', 'cm', 'placeholder="30"')}
-            ${inputField('label.home.reserve', 'tile-reserve', '%', 'placeholder="10"')}
-            ${calcButton('btn.calculate', 'calculateTiles()')}
-        </div>
-        <div id="tiles-result-box" class="result-card-green" style="display: none;">
-            <div class="res-left">
-                <div class="pump-icon">${icon('tiles')}</div>
-                <div>
-                    <div class="res-label">${safeT('tiles.totalTiles')}</div>
-                    <h2><span id="res-tiles-total">0</span> <small>${safeT('unit.pcsShort')}</small></h2>
-                </div>
-            </div>
-            <div class="tiles-breakdown">
-                <div class="tiles-breakdown-item">
-                    <div class="tiles-breakdown-label">${safeT('tiles.floorTiles')}</div>
-                    <div class="tiles-breakdown-value" id="res-tiles-floor">0</div>
-                    <div class="tiles-breakdown-unit">${safeT('unit.pcsShort')}</div>
-                </div>
-                <div class="tiles-breakdown-item">
-                    <div class="tiles-breakdown-label">${safeT('tiles.wallTiles')}</div>
-                    <div class="tiles-breakdown-value accent" id="res-tiles-wall">0</div>
-                    <div class="tiles-breakdown-unit">${safeT('unit.pcsShort')}</div>
-                </div>
-            </div>
-            <div class="res-actions">
-                <button class="copy-btn" onclick="copyResult('res-tiles-total', '${safeT('unit.pcsShort')}', event)">${safeT('result.copy')}</button>
-                <button class="copy-btn" data-category="GRAĐEVINA" data-label="Pločice" onclick="saveHistory(this)">${safeT('result.save')}</button>
-                <button class="copy-btn" data-category="GRAĐEVINA" data-label="Pločice" onclick="shareResult(this)">${safeT('result.share')}</button>
-            </div>
-        </div>
-        ${statsRow('tiles-stats-row', [['tiles.floorArea', 'stat-tiles-floor-area', '0 m²'], ['tiles.wallsArea', 'stat-tiles-wall-area', '0 m²'], ['tiles.totalArea', 'stat-tiles-total-area', '0 m²']])}
-    `;
-}
-function renderHomeGips() {
-    return `<div class="converter-box">${sectionDescKey('desc.home.gypsum')}${inputField('label.home.surfaceArea', 'gips-area', 'm²', 'placeholder="30"')}${selectField('label.home.layers', 'gips-layers', [{ value: '1', text: '1' }, { value: '2', text: '2' }], '1')}${calcButton('btn.calculate', 'calculateGypsum()')}</div><div id="gips-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('wall')}</div><div><div class="res-label">${safeT('label.home.materialsNeeded')}</div><h3 id="res-gips-text" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-gips-text', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Gips" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="GRAĐEVINA" data-label="Gips" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('gips-stats-row', [['label.home.sheets', 'stat-gips-sheets', '0'], ['label.home.profiles', 'stat-gips-profiles', '0'], ['label.home.screws', 'stat-gips-screws', '0']])}`;
-}
 
-function toggleTilesWalls() {
-    const enable = el('tile-walls-enable');
-    const fields = el('tile-walls-fields');
-    if (!enable || !fields) return;
-    fields.style.display = enable.checked ? 'flex' : 'none';
-    vibrate(10);
-}
 function calculateShapeArea() {
     const type = el('shape-type') ? el('shape-type').value : 'rect';
     let area = 0;
@@ -8105,31 +6848,6 @@ function calculatePaint() {
 function getOpeningsArea(type) {
     return openingsData[type].reduce((sum, op) => sum + ((op.w || 0) * (op.h || 0)), 0);
 }
-function calculateTiles() {
-    const roomL = num('tile-room-l'), roomW = num('tile-room-w'), tileL = num('tile-l'), tileW = num('tile-w');
-    const reserve = num('tile-reserve') || 0;
-    const wallsEnabled = el('tile-walls-enable') && el('tile-walls-enable').checked;
-    if (!roomL || !roomW || !tileL || !tileW) { showToast(safeT('toast.error.enterAllDimensions') || 'Unesi sve dimenzije.', 'error'); return; }
-    const floorArea = Math.max(0, roomL * roomW - getOpeningsArea('tile'));
-    let wallArea = 0;
-    if (wallsEnabled) {
-        const wL = num('tile-wall-l'), wH = num('tile-wall-h'), wN = num('tile-wall-n') || 1;
-        if (wL && wH) wallArea = wL * wH * wN;
-    }
-    const totalArea = floorArea + wallArea;
-    const tileArea = (tileL / 100) * (tileW / 100);
-    const factor = 1 + reserve / 100;
-    const floorTiles = Math.ceil((floorArea / tileArea) * factor);
-    const wallTiles = Math.ceil((wallArea / tileArea) * factor);
-    const totalTiles = floorTiles + wallTiles;
-    const tt = el('res-tiles-total'); if (tt) tt.innerText = totalTiles;
-    const tf = el('res-tiles-floor'); if (tf) tf.innerText = floorTiles;
-    const tw = el('res-tiles-wall'); if (tw) tw.innerText = wallTiles;
-    const sa = el('stat-tiles-floor-area'); if (sa) sa.innerText = fmt(floorArea, 2) + ' m²';
-    const sw = el('stat-tiles-wall-area'); if (sw) sw.innerText = fmt(wallArea, 2) + ' m²';
-    const st = el('stat-tiles-total-area'); if (st) st.innerText = fmt(totalArea, 2) + ' m²';
-    show('tiles-result-box'); show('tiles-stats-row');
-}
 function calculateConcrete() {
     const l = num('beton-l'), w = num('beton-w'), h = num('beton-h');
     if (!l || !w || !h) { showToast(safeT('toast.error.enterAllDimensions') || 'Unesi sve dimenzije.', 'error'); return; }
@@ -8146,26 +6864,6 @@ function calculateBlocks() {
     const price = num('block-price');
     const bp = el('stat-blocks-price'); if (bp) bp.innerText = price ? money(blocks * price) + ' €' : '—';
     show('blocks-result-box'); show('blocks-stats-row');
-}
-function calculateCrep() {
-    const area = num('crep-area'), perM2 = num('crep-per-m2'), reserve = num('crep-reserve') || 0;
-    if (!area || !perM2) { showToast(safeT('toast.error.enterAreaAndPer') || 'Unesi površinu i broj po m².', 'error'); return; }
-    const baseCount = area * perM2;
-    const cc = el('res-crep-count'); if (cc) cc.innerText = Math.ceil(baseCount * (1 + reserve / 100));
-    const cb = el('stat-crep-base'); if (cb) cb.innerText = Math.ceil(baseCount) + ' ' + safeT('unit.pcsShort');
-    show('crep-result-box'); show('crep-stats-row');
-}
-function calculateGypsum() {
-    const area = num('gips-area');
-    const layers = el('gips-layers') ? parseInt(el('gips-layers').value) : 1;
-    if (!area) { showToast(safeT('toast.error.enterArea') || 'Unesi površinu.', 'error'); return; }
-    const sheetArea = 1.2 * 2.0;
-    const gt = el('res-gips-text');
-    if (gt) gt.innerHTML = `<strong>${fmt(area, 2)} m²</strong> × ${layers} ${safeT('label.home.layerWord')}`;
-    const gs = el('stat-gips-sheets'); if (gs) gs.innerText = Math.ceil((area * layers) / sheetArea * 1.1) + ' ' + safeT('unit.pcsShort');
-    const gp = el('stat-gips-profiles'); if (gp) gp.innerText = Math.ceil(area * 2.5 / 3) + ' ' + safeT('unit.pcsShort');
-    const gsc = el('stat-gips-screws'); if (gsc) gsc.innerText = Math.ceil(area * 30 * layers) + ' ' + safeT('unit.pcsShort');
-    show('gips-result-box'); show('gips-stats-row');
 }
 function toggleShapeInputs() {
     const type = el('shape-type') ? el('shape-type').value : 'rect';
@@ -8185,9 +6883,6 @@ function toggleShapeInputs() {
 function renderKitchenKasike() {
     return `<div class="converter-box">${sectionDescKey('desc.kitchen.spoons')}${inputField('label.kitchen.value', 'spoon-val', '', 'placeholder="1"')}${selectField('label.kitchen.ingredient', 'spoon-ingredient', [{ value: 'secer', text: safeT('option.kitchen.sugar') }, { value: 'brasno', text: safeT('option.kitchen.flour') }, { value: 'so', text: safeT('option.kitchen.salt') }])}${calcButton('btn.calculate', 'calculateSpoon()')}</div><div id="spoon-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('spoon')}</div><div><div class="res-label">${safeT('label.kitchen.approxWeight')}</div><h2><span id="res-spoon-val">0</span> <small id="res-spoon-unit">g</small></h2></div></div></div>`;
 }
-function renderKitchenCase() {
-    return `<div class="converter-box">${sectionDescKey('desc.kitchen.cups')}${inputField('label.kitchen.value', 'cup-val', '', 'placeholder="1"')}${selectField('label.kitchen.cupType', 'cup-type', [{ value: 'standard', text: '200ml' }, { value: 'velika', text: '250ml' }, { value: 'mala', text: '150ml' }])}${calcButton('btn.calculate', 'calculateCupConversion()')}</div><div id="cup-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('glassWater')}</div><div><div class="res-label">${safeT('label.kitchen.value')}</div><h2><span id="res-cup-val">0</span> <small id="res-cup-unit">ml</small></h2></div></div></div>`;
-}
 function renderKitchenPecenje() {
     return `<div class="converter-box">${sectionDescKey('desc.kitchen.baking')}${inputField('label.kitchen.value', 'oven-val', '', 'placeholder="180"')}${selectField('label.kitchen.fromUnit', 'oven-from', [{ value: 'c', text: '°C' }, { value: 'f', text: '°F' }, { value: 'gas', text: 'Gas' }])}${selectField('label.kitchen.toUnit', 'oven-to', [{ value: 'f', text: '°F' }, { value: 'c', text: '°C' }, { value: 'gas', text: 'Gas' }])}${calcButton('btn.calculate', 'calculateOven()')}</div><div id="oven-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('oven')}</div><div><div class="res-label">${safeT('result.label')}</div><h2><span id="res-oven-val">0</span> <small id="res-oven-unit">°F</small></h2></div></div></div>`;
 }
@@ -8204,16 +6899,6 @@ function calculateSpoon() {
     const sv = el('res-spoon-val'); if (sv) sv.innerText = fmt(val * gPerSpoon, 2);
     const su = el('res-spoon-unit'); if (su) su.innerText = 'g';
     show('spoon-result-box');
-}
-const CUP_ML = { standard: 200, velika: 250, mala: 150 };
-function calculateCupConversion() {
-    const type = el('cup-type') ? el('cup-type').value : 'standard';
-    const val = num('cup-val');
-    if (val === null) { showToast(safeT('toast.error.enterValue') || 'Unesi vrednost.', 'error'); return; }
-    const mlPerCup = CUP_ML[type] || 200;
-    const cv = el('res-cup-val'); if (cv) cv.innerText = fmt(val * mlPerCup, 0);
-    const cu = el('res-cup-unit'); if (cu) cu.innerText = 'ml';
-    show('cup-result-box');
 }
 function calculateOven() {
     const from = el('oven-from') ? el('oven-from').value : 'c';
@@ -8271,6 +6956,79 @@ function calculateBattery() {
     const sa = el('stat-bat-amp'); if (sa) sa.innerText = fmt(watt / volt, 2) + ' A';
     show('bat-result-box'); show('bat-stats-row');
 }
+function renderPowerKabl() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Preporučeni presek kabla i osigurač na osnovu struje i dužine.</p>
+            ${inputField('label.power.loadCurrent', 'kabl-amps', 'A', 'placeholder="16"')}
+            ${inputField('label.power.cableLength', 'kabl-len', 'm', 'placeholder="20"')}
+            ${inputField('label.power.voltage', 'kabl-volt', 'V', 'value="230"')}
+            ${selectField('label.power.cableType', 'kabl-type', [
+                { value: 'bakr', text: 'Bakar' },
+                { value: 'alu', text: 'Aluminijum' }
+            ], 'bakr')}
+            ${calcButton('btn.calculate', 'calculateCable()')}
+        </div>
+        <div id="kabl-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left">
+                <div class="pump-icon">${icon('cable')}</div>
+                <div>
+                    <div class="res-label">Preporučeni presek</div>
+                    <h2><span id="res-kabl-mm2">0</span> <small>mm²</small></h2>
+                </div>
+            </div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-kabl-mm2', 'mm²', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="STRUJA" data-label="Kabl" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="STRUJA" data-label="Kabl" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+        ${statsRow('kabl-stats-row', [
+            ['Osigurač', 'stat-kabl-osig', '0 A'],
+            ['Pad napona', 'stat-kabl-pad', '0 %'],
+            ['Materijal', 'stat-kabl-mat', '—']
+        ])}
+    `;
+}
+function calculateCable() {
+    const amps = num('kabl-amps');
+    const len = num('kabl-len');
+    const volts = num('kabl-volt') || 230;
+    const isCopper = !el('kabl-type') || el('kabl-type').value === 'bakr';
+    if (!amps || !len) {
+        showToast('Unesi struju i dužinu kabla.', 'error');
+        return;
+    }
+    const ampacity = isCopper
+        ? { 1.5: 14, 2.5: 20, 4: 26, 6: 34, 10: 46, 16: 62, 25: 80, 35: 100, 50: 125 }
+        : { 2.5: 15, 4: 20, 6: 26, 10: 36, 16: 48, 25: 62, 35: 78, 50: 96 };
+    const rho = isCopper ? 0.0178 : 0.0282;
+    const sections = Object.keys(ampacity).map(Number).sort((a, b) => a - b);
+    let chosen = null;
+    for (const s of sections) {
+        if (ampacity[s] >= amps * 1.15) { chosen = s; break; }
+    }
+    if (!chosen) chosen = sections[sections.length - 1];
+    const minSectionForDrop = (2 * rho * len * amps) / (volts * 0.05);
+    if (minSectionForDrop > chosen) {
+        for (const s of sections) {
+            if (s >= minSectionForDrop) { chosen = s; break; }
+        }
+    }
+    const dropPct = ((2 * rho * len * amps) / chosen / volts) * 100;
+    const fuses = [6, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125];
+    const recommendedFuse = fuses.find(f => f >= amps * 1.15) || 125;
+    const rv = el('res-kabl-mm2');
+    if (rv) rv.innerText = fmt(chosen, 1);
+    const so = el('stat-kabl-osig');
+    if (so) so.innerText = recommendedFuse + ' A';
+    const sp = el('stat-kabl-pad');
+    if (sp) sp.innerText = fmt(dropPct, 2) + ' %';
+    const sm = el('stat-kabl-mat');
+    if (sm) sm.innerText = isCopper ? 'Bakar' : 'Aluminijum';
+    show('kabl-result-box');
+    show('kabl-stats-row');
+}
 
 // ============================================================
 // POSAO
@@ -8292,12 +7050,6 @@ function renderWorkNocni() {
 }
 function renderWorkPrekovremeno() {
     return `<div class="converter-box">${sectionDescKey('desc.work.overtime')}${inputField('label.work.overtimeHours', 'prek-hours', 'h', 'placeholder="4"')}${inputField('label.work.hourlyRate', 'prek-rate', 'RSD', 'placeholder="500"')}${calcButton('btn.calculate', 'calculateOvertime()')}</div>${resultCard('prek-result-box', 'activity', 'label.work.totalEarning', 'res-prek-total', 'RSD', 'POSAO', 'label.work.overtimeShort')}${statsRow('prek-stats-row', [['label.work.first2h', 'stat-prek-first', '0 RSD'], ['label.work.rest50', 'stat-prek-rest', '0 RSD']])}`;
-}
-function renderWorkPutni() {
-    return `<div class="converter-box">${sectionDescKey('desc.work.travel')}${inputField('label.work.tripDays', 'putni-days', '', 'value="3"')}${inputField('label.work.dailyAllowance', 'putni-daily', 'RSD', 'placeholder="2000"')}${inputField('label.work.fuelCost', 'putni-fuel', 'RSD', 'placeholder="0"')}${inputField('label.work.accommodationCost', 'putni-hotel', 'RSD', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateTravelExpenses()')}</div>${resultCard('putni-result-box', 'car', 'label.work.totalTravelCosts', 'res-putni-total', 'RSD', 'POSAO', 'label.work.travelShort')}${statsRow('putni-stats-row', [['label.work.allowances', 'stat-putni-daily-total', '0 RSD'], ['label.work.fuelCost', 'stat-putni-fuel-total', '0 RSD'], ['label.work.accommodation', 'stat-putni-hotel-total', '0 RSD']])}`;
-}
-function renderWorkBonusi() {
-    return `<div class="converter-box">${sectionDescKey('desc.work.bonuses')}${inputField('label.work.monthsForBonus', 'bonus-months', '', 'value="12"')}${inputField('label.work.avgMonthlySalary', 'bonus-salary', 'RSD', 'placeholder="80000"')}${inputField('label.work.thirteenthSalary', 'bonus-13th', 'RSD', 'placeholder="0"')}${inputField('label.work.vacationAllowance', 'bonus-regres', 'RSD', 'placeholder="0"')}${inputField('label.work.mealAllowance', 'bonus-meal', 'RSD', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateBonuses()')}</div>${resultCard('bonus-result-box', 'gift', 'label.work.totalBonuses', 'res-bonus-total', 'RSD', 'POSAO', 'label.work.bonusesShort')}${statsRow('bonus-stats-row', [['label.work.bonusesByMonths', 'stat-bonus-months-total', '0 RSD'], ['label.work.annualTotal', 'stat-bonus-yearly', '0 RSD']])}`;
 }
 
 function calculateWorkTime() {
@@ -8393,156 +7145,10 @@ function calculateOvertime() {
     const pr = el('stat-prek-rest'); if (pr) pr.innerText = money(rest * rate * 1.5) + ' RSD';
     show('prek-result-box'); show('prek-stats-row');
 }
-function calculateTravelExpenses() {
-    const days = num('putni-days') || 0, daily = num('putni-daily') || 0, fuel = num('putni-fuel') || 0, hotel = num('putni-hotel') || 0;
-    const dailyTotal = days * daily;
-    const pt = el('res-putni-total'); if (pt) pt.innerText = money(dailyTotal + fuel + hotel);
-    const pd = el('stat-putni-daily-total'); if (pd) pd.innerText = money(dailyTotal) + ' RSD';
-    const pf = el('stat-putni-fuel-total'); if (pf) pf.innerText = money(fuel) + ' RSD';
-    const ph = el('stat-putni-hotel-total'); if (ph) ph.innerText = money(hotel) + ' RSD';
-    show('putni-result-box'); show('putni-stats-row');
-}
-function calculateBonuses() {
-    const months = num('bonus-months') || 0, salary = num('bonus-salary') || 0;
-    const bonus13 = num('bonus-13th') || 0, regres = num('bonus-regres') || 0, meal = num('bonus-meal') || 0;
-    const monthsTotal = months * salary, mealTotal = meal * 12;
-    const total = monthsTotal + bonus13 + regres + mealTotal;
-    const bt = el('res-bonus-total'); if (bt) bt.innerText = money(total);
-    const bm = el('stat-bonus-months-total'); if (bm) bm.innerText = money(monthsTotal) + ' RSD';
-    const by = el('stat-bonus-yearly'); if (by) by.innerText = money(total) + ' RSD';
-    show('bonus-result-box'); show('bonus-stats-row');
-}
 
 // ============================================================
-// STRUJA — KABL I OSIGURAČ
+// MUZIKA — SAMO ŠTIMER (Zadatak 4)
 // ============================================================
-function renderPowerKabl() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Preporučeni presek kabla i osigurač na osnovu struje i dužine.</p>
-            ${inputField('label.power.loadCurrent', 'kabl-amps', 'A', 'placeholder="16"')}
-            ${inputField('label.power.cableLength', 'kabl-len', 'm', 'placeholder="20"')}
-            ${inputField('label.power.voltage', 'kabl-volt', 'V', 'value="230"')}
-            ${selectField('label.power.cableType', 'kabl-type', [
-                { value: 'bakr', text: 'Bakar' },
-                { value: 'alu', text: 'Aluminijum' }
-            ], 'bakr')}
-            ${calcButton('btn.calculate', 'calculateCable()')}
-        </div>
-        <div id="kabl-result-box" class="result-card-green" style="display: none;">
-            <div class="res-left">
-                <div class="pump-icon">${icon('cable')}</div>
-                <div>
-                    <div class="res-label">Preporučeni presek</div>
-                    <h2><span id="res-kabl-mm2">0</span> <small>mm²</small></h2>
-                </div>
-            </div>
-            <div class="res-actions">
-                <button class="copy-btn" onclick="copyResult('res-kabl-mm2', 'mm²', event)">${safeT('result.copy')}</button>
-                <button class="copy-btn" data-category="STRUJA" data-label="Kabl" onclick="saveHistory(this)">${safeT('result.save')}</button>
-                <button class="copy-btn" data-category="STRUJA" data-label="Kabl" onclick="shareResult(this)">${safeT('result.share')}</button>
-            </div>
-        </div>
-        ${statsRow('kabl-stats-row', [
-            ['Osigurač', 'stat-kabl-osig', '0 A'],
-            ['Pad napona', 'stat-kabl-pad', '0 %'],
-            ['Materijal', 'stat-kabl-mat', '—']
-        ])}
-    `;
-}
-
-function calculateCable() {
-    const amps = num('kabl-amps');
-    const len = num('kabl-len');
-    const volts = num('kabl-volt') || 230;
-    const isCopper = !el('kabl-type') || el('kabl-type').value === 'bakr';
-    if (!amps || !len) {
-        showToast('Unesi struju i dužinu kabla.', 'error');
-        return;
-    }
-    const ampacity = isCopper
-        ? { 1.5: 14, 2.5: 20, 4: 26, 6: 34, 10: 46, 16: 62, 25: 80, 35: 100, 50: 125 }
-        : { 2.5: 15, 4: 20, 6: 26, 10: 36, 16: 48, 25: 62, 35: 78, 50: 96 };
-    const rho = isCopper ? 0.0178 : 0.0282;
-    const sections = Object.keys(ampacity).map(Number).sort((a, b) => a - b);
-    let chosen = null;
-    for (const s of sections) {
-        if (ampacity[s] >= amps * 1.15) { chosen = s; break; }
-    }
-    if (!chosen) chosen = sections[sections.length - 1];
-    const minSectionForDrop = (2 * rho * len * amps) / (volts * 0.05);
-    if (minSectionForDrop > chosen) {
-        for (const s of sections) {
-            if (s >= minSectionForDrop) { chosen = s; break; }
-        }
-    }
-    const dropPct = ((2 * rho * len * amps) / chosen / volts) * 100;
-    const fuses = [6, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125];
-    const recommendedFuse = fuses.find(f => f >= amps * 1.15) || 125;
-    const rv = el('res-kabl-mm2');
-    if (rv) rv.innerText = fmt(chosen, 1);
-    const so = el('stat-kabl-osig');
-    if (so) so.innerText = recommendedFuse + ' A';
-    const sp = el('stat-kabl-pad');
-    if (sp) sp.innerText = fmt(dropPct, 2) + ' %';
-    const sm = el('stat-kabl-mat');
-    if (sm) sm.innerText = isCopper ? 'Bakar' : 'Aluminijum';
-    show('kabl-result-box');
-    show('kabl-stats-row');
-}
-
-// ============================================================
-// MUZIKA
-// ============================================================
-const NOTES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-const SCALE_INTERVALS = {
-    major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10], harmonic_minor: [0, 2, 3, 5, 7, 8, 11],
-    melodic_minor: [0, 2, 3, 5, 7, 9, 11], pentatonic_major: [0, 2, 4, 7, 9], pentatonic_minor: [0, 3, 5, 7, 10],
-    blues: [0, 3, 5, 6, 7, 10], dorian: [0, 2, 3, 5, 7, 9, 10], phrygian: [0, 1, 3, 5, 7, 8, 10],
-    lydian: [0, 2, 4, 6, 7, 9, 11], mixolydian: [0, 2, 4, 5, 7, 9, 10], locrian: [0, 1, 3, 5, 6, 8, 10]
-};
-const CHORD_INTERVALS = {
-    major: [0, 4, 7], minor: [0, 3, 7], dim: [0, 3, 6], aug: [0, 4, 8], sus2: [0, 2, 7], sus4: [0, 5, 7],
-    '7': [0, 4, 7, 10], maj7: [0, 4, 7, 11], min7: [0, 3, 7, 10], dim7: [0, 3, 6, 9], m7b5: [0, 3, 6, 10],
-    '6': [0, 4, 7, 9], m6: [0, 3, 7, 9], '9': [0, 4, 7, 10, 14], add9: [0, 4, 7, 14]
-};
-const INTERVAL_NAMES = ['Unison', 'Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th', 'Tritone', 'Perfect 5th', 'Minor 6th', 'Major 6th', 'Minor 7th', 'Major 7th', 'Octave'];
-function noteToSemitone(note) {
-    const flats = { 'Db': 1, 'Eb': 3, 'Gb': 6, 'Ab': 8, 'Bb': 10 };
-    if (flats[note] !== undefined) return flats[note];
-    const idx = NOTES_SHARP.indexOf(note);
-    return idx >= 0 ? idx : 0;
-}
-function semitoneToNote(semi) { semi = ((semi % 12) + 12) % 12; return NOTES_SHARP[semi]; }
-function transposeChord(chord, steps) {
-    const match = chord.match(/^([A-G][#b]?)(.*)$/);
-    if (!match) return chord;
-    const newSemi = ((noteToSemitone(match[1]) + steps) % 12 + 12) % 12;
-    return semitoneToNote(newSemi) + match[2];
-}
-function populateNoteSelects() {
-    const selects = ['trans-orig', 'trans-new', 'scale-root', 'chord-root', 'kapo-orig', 'int-note1', 'int-note2', 'freq-note'];
-    selects.forEach(id => {
-        const sel = el(id);
-        if (!sel) return;
-        sel.innerHTML = '';
-        NOTES_SHARP.forEach(n => {
-            const opt = document.createElement('option');
-            opt.value = n;
-            opt.textContent = n;
-            sel.appendChild(opt);
-        });
-    });
-    if (el('trans-orig')) el('trans-orig').value = 'C';
-    if (el('trans-new')) el('trans-new').value = 'D';
-    if (el('scale-root')) el('scale-root').value = 'C';
-    if (el('chord-root')) el('chord-root').value = 'C';
-    if (el('kapo-orig')) el('kapo-orig').value = 'C';
-    if (el('int-note1')) el('int-note1').value = 'C';
-    if (el('int-note2')) el('int-note2').value = 'G';
-    if (el('freq-note')) el('freq-note').value = 'A';
-}
-
 function renderMusicStimer() {
     return `
         <div class="converter-box">
@@ -8602,93 +7208,7 @@ function renderMusicStimer() {
         </button>
     `;
 }
-function renderMusicTranspozicija() {
-    return `<div class="converter-box">${sectionDescKey('desc.music.transpose')}<div class="input-field"><label>${safeT('label.music.originalKey')}</label><select id="trans-orig" class="custom-input"></select></div><div class="input-field"><label>${safeT('label.music.newKey')}</label><select id="trans-new" class="custom-input"></select></div>${inputFieldText('label.music.enterChords', 'trans-chords', 'npr. C G Am F')}${calcButton('btn.calculate', 'calculateTranspose()')}</div><div id="trans-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('musicNote')}</div><div><div class="res-label">${safeT('label.music.transposedChords')}</div><h3 id="res-trans-chords" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-trans-chords', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Transpozicija" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Transpozicija" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('trans-stats-row', [['label.music.shift', 'stat-trans-steps', '0']])}`;
-}
-function renderMusicLestvice() {
-    return `<div class="converter-box">${sectionDescKey('desc.music.scales')}<div class="input-field"><label>${safeT('label.music.rootNote')}</label><select id="scale-root" class="custom-input"></select></div><div class="input-field"><label>${safeT('label.music.scaleType')}</label><select id="scale-type" class="custom-input"><option value="major">${safeT('option.music.major')}</option><option value="minor">${safeT('option.music.naturalMinor')}</option><option value="harmonic_minor">${safeT('option.music.harmonicMinor')}</option><option value="pentatonic_major">${safeT('option.music.pentatonicMajor')}</option><option value="pentatonic_minor">${safeT('option.music.pentatonicMinor')}</option><option value="blues">${safeT('option.music.blues')}</option></select></div>${calcButton('btn.calculate', 'calculateScale()')}</div><div id="scale-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('piano')}</div><div><div class="res-label">${safeT('label.music.notesInScale')}</div><h3 id="res-scale-notes" class="res-text">—</h3></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-scale-notes', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Lestvica" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="MUZIKA" data-label="Lestvica" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('scale-stats-row', [['label.music.notesCount', 'stat-scale-count', '0'], ['label.music.intervals', 'stat-scale-intervals', '—']])}`;
-}
-function renderMusicMetronom() {
-    return `<div class="converter-box">${sectionDescKey('desc.music.metronome')}${inputField('label.music.bpm', 'metro-bpm', 'BPM', 'value="120"')}<div class="input-field"><label>${safeT('label.music.beatUnit')}</label><select id="metro-beat" class="custom-input"><option value="2">2/4</option><option value="3">3/4</option><option value="4" selected>4/4</option><option value="6">6/8</option></select></div><button class="calc-btn-main" id="metro-btn" onclick="toggleMetronome()">${safeT('btn.startMetronome')}</button></div>${resultCard('metro-result-box', 'drum', 'label.music.tempo', 'res-metro-val', 'BPM', 'MUZIKA', 'label.music.metronomeShort')}${statsRow('metro-stats-row', [['label.music.totalBeats', 'stat-metro-count', '0'], ['label.music.beat', 'stat-metro-takt', '1 / 4']])}`;
-}
 
-function calculateTranspose() {
-    const orig = el('trans-orig') ? el('trans-orig').value : 'C';
-    const newKey = el('trans-new') ? el('trans-new').value : 'D';
-    const chordsRaw = el('trans-chords') ? el('trans-chords').value.trim() : '';
-    if (!chordsRaw) { showToast(safeT('toast.error.enterChords') || 'Unesi akorde.', 'error'); return; }
-    const steps = ((noteToSemitone(newKey) - noteToSemitone(orig)) % 12 + 12) % 12;
-    const stepsSigned = steps > 6 ? steps - 12 : steps;
-    const transposed = chordsRaw.split(/[,\s]+/).filter(c => c).map(c => transposeChord(c, stepsSigned));
-    const resultEl = el('res-trans-chords'); if (resultEl) resultEl.innerText = transposed.join('  ');
-    const statEl = el('stat-trans-steps'); if (statEl) statEl.innerText = (stepsSigned >= 0 ? '+' : '') + stepsSigned + ' ' + safeT('label.music.semitones');
-    show('trans-result-box'); show('trans-stats-row');
-}
-function calculateScale() {
-    const root = el('scale-root') ? el('scale-root').value : 'C';
-    const type = el('scale-type') ? el('scale-type').value : 'major';
-    const intervals = SCALE_INTERVALS[type] || SCALE_INTERVALS.major;
-    const rootSemi = noteToSemitone(root);
-    const notes = intervals.map(i => semitoneToNote(rootSemi + i));
-    const resultEl = el('res-scale-notes'); if (resultEl) resultEl.innerText = notes.join('  →  ');
-    const countEl = el('stat-scale-count'); if (countEl) countEl.innerText = notes.length;
-    const intEl = el('stat-scale-intervals'); if (intEl) intEl.innerText = intervals.join(', ');
-    show('scale-result-box'); show('scale-stats-row');
-}
-let metronomeState = { running: false, intervalId: null, beat: 0, totalBeats: 0 };
-function toggleMetronome() {
-    const btn = el('metro-btn');
-    if (!metronomeState.running) {
-        const bpm = parseInt(el('metro-bpm').value) || 120;
-        const beatUnit = el('metro-beat') ? parseInt(el('metro-beat').value) : 4;
-        if (bpm < 30 || bpm > 300) { showToast(safeT('toast.error.bpmRange') || 'BPM mora biti između 30 i 300.', 'error'); return; }
-        metronomeState.running = true;
-        metronomeState.beat = 0;
-        metronomeState.totalBeats = 0;
-        if (btn) { btn.textContent = safeT('btn.stopMetronome'); btn.classList.add('active'); }
-        tickMetronome(beatUnit);
-        metronomeState.intervalId = setInterval(() => tickMetronome(beatUnit), 60000 / bpm);
-        show('metro-result-box'); show('metro-stats-row');
-        const mv = el('res-metro-val'); if (mv) mv.innerText = bpm;
-    } else {
-        metronomeState.running = false;
-        if (metronomeState.intervalId) { clearInterval(metronomeState.intervalId); metronomeState.intervalId = null; }
-        if (btn) { btn.textContent = safeT('btn.startMetronome'); btn.classList.remove('active'); }
-    }
-}
-function stopMetronome() {
-    if (metronomeState.running) toggleMetronome();
-}
-function tickMetronome(beatUnit) {
-    metronomeState.beat = (metronomeState.beat % beatUnit) + 1;
-    metronomeState.totalBeats++;
-    const isFirst = metronomeState.beat === 1;
-    if (settings.sound) {
-        const ctx = getAudio();
-        if (ctx) {
-            try {
-                const t2 = ctx.currentTime;
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(isFirst ? 1500 : 900, t2);
-                gain.gain.setValueAtTime(isFirst ? 0.15 : 0.08, t2);
-                gain.gain.exponentialRampToValueAtTime(0.0001, t2 + 0.05);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start(t2);
-                osc.stop(t2 + 0.06);
-            } catch (e) {}
-        }
-    }
-    if (isFirst) vibrate(20);
-    const cntEl = el('stat-metro-count'); if (cntEl) cntEl.innerText = metronomeState.totalBeats;
-    const taktEl = el('stat-metro-takt'); if (taktEl) taktEl.innerText = metronomeState.beat + ' / ' + beatUnit;
-}
-
-// ============================================================
-// ŠTIMER — STRINGS + TONE
-// ============================================================
 const TUNER_INSTRUMENTS = {
     'guitar-standard': { strings: [{ note: 'E', octave: 2, freq: 82.41 }, { note: 'A', octave: 2, freq: 110.00 }, { note: 'D', octave: 3, freq: 146.83 }, { note: 'G', octave: 3, freq: 196.00 }, { note: 'B', octave: 3, freq: 246.94 }, { note: 'E', octave: 4, freq: 329.63 }] },
     'guitar-dropd': { strings: [{ note: 'D', octave: 2, freq: 73.42 }, { note: 'A', octave: 2, freq: 110.00 }, { note: 'D', octave: 3, freq: 146.83 }, { note: 'G', octave: 3, freq: 196.00 }, { note: 'B', octave: 3, freq: 246.94 }, { note: 'E', octave: 4, freq: 329.63 }] },
@@ -8962,7 +7482,7 @@ function resetPitchSmoothing() {
 }
 
 // ============================================================
-// ZADATAK 2: PODSETNICI — Storage helperi + rendering
+// PODSETNICI — Storage helperi + rendering
 // ============================================================
 const REMINDER_KEYS = {
     birthdays: 'cx_birthdays',
@@ -9437,6 +7957,27 @@ function getAllReminderItems() {
             });
         });
     } catch (e) {}
+    // ZADATAK 6: DODAJ receipt račune u listu
+    try {
+        const receipts = loadReceipts();
+        receipts.forEach(r => {
+            const amount = r.amount || 0;
+            const currency = r.currency || 'RSD';
+            const catLabel = safeT('receipt.category.' + (r.category || 'ostalo'));
+            items.push({
+                id: 'receipt_' + r.id,
+                type: 'receipt',
+                category: 'receipts',
+                title: catLabel + (r.period ? ' — ' + formatPeriodMonth(r.period) : ''),
+                subtitle: fmt(amount, 0) + ' ' + currency,
+                dueDate: r.dueDate,
+                isDone: !!r.paid,
+                icon: 'receipt',
+                color: r.paid ? '#10b981' : '#f43f5e',
+                raw: r
+            });
+        });
+    } catch (e) {}
     return items;
 }
 function populateYearDropdown(items) {
@@ -9485,8 +8026,8 @@ function renderHistoryItem(item) {
                 ${yearsBadge}
             </div>
             <div class="rem-history-actions">
-                ${item.type !== 'installment' ? `<button class="rem-action-btn rem-action-edit" onclick="editReminderFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${safeT('rem.history.edit')}">${icon('edit')}</button>` : ''}
-                <button class="rem-action-btn rem-action-toggle ${item.isDone ? 'is-done' : ''}" onclick="toggleDoneFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${item.isDone ? safeT('rem.history.markActive') : safeT('rem.history.markDone')}">${item.isDone ? icon('refresh') : icon('check')}</button>
+                ${item.type !== 'installment' && item.type !== 'receipt' ? `<button class="rem-action-btn rem-action-edit" onclick="editReminderFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${safeT('rem.history.edit')}">${icon('edit')}</button>` : ''}
+                ${item.type !== 'receipt' ? `<button class="rem-action-btn rem-action-toggle ${item.isDone ? 'is-done' : ''}" onclick="toggleDoneFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${item.isDone ? safeT('rem.history.markActive') : safeT('rem.history.markDone')}">${item.isDone ? icon('refresh') : icon('check')}</button>` : ''}
                 <button class="rem-action-btn rem-action-delete" onclick="deleteFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${safeT('rem.history.delete')}">${icon('trash')}</button>
             </div>
         </div>
@@ -9520,6 +8061,15 @@ function toggleDoneFromHistory(type, category, id) {
         const parts = id.split('|');
         toggleInstallmentPaidFromReminders(parts[0], parseInt(parts[1]));
         setTimeout(() => renderRemindersHistoryList(), 100);
+        return;
+    }
+    if (type === 'receipt') {
+        const receiptId = id.replace('receipt_', '');
+        const r = getReceiptById(receiptId);
+        if (!r) return;
+        if (r.paid) markReceiptUnpaid(receiptId);
+        else markReceiptPaid(receiptId);
+        setTimeout(() => renderRemindersHistoryList(), 150);
         return;
     }
     const key = getReminderStorageKey(type);
@@ -9563,6 +8113,12 @@ async function deleteFromHistory(type, category, id) {
         vibrate(15);
         renderRemindersHistoryList();
         updateAppBadge();
+        return;
+    }
+    if (type === 'receipt') {
+        const receiptId = id.replace('receipt_', '');
+        deleteReceipt(receiptId);
+        setTimeout(() => renderRemindersHistoryList(), 200);
         return;
     }
     const key = getReminderStorageKey(type);
@@ -10004,10 +8560,9 @@ function hasActiveRemindersWithRemind() {
 }
 
 // ============================================================
-// GPS — BRZINA, VISINA, KOMPAS, ŠTOPERICA, TAJMER
+// GPS — BRZINA, ŠTOPERICA, TAJMER (Zadatak 4)
 // ============================================================
 const GPS_SPEED_UNIT_KEY = 'cx_gps_speed_unit';
-const GPS_ALT_UNIT_KEY = 'cx_gps_alt_unit';
 const GPS_SPEED_MAX_KEY = 'cx_gps_speed_max';
 
 function loadGpsUnit(key, defaultUnit) { try { return localStorage.getItem(key) || defaultUnit; } catch (e) { return defaultUnit; } }
@@ -10114,246 +8669,6 @@ function gpsResetSpeed() {
     try { localStorage.removeItem(GPS_SPEED_MAX_KEY); } catch (e) {}
     gpsUpdateSpeedDisplay(); vibrate(15); playTick(0, 1400, 0.06, 0.02);
     showToast(safeT('gps.resetDone'), 'info', 1400);
-}
-
-let gpsAltState = { watchId: null, running: false, currentAltM: 0, minAltM: Infinity, maxAltM: -Infinity, totalAlt: 0, samples: 0, avgAltM: 0, accuracy: null, startAltM: null, ascentM: 0, descentM: 0, lastAlt: null };
-function renderGpsVisina() {
-    return `
-        <div class="converter-box gps-box">
-            <div class="gps-status-row">
-                <div class="gps-status-indicator" id="gps-alt-indicator"><span class="gps-status-dot"></span><span class="gps-status-text" id="gps-alt-status">${safeT('gps.status.off')}</span></div>
-                <select id="gps-alt-unit-select" class="gps-unit-select" onchange="gpsChangeAltUnit()">
-                    <option value="m">m</option><option value="ft">ft</option><option value="km">km</option>
-                </select>
-            </div>
-            <div class="gps-big-display"><div class="gps-big-number" id="gps-alt-value">0</div><div class="gps-big-unit" id="gps-alt-unit-label">m</div></div>
-            <div class="gps-stats-mini">
-                <div class="gps-stat-mini"><div class="gps-stat-mini-label">${safeT('gps.alt.min')}</div><div class="gps-stat-mini-value" id="gps-alt-min">—</div></div>
-                <div class="gps-stat-mini"><div class="gps-stat-mini-label">${safeT('gps.alt.max')}</div><div class="gps-stat-mini-value" id="gps-alt-max">—</div></div>
-                <div class="gps-stat-mini"><div class="gps-stat-mini-label">${safeT('gps.alt.avg')}</div><div class="gps-stat-mini-value" id="gps-alt-avg">—</div></div>
-            </div>
-            <div class="gps-stats-mini" style="margin-top: 10px;">
-                <div class="gps-stat-mini"><div class="gps-stat-mini-label">${safeT('gps.alt.ascent')}</div><div class="gps-stat-mini-value" id="gps-alt-ascent" style="color:#10b981;">+0</div></div>
-                <div class="gps-stat-mini"><div class="gps-stat-mini-label">${safeT('gps.alt.descent')}</div><div class="gps-stat-mini-value" id="gps-alt-descent" style="color:#f43f5e;">-0</div></div>
-                <div class="gps-stat-mini"><div class="gps-stat-mini-label">${safeT('gps.speed.accuracy')}</div><div class="gps-stat-mini-value" id="gps-alt-accuracy">—</div></div>
-            </div>
-        </div>
-        <div class="gps-actions">
-            <button class="gps-btn-main" id="gps-alt-btn-start" onclick="gpsToggleAlt()">${icon('play')} <span id="gps-alt-btn-label">${safeT('gps.start')}</span></button>
-            <button class="gps-btn-secondary" onclick="gpsResetAlt()">${icon('rotateCcw')} ${safeT('gps.reset')}</button>
-        </div>
-        <div class="gps-info-note">${icon('info')} ${safeT('gps.alt.note')}</div>
-    `;
-}
-function gpsInitVisina() {
-    const unit = loadGpsUnit(GPS_ALT_UNIT_KEY, 'm');
-    const sel = el('gps-alt-unit-select'); if (sel) sel.value = unit;
-    gpsUpdateAltUnitLabels(); gpsUpdateAltDisplay();
-}
-function gpsChangeAltUnit() { const sel = el('gps-alt-unit-select'); if (!sel) return; saveGpsUnit(GPS_ALT_UNIT_KEY, sel.value); gpsUpdateAltUnitLabels(); gpsUpdateAltDisplay(); vibrate(10); }
-function gpsUpdateAltUnitLabels() { const unit = loadGpsUnit(GPS_ALT_UNIT_KEY, 'm'); const labels = { m: 'm', ft: 'ft', km: 'km' }; const labelEl = el('gps-alt-unit-label'); if (labelEl) labelEl.textContent = labels[unit] || 'm'; }
-function gpsConvertAlt(meters) {
-    const unit = loadGpsUnit(GPS_ALT_UNIT_KEY, 'm');
-    switch (unit) { case 'ft': return meters * 3.28084; case 'km': return meters / 1000; default: return meters; }
-}
-function gpsUpdateAltDisplay() {
-    const unit = loadGpsUnit(GPS_ALT_UNIT_KEY, 'm'); const decimals = unit === 'km' ? 3 : 1;
-    const valEl = el('gps-alt-value'), minEl = el('gps-alt-min'), maxEl = el('gps-alt-max'), avgEl = el('gps-alt-avg');
-    const ascEl = el('gps-alt-ascent'), descEl = el('gps-alt-descent'), accEl = el('gps-alt-accuracy');
-    if (valEl) valEl.textContent = fmt(gpsConvertAlt(gpsAltState.currentAltM), decimals);
-    if (minEl) minEl.textContent = gpsAltState.minAltM === Infinity ? '—' : fmt(gpsConvertAlt(gpsAltState.minAltM), decimals);
-    if (maxEl) maxEl.textContent = gpsAltState.maxAltM === -Infinity ? '—' : fmt(gpsConvertAlt(gpsAltState.maxAltM), decimals);
-    if (avgEl) avgEl.textContent = gpsAltState.samples > 0 ? fmt(gpsConvertAlt(gpsAltState.avgAltM), decimals) : '—';
-    if (ascEl) ascEl.textContent = '+' + fmt(gpsConvertAlt(gpsAltState.ascentM), decimals);
-    if (descEl) descEl.textContent = '-' + fmt(gpsConvertAlt(gpsAltState.descentM), decimals);
-    if (accEl) accEl.textContent = gpsAltState.accuracy != null ? `${Math.round(gpsAltState.accuracy)} m` : '—';
-}
-function gpsToggleAlt() { if (gpsAltState.running) gpsStopAlt(); else gpsStartAlt(); }
-function gpsStartAlt() {
-    if (!navigator.geolocation) { showToast(safeT('gps.error.noGeolocation'), 'error'); return; }
-    const indicator = el('gps-alt-indicator'); if (indicator) indicator.classList.add('active');
-    gpsSetAltStatus(safeT('gps.status.searching'));
-    const btnLabel = el('gps-alt-btn-label'); if (btnLabel) btnLabel.textContent = safeT('gps.stop');
-    const btn = el('gps-alt-btn-start'); if (btn) btn.classList.add('active');
-    gpsAltState.running = true;
-    try { gpsAltState.watchId = navigator.geolocation.watchPosition(gpsOnAltPosition, gpsOnAltError, { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 }); }
-    catch (e) { showToast(safeT('gps.error.generic'), 'error'); gpsStopAlt(); }
-    vibrate(20); playTick(0, 1500, 0.08, 0.03);
-}
-function gpsStopAlt() {
-    if (gpsAltState.watchId != null && navigator.geolocation) navigator.geolocation.clearWatch(gpsAltState.watchId);
-    gpsAltState.watchId = null; gpsAltState.running = false;
-    const indicator = el('gps-alt-indicator'); if (indicator) indicator.classList.remove('active');
-    gpsSetAltStatus(safeT('gps.status.off'));
-    const btnLabel = el('gps-alt-btn-label'); if (btnLabel) btnLabel.textContent = safeT('gps.start');
-    const btn = el('gps-alt-btn-start'); if (btn) btn.classList.remove('active');
-    vibrate(15);
-}
-function gpsOnAltPosition(pos) {
-    const alt = pos.coords.altitude;
-    const acc = pos.coords.altitudeAccuracy || pos.coords.accuracy;
-    gpsAltState.accuracy = acc;
-    if (alt == null || isNaN(alt)) return;
-    if (gpsAltState.startAltM == null) { gpsAltState.startAltM = alt; gpsAltState.lastAlt = alt; }
-    if (gpsAltState.lastAlt != null) {
-        const diff = alt - gpsAltState.lastAlt;
-        if (diff > 0.5) gpsAltState.ascentM += diff;
-        else if (diff < -0.5) gpsAltState.descentM += Math.abs(diff);
-    }
-    gpsAltState.lastAlt = alt; gpsAltState.currentAltM = alt;
-    gpsAltState.minAltM = Math.min(gpsAltState.minAltM, alt);
-    gpsAltState.maxAltM = Math.max(gpsAltState.maxAltM, alt);
-    gpsAltState.totalAlt += alt; gpsAltState.samples++;
-    gpsAltState.avgAltM = gpsAltState.totalAlt / gpsAltState.samples;
-    gpsSetAltStatus(safeT('gps.status.receiving'));
-    gpsUpdateAltDisplay();
-}
-function gpsOnAltError(err) {
-    let msg = safeT('gps.error.generic');
-    if (err.code === 1) msg = safeT('gps.error.permission');
-    else if (err.code === 2) msg = safeT('gps.error.unavailable');
-    else if (err.code === 3) msg = safeT('gps.error.timeout');
-    showToast(msg, 'error'); gpsSetAltStatus(safeT('gps.status.error'));
-}
-function gpsSetAltStatus(text) { const s = el('gps-alt-status'); if (s) s.textContent = text; }
-function gpsResetAlt() {
-    gpsAltState.currentAltM = 0; gpsAltState.minAltM = Infinity; gpsAltState.maxAltM = -Infinity;
-    gpsAltState.totalAlt = 0; gpsAltState.samples = 0; gpsAltState.avgAltM = 0; gpsAltState.accuracy = null;
-    gpsAltState.startAltM = null; gpsAltState.ascentM = 0; gpsAltState.descentM = 0; gpsAltState.lastAlt = null;
-    gpsUpdateAltDisplay(); vibrate(15); playTick(0, 1400, 0.06, 0.02);
-    showToast(safeT('gps.resetDone'), 'info', 1400);
-}
-
-let gpsCompassState = { listening: false, heading: 0, pitch: 0, roll: 0, absolute: false, permissionGranted: false, usingGpsFallback: false, gpsWatchId: null, sensorDataReceived: false, fallbackTimerId: null, smoothedHeading: null, lastRawHeading: null };
-function renderGpsKompas() {
-    return `
-        <div class="converter-box gps-box gps-compass-box">
-            <div class="gps-status-row"><div class="gps-status-indicator" id="gps-compass-indicator"><span class="gps-status-dot"></span><span class="gps-status-text" id="gps-compass-status">${safeT('gps.compass.status.off')}</span></div></div>
-            <div class="gps-compass-visual">
-                <svg viewBox="0 0 200 200" class="gps-compass-svg" id="gps-compass-svg">
-                    <defs>
-                        <linearGradient id="compassN" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f43f5e"/><stop offset="100%" stop-color="#be123c"/></linearGradient>
-                        <linearGradient id="compassS" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#64748b"/><stop offset="100%" stop-color="#334155"/></linearGradient>
-                    </defs>
-                    <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
-                    <g id="gps-compass-rose" transform="rotate(0 100 100)">
-                        <text x="100" y="26" text-anchor="middle" fill="#f43f5e" font-size="16" font-weight="900">N</text>
-                        <text x="100" y="184" text-anchor="middle" fill="#94a3b8" font-size="14" font-weight="800">S</text>
-                        <text x="26" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-weight="800">W</text>
-                        <text x="174" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-weight="800">E</text>
-                        <polygon points="100,40 94,100 100,90 106,100" fill="url(#compassN)"/>
-                        <polygon points="100,160 94,100 100,110 106,100" fill="url(#compassS)"/>
-                        <circle cx="100" cy="100" r="6" fill="#1a1a23" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-                        <circle cx="100" cy="100" r="2" fill="#0ea5e9"/>
-                    </g>
-                </svg>
-            </div>
-            <div class="gps-compass-info"><div class="gps-compass-degrees" id="gps-compass-deg">0°</div><div class="gps-compass-direction" id="gps-compass-dir">${safeT('gps.compass.dir.n')}</div></div>
-            <div class="gps-stats-mini">
-                <div class="gps-stat-mini"><div class="gps-stat-mini-label">${safeT('gps.compass.pitch')}</div><div class="gps-stat-mini-value" id="gps-compass-pitch">0°</div></div>
-                <div class="gps-stat-mini"><div class="gps-stat-mini-label">${safeT('gps.compass.roll')}</div><div class="gps-stat-mini-value" id="gps-compass-roll">0°</div></div>
-                <div class="gps-stat-mini"><div class="gps-stat-mini-label">${safeT('gps.compass.source')}</div><div class="gps-stat-mini-value" id="gps-compass-source">—</div></div>
-            </div>
-        </div>
-        <div class="gps-actions"><button class="gps-btn-main" id="gps-compass-btn" onclick="gpsToggleCompass()">${icon('compass')} <span id="gps-compass-btn-label">${safeT('gps.compass.enable')}</span></button></div>
-        <div class="gps-info-note">${icon('info')} ${safeT('gps.compass.note')}</div>
-    `;
-}
-function gpsInitKompas() { gpsUpdateCompassDisplay(); }
-function gpsToggleCompass() { if (gpsCompassState.listening) gpsStopCompass(); else gpsStartCompass(); }
-function gpsStartCompass() {
-    gpsCompassState.permissionGranted = false; gpsCompassState.sensorDataReceived = false;
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    if (isIOS && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission().then(result => {
-            if (result === 'granted') { gpsCompassState.permissionGranted = true; gpsActuallyStartCompass(); }
-            else { showToast(safeT('gps.compass.denied'), 'warning'); gpsSetCompassStatus(safeT('gps.compass.status.denied')); }
-        }).catch(() => { showToast(safeT('gps.compass.denied'), 'warning'); gpsSetCompassStatus(safeT('gps.compass.status.denied')); });
-        return;
-    }
-    gpsCompassState.permissionGranted = true;
-    gpsActuallyStartCompass();
-}
-function gpsActuallyStartCompass() {
-    if ('ondeviceorientationabsolute' in window) { window.addEventListener('deviceorientationabsolute', gpsOnDeviceOrientation, true); gpsCompassState.absolute = true; }
-    window.addEventListener('deviceorientation', gpsOnDeviceOrientation, true);
-    gpsCompassState.listening = true;
-    const indicator = el('gps-compass-indicator'); if (indicator) indicator.classList.add('active');
-    const btnLabel = el('gps-compass-btn-label'); if (btnLabel) btnLabel.textContent = safeT('gps.compass.disable');
-    const btn = el('gps-compass-btn'); if (btn) btn.classList.add('active');
-    gpsSetCompassStatus(safeT('gps.compass.status.waiting'));
-    vibrate(20); playTick(0, 1500, 0.08, 0.03);
-    gpsCompassState.fallbackTimerId = setTimeout(() => {
-        if (gpsCompassState.listening && !gpsCompassState.sensorDataReceived && !gpsCompassState.gpsWatchId) gpsStartCompassGpsFallback();
-    }, 2500);
-}
-function gpsStartCompassGpsFallback() {
-    if (!navigator.geolocation) return;
-    gpsCompassState.usingGpsFallback = true;
-    gpsCompassState.gpsWatchId = navigator.geolocation.watchPosition((pos) => {
-        if (gpsCompassState.usingGpsFallback && pos.coords.heading != null && !isNaN(pos.coords.heading)) {
-            gpsUpdateCompassHeading(pos.coords.heading, false);
-            gpsSetCompassStatus(safeT('gps.compass.status.gps'));
-            const srcEl = el('gps-compass-source'); if (srcEl) srcEl.textContent = 'GPS';
-        }
-    }, () => {}, { enableHighAccuracy: true, maximumAge: 1000 });
-}
-function gpsOnDeviceOrientation(e) {
-    if (!gpsCompassState.listening) return;
-    let rawHeading = null;
-    if (e.webkitCompassHeading != null && !isNaN(e.webkitCompassHeading)) rawHeading = e.webkitCompassHeading;
-    else if (e.alpha != null && !isNaN(e.alpha)) {
-        const absolute = e.absolute === true || gpsCompassState.absolute;
-        rawHeading = absolute ? (360 - e.alpha) % 360 : e.alpha;
-    }
-    if (rawHeading != null) {
-        if (!gpsCompassState.sensorDataReceived) {
-            gpsCompassState.sensorDataReceived = true;
-            if (gpsCompassState.fallbackTimerId) { clearTimeout(gpsCompassState.fallbackTimerId); gpsCompassState.fallbackTimerId = null; }
-            if (gpsCompassState.gpsWatchId && navigator.geolocation) { navigator.geolocation.clearWatch(gpsCompassState.gpsWatchId); gpsCompassState.gpsWatchId = null; gpsCompassState.usingGpsFallback = false; }
-            gpsCompassState.smoothedHeading = null; gpsCompassState.lastRawHeading = null;
-        }
-        gpsUpdateCompassHeading(rawHeading, true);
-        gpsSetCompassStatus(safeT('gps.compass.status.active'));
-    }
-    if (e.beta != null && !isNaN(e.beta)) { gpsCompassState.pitch = e.beta; const pEl = el('gps-compass-pitch'); if (pEl) pEl.textContent = Math.round(e.beta) + '°'; }
-    if (e.gamma != null && !isNaN(e.gamma)) { gpsCompassState.roll = e.gamma; const rEl = el('gps-compass-roll'); if (rEl) rEl.textContent = Math.round(e.gamma) + '°'; }
-}
-function gpsUpdateCompassHeading(heading, isSensor) {
-    if (heading == null || isNaN(heading)) return;
-    gpsCompassState.heading = heading;
-    gpsUpdateCompassDisplay();
-    const srcEl = el('gps-compass-source'); if (srcEl) srcEl.textContent = isSensor ? (gpsCompassState.absolute ? 'Sensor ✓' : 'Sensor') : 'GPS';
-}
-function gpsUpdateCompassDisplay() {
-    const h = gpsCompassState.heading;
-    const degEl = el('gps-compass-deg'), dirEl = el('gps-compass-dir'), rose = el('gps-compass-rose');
-    if (degEl) degEl.textContent = Math.round(h) + '°';
-    if (dirEl) dirEl.textContent = gpsGetCompassDirection(h);
-    if (rose) rose.setAttribute('transform', `rotate(${-h} 100 100)`);
-}
-function gpsGetCompassDirection(deg) {
-    const dirs = [
-        { key: 'n', min: 337.5, max: 360 }, { key: 'n', min: 0, max: 22.5 }, { key: 'ne', min: 22.5, max: 67.5 },
-        { key: 'e', min: 67.5, max: 112.5 }, { key: 'se', min: 112.5, max: 157.5 }, { key: 's', min: 157.5, max: 202.5 },
-        { key: 'sw', min: 202.5, max: 247.5 }, { key: 'w', min: 247.5, max: 292.5 }, { key: 'nw', min: 292.5, max: 337.5 }
-    ];
-    for (const d of dirs) { if (deg >= d.min && deg < d.max) return safeT('gps.compass.dir.' + d.key); }
-    return safeT('gps.compass.dir.n');
-}
-function gpsSetCompassStatus(text) { const s = el('gps-compass-status'); if (s) s.textContent = text; }
-function gpsStopCompass() {
-    window.removeEventListener('deviceorientationabsolute', gpsOnDeviceOrientation, true);
-    window.removeEventListener('deviceorientation', gpsOnDeviceOrientation, true);
-    if (gpsCompassState.gpsWatchId && navigator.geolocation) { navigator.geolocation.clearWatch(gpsCompassState.gpsWatchId); gpsCompassState.gpsWatchId = null; }
-    if (gpsCompassState.fallbackTimerId) { clearTimeout(gpsCompassState.fallbackTimerId); gpsCompassState.fallbackTimerId = null; }
-    gpsCompassState.listening = false; gpsCompassState.usingGpsFallback = false; gpsCompassState.sensorDataReceived = false;
-    gpsCompassState.smoothedHeading = null; gpsCompassState.lastRawHeading = null;
-    const indicator = el('gps-compass-indicator'); if (indicator) indicator.classList.remove('active');
-    const btnLabel = el('gps-compass-btn-label'); if (btnLabel) btnLabel.textContent = safeT('gps.compass.enable');
-    const btn = el('gps-compass-btn'); if (btn) btn.classList.remove('active');
-    gpsSetCompassStatus(safeT('gps.compass.status.off'));
-    vibrate(15);
 }
 
 let gpsStopwatchState = { running: false, startTime: 0, elapsedMs: 0, rafId: null, laps: [], wakeLock: null };
@@ -10583,8 +8898,6 @@ async function gpsRequestTimerWakeLock() { if (!('wakeLock' in navigator)) retur
 function gpsReleaseTimerWakeLock() { if (gpsTimerState.wakeLock) { try { gpsTimerState.wakeLock.release(); } catch (e) {} gpsTimerState.wakeLock = null; } }
 function gpsCleanupAll() {
     try { gpsStopSpeed(); } catch (e) {}
-    try { gpsStopAlt(); } catch (e) {}
-    try { gpsStopCompass(); } catch (e) {}
     try { gpsStopStopwatch(); } catch (e) {}
     try { gpsStopAlarm(); } catch (e) {}
     try {
@@ -10700,8 +9013,6 @@ async function loadWeatherData(tabId) {
 function renderWeatherTabContent(tabId) {
     if (tabId === 'prognoza') updateWeatherPrognoza();
     else if (tabId === 'vazduh') updateWeatherVazduh();
-    else if (tabId === 'pametni') updateWeatherPametni();
-    else if (tabId === 'sunce') updateWeatherSunce();
 }
 async function refreshWeather() {
     const btn = document.querySelector('.weather-refresh-btn');
@@ -10776,8 +9087,6 @@ function useGPSLocation() {
 }
 function renderWeatherPrognoza() { return `<div id="weather-prognoza-content"><div class="weather-loading"><div class="weather-loading-row"></div><div class="weather-loading-row"></div><div class="weather-loading-row"></div></div></div>`; }
 function renderWeatherVazduh() { return `<div id="weather-vazduh-content"><div class="weather-loading"><div class="weather-loading-row"></div><div class="weather-loading-row"></div></div></div>`; }
-function renderWeatherPametni() { return `<div id="weather-pametni-content"><div class="weather-loading"><div class="weather-loading-row"></div><div class="weather-loading-row"></div><div class="weather-loading-row"></div></div></div>`; }
-function renderWeatherSunce() { return `<div id="weather-sunce-content"><div class="weather-loading"><div class="weather-loading-row"></div><div class="weather-loading-row"></div></div></div>`; }
 function weatherLocationHeader() {
     const loc = weatherState.location;
     if (!loc) return '';
@@ -10890,91 +9199,6 @@ function updateWeatherVazduh() {
         });
     }
     box.innerHTML = `${weatherLocationHeader()}<div class="aqi-card" style="--aqi-color: ${aqiColor};"><div class="aqi-value">${Math.round(aqiVal)}</div><div class="aqi-info"><div class="aqi-label">${safeT('weather.aqi.' + aqiKey)}</div><div class="aqi-sub">${safeT('weather.aqi.subtitle')}</div></div></div><div class="weather-section-title">${safeT('weather.section.pollutants')}</div>${aqi.pm2_5 !== undefined ? `<div class="aqi-pollutant-row"><span class="aqi-pollutant-name">PM2.5</span><span class="aqi-pollutant-value">${Math.round(aqi.pm2_5)} µg/m³</span></div>` : ''}${aqi.pm10 !== undefined ? `<div class="aqi-pollutant-row"><span class="aqi-pollutant-name">PM10</span><span class="aqi-pollutant-value">${Math.round(aqi.pm10)} µg/m³</span></div>` : ''}${aqi.nitrogen_dioxide !== undefined ? `<div class="aqi-pollutant-row"><span class="aqi-pollutant-name">NO₂</span><span class="aqi-pollutant-value">${Math.round(aqi.nitrogen_dioxide)} µg/m³</span></div>` : ''}${aqi.ozone !== undefined ? `<div class="aqi-pollutant-row"><span class="aqi-pollutant-name">O₃</span><span class="aqi-pollutant-value">${Math.round(aqi.ozone)} µg/m³</span></div>` : ''}${pollenHtml ? `<div class="weather-section-title">${safeT('weather.section.pollen')}</div>${pollenHtml}` : ''}`;
-}
-function updateWeatherPametni() {
-    const box = el('weather-pametni-content');
-    if (!box) return;
-    const { current, hourly, loading } = weatherState;
-    if (loading && !current) { box.innerHTML = `<div class="weather-loading"><div class="weather-loading-row"></div><div class="weather-loading-row"></div></div>`; return; }
-    if (!current) { box.innerHTML = `<div class="weather-error"><div class="weather-error-icon">🤔</div><div class="weather-error-title">${safeT('weather.error.noData')}</div><button class="weather-error-btn" onclick="refreshWeather()">${safeT('weather.error.retry')}</button></div>`; return; }
-    const temp = Math.round(current.temperature_2m);
-    const feels = Math.round(current.apparent_temperature);
-    const wind = Math.round(current.wind_speed_10m);
-    const uv = Math.round(current.uv_index || 0);
-    let clothesKey;
-    if (feels < 0) clothesKey = 'freezing';
-    else if (feels < 10) clothesKey = 'cold';
-    else if (feels < 16) clothesKey = 'cool';
-    else if (feels < 22) clothesKey = 'mild';
-    else if (feels < 28) clothesKey = 'warm';
-    else clothesKey = 'hot';
-    let bestHour = null;
-    if (hourly && hourly.time) {
-        const now = new Date();
-        let bestScore = Infinity;
-        for (let i = 0; i < hourly.time.length; i++) {
-            const t2 = new Date(hourly.time[i]);
-            if (t2 < now || t2 > new Date(now.getTime() + 12 * 3600000)) continue;
-            const tempAt = hourly.temperature_2m[i], rainAt = hourly.precipitation_probability[i], windAt = hourly.wind_speed_10m[i];
-            const score = Math.abs(tempAt - 22) + rainAt * 0.5 + windAt * 0.3;
-            if (score < bestScore) { bestScore = score; bestHour = t2; }
-        }
-    }
-    const bestHourText = bestHour ? `${String(bestHour.getHours()).padStart(2, '0')}:00 — ${String((bestHour.getHours() + 2) % 24).padStart(2, '0')}:00` : safeT('weather.smart.morningEvening');
-    const toBring = [];
-    if (hourly && hourly.precipitation_probability) {
-        const maxRain = Math.max(...hourly.precipitation_probability.slice(0, 12));
-        if (maxRain > 40) toBring.push({ yes: true, text: safeT('weather.smart.umbrellaRain', maxRain) });
-        else toBring.push({ yes: false, text: safeT('weather.smart.noUmbrella') });
-    }
-    if (uv >= 5) toBring.push({ yes: true, text: safeT('weather.smart.sunglasses', uv) });
-    if (wind > 30) toBring.push({ yes: true, text: safeT('weather.smart.windJacket', wind) });
-    if (feels < 5) toBring.push({ yes: true, text: safeT('weather.smart.hatGloves') });
-    const activities = [];
-    const rainNext6 = hourly && hourly.precipitation_probability ? Math.max(...hourly.precipitation_probability.slice(0, 6)) : 0;
-    if (rainNext6 < 30 && temp > 5 && temp < 28) activities.push({ yes: true, text: safeT('weather.smart.running.ideal') });
-    else if (rainNext6 > 60) activities.push({ yes: false, text: safeT('weather.smart.running.rain') });
-    else activities.push({ warn: true, text: safeT('weather.smart.running.check') });
-    if (wind < 25 && rainNext6 < 40) activities.push({ yes: true, text: safeT('weather.smart.bike.good') });
-    else activities.push({ warn: true, text: safeT('weather.smart.bike.bad') });
-    box.innerHTML = `${weatherLocationHeader()}<div class="smart-card" style="--smart-accent: #ec4899;"><div class="smart-head"><div class="smart-icon">${icon('users')}</div><div class="smart-title">${safeT('weather.smart.clothes')}</div></div><div class="smart-text">${escapeHtml(safeT('weather.smart.clothes.' + clothesKey))}</div></div><div class="smart-card" style="--smart-accent: #f59e0b;"><div class="smart-head"><div class="smart-icon">${icon('clock')}</div><div class="smart-title">${safeT('weather.smart.whenToGoOut')}</div></div><div class="smart-text">${safeT('weather.smart.bestTime')} <strong>${bestHourText}</strong></div></div><div class="smart-card" style="--smart-accent: #06b6d4;"><div class="smart-head"><div class="smart-icon">${icon('target')}</div><div class="smart-title">${safeT('weather.smart.whatToBring')}</div></div><ul class="smart-list">${toBring.map(item => `<li class="${item.yes ? 'yes' : 'no'}"><span class="check-icon">${icon(item.yes ? 'check' : 'x')}</span><span>${escapeHtml(item.text)}</span></li>`).join('')}</ul></div><div class="smart-card" style="--smart-accent: #10b981;"><div class="smart-head"><div class="smart-icon">${icon('activity')}</div><div class="smart-title">${safeT('weather.smart.activities')}</div></div><ul class="smart-list">${activities.map(item => `<li class="${item.yes ? 'yes' : (item.no ? 'no' : 'warn')}"><span class="check-icon">${icon(item.yes ? 'check' : (item.no ? 'x' : 'alert'))}</span><span>${escapeHtml(item.text)}</span></li>`).join('')}</ul></div>`;
-}
-function updateWeatherSunce() {
-    const box = el('weather-sunce-content');
-    if (!box) return;
-    const { daily, loading } = weatherState;
-    if (loading && !daily) { box.innerHTML = `<div class="weather-loading"><div class="weather-loading-row"></div><div class="weather-loading-row"></div></div>`; return; }
-    if (!daily) { box.innerHTML = `<div class="weather-error"><div class="weather-error-icon">🌙</div><div class="weather-error-title">${safeT('weather.error.noData')}</div><button class="weather-error-btn" onclick="refreshWeather()">${safeT('weather.error.retry')}</button></div>`; return; }
-    const today = { sunrise: daily.sunrise[0], sunset: daily.sunset[0] };
-    const locale = currentLang === 'en' ? 'en-GB' : 'sr-RS';
-    const sunriseStr = today.sunrise ? new Date(today.sunrise).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) : '—';
-    const sunsetStr = today.sunset ? new Date(today.sunset).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) : '—';
-    let dayLength = '—';
-    if (today.sunrise && today.sunset) {
-        const sr = new Date(today.sunrise), ss = new Date(today.sunset);
-        const diffMin = Math.round((ss - sr) / 60000);
-        dayLength = `${Math.floor(diffMin / 60)}h ${diffMin % 60}min`;
-    }
-    const moonPhase = calculateMoonPhase(new Date());
-    box.innerHTML = `${weatherLocationHeader()}<div class="celestial-card"><div class="celestial-title">${icon('sunrise')} ${safeT('weather.celestial.sun')}</div><div class="celestial-row"><span class="celestial-label">${safeT('weather.celestial.sunrise')}</span><span class="celestial-value">${sunriseStr}</span></div><div class="celestial-row"><span class="celestial-label">${safeT('weather.celestial.sunset')}</span><span class="celestial-value">${sunsetStr}</span></div><div class="celestial-row"><span class="celestial-label">${safeT('weather.celestial.dayLength')}</span><span class="celestial-value">${dayLength}</span></div></div><div class="celestial-card"><div class="celestial-title">${icon('moon')} ${safeT('weather.celestial.moon')}</div><div class="celestial-row"><span class="celestial-label">${safeT('weather.celestial.moonPhase')}</span><span class="celestial-value">${safeT('moon.' + moonPhase.key)} (${moonPhase.illumination}%)</span></div></div>`;
-}
-function calculateMoonPhase(date) {
-    const knownNewMoon = new Date('2000-01-06T18:14:00Z');
-    const synodicMonth = 29.530588853;
-    const daysSince = (date - knownNewMoon) / 86400000;
-    const phase = ((daysSince % synodicMonth) + synodicMonth) % synodicMonth;
-    const illumination = Math.round((1 - Math.cos(2 * Math.PI * phase / synodicMonth)) / 2 * 100);
-    let key;
-    if (phase < 1.85) key = 'new';
-    else if (phase < 5.53) key = 'waxingCrescent';
-    else if (phase < 9.22) key = 'firstQuarter';
-    else if (phase < 12.91) key = 'waxingGibbous';
-    else if (phase < 16.61) key = 'full';
-    else if (phase < 20.30) key = 'waningGibbous';
-    else if (phase < 23.99) key = 'lastQuarter';
-    else if (phase < 27.68) key = 'waningCrescent';
-    else key = 'new';
-    return { key, illumination };
 }
 
 // ============================================================
@@ -11108,6 +9332,911 @@ function calculateCurrency() {
 }
 
 // ============================================================
+// ZADATAK 6: MOJI RAČUNI — IndexedDB + CRUD + UI
+// ============================================================
+
+// ---------- IndexedDB setup ----------
+const RECEIPTS_DB_NAME = 'alatika_db';
+const RECEIPTS_DB_VERSION = 1;
+const RECEIPTS_STORE_NAME = 'receipt_images';
+const RECEIPTS_STORAGE_KEY = 'cx_receipts';
+let receiptsDBPromise = null;
+
+function initReceiptsDB() {
+    if (receiptsDBPromise) return receiptsDBPromise;
+    if (!('indexedDB' in window)) {
+        console.warn('IndexedDB nije podržan');
+        return Promise.reject(new Error('IndexedDB not supported'));
+    }
+    receiptsDBPromise = new Promise((resolve, reject) => {
+        const req = indexedDB.open(RECEIPTS_DB_NAME, RECEIPTS_DB_VERSION);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(RECEIPTS_STORE_NAME)) {
+                db.createObjectStore(RECEIPTS_STORE_NAME, { keyPath: 'receiptId' });
+            }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = (e) => { console.warn('IndexedDB open error:', e.target.error); reject(e.target.error); };
+    });
+    return receiptsDBPromise;
+}
+
+async function saveReceiptImage(receiptId, file) {
+    try {
+        const db = await initReceiptsDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(RECEIPTS_STORE_NAME, 'readwrite');
+            const store = tx.objectStore(RECEIPTS_STORE_NAME);
+            const record = {
+                receiptId: String(receiptId),
+                blob: file,
+                mimeType: file.type || 'image/jpeg',
+                uploadedAt: Date.now()
+            };
+            const req = store.put(record);
+            req.onsuccess = () => resolve(record);
+            req.onerror = (e) => reject(e.target.error);
+        });
+    } catch (e) {
+        console.warn('saveReceiptImage error:', e);
+        throw e;
+    }
+}
+
+async function loadReceiptImage(receiptId) {
+    try {
+        const db = await initReceiptsDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(RECEIPTS_STORE_NAME, 'readonly');
+            const store = tx.objectStore(RECEIPTS_STORE_NAME);
+            const req = store.get(String(receiptId));
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = (e) => reject(e.target.error);
+        });
+    } catch (e) {
+        console.warn('loadReceiptImage error:', e);
+        return null;
+    }
+}
+
+async function deleteReceiptImage(receiptId) {
+    try {
+        const db = await initReceiptsDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(RECEIPTS_STORE_NAME, 'readwrite');
+            const store = tx.objectStore(RECEIPTS_STORE_NAME);
+            const req = store.delete(String(receiptId));
+            req.onsuccess = () => resolve();
+            req.onerror = (e) => reject(e.target.error);
+        });
+    } catch (e) {
+        console.warn('deleteReceiptImage error:', e);
+    }
+}
+
+async function compressImage(file, maxWidth = 1600, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    let w = img.width, h = img.height;
+                    if (w > maxWidth) { h = Math.round((maxWidth / w) * h); w = maxWidth; }
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    canvas.toBlob((blob) => {
+                        if (!blob) { reject(new Error('Canvas toBlob failed')); return; }
+                        resolve(blob);
+                    }, 'image/jpeg', quality);
+                } catch (err) { reject(err); }
+            };
+            img.onerror = () => reject(new Error('Image load failed'));
+            img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('FileReader failed'));
+        reader.readAsDataURL(file);
+    });
+}
+
+// ---------- Storage: cx_receipts ----------
+function loadReceipts() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(RECEIPTS_STORAGE_KEY));
+        if (Array.isArray(raw)) return raw;
+    } catch (e) {}
+    return [];
+}
+function saveReceiptsList(list) {
+    try { localStorage.setItem(RECEIPTS_STORAGE_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function getReceiptById(id) {
+    return loadReceipts().find(r => String(r.id) === String(id)) || null;
+}
+function getReceiptsByStatus(status) {
+    const list = loadReceipts();
+    if (status === 'paid') return list.filter(r => r.paid);
+    if (status === 'unpaid') return list.filter(r => !r.paid);
+    return list;
+}
+function getReceiptsByCategory(cat) {
+    return loadReceipts().filter(r => r.category === cat);
+}
+function getReceiptsByPeriod(period) {
+    return loadReceipts().filter(r => r.period === period);
+}
+function calculateReceiptStats() {
+    const list = loadReceipts();
+    const total = list.length;
+    const unpaid = list.filter(r => !r.paid).length;
+    const thisMonth = new Date().toISOString().slice(0, 7);
+    const thisMonthTotal = list
+        .filter(r => r.period === thisMonth)
+        .reduce((sum, r) => sum + (r.amount || 0), 0);
+    return { total, unpaid, thisMonthTotal };
+}
+function formatPeriodMonth(periodIso) {
+    if (!periodIso) return '';
+    const parts = periodIso.split('-');
+    if (parts.length !== 2) return periodIso;
+    const months = ['januar', 'februar', 'mart', 'april', 'maj', 'jun', 'jul', 'avgust', 'septembar', 'oktobar', 'novembar', 'decembar'];
+    const monthIdx = parseInt(parts[1]) - 1;
+    if (isNaN(monthIdx) || monthIdx < 0 || monthIdx > 11) return periodIso;
+    return months[monthIdx] + ' ' + parts[0];
+}
+function daysBetweenToday(isoDate) {
+    if (!isoDate) return null;
+    const parts = isoDate.split('-').map(Number);
+    if (parts.length !== 3) return null;
+    const target = new Date(parts[0], parts[1] - 1, parts[2]);
+    target.setHours(0, 0, 0, 0);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return Math.round((target - today) / 86400000);
+}
+
+// ---------- Sync: receipt ↔ cx_bills ----------
+function syncReceiptToBill(receipt) {
+    if (!receipt) return;
+    let bills = loadReminders('cx_bills');
+    const existingIdx = bills.findIndex(b => String(b.receiptId) === String(receipt.id));
+    const amount = receipt.amount || 0;
+    const currency = receipt.currency || 'RSD';
+    const catLabel = safeT('receipt.category.' + (receipt.category || 'ostalo'));
+    const periodLabel = formatPeriodMonth(receipt.period);
+    const billName = catLabel + (periodLabel ? ' — ' + periodLabel : '');
+    if (receipt.paid) {
+        if (existingIdx !== -1) {
+            bills.splice(existingIdx, 1);
+            saveReminders('cx_bills', bills);
+        }
+        return;
+    }
+    const dueParts = receipt.dueDate ? receipt.dueDate.split('-').map(Number) : null;
+    const dayOfMonth = dueParts ? dueParts[2] : 1;
+    const billData = {
+        id: 'receipt_bill_' + receipt.id,
+        receiptId: receipt.id,
+        source: 'receipt',
+        name: billName,
+        amount,
+        currency,
+        period: 'monthly',
+        dayOfMonth,
+        remindBefore: receipt.remindBefore || 3,
+        paid: false
+    };
+    if (existingIdx !== -1) {
+        bills[existingIdx] = Object.assign({}, bills[existingIdx], billData);
+    } else {
+        bills.push(billData);
+    }
+    saveReminders('cx_bills', bills);
+}
+function removeBillByReceiptId(receiptId) {
+    let bills = loadReminders('cx_bills');
+    const before = bills.length;
+    bills = bills.filter(b => String(b.receiptId) !== String(receiptId));
+    if (bills.length !== before) saveReminders('cx_bills', bills);
+}
+
+// ---------- CRUD ----------
+function saveReceipt() {
+    const v = id => { const e = el(id); return e ? e.value.trim() : ''; };
+    const n = id => { const e = el(id); return e ? parseNum(e.value) : null; };
+    const c = id => { const e = el(id); return e ? e.checked : false; };
+    const category = receiptState.draftCategory || 'struja';
+    const amount = n('receipt-amount');
+    const period = v('receipt-period') || new Date().toISOString().slice(0, 7);
+    const paid = receiptState.draftPaid;
+    const dueDate = v('receipt-due-date');
+    const remindBefore = n('receipt-remind-days') || 3;
+    const useReminder = c('receipt-remind-check');
+    const note = v('receipt-note');
+
+    if (!amount || amount <= 0) { showToast('Unesi iznos računa.', 'error'); return; }
+    if (!paid && !dueDate) { showToast('Unesi rok plaćanja.', 'error'); return; }
+
+    const now = Date.now();
+    const receiptId = receiptState.editingId || ('rc_' + now + '_' + Math.random().toString(36).slice(2, 7));
+    const isNew = !receiptState.editingId;
+
+    const receiptData = {
+        id: receiptId,
+        category,
+        amount,
+        currency: 'RSD',
+        period,
+        paid: !!paid,
+        paidDate: paid ? new Date().toISOString().slice(0, 10) : null,
+        dueDate: paid ? null : dueDate,
+        remindBefore: useReminder ? remindBefore : 0,
+        hasImage: !!receiptState.draftImageBlob,
+        note,
+        createdAt: isNew ? now : (getReceiptById(receiptId)?.createdAt || now),
+        updatedAt: now
+    };
+
+    const list = loadReceipts();
+    if (isNew) list.push(receiptData);
+    else {
+        const idx = list.findIndex(r => String(r.id) === String(receiptId));
+        if (idx !== -1) list[idx] = Object.assign({}, list[idx], receiptData);
+        else list.push(receiptData);
+    }
+    saveReceiptsList(list);
+
+    // Slika → IndexedDB
+    if (receiptState.draftImageBlob) {
+        saveReceiptImage(receiptId, receiptState.draftImageBlob).catch(err => {
+            console.warn('Greška pri čuvanju slike:', err);
+            showToast('Slika nije sačuvana', 'warning', 2500);
+        });
+    } else if (receiptState.removeImage && receiptState.editingId) {
+        deleteReceiptImage(receiptId).catch(() => {});
+    }
+
+    // Sync sa cx_bills
+    syncReceiptToBill(receiptData);
+
+    showToast(isNew ? 'Račun sačuvan.' : 'Račun izmenjen.', 'success', 1800);
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+
+    closeModal('receipt-modal');
+    receiptState = { editingId: null, draftImageBlob: null, draftCategory: 'struja', draftPaid: false, removeImage: false, currentObjectUrl: null };
+
+    if (activeTab === 'racuni' && activeCategory === 'money') {
+        const body = el('calc-body');
+        if (body) body.innerHTML = renderRacuni();
+        setTimeout(() => loadReceiptThumbnails(), 100);
+    }
+    updateAppBadge();
+}
+
+function updateReceipt(id, changes) {
+    const list = loadReceipts();
+    const idx = list.findIndex(r => String(r.id) === String(id));
+    if (idx === -1) return;
+    list[idx] = Object.assign({}, list[idx], changes, { updatedAt: Date.now() });
+    saveReceiptsList(list);
+    syncReceiptToBill(list[idx]);
+    updateAppBadge();
+}
+
+async function deleteReceipt(id) {
+    const ok = await showConfirm(safeT('receipt.deleteConfirm'));
+    if (!ok) return;
+    let list = loadReceipts();
+    list = list.filter(r => String(r.id) !== String(id));
+    saveReceiptsList(list);
+    removeBillByReceiptId(id);
+    try { await deleteReceiptImage(id); } catch (e) {}
+    showToast('Račun obrisan.', 'info', 1600);
+    vibrate(15);
+    if (activeTab === 'racuni' && activeCategory === 'money') {
+        const body = el('calc-body');
+        if (body) body.innerHTML = renderRacuni();
+        setTimeout(() => loadReceiptThumbnails(), 100);
+    }
+    updateAppBadge();
+}
+
+function markReceiptPaid(id) {
+    const list = loadReceipts();
+    const idx = list.findIndex(r => String(r.id) === String(id));
+    if (idx === -1) return;
+    list[idx].paid = true;
+    list[idx].paidDate = new Date().toISOString().slice(0, 10);
+    list[idx].updatedAt = Date.now();
+    saveReceiptsList(list);
+    removeBillByReceiptId(id);
+    showToast('Račun plaćen.', 'success', 1500);
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+    if (activeTab === 'racuni' && activeCategory === 'money') {
+        const body = el('calc-body');
+        if (body) body.innerHTML = renderRacuni();
+        setTimeout(() => loadReceiptThumbnails(), 100);
+    }
+    updateAppBadge();
+}
+
+function markReceiptUnpaid(id) {
+    const list = loadReceipts();
+    const idx = list.findIndex(r => String(r.id) === String(id));
+    if (idx === -1) return;
+    list[idx].paid = false;
+    list[idx].paidDate = null;
+    list[idx].updatedAt = Date.now();
+    saveReceiptsList(list);
+    syncReceiptToBill(list[idx]);
+    showToast('Račun vraćen u neplaćeno.', 'info', 1600);
+    vibrate(15);
+    if (activeTab === 'racuni' && activeCategory === 'money') {
+        const body = el('calc-body');
+        if (body) body.innerHTML = renderRacuni();
+        setTimeout(() => loadReceiptThumbnails(), 100);
+    }
+    updateAppBadge();
+}
+
+// ---------- STATE ----------
+let receiptState = {
+    editingId: null,
+    draftImageBlob: null,
+    draftCategory: 'struja',
+    draftPaid: false,
+    removeImage: false,
+    currentObjectUrl: null
+};
+let receiptDetailsObjectUrl = null;
+
+// ---------- UI: renderRacuni (glavni tab) ----------
+function renderRacuni() {
+    const list = loadReceipts();
+    const stats = calculateReceiptStats();
+
+    let html = '';
+
+    // Header sa + Dodaj
+    html += `<div class="receipt-screen-header">
+        <div>
+            <div style="font-size:1.05rem;font-weight:900;color:var(--text-main);">${safeT('receipt.title')}</div>
+            <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;margin-top:2px;">${safeT('tab.money.racuni')}</div>
+        </div>
+        <button class="receipt-add-btn" onclick="openReceiptModal()">
+            📸 ${safeT('receipt.add')}
+        </button>
+    </div>`;
+
+    // Pretraga
+    html += `<div class="receipt-search-wrap">
+        <input type="text" id="receipt-search" class="receipt-search" placeholder="${safeT('receipt.search')}" oninput="renderRacuniList()">
+    </div>`;
+
+    // Statistika
+    html += `<div class="receipt-stats">
+        <div class="receipt-stat">
+            <div class="receipt-stat-value">${stats.total}</div>
+            <div class="receipt-stat-label">${safeT('receipt.stats.total')}</div>
+        </div>
+        <div class="receipt-stat">
+            <div class="receipt-stat-value unpaid">${stats.unpaid}</div>
+            <div class="receipt-stat-label">${safeT('receipt.stats.unpaid')}</div>
+        </div>
+        <div class="receipt-stat">
+            <div class="receipt-stat-value month">${fmt(stats.thisMonthTotal, 0)}</div>
+            <div class="receipt-stat-label">${safeT('receipt.stats.thisMonth')}</div>
+        </div>
+    </div>`;
+
+    // Lista
+    html += `<div id="receipt-list-container"></div>`;
+
+    // Trend
+    if (list.length > 0) html += renderReceiptTrend(list);
+
+    setTimeout(() => { renderRacuniList(); }, 0);
+
+    return html;
+}
+
+function renderRacuniList() {
+    const container = el('receipt-list-container');
+    if (!container) return;
+    const list = loadReceipts();
+    const query = (el('receipt-search') ? el('receipt-search').value : '').trim().toLowerCase();
+
+    let filtered = list;
+    if (query) {
+        filtered = list.filter(r => {
+            const catLabel = safeT('receipt.category.' + (r.category || 'ostalo')).toLowerCase();
+            const note = (r.note || '').toLowerCase();
+            const period = (r.period || '').toLowerCase();
+            const amountStr = String(r.amount || '');
+            return catLabel.includes(query) || note.includes(query) || period.includes(query) || amountStr.includes(query);
+        });
+    }
+
+    const unpaid = filtered.filter(r => !r.paid).sort((a, b) => {
+        if (!a.dueDate && !b.dueDate) return b.createdAt - a.createdAt;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate) - new Date(b.dueDate);
+    });
+    const paid = filtered.filter(r => r.paid).sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
+
+    let html = '';
+
+    if (unpaid.length > 0) {
+        html += `<div class="receipt-section-title" style="color:#f43f5e;">🔴 ${safeT('receipt.unpaid')}</div>`;
+        html += `<div class="receipt-list">`;
+        unpaid.forEach(r => { html += renderReceiptCard(r); });
+        html += `</div>`;
+    }
+
+    if (paid.length > 0) {
+        html += `<div class="receipt-section-title" style="color:#10b981;">✅ ${safeT('receipt.paid')}</div>`;
+        html += `<div class="receipt-list">`;
+        paid.forEach(r => { html += renderReceiptCard(r); });
+        html += `</div>`;
+    }
+
+    if (filtered.length === 0) {
+        html = `<div class="receipt-empty">
+            <div class="receipt-empty-icon">📄</div>
+            <div>${list.length === 0 ? safeT('receipt.noReceipts') : safeT('receipt.noReceiptsYet')}</div>
+        </div>`;
+    }
+
+    container.innerHTML = html;
+
+    setTimeout(() => loadReceiptThumbnails(), 50);
+}
+
+function renderReceiptCard(r) {
+    const catLabel = safeT('receipt.category.' + (r.category || 'ostalo'));
+    const periodLabel = formatPeriodMonth(r.period);
+    const days = !r.paid && r.dueDate ? daysBetweenToday(r.dueDate) : null;
+
+    let dueText = '';
+    let dueClass = '';
+    if (!r.paid && days !== null) {
+        if (days < 0) { dueText = `${safeT('receipt.overdueBy')} ${Math.abs(days)} ${safeT('receipt.daysLeft')}`; dueClass = 'overdue'; }
+        else if (days === 0) { dueText = safeT('brziPregled.today'); dueClass = 'soon'; }
+        else if (days <= 3) { dueText = `${safeT('receipt.dueIn')} ${days} ${safeT('receipt.daysLeft')}`; dueClass = 'soon'; }
+        else { dueText = `${safeT('receipt.dueIn')} ${days} ${safeT('receipt.daysLeft')}`; dueClass = 'ok'; }
+    }
+
+    const statusClass = r.paid ? 'paid' : (days !== null && days < 0 ? 'overdue' : 'unpaid');
+
+    return `
+        <div class="receipt-card ${statusClass}" data-receipt-id="${escapeHtml(r.id)}">
+            <div class="receipt-thumb" data-thumb-id="${escapeHtml(r.id)}">
+                <div class="receipt-thumb-empty">📄</div>
+            </div>
+            <div class="receipt-card-body">
+                <div class="receipt-card-title">${escapeHtml(catLabel)}${periodLabel ? ' — ' + escapeHtml(periodLabel) : ''}</div>
+                <div class="receipt-card-amount">${fmt(r.amount, 0)} ${r.currency || 'RSD'}</div>
+                <div class="receipt-card-meta">
+                    ${r.dueDate ? `<span>📅 ${escapeHtml(r.dueDate)}</span>` : ''}
+                    ${r.paid && r.paidDate ? `<span>✅ ${escapeHtml(r.paidDate)}</span>` : ''}
+                </div>
+                ${dueText ? `<div class="receipt-card-due ${dueClass}">⚠ ${escapeHtml(dueText)}</div>` : ''}
+            </div>
+            <div class="receipt-card-actions" onclick="event.stopPropagation();">
+                <button class="receipt-card-action primary" onclick="openReceiptDetails('${escapeHtml(r.id)}')">
+                    ${safeT('receipt.details')}
+                </button>
+                ${!r.paid
+                    ? `<button class="receipt-card-action" onclick="markReceiptPaid('${escapeHtml(r.id)}')">✅ ${safeT('receipt.markPaid')}</button>`
+                    : `<button class="receipt-card-action" onclick="markReceiptUnpaid('${escapeHtml(r.id)}')">↩ ${safeT('receipt.markUnpaid')}</button>`}
+                <button class="receipt-card-action danger" onclick="deleteReceipt('${escapeHtml(r.id)}')">🗑</button>
+            </div>
+        </div>
+    `;
+}
+
+async function loadReceiptThumbnails() {
+    const list = loadReceipts();
+    const paidIds = list.map(r => r.id);
+    for (const r of list) {
+        if (!r.hasImage) continue;
+        const thumb = document.querySelector(`[data-thumb-id="${r.id}"]`);
+        if (!thumb || thumb.dataset.loaded === '1') continue;
+        try {
+            const rec = await loadReceiptImage(r.id);
+            if (!rec || !rec.blob) continue;
+            const url = URL.createObjectURL(rec.blob);
+            thumb.innerHTML = `<img src="${url}" alt="" loading="lazy">`;
+            thumb.dataset.loaded = '1';
+            // Ne revoke-ujemo odmah — pustimo da se učita; revoke na kraju sesije
+        } catch (e) {}
+    }
+}
+
+function renderReceiptTrend(list) {
+    // Uzmi poslednjih 6 meseci
+    const now = new Date();
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        months.push({ key, label: d.toLocaleDateString('sr-RS', { month: 'short' }), total: 0 });
+    }
+    list.forEach(r => {
+        const m = months.find(x => x.key === r.period);
+        if (m) m.total += r.amount || 0;
+    });
+    const maxTotal = Math.max(...months.map(m => m.total), 1);
+    const avg = months.reduce((s, m) => s + m.total, 0) / months.length;
+    const thisMonth = months[months.length - 1].total;
+    const diffPct = avg > 0 ? ((thisMonth - avg) / avg) * 100 : 0;
+
+    let barsHtml = '';
+    months.forEach((m, i) => {
+        const h = Math.max(4, (m.total / maxTotal) * 60);
+        const isCurrent = i === months.length - 1;
+        barsHtml += `<div class="receipt-trend-bar${isCurrent ? ' current' : ''}" style="height: ${h}px;" title="${m.label}: ${fmt(m.total, 0)} RSD"></div>`;
+    });
+
+    return `
+        <div class="receipt-trend-card">
+            <div class="receipt-trend-title">📈 ${safeT('receipt.trend')}</div>
+            <div class="receipt-trend-chart">${barsHtml}</div>
+            <div class="receipt-trend-labels">
+                ${months.map(m => `<span>${m.label}</span>`).join('')}
+            </div>
+            <div class="receipt-trend-stats">
+                <span>${safeT('receipt.average')}: <strong>${fmt(avg, 0)} RSD</strong></span>
+                <span>${safeT('receipt.thisMonthTotal')}: <strong>${fmt(thisMonth, 0)} RSD</strong> ${diffPct !== 0 ? `<span style="color:${diffPct > 0 ? '#f43f5e' : '#10b981'};">${diffPct > 0 ? '+' : ''}${fmt(diffPct, 1)}%</span>` : ''}</span>
+            </div>
+        </div>
+    `;
+}
+
+// ---------- UI: openReceiptModal (forma) ----------
+function openReceiptModal(receiptId = null) {
+    const modal = el('receipt-modal');
+    const body = el('receipt-modal-body');
+    const titleEl = el('receipt-modal-title');
+    if (!modal || !body) return;
+
+    const isEdit = !!receiptId;
+    const r = isEdit ? getReceiptById(receiptId) : null;
+
+    receiptState.editingId = isEdit ? receiptId : null;
+    receiptState.draftImageBlob = null;
+    receiptState.draftCategory = r ? r.category : 'struja';
+    receiptState.draftPaid = r ? !!r.paid : false;
+    receiptState.removeImage = false;
+    receiptState.currentObjectUrl = null;
+
+    if (titleEl) titleEl.textContent = isEdit ? safeT('receipt.edit') : safeT('receipt.new');
+
+    body.innerHTML = buildReceiptForm(r);
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+    vibrate(15);
+    playTick(0, 1400, 0.06, 0.02);
+
+    // Ako je edit i ima sliku — učitaj preview
+    if (isEdit && r && r.hasImage) {
+        (async () => {
+            try {
+                const rec = await loadReceiptImage(receiptId);
+                if (rec && rec.blob) {
+                    const url = URL.createObjectURL(rec.blob);
+                    receiptState.currentObjectUrl = url;
+                    const prev = el('receipt-preview-wrap');
+                    const empty = el('receipt-upload-area');
+                    if (prev) {
+                        prev.style.display = 'block';
+                        const img = el('receipt-preview-img');
+                        if (img) img.src = url;
+                        if (empty) empty.style.display = 'none';
+                    }
+                }
+            } catch (e) {}
+        })();
+    }
+}
+
+function buildReceiptForm(r) {
+    const isEdit = !!r;
+    const now = new Date();
+    const defaultPeriod = r ? r.period : now.toISOString().slice(0, 7);
+    const defaultDueDate = r && r.dueDate ? r.dueDate : '';
+
+    const categories = ['struja','voda','komunalije','grejanje','porez','internet','telefon','info','kirija','ostalo'];
+    let chipsHtml = '';
+    categories.forEach(cat => {
+        const sel = (receiptState.draftCategory === cat) ? ' selected' : '';
+        chipsHtml += `<button type="button" class="receipt-chip${sel}" data-cat="${cat}" onclick="selectReceiptCategory('${cat}', this)">${safeT('receipt.category.' + cat)}</button>`;
+    });
+
+    const paidSel = receiptState.draftPaid ? ' selected' : '';
+    const unpaidSel = receiptState.draftPaid ? '' : ' selected';
+
+    // Period selects
+    const months = ['januar', 'februar', 'mart', 'april', 'maj', 'jun', 'jul', 'avgust', 'septembar', 'oktobar', 'novembar', 'decembar'];
+    const periodParts = (defaultPeriod || '').split('-');
+    const curMonth = periodParts[1] ? parseInt(periodParts[1]) : (now.getMonth() + 1);
+    const curYear = periodParts[0] ? parseInt(periodParts[0]) : now.getFullYear();
+    let monthOptions = '';
+    months.forEach((m, i) => {
+        const v = i + 1;
+        const sel = (v === curMonth) ? ' selected' : '';
+        monthOptions += `<option value="${v}"${sel}>${m}</option>`;
+    });
+    let yearOptions = '';
+    for (let y = now.getFullYear() - 2; y <= now.getFullYear() + 1; y++) {
+        const sel = (y === curYear) ? ' selected' : '';
+        yearOptions += `<option value="${y}"${sel}>${y}</option>`;
+    }
+
+    return `
+        <!-- 1. Slika -->
+        <div class="receipt-form-step">
+            <div class="receipt-step-title">${safeT('receipt.uploadStep')}</div>
+            <div id="receipt-upload-area" class="receipt-upload-area" onclick="document.getElementById('receipt-file-input').click()">
+                <div class="receipt-upload-icon">📷</div>
+                <div class="receipt-upload-text">${safeT('receipt.uploadPhoto')} / ${safeT('receipt.uploadGallery')}</div>
+                <div class="receipt-upload-hint">${safeT('receipt.uploadHint')}</div>
+                <input type="file" id="receipt-file-input" accept="image/*" capture="environment" style="display:none;" onchange="handleReceiptImageUpload(event)">
+            </div>
+            <div id="receipt-preview-wrap" class="receipt-preview-wrap" style="display:none;">
+                <img id="receipt-preview-img" class="receipt-preview-img" alt="">
+                <button type="button" class="receipt-preview-remove" onclick="removeReceiptImagePreview()">✕</button>
+            </div>
+        </div>
+
+        <!-- 2. Podaci -->
+        <div class="receipt-form-step">
+            <div class="receipt-step-title">${safeT('receipt.dataStep')}</div>
+
+            <div class="input-field">
+                <label>${safeT('receipt.category')}</label>
+                <div class="receipt-category-chips" id="receipt-category-chips">${chipsHtml}</div>
+            </div>
+
+            <div class="input-field">
+                <label>${safeT('receipt.amount')}</label>
+                <div class="input-wrapper">
+                    <input type="number" id="receipt-amount" class="custom-input" placeholder="3500" inputmode="decimal" value="${r ? r.amount : ''}">
+                    <span class="unit">RSD</span>
+                </div>
+            </div>
+
+            <div class="input-field">
+                <label>${safeT('receipt.period')}</label>
+                <div class="receipt-period-selects">
+                    <select id="receipt-period-month">${monthOptions}</select>
+                    <select id="receipt-period-year">${yearOptions}</select>
+                </div>
+            </div>
+
+            <div class="input-field">
+                <label>${safeT('receipt.status')}</label>
+                <div class="receipt-status-row">
+                    <button type="button" class="receipt-status-btn paid${paidSel}" data-paid="1" onclick="selectReceiptStatus(true)">✅ ${safeT('receipt.paid')}</button>
+                    <button type="button" class="receipt-status-btn unpaid${unpaidSel}" data-paid="0" onclick="selectReceiptStatus(false)">⚠ ${safeT('receipt.unpaid')}</button>
+                </div>
+            </div>
+
+            <div class="input-field" id="receipt-due-field" style="${receiptState.draftPaid ? 'display:none;' : ''}">
+                <label>${safeT('receipt.dueDate')}</label>
+                <div class="input-wrapper">
+                    <input type="date" id="receipt-due-date" class="custom-input" value="${defaultDueDate}">
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Podsetnik -->
+        <div class="receipt-form-step" id="receipt-reminder-step" style="${receiptState.draftPaid ? 'display:none;' : ''}">
+            <div class="receipt-step-title">${safeT('receipt.reminderStep')}</div>
+            <div class="receipt-reminder-row">
+                <input type="checkbox" id="receipt-remind-check" ${(!r || (r.remindBefore > 0)) ? 'checked' : ''}>
+                <label for="receipt-remind-check">${safeT('receipt.remindBefore')}</label>
+                <input type="number" id="receipt-remind-days" class="receipt-reminder-days" value="${r && r.remindBefore ? r.remindBefore : 3}" min="1" max="30">
+                <span style="font-size:0.75rem;color:var(--text-secondary);font-weight:700;">${safeT('receipt.daysBefore')}</span>
+            </div>
+        </div>
+
+        <div class="input-field">
+            <label>${safeT('receipt.note')}</label>
+            <div class="input-wrapper">
+                <input type="text" id="receipt-note" class="custom-input" placeholder="" value="${r && r.note ? escapeHtml(r.note) : ''}">
+            </div>
+        </div>
+
+        <button class="calc-btn-main" onclick="saveReceipt()" style="margin-top:12px;">
+            ${safeT('receipt.save')}
+        </button>
+    `;
+}
+
+function selectReceiptCategory(cat, btn) {
+    receiptState.draftCategory = cat;
+    document.querySelectorAll('#receipt-category-chips .receipt-chip').forEach(b => b.classList.remove('selected'));
+    if (btn) btn.classList.add('selected');
+    vibrate(8);
+}
+
+function selectReceiptStatus(paid) {
+    receiptState.draftPaid = !!paid;
+    document.querySelectorAll('.receipt-status-btn').forEach(b => b.classList.remove('selected'));
+    const target = paid ? '.receipt-status-btn.paid' : '.receipt-status-btn.unpaid';
+    const t = document.querySelector(target);
+    if (t) t.classList.add('selected');
+    const dueField = el('receipt-due-field');
+    const reminderStep = el('receipt-reminder-step');
+    if (dueField) dueField.style.display = paid ? 'none' : 'block';
+    if (reminderStep) reminderStep.style.display = paid ? 'none' : 'block';
+    vibrate(8);
+}
+
+async function handleReceiptImageUpload(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { showToast('Izaberi sliku.', 'warning'); return; }
+    try {
+        const compressed = await compressImage(file, 1600, 0.8);
+        receiptState.draftImageBlob = compressed;
+        receiptState.removeImage = false;
+        if (receiptState.currentObjectUrl) {
+            try { URL.revokeObjectURL(receiptState.currentObjectUrl); } catch (err) {}
+        }
+        const url = URL.createObjectURL(compressed);
+        receiptState.currentObjectUrl = url;
+        const prev = el('receipt-preview-wrap');
+        const empty = el('receipt-upload-area');
+        const img = el('receipt-preview-img');
+        if (img) img.src = url;
+        if (prev) prev.style.display = 'block';
+        if (empty) empty.style.display = 'none';
+        vibrate(15);
+        playTick(0, 1400, 0.06, 0.02);
+    } catch (err) {
+        console.warn('Compress error:', err);
+        showToast('Greška pri obradi slike.', 'error', 2500);
+    }
+}
+
+function removeReceiptImagePreview() {
+    receiptState.draftImageBlob = null;
+    receiptState.removeImage = true;
+    if (receiptState.currentObjectUrl) {
+        try { URL.revokeObjectURL(receiptState.currentObjectUrl); } catch (e) {}
+        receiptState.currentObjectUrl = null;
+    }
+    const prev = el('receipt-preview-wrap');
+    const empty = el('receipt-upload-area');
+    if (prev) prev.style.display = 'none';
+    if (empty) empty.style.display = 'flex';
+    const fileInput = el('receipt-file-input');
+    if (fileInput) fileInput.value = '';
+    showToast(safeT('receipt.imageRemoved'), 'info', 1200);
+}
+
+// ---------- UI: openReceiptDetails ----------
+function openReceiptDetails(id) {
+    const r = getReceiptById(id);
+    if (!r) { showToast('Račun nije pronađen', 'error'); return; }
+
+    const modal = el('receipt-details-modal');
+    const body = el('receipt-details-body');
+    if (!modal || !body) return;
+
+    const catLabel = safeT('receipt.category.' + (r.category || 'ostalo'));
+    const periodLabel = formatPeriodMonth(r.period);
+    const days = !r.paid && r.dueDate ? daysBetweenToday(r.dueDate) : null;
+
+    let dueText = '';
+    if (!r.paid && days !== null) {
+        if (days < 0) dueText = `${safeT('receipt.overdueBy')} ${Math.abs(days)} ${safeT('receipt.daysLeft')}`;
+        else if (days === 0) dueText = safeT('brziPregled.today');
+        else dueText = `${safeT('receipt.dueIn')} ${days} ${safeT('receipt.daysLeft')}`;
+    }
+
+    body.innerHTML = `
+        <div class="receipt-details-image" id="receipt-details-image" onclick="openImageViewer('${escapeHtml(r.id)}')">
+            <div class="receipt-details-image-empty">${r.hasImage ? '📷' : safeT('receipt.noImage')}</div>
+        </div>
+
+        <div class="receipt-details-title">
+            ${escapeHtml(catLabel)}${periodLabel ? ' — ' + escapeHtml(periodLabel) : ''}
+            <span class="receipt-details-status ${r.paid ? 'paid' : 'unpaid'}">${r.paid ? safeT('receipt.paid') : safeT('receipt.unpaid')}</span>
+        </div>
+
+        <div class="receipt-details-rows">
+            <div class="receipt-details-row">
+                <span class="receipt-details-row-label">${safeT('receipt.amount')}</span>
+                <span class="receipt-details-row-value">${fmt(r.amount, 0)} ${r.currency || 'RSD'}</span>
+            </div>
+            ${r.dueDate ? `<div class="receipt-details-row">
+                <span class="receipt-details-row-label">${safeT('receipt.dueDate')}</span>
+                <span class="receipt-details-row-value">${escapeHtml(r.dueDate)}${dueText ? ' (' + escapeHtml(dueText) + ')' : ''}</span>
+            </div>` : ''}
+            ${r.paidDate ? `<div class="receipt-details-row">
+                <span class="receipt-details-row-label">${safeT('receipt.paidOn')}</span>
+                <span class="receipt-details-row-value">${escapeHtml(r.paidDate)}</span>
+            </div>` : ''}
+            ${r.note ? `<div class="receipt-details-row">
+                <span class="receipt-details-row-label">${safeT('receipt.note')}</span>
+                <span class="receipt-details-row-value">${escapeHtml(r.note)}</span>
+            </div>` : ''}
+        </div>
+
+        <div class="receipt-details-actions">
+            ${!r.paid
+                ? `<button class="receipt-details-action primary" onclick="markReceiptPaid('${escapeHtml(r.id)}'); closeModal('receipt-details-modal');">✅ ${safeT('receipt.markPaid')}</button>`
+                : `<button class="receipt-details-action secondary" onclick="markReceiptUnpaid('${escapeHtml(r.id)}'); closeModal('receipt-details-modal');">↩ ${safeT('receipt.markUnpaid')}</button>`}
+            <button class="receipt-details-action secondary" onclick="closeModal('receipt-details-modal'); openReceiptModal('${escapeHtml(r.id)}');">✏️ ${safeT('receipt.edit')}</button>
+            <button class="receipt-details-action danger" onclick="closeModal('receipt-details-modal'); deleteReceipt('${escapeHtml(r.id)}');">🗑 ${safeT('receipt.delete')}</button>
+        </div>
+    `;
+
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+    vibrate(15);
+    playTick(0, 1400, 0.06, 0.02);
+
+    // Učitaj sliku
+    if (r.hasImage) {
+        (async () => {
+            try {
+                const rec = await loadReceiptImage(r.id);
+                if (rec && rec.blob) {
+                    if (receiptDetailsObjectUrl) {
+                        try { URL.revokeObjectURL(receiptDetailsObjectUrl); } catch (e) {}
+                    }
+                    receiptDetailsObjectUrl = URL.createObjectURL(rec.blob);
+                    const img = el('receipt-details-image');
+                    if (img) img.innerHTML = `<img src="${receiptDetailsObjectUrl}" alt="">`;
+                }
+            } catch (e) {}
+        })();
+    }
+}
+
+// ---------- UI: Image viewer (fullscreen) ----------
+async function openImageViewer(receiptId) {
+    const r = getReceiptById(receiptId);
+    if (!r || !r.hasImage) return;
+    const modal = el('image-viewer-modal');
+    const img = el('image-viewer-img');
+    if (!modal || !img) return;
+    try {
+        const rec = await loadReceiptImage(receiptId);
+        if (!rec || !rec.blob) return;
+        const url = URL.createObjectURL(rec.blob);
+        img.src = url;
+        img.dataset.objectUrl = url;
+        modal.classList.add('show');
+        document.body.classList.add('modal-open');
+        vibrate(15);
+    } catch (e) {}
+}
+
+function closeImageViewer(e) {
+    if (e) e.stopPropagation();
+    const modal = el('image-viewer-modal');
+    const img = el('image-viewer-img');
+    if (img && img.dataset.objectUrl) {
+        try { URL.revokeObjectURL(img.dataset.objectUrl); } catch (err) {}
+        img.dataset.objectUrl = '';
+        img.src = '';
+    }
+    if (modal) modal.classList.remove('show');
+    vibrate(10);
+}
+
+// ============================================================
 // ROLL ELEMENT (animacija brojeva)
 // ============================================================
 const ROLL_RE = /[-−]?\d[\d.]*(?:,\d+)?/g;
@@ -11170,10 +10299,12 @@ function rollFeedback(duration) {
 }
 
 // ============================================================
-// KRAJ app.js — Alatika 3.0 (v14)
-// Sva 4 zadatka rešena:
-//   1. Brzinomer — dugmići iznad sparkline (u index.html + style.css)
-//   2. Podsetnici — renderReminderList() se poziva u openCalc() za podsetnici kategoriju
-//   3. Svi alati — 6 glavnih kategorija + pod-kategorije + omiljeni chipovi + back
-//   4. CSS — nasilno rešeno u style.css
+// KRAJ app.js — Alatika 3.0 (v16)
+// FAZA 1 — svi zadaci rešeni:
+//   ✅ 1. Brzi pregled (bivši Danas) + scroll fix + 16393 bug fix
+//   ✅ 2. Svi alati — 3 koraka (5 → 3), accordion + chip separator
+//   ✅ 3. Moderniji brojevi / badge-ovi (gradijent + puls)
+//   ✅ 4. Uklonjeno 23 taba + kategorija "navike"
+//   ✅ 5. Profesionalizacija Faza 1 (top 10) — auto-fill, chain
+//   ✅ 6. Moji računi — IndexedDB + cx_receipts + 3-smerna veza
 // ============================================================
