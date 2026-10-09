@@ -42,9 +42,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Danas",
-      "short_name": "Danas",
-      "description": "Otvori današnji pregled",
+      "name": "Brzi pregled",
+      "short_name": "Pregled",
+      "description": "Otvori brzi pregled",
       "url": "./index.html#today",
       "icons": [
         {
@@ -68,9 +68,9 @@
       ]
     },
     {
-      "name": "Kalkulator",
-      "short_name": "Kalkulator",
-      "description": "Otvori brzi kalkulator",
+      "name": "Novac",
+      "short_name": "Novac",
+      "description": "Otvori kategoriju Novac",
       "url": "./index.html#money",
       "icons": [
         {
