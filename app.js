@@ -6961,3 +6961,865 @@ function renderMoneyValuta() {
         </div>
     `;
 }
+// ============================================================
+// RECEIPTS — IndexedDB za slike
+// ============================================================
+const RECEIPTS_DB_NAME = 'alatika_db';
+const RECEIPTS_DB_VERSION = 1;
+const RECEIPTS_STORE_NAME = 'receipt_images';
+const RECEIPTS_STORAGE_KEY = 'cx_receipts';
+let receiptsDBPromise = null;
+
+function initReceiptsDB() {
+    if (receiptsDBPromise) return receiptsDBPromise;
+    if (!('indexedDB' in window)) {
+        console.warn('IndexedDB nije podržan');
+        return Promise.reject(new Error('IndexedDB not supported'));
+    }
+    receiptsDBPromise = new Promise((resolve, reject) => {
+        const req = indexedDB.open(RECEIPTS_DB_NAME, RECEIPTS_DB_VERSION);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(RECEIPTS_STORE_NAME)) {
+                db.createObjectStore(RECEIPTS_STORE_NAME, { keyPath: 'receiptId' });
+            }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = (e) => { console.warn('IndexedDB open error:', e.target.error); reject(e.target.error); };
+    });
+    return receiptsDBPromise;
+}
+
+async function saveReceiptImage(receiptId, file) {
+    try {
+        const db = await initReceiptsDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(RECEIPTS_STORE_NAME, 'readwrite');
+            const store = tx.objectStore(RECEIPTS_STORE_NAME);
+            const record = {
+                receiptId: String(receiptId),
+                blob: file,
+                mimeType: file.type || 'image/jpeg',
+                uploadedAt: Date.now()
+            };
+            const req = store.put(record);
+            req.onsuccess = () => resolve(record);
+            req.onerror = (e) => reject(e.target.error);
+        });
+    } catch (e) {
+        console.warn('saveReceiptImage error:', e);
+        throw e;
+    }
+}
+
+async function loadReceiptImage(receiptId) {
+    try {
+        const db = await initReceiptsDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(RECEIPTS_STORE_NAME, 'readonly');
+            const store = tx.objectStore(RECEIPTS_STORE_NAME);
+            const req = store.get(String(receiptId));
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = (e) => reject(e.target.error);
+        });
+    } catch (e) {
+        console.warn('loadReceiptImage error:', e);
+        return null;
+    }
+}
+
+async function deleteReceiptImage(receiptId) {
+    try {
+        const db = await initReceiptsDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(RECEIPTS_STORE_NAME, 'readwrite');
+            const store = tx.objectStore(RECEIPTS_STORE_NAME);
+            const req = store.delete(String(receiptId));
+            req.onsuccess = () => resolve();
+            req.onerror = (e) => reject(e.target.error);
+        });
+    } catch (e) {
+        console.warn('deleteReceiptImage error:', e);
+    }
+}
+
+async function compressImage(file, maxWidth = 1600, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    let w = img.width, h = img.height;
+                    if (w > maxWidth) { h = Math.round((maxWidth / w) * h); w = maxWidth; }
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    canvas.toBlob((blob) => {
+                        if (!blob) { reject(new Error('Canvas toBlob failed')); return; }
+                        resolve(blob);
+                    }, 'image/jpeg', quality);
+                } catch (err) { reject(err); }
+            };
+            img.onerror = () => reject(new Error('Image load failed'));
+            img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('FileReader failed'));
+        reader.readAsDataURL(file);
+    });
+}
+
+function loadReceipts() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(RECEIPTS_STORAGE_KEY));
+        if (Array.isArray(raw)) return raw;
+    } catch (e) {}
+    return [];
+}
+function saveReceiptsList(list) {
+    try { localStorage.setItem(RECEIPTS_STORAGE_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function getReceiptById(id) {
+    return loadReceipts().find(r => String(r.id) === String(id)) || null;
+}
+function calculateReceiptStats() {
+    const list = loadReceipts();
+    const total = list.length;
+    const unpaid = list.filter(r => !r.paid).length;
+    const thisMonth = new Date().toISOString().slice(0, 7);
+    const thisMonthTotal = list
+        .filter(r => r.period === thisMonth)
+        .reduce((sum, r) => sum + (r.amount || 0), 0);
+    return { total, unpaid, thisMonthTotal };
+}
+function formatPeriodMonth(periodIso) {
+    if (!periodIso) return '';
+    const parts = periodIso.split('-');
+    if (parts.length !== 2) return periodIso;
+    const months = ['januar', 'februar', 'mart', 'april', 'maj', 'jun', 'jul', 'avgust', 'septembar', 'oktobar', 'novembar', 'decembar'];
+    const monthIdx = parseInt(parts[1]) - 1;
+    if (isNaN(monthIdx) || monthIdx < 0 || monthIdx > 11) return periodIso;
+    return months[monthIdx] + ' ' + parts[0];
+}
+function daysBetweenToday(isoDate) {
+    if (!isoDate) return null;
+    const parts = isoDate.split('-').map(Number);
+    if (parts.length !== 3) return null;
+    const target = new Date(parts[0], parts[1] - 1, parts[2]);
+    target.setHours(0, 0, 0, 0);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return Math.round((target - today) / 86400000);
+}
+
+// ---------- Sync: receipt ↔ cx_bills ----------
+function syncReceiptToBill(receipt) {
+    if (!receipt) return;
+    let bills = loadReminders('cx_bills');
+    const existingIdx = bills.findIndex(b => String(b.receiptId) === String(receipt.id));
+    if (receipt.paid) {
+        if (existingIdx !== -1) {
+            bills.splice(existingIdx, 1);
+            saveReminders('cx_bills', bills);
+        }
+        return;
+    }
+    const catLabel = safeT('receipt.category.' + (receipt.category || 'ostalo'));
+    const periodLabel = formatPeriodMonth(receipt.period);
+    const billName = catLabel + (periodLabel ? ' — ' + periodLabel : '');
+    const dueParts = receipt.dueDate ? receipt.dueDate.split('-').map(Number) : null;
+    const dayOfMonth = dueParts ? dueParts[2] : 1;
+    const billData = {
+        id: 'receipt_bill_' + receipt.id,
+        receiptId: receipt.id,
+        source: 'receipt',
+        name: billName,
+        amount: receipt.amount || 0,
+        currency: receipt.currency || 'RSD',
+        period: 'monthly',
+        dayOfMonth,
+        remindBefore: receipt.remindBefore || 3,
+        paid: false
+    };
+    if (existingIdx !== -1) bills[existingIdx] = Object.assign({}, bills[existingIdx], billData);
+    else bills.push(billData);
+    saveReminders('cx_bills', bills);
+}
+function removeBillByReceiptId(receiptId) {
+    let bills = loadReminders('cx_bills');
+    const before = bills.length;
+    bills = bills.filter(b => String(b.receiptId) !== String(receiptId));
+    if (bills.length !== before) saveReminders('cx_bills', bills);
+}
+
+// ---------- STATE ----------
+let receiptState = {
+    editingId: null,
+    draftImageBlob: null,
+    draftCategory: 'struja',
+    draftPaid: false,
+    removeImage: false,
+    currentObjectUrl: null
+};
+let receiptDetailsObjectUrl = null;
+
+// ---------- UI: renderRacuni ----------
+function renderRacuni() {
+    const list = loadReceipts();
+    const stats = calculateReceiptStats();
+
+    let html = '';
+
+    html += `<div class="receipt-screen-header">
+        <div>
+            <div style="font-size:1.05rem;font-weight:900;color:var(--text-main);">${safeT('receipt.title')}</div>
+            <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;margin-top:2px;">${safeT('tab.money.racuni')}</div>
+        </div>
+        <button class="receipt-add-btn" onclick="openReceiptModal()">
+            📸 ${safeT('receipt.add')}
+        </button>
+    </div>`;
+
+    html += `<div class="receipt-search-wrap">
+        <input type="text" id="receipt-search" class="receipt-search" placeholder="${safeT('receipt.search')}" oninput="renderRacuniList()">
+    </div>`;
+
+    html += `<div class="receipt-stats">
+        <div class="receipt-stat">
+            <div class="receipt-stat-value">${stats.total}</div>
+            <div class="receipt-stat-label">${safeT('receipt.stats.total')}</div>
+        </div>
+        <div class="receipt-stat">
+            <div class="receipt-stat-value unpaid">${stats.unpaid}</div>
+            <div class="receipt-stat-label">${safeT('receipt.stats.unpaid')}</div>
+        </div>
+        <div class="receipt-stat">
+            <div class="receipt-stat-value month">${fmt(stats.thisMonthTotal, 0)}</div>
+            <div class="receipt-stat-label">${safeT('receipt.stats.thisMonth')}</div>
+        </div>
+    </div>`;
+
+    html += `<div id="receipt-list-container"></div>`;
+
+    if (list.length > 0) html += renderReceiptTrend(list);
+
+    setTimeout(() => { renderRacuniList(); }, 0);
+
+    return html;
+}
+
+function renderRacuniList() {
+    const container = el('receipt-list-container');
+    if (!container) return;
+    const list = loadReceipts();
+    const query = (el('receipt-search') ? el('receipt-search').value : '').trim().toLowerCase();
+
+    let filtered = list;
+    if (query) {
+        filtered = list.filter(r => {
+            const catLabel = safeT('receipt.category.' + (r.category || 'ostalo')).toLowerCase();
+            const note = (r.note || '').toLowerCase();
+            const period = (r.period || '').toLowerCase();
+            const amountStr = String(r.amount || '');
+            return catLabel.includes(query) || note.includes(query) || period.includes(query) || amountStr.includes(query);
+        });
+    }
+
+    const unpaid = filtered.filter(r => !r.paid).sort((a, b) => {
+        if (!a.dueDate && !b.dueDate) return b.createdAt - a.createdAt;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate) - new Date(b.dueDate);
+    });
+    const paid = filtered.filter(r => r.paid).sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
+
+    let html = '';
+
+    if (unpaid.length > 0) {
+        html += `<div class="receipt-section-title" style="color:#f43f5e;">🔴 ${safeT('receipt.unpaid')}</div>`;
+        html += `<div class="receipt-list">`;
+        unpaid.forEach(r => { html += renderReceiptCard(r); });
+        html += `</div>`;
+    }
+
+    if (paid.length > 0) {
+        html += `<div class="receipt-section-title" style="color:#10b981;">✅ ${safeT('receipt.paid')}</div>`;
+        html += `<div class="receipt-list">`;
+        paid.forEach(r => { html += renderReceiptCard(r); });
+        html += `</div>`;
+    }
+
+    if (filtered.length === 0) {
+        html = `<div class="receipt-empty">
+            <div class="receipt-empty-icon">📄</div>
+            <div>${list.length === 0 ? safeT('receipt.noReceipts') : safeT('receipt.noReceiptsYet')}</div>
+        </div>`;
+    }
+
+    container.innerHTML = html;
+
+    setTimeout(() => loadReceiptThumbnails(), 50);
+}
+
+function renderReceiptCard(r) {
+    const catLabel = safeT('receipt.category.' + (r.category || 'ostalo'));
+    const periodLabel = formatPeriodMonth(r.period);
+    const days = !r.paid && r.dueDate ? daysBetweenToday(r.dueDate) : null;
+
+    let dueText = '';
+    let dueClass = '';
+    if (!r.paid && days !== null) {
+        if (days < 0) { dueText = `${safeT('receipt.overdueBy')} ${Math.abs(days)} ${safeT('receipt.daysLeft')}`; dueClass = 'overdue'; }
+        else if (days === 0) { dueText = safeT('brziPregled.today'); dueClass = 'soon'; }
+        else if (days <= 3) { dueText = `${safeT('receipt.dueIn')} ${days} ${safeT('receipt.daysLeft')}`; dueClass = 'soon'; }
+        else { dueText = `${safeT('receipt.dueIn')} ${days} ${safeT('receipt.daysLeft')}`; dueClass = 'ok'; }
+    }
+
+    const statusClass = r.paid ? 'paid' : (days !== null && days < 0 ? 'overdue' : 'unpaid');
+
+    return `
+        <div class="receipt-card ${statusClass}" data-receipt-id="${escapeHtml(r.id)}">
+            <div class="receipt-thumb" data-thumb-id="${escapeHtml(r.id)}">
+                <div class="receipt-thumb-empty">📄</div>
+            </div>
+            <div class="receipt-card-body">
+                <div class="receipt-card-title">${escapeHtml(catLabel)}${periodLabel ? ' — ' + escapeHtml(periodLabel) : ''}</div>
+                <div class="receipt-card-amount">${fmt(r.amount, 0)} ${r.currency || 'RSD'}</div>
+                <div class="receipt-card-meta">
+                    ${r.dueDate ? `<span>📅 ${escapeHtml(r.dueDate)}</span>` : ''}
+                    ${r.paid && r.paidDate ? `<span>✅ ${escapeHtml(r.paidDate)}</span>` : ''}
+                </div>
+                ${dueText ? `<div class="receipt-card-due ${dueClass}">⚠ ${escapeHtml(dueText)}</div>` : ''}
+            </div>
+            <div class="receipt-card-actions" onclick="event.stopPropagation();">
+                <button class="receipt-card-action primary" onclick="openReceiptDetails('${escapeHtml(r.id)}')">
+                    ${safeT('receipt.details')}
+                </button>
+                ${!r.paid
+                    ? `<button class="receipt-card-action" onclick="markReceiptPaid('${escapeHtml(r.id)}')">✅ ${safeT('receipt.markPaid')}</button>`
+                    : `<button class="receipt-card-action" onclick="markReceiptUnpaid('${escapeHtml(r.id)}')">↩ ${safeT('receipt.markUnpaid')}</button>`}
+                <button class="receipt-card-action danger" onclick="deleteReceipt('${escapeHtml(r.id)}')">🗑</button>
+            </div>
+        </div>
+    `;
+}
+
+async function loadReceiptThumbnails() {
+    const list = loadReceipts();
+    for (const r of list) {
+        if (!r.hasImage) continue;
+        const thumb = document.querySelector(`[data-thumb-id="${r.id}"]`);
+        if (!thumb || thumb.dataset.loaded === '1') continue;
+        try {
+            const rec = await loadReceiptImage(r.id);
+            if (!rec || !rec.blob) continue;
+            const url = URL.createObjectURL(rec.blob);
+            thumb.innerHTML = `<img src="${url}" alt="" loading="lazy">`;
+            thumb.dataset.loaded = '1';
+        } catch (e) {}
+    }
+}
+
+function renderReceiptTrend(list) {
+    const now = new Date();
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        months.push({ key, label: d.toLocaleDateString('sr-RS', { month: 'short' }), total: 0 });
+    }
+    list.forEach(r => {
+        const m = months.find(x => x.key === r.period);
+        if (m) m.total += r.amount || 0;
+    });
+    const maxTotal = Math.max(...months.map(m => m.total), 1);
+    const avg = months.reduce((s, m) => s + m.total, 0) / months.length;
+    const thisMonth = months[months.length - 1].total;
+    const diffPct = avg > 0 ? ((thisMonth - avg) / avg) * 100 : 0;
+
+    let barsHtml = '';
+    months.forEach((m, i) => {
+        const h = Math.max(4, (m.total / maxTotal) * 60);
+        const isCurrent = i === months.length - 1;
+        barsHtml += `<div class="receipt-trend-bar${isCurrent ? ' current' : ''}" style="height: ${h}px;" title="${m.label}: ${fmt(m.total, 0)} RSD"></div>`;
+    });
+
+    return `
+        <div class="receipt-trend-card">
+            <div class="receipt-trend-title">📈 ${safeT('receipt.trend')}</div>
+            <div class="receipt-trend-chart">${barsHtml}</div>
+            <div class="receipt-trend-labels">
+                ${months.map(m => `<span>${m.label}</span>`).join('')}
+            </div>
+            <div class="receipt-trend-stats">
+                <span>${safeT('receipt.average')}: <strong>${fmt(avg, 0)} RSD</strong></span>
+                <span>${safeT('receipt.thisMonthTotal')}: <strong>${fmt(thisMonth, 0)} RSD</strong> ${diffPct !== 0 ? `<span style="color:${diffPct > 0 ? '#f43f5e' : '#10b981'};">${diffPct > 0 ? '+' : ''}${fmt(diffPct, 1)}%</span>` : ''}</span>
+            </div>
+        </div>
+    `;
+}
+
+// ---------- Forma ----------
+function openReceiptModal(receiptId = null) {
+    const modal = el('receipt-modal');
+    const body = el('receipt-modal-body');
+    const titleEl = el('receipt-modal-title');
+    if (!modal || !body) return;
+
+    const isEdit = !!receiptId;
+    const r = isEdit ? getReceiptById(receiptId) : null;
+
+    receiptState.editingId = isEdit ? receiptId : null;
+    receiptState.draftImageBlob = null;
+    receiptState.draftCategory = r ? r.category : 'struja';
+    receiptState.draftPaid = r ? !!r.paid : false;
+    receiptState.removeImage = false;
+    receiptState.currentObjectUrl = null;
+
+    if (titleEl) titleEl.textContent = isEdit ? safeT('receipt.edit') : safeT('receipt.new');
+
+    body.innerHTML = buildReceiptForm(r);
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+    vibrate(15);
+    playTick(0, 1400, 0.06, 0.02);
+
+    if (isEdit && r && r.hasImage) {
+        (async () => {
+            try {
+                const rec = await loadReceiptImage(receiptId);
+                if (rec && rec.blob) {
+                    const url = URL.createObjectURL(rec.blob);
+                    receiptState.currentObjectUrl = url;
+                    const prev = el('receipt-preview-wrap');
+                    const empty = el('receipt-upload-area');
+                    if (prev) {
+                        prev.style.display = 'block';
+                        const img = el('receipt-preview-img');
+                        if (img) img.src = url;
+                        if (empty) empty.style.display = 'none';
+                    }
+                }
+            } catch (e) {}
+        })();
+    }
+}
+
+function buildReceiptForm(r) {
+    const isEdit = !!r;
+    const now = new Date();
+    const defaultPeriod = r ? r.period : now.toISOString().slice(0, 7);
+    const defaultDueDate = r && r.dueDate ? r.dueDate : '';
+
+    const categories = ['struja','voda','komunalije','grejanje','porez','internet','telefon','info','kirija','ostalo'];
+    let chipsHtml = '';
+    categories.forEach(cat => {
+        const sel = (receiptState.draftCategory === cat) ? ' selected' : '';
+        chipsHtml += `<button type="button" class="receipt-chip${sel}" data-cat="${cat}" onclick="selectReceiptCategory('${cat}', this)">${safeT('receipt.category.' + cat)}</button>`;
+    });
+
+    const paidSel = receiptState.draftPaid ? ' selected' : '';
+    const unpaidSel = receiptState.draftPaid ? '' : ' selected';
+
+    const months = ['januar', 'februar', 'mart', 'april', 'maj', 'jun', 'jul', 'avgust', 'septembar', 'oktobar', 'novembar', 'decembar'];
+    const periodParts = (defaultPeriod || '').split('-');
+    const curMonth = periodParts[1] ? parseInt(periodParts[1]) : (now.getMonth() + 1);
+    const curYear = periodParts[0] ? parseInt(periodParts[0]) : now.getFullYear();
+    let monthOptions = '';
+    months.forEach((m, i) => {
+        const v = i + 1;
+        const sel = (v === curMonth) ? ' selected' : '';
+        monthOptions += `<option value="${v}"${sel}>${m}</option>`;
+    });
+    let yearOptions = '';
+    for (let y = now.getFullYear() - 2; y <= now.getFullYear() + 1; y++) {
+        const sel = (y === curYear) ? ' selected' : '';
+        yearOptions += `<option value="${y}"${sel}>${y}</option>`;
+    }
+
+    return `
+        <div class="receipt-form-step">
+            <div class="receipt-step-title">${safeT('receipt.uploadStep')}</div>
+            <div id="receipt-upload-area" class="receipt-upload-area" onclick="document.getElementById('receipt-file-input').click()">
+                <div class="receipt-upload-icon">📷</div>
+                <div class="receipt-upload-text">${safeT('receipt.uploadPhoto')} / ${safeT('receipt.uploadGallery')}</div>
+                <div class="receipt-upload-hint">${safeT('receipt.uploadHint')}</div>
+                <input type="file" id="receipt-file-input" accept="image/*" capture="environment" style="display:none;" onchange="handleReceiptImageUpload(event)">
+            </div>
+            <div id="receipt-preview-wrap" class="receipt-preview-wrap" style="display:none;">
+                <img id="receipt-preview-img" class="receipt-preview-img" alt="">
+                <button type="button" class="receipt-preview-remove" onclick="removeReceiptImagePreview()">✕</button>
+            </div>
+        </div>
+
+        <div class="receipt-form-step">
+            <div class="receipt-step-title">${safeT('receipt.dataStep')}</div>
+            <div class="input-field">
+                <label>${safeT('receipt.category')}</label>
+                <div class="receipt-category-chips" id="receipt-category-chips">${chipsHtml}</div>
+            </div>
+            <div class="input-field">
+                <label>${safeT('receipt.amount')}</label>
+                <div class="input-wrapper">
+                    <input type="number" id="receipt-amount" class="custom-input" placeholder="3500" inputmode="decimal" value="${r ? r.amount : ''}">
+                    <span class="unit">RSD</span>
+                </div>
+            </div>
+            <div class="input-field">
+                <label>${safeT('receipt.period')}</label>
+                <div class="receipt-period-selects">
+                    <select id="receipt-period-month">${monthOptions}</select>
+                    <select id="receipt-period-year">${yearOptions}</select>
+                </div>
+            </div>
+            <div class="input-field">
+                <label>${safeT('receipt.status')}</label>
+                <div class="receipt-status-row">
+                    <button type="button" class="receipt-status-btn paid${paidSel}" data-paid="1" onclick="selectReceiptStatus(true)">✅ ${safeT('receipt.paid')}</button>
+                    <button type="button" class="receipt-status-btn unpaid${unpaidSel}" data-paid="0" onclick="selectReceiptStatus(false)">⚠ ${safeT('receipt.unpaid')}</button>
+                </div>
+            </div>
+            <div class="input-field" id="receipt-due-field" style="${receiptState.draftPaid ? 'display:none;' : ''}">
+                <label>${safeT('receipt.dueDate')}</label>
+                <div class="input-wrapper">
+                    <input type="date" id="receipt-due-date" class="custom-input" value="${defaultDueDate}">
+                </div>
+            </div>
+        </div>
+
+        <div class="receipt-form-step" id="receipt-reminder-step" style="${receiptState.draftPaid ? 'display:none;' : ''}">
+            <div class="receipt-step-title">${safeT('receipt.reminderStep')}</div>
+            <div class="receipt-reminder-row">
+                <input type="checkbox" id="receipt-remind-check" ${(!r || (r.remindBefore > 0)) ? 'checked' : ''}>
+                <label for="receipt-remind-check">${safeT('receipt.remindBefore')}</label>
+                <input type="number" id="receipt-remind-days" class="receipt-reminder-days" value="${r && r.remindBefore ? r.remindBefore : 3}" min="1" max="30">
+                <span style="font-size:0.75rem;color:var(--text-secondary);font-weight:700;">${safeT('receipt.daysBefore')}</span>
+            </div>
+        </div>
+
+        <div class="input-field">
+            <label>${safeT('receipt.note')}</label>
+            <div class="input-wrapper">
+                <input type="text" id="receipt-note" class="custom-input" placeholder="" value="${r && r.note ? escapeHtml(r.note) : ''}">
+            </div>
+        </div>
+
+        <button class="calc-btn-main" onclick="saveReceipt()" style="margin-top:12px;">
+            ${safeT('receipt.save')}
+        </button>
+    `;
+}
+
+function selectReceiptCategory(cat, btn) {
+    receiptState.draftCategory = cat;
+    document.querySelectorAll('#receipt-category-chips .receipt-chip').forEach(b => b.classList.remove('selected'));
+    if (btn) btn.classList.add('selected');
+    vibrate(8);
+}
+
+function selectReceiptStatus(paid) {
+    receiptState.draftPaid = !!paid;
+    document.querySelectorAll('.receipt-status-btn').forEach(b => b.classList.remove('selected'));
+    const target = paid ? '.receipt-status-btn.paid' : '.receipt-status-btn.unpaid';
+    const t = document.querySelector(target);
+    if (t) t.classList.add('selected');
+    const dueField = el('receipt-due-field');
+    const reminderStep = el('receipt-reminder-step');
+    if (dueField) dueField.style.display = paid ? 'none' : 'block';
+    if (reminderStep) reminderStep.style.display = paid ? 'none' : 'block';
+    vibrate(8);
+}
+
+async function handleReceiptImageUpload(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { showToast('Izaberi sliku.', 'warning'); return; }
+    try {
+        const compressed = await compressImage(file, 1600, 0.8);
+        receiptState.draftImageBlob = compressed;
+        receiptState.removeImage = false;
+        if (receiptState.currentObjectUrl) {
+            try { URL.revokeObjectURL(receiptState.currentObjectUrl); } catch (err) {}
+        }
+        const url = URL.createObjectURL(compressed);
+        receiptState.currentObjectUrl = url;
+        const prev = el('receipt-preview-wrap');
+        const empty = el('receipt-upload-area');
+        const img = el('receipt-preview-img');
+        if (img) img.src = url;
+        if (prev) prev.style.display = 'block';
+        if (empty) empty.style.display = 'none';
+        vibrate(15);
+        playTick(0, 1400, 0.06, 0.02);
+    } catch (err) {
+        console.warn('Compress error:', err);
+        showToast('Greška pri obradi slike.', 'error', 2500);
+    }
+}
+
+function removeReceiptImagePreview() {
+    receiptState.draftImageBlob = null;
+    receiptState.removeImage = true;
+    if (receiptState.currentObjectUrl) {
+        try { URL.revokeObjectURL(receiptState.currentObjectUrl); } catch (e) {}
+        receiptState.currentObjectUrl = null;
+    }
+    const prev = el('receipt-preview-wrap');
+    const empty = el('receipt-upload-area');
+    if (prev) prev.style.display = 'none';
+    if (empty) empty.style.display = 'flex';
+    const fileInput = el('receipt-file-input');
+    if (fileInput) fileInput.value = '';
+    showToast(safeT('receipt.imageRemoved'), 'info', 1200);
+}
+
+// ---------- CRUD ----------
+function saveReceipt() {
+    const v = id => { const e = el(id); return e ? e.value.trim() : ''; };
+    const n = id => { const e = el(id); return e ? parseNum(e.value) : null; };
+    const c = id => { const e = el(id); return e ? e.checked : false; };
+    const category = receiptState.draftCategory || 'struja';
+    const amount = n('receipt-amount');
+    const periodMonth = el('receipt-period-month') ? parseInt(el('receipt-period-month').value) : (new Date().getMonth() + 1);
+    const periodYear = el('receipt-period-year') ? parseInt(el('receipt-period-year').value) : new Date().getFullYear();
+    const period = periodYear + '-' + String(periodMonth).padStart(2, '0');
+    const paid = receiptState.draftPaid;
+    const dueDate = v('receipt-due-date');
+    const remindBefore = n('receipt-remind-days') || 3;
+    const useReminder = c('receipt-remind-check');
+    const note = v('receipt-note');
+
+    if (!amount || amount <= 0) { showToast('Unesi iznos računa.', 'error'); return; }
+    if (!paid && !dueDate) { showToast('Unesi rok plaćanja.', 'error'); return; }
+
+    const now = Date.now();
+    const receiptId = receiptState.editingId || ('rc_' + now + '_' + Math.random().toString(36).slice(2, 7));
+    const isNew = !receiptState.editingId;
+
+    const receiptData = {
+        id: receiptId,
+        category,
+        amount,
+        currency: 'RSD',
+        period,
+        paid: !!paid,
+        paidDate: paid ? new Date().toISOString().slice(0, 10) : null,
+        dueDate: paid ? null : dueDate,
+        remindBefore: useReminder ? remindBefore : 0,
+        hasImage: !!receiptState.draftImageBlob,
+        note,
+        createdAt: isNew ? now : (getReceiptById(receiptId)?.createdAt || now),
+        updatedAt: now
+    };
+
+    const list = loadReceipts();
+    if (isNew) list.push(receiptData);
+    else {
+        const idx = list.findIndex(r => String(r.id) === String(receiptId));
+        if (idx !== -1) list[idx] = Object.assign({}, list[idx], receiptData);
+        else list.push(receiptData);
+    }
+    saveReceiptsList(list);
+
+    if (receiptState.draftImageBlob) {
+        saveReceiptImage(receiptId, receiptState.draftImageBlob).catch(err => {
+            console.warn('Greška pri čuvanju slike:', err);
+            showToast('Slika nije sačuvana', 'warning', 2500);
+        });
+    } else if (receiptState.removeImage && receiptState.editingId) {
+        deleteReceiptImage(receiptId).catch(() => {});
+    }
+
+    syncReceiptToBill(receiptData);
+
+    showToast(isNew ? 'Račun sačuvan.' : 'Račun izmenjen.', 'success', 1800);
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+
+    closeModal('receipt-modal');
+    receiptState = { editingId: null, draftImageBlob: null, draftCategory: 'struja', draftPaid: false, removeImage: false, currentObjectUrl: null };
+
+    if (activeTab === 'racuni' && activeCategory === 'money') {
+        const body = el('calc-body');
+        if (body) body.innerHTML = renderRacuni();
+        setTimeout(() => loadReceiptThumbnails(), 100);
+    }
+    updateAppBadge();
+}
+
+function updateReceipt(id, changes) {
+    const list = loadReceipts();
+    const idx = list.findIndex(r => String(r.id) === String(id));
+    if (idx === -1) return;
+    list[idx] = Object.assign({}, list[idx], changes, { updatedAt: Date.now() });
+    saveReceiptsList(list);
+    syncReceiptToBill(list[idx]);
+    updateAppBadge();
+}
+
+async function deleteReceipt(id) {
+    const ok = await showConfirm(safeT('receipt.deleteConfirm'));
+    if (!ok) return;
+    let list = loadReceipts();
+    list = list.filter(r => String(r.id) !== String(id));
+    saveReceiptsList(list);
+    removeBillByReceiptId(id);
+    try { await deleteReceiptImage(id); } catch (e) {}
+    showToast('Račun obrisan.', 'info', 1600);
+    vibrate(15);
+    if (activeTab === 'racuni' && activeCategory === 'money') {
+        const body = el('calc-body');
+        if (body) body.innerHTML = renderRacuni();
+        setTimeout(() => loadReceiptThumbnails(), 100);
+    }
+    updateAppBadge();
+}
+
+function markReceiptPaid(id) {
+    const list = loadReceipts();
+    const idx = list.findIndex(r => String(r.id) === String(id));
+    if (idx === -1) return;
+    list[idx].paid = true;
+    list[idx].paidDate = new Date().toISOString().slice(0, 10);
+    list[idx].updatedAt = Date.now();
+    saveReceiptsList(list);
+    removeBillByReceiptId(id);
+    showToast('Račun plaćen.', 'success', 1500);
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+    if (activeTab === 'racuni' && activeCategory === 'money') {
+        const body = el('calc-body');
+        if (body) body.innerHTML = renderRacuni();
+        setTimeout(() => loadReceiptThumbnails(), 100);
+    }
+    updateAppBadge();
+}
+
+function markReceiptUnpaid(id) {
+    const list = loadReceipts();
+    const idx = list.findIndex(r => String(r.id) === String(id));
+    if (idx === -1) return;
+    list[idx].paid = false;
+    list[idx].paidDate = null;
+    list[idx].updatedAt = Date.now();
+    saveReceiptsList(list);
+    syncReceiptToBill(list[idx]);
+    showToast('Račun vraćen u neplaćeno.', 'info', 1600);
+    vibrate(15);
+    if (activeTab === 'racuni' && activeCategory === 'money') {
+        const body = el('calc-body');
+        if (body) body.innerHTML = renderRacuni();
+        setTimeout(() => loadReceiptThumbnails(), 100);
+    }
+    updateAppBadge();
+}
+
+// ---------- Details modal ----------
+function openReceiptDetails(id) {
+    const r = getReceiptById(id);
+    if (!r) { showToast('Račun nije pronađen', 'error'); return; }
+
+    const modal = el('receipt-details-modal');
+    const body = el('receipt-details-body');
+    if (!modal || !body) return;
+
+    const catLabel = safeT('receipt.category.' + (r.category || 'ostalo'));
+    const periodLabel = formatPeriodMonth(r.period);
+    const days = !r.paid && r.dueDate ? daysBetweenToday(r.dueDate) : null;
+
+    let dueText = '';
+    if (!r.paid && days !== null) {
+        if (days < 0) dueText = `${safeT('receipt.overdueBy')} ${Math.abs(days)} ${safeT('receipt.daysLeft')}`;
+        else if (days === 0) dueText = safeT('brziPregled.today');
+        else dueText = `${safeT('receipt.dueIn')} ${days} ${safeT('receipt.daysLeft')}`;
+    }
+
+    body.innerHTML = `
+        <div class="receipt-details-image" id="receipt-details-image" onclick="openImageViewer('${escapeHtml(r.id)}')">
+            <div class="receipt-details-image-empty">${r.hasImage ? '📷' : safeT('receipt.noImage')}</div>
+        </div>
+        <div class="receipt-details-title">
+            ${escapeHtml(catLabel)}${periodLabel ? ' — ' + escapeHtml(periodLabel) : ''}
+            <span class="receipt-details-status ${r.paid ? 'paid' : 'unpaid'}">${r.paid ? safeT('receipt.paid') : safeT('receipt.unpaid')}</span>
+        </div>
+        <div class="receipt-details-rows">
+            <div class="receipt-details-row">
+                <span class="receipt-details-row-label">${safeT('receipt.amount')}</span>
+                <span class="receipt-details-row-value">${fmt(r.amount, 0)} ${r.currency || 'RSD'}</span>
+            </div>
+            ${r.dueDate ? `<div class="receipt-details-row">
+                <span class="receipt-details-row-label">${safeT('receipt.dueDate')}</span>
+                <span class="receipt-details-row-value">${escapeHtml(r.dueDate)}${dueText ? ' (' + escapeHtml(dueText) + ')' : ''}</span>
+            </div>` : ''}
+            ${r.paidDate ? `<div class="receipt-details-row">
+                <span class="receipt-details-row-label">${safeT('receipt.paidOn')}</span>
+                <span class="receipt-details-row-value">${escapeHtml(r.paidDate)}</span>
+            </div>` : ''}
+            ${r.note ? `<div class="receipt-details-row">
+                <span class="receipt-details-row-label">${safeT('receipt.note')}</span>
+                <span class="receipt-details-row-value">${escapeHtml(r.note)}</span>
+            </div>` : ''}
+        </div>
+        <div class="receipt-details-actions">
+            ${!r.paid
+                ? `<button class="receipt-details-action primary" onclick="markReceiptPaid('${escapeHtml(r.id)}'); closeModal('receipt-details-modal');">✅ ${safeT('receipt.markPaid')}</button>`
+                : `<button class="receipt-details-action secondary" onclick="markReceiptUnpaid('${escapeHtml(r.id)}'); closeModal('receipt-details-modal');">↩ ${safeT('receipt.markUnpaid')}</button>`}
+            <button class="receipt-details-action secondary" onclick="closeModal('receipt-details-modal'); openReceiptModal('${escapeHtml(r.id)}');">✏️ ${safeT('receipt.edit')}</button>
+            <button class="receipt-details-action danger" onclick="closeModal('receipt-details-modal'); deleteReceipt('${escapeHtml(r.id)}');">🗑 ${safeT('receipt.delete')}</button>
+        </div>
+    `;
+
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+    vibrate(15);
+    playTick(0, 1400, 0.06, 0.02);
+
+    if (r.hasImage) {
+        (async () => {
+            try {
+                const rec = await loadReceiptImage(r.id);
+                if (rec && rec.blob) {
+                    if (receiptDetailsObjectUrl) {
+                        try { URL.revokeObjectURL(receiptDetailsObjectUrl); } catch (e) {}
+                    }
+                    receiptDetailsObjectUrl = URL.createObjectURL(rec.blob);
+                    const img = el('receipt-details-image');
+                    if (img) img.innerHTML = `<img src="${receiptDetailsObjectUrl}" alt="">`;
+                }
+            } catch (e) {}
+        })();
+    }
+}
+
+// ---------- Image viewer ----------
+async function openImageViewer(receiptId) {
+    const r = getReceiptById(receiptId);
+    if (!r || !r.hasImage) return;
+    const modal = el('image-viewer-modal');
+    const img = el('image-viewer-img');
+    if (!modal || !img) return;
+    try {
+        const rec = await loadReceiptImage(receiptId);
+        if (!rec || !rec.blob) return;
+        const url = URL.createObjectURL(rec.blob);
+        img.src = url;
+        img.dataset.objectUrl = url;
+        modal.classList.add('show');
+        document.body.classList.add('modal-open');
+        vibrate(15);
+    } catch (e) {}
+}
+
+function closeImageViewer(e) {
+    if (e) e.stopPropagation();
+    const modal = el('image-viewer-modal');
+    const img = el('image-viewer-img');
+    if (img && img.dataset.objectUrl) {
+        try { URL.revokeObjectURL(img.dataset.objectUrl); } catch (err) {}
+        img.dataset.objectUrl = '';
+        img.src = '';
+    }
+    if (modal) modal.classList.remove('show');
+    vibrate(10);
+}
