@@ -8396,9 +8396,7 @@ input[type="text"].custom-input::placeholder {
     position: relative;
     overflow: visible;
     -webkit-tap-highlight-color: transparent;
-   z-index: 10;
-   pointer-events: auto;
-}
+   }
 .all-tools-subcat-chip-btn:hover {
     transform: translateY(-1px);
     border-color: color-mix(in srgb, var(--qt-accent, var(--accent-primary)) 60%, var(--border-strong));
@@ -8676,25 +8674,6 @@ input[type="text"].custom-input::placeholder {
     .all-tools-section-name {
         font-size: 1rem;
     }
-}
-/* HITNA POPRAVKA - klik na dugmiće */
-.all-tools-section,
-.all-tools-section-chips,
-.all-tools-subcat-chip-btn {
-    pointer-events: auto !important;
-}
-
-.all-tools-section::before,
-.all-tools-section::after {
-    pointer-events: none !important;
-    z-index: 0 !important;
-}
-
-.all-tools-section-header,
-.all-tools-section-chips,
-.all-tools-subcat-chip-btn {
-    position: relative !important;
-    z-index: 10 !important;
 }
 /* ============================================================
    KRAJ style.css — Alatika 3.0 (v16)
