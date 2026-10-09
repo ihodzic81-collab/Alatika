@@ -5825,5 +5825,629 @@ input[type="text"].custom-input::placeholder {
     flex: 1;
 }
 /* ============================================================
+   FIX — TOOLBAR MODALI (štoperica, tajmer, brzinomer)
+   ============================================================ */
+
+/* ŠTOPERICA */
+.stopwatch-panel { max-width: 460px; }
+.stopwatch-body {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+}
+.stopwatch-circle-wrap {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.stopwatch-ring-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+.stopwatch-ring-bg {
+    fill: none;
+    stroke: var(--input-bg);
+    stroke-width: 10;
+}
+.stopwatch-ring-progress {
+    fill: none;
+    stroke: url(#stopwatchGradient);
+    stroke: #0ea5e9;
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.1s linear;
+    filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.6));
+}
+.stopwatch-time-big {
+    font-size: 1.85rem;
+    font-weight: 900;
+    color: var(--text-main);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -1.5px;
+    z-index: 1;
+    text-align: center;
+}
+.stopwatch-stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+}
+.stopwatch-stat-box {
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 10px 8px;
+    text-align: center;
+}
+.stopwatch-stat-box.best { border-color: rgba(16, 185, 129, 0.4); }
+.stopwatch-stat-box.worst { border-color: rgba(244, 63, 94, 0.4); }
+.stopwatch-stat-label {
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+}
+.stopwatch-stat-value {
+    font-size: 0.95rem;
+    font-weight: 900;
+    color: var(--text-main);
+    font-variant-numeric: tabular-nums;
+}
+.stopwatch-stat-box.best .stopwatch-stat-value { color: #10b981; }
+.stopwatch-stat-box.worst .stopwatch-stat-value { color: #f43f5e; }
+.stopwatch-actions {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 8px;
+}
+.stopwatch-btn {
+    padding: 14px 10px;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 900;
+    cursor: pointer;
+    border: 1px solid transparent;
+    letter-spacing: 0.3px;
+    transition: transform 0.1s ease;
+}
+.stopwatch-btn:active { transform: scale(0.97); }
+.stopwatch-btn.start {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+.stopwatch-btn.start.running {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+}
+.stopwatch-btn.lap {
+    background: var(--input-bg);
+    border-color: var(--border-strong);
+    color: var(--text-main);
+}
+.stopwatch-btn.reset {
+    background: var(--input-bg);
+    border-color: var(--border-strong);
+    color: var(--text-main);
+}
+.stopwatch-laps {
+    border-top: 1px solid var(--border-color);
+    padding-top: 12px;
+}
+.stopwatch-laps-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--text-main);
+    cursor: pointer;
+}
+.stopwatch-laps-arrow {
+    transition: transform 0.2s ease;
+    color: var(--text-secondary);
+}
+.stopwatch-laps.open .stopwatch-laps-arrow { transform: rotate(90deg); }
+.stopwatch-laps-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+.stopwatch-laps.open .stopwatch-laps-body {
+    max-height: 300px;
+    overflow-y: auto;
+}
+.stopwatch-laps-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 8px;
+}
+.stopwatch-lap-row {
+    display: grid;
+    grid-template-columns: 44px 1fr 1fr;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--input-bg);
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-main);
+    font-variant-numeric: tabular-nums;
+}
+.stopwatch-lap-row.best { color: #10b981; background: rgba(16, 185, 129, 0.12); }
+.stopwatch-lap-row.worst { color: #f43f5e; background: rgba(244, 63, 94, 0.12); }
+.stopwatch-lap-num { color: var(--text-secondary); font-weight: 800; }
+.stopwatch-lap-time, .stopwatch-lap-total { text-align: right; }
+
+/* TAJMER */
+.timer-panel { max-width: 460px; }
+.timer-body {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+}
+.timer-circle-wrap {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.timer-ring-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+.timer-ring-bg {
+    fill: none;
+    stroke: var(--input-bg);
+    stroke-width: 10;
+}
+.timer-ring-progress {
+    fill: none;
+    stroke: #f59e0b;
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.2s linear;
+    filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.6));
+}
+.timer-time-big {
+    font-size: 1.85rem;
+    font-weight: 900;
+    color: var(--text-main);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -1.5px;
+    z-index: 1;
+}
+.timer-status-small {
+    position: absolute;
+    bottom: 40px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 1;
+}
+.timer-presets {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+}
+.timer-preset-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 8px 4px;
+    font-family: inherit;
+    cursor: pointer;
+    color: var(--text-main);
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+.timer-preset-btn:hover {
+    background: var(--card-active);
+    border-color: var(--accent-primary);
+}
+.timer-preset-icon { font-size: 0.85rem; }
+.timer-preset-text {
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+.timer-input-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.timer-input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+.timer-input-group label {
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.timer-input {
+    width: 60px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 1.1rem;
+    font-weight: 900;
+    text-align: center;
+    padding: 10px 4px;
+    outline: none;
+    font-variant-numeric: tabular-nums;
+    -moz-appearance: textfield;
+}
+.timer-input::-webkit-outer-spin-button,
+.timer-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.timer-input:focus {
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
+}
+.timer-input-sep {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--text-secondary);
+    padding-top: 18px;
+}
+.timer-actions {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 8px;
+}
+.timer-btn {
+    padding: 14px 10px;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 900;
+    cursor: pointer;
+    border: 1px solid transparent;
+    letter-spacing: 0.3px;
+    transition: transform 0.1s ease;
+}
+.timer-btn:active { transform: scale(0.97); }
+.timer-btn.start {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+}
+.timer-btn.start.running {
+    background: linear-gradient(135deg, #f43f5e, #dc2626);
+    box-shadow: 0 6px 16px rgba(244, 63, 94, 0.4);
+}
+.timer-btn.start.alarming {
+    animation: timerAlarmPulse 0.6s ease-in-out infinite alternate;
+}
+@keyframes timerAlarmPulse {
+    from { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.6); }
+    to   { box-shadow: 0 0 0 12px rgba(244, 63, 94, 0); }
+}
+.timer-btn.reset {
+    background: var(--input-bg);
+    border-color: var(--border-strong);
+    color: var(--text-main);
+}
+.timer-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+}
+.timer-option-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 8px 6px;
+    font-family: inherit;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.timer-option-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+.timer-option-btn.active {
+    color: #f59e0b;
+    border-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.12);
+}
+
+/* BRZINOMER */
+.speedometer-panel { max-width: 460px; }
+.speedometer-body {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+}
+.speedometer-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.gps-status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+    flex: 1;
+    min-width: 0;
+}
+.gps-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #64748b;
+    flex-shrink: 0;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.gps-status-indicator.active { color: #10b981; border-color: rgba(16, 185, 129, 0.4); }
+.gps-status-indicator.active .gps-status-dot {
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: gpsPulse 1.5s ease-in-out infinite;
+}
+@keyframes gpsPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+.gps-status-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.gps-unit-select {
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 8px 12px;
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    outline: none;
+    flex-shrink: 0;
+}
+.speedometer-analog-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 0;
+}
+.speedometer-svg {
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+}
+.speedometer-svg #speedometer-value {
+    font-variant-numeric: tabular-nums;
+}
+.speedometer-svg #speedometer-value.over-limit {
+    fill: #f43f5e;
+    animation: speedOverLimit 0.5s ease-in-out infinite alternate;
+}
+@keyframes speedOverLimit {
+    from { opacity: 1; }
+    to { opacity: 0.5; }
+}
+.speedometer-analog-wrap.over-limit {
+    filter: drop-shadow(0 0 20px rgba(244, 63, 94, 0.3));
+}
+.speedometer-actions {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 8px;
+}
+.gps-btn-main, .gps-btn-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 12px;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 900;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: transform 0.1s ease, background 0.15s ease;
+}
+.gps-btn-main {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
+}
+.gps-btn-main.active {
+    background: linear-gradient(135deg, #f43f5e, #dc2626);
+    box-shadow: 0 6px 16px rgba(244, 63, 94, 0.4);
+}
+.gps-btn-secondary {
+    background: var(--input-bg);
+    border-color: var(--border-strong);
+    color: var(--text-main);
+}
+.gps-btn-main svg, .gps-btn-secondary svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+.gps-btn-main:active, .gps-btn-secondary:active { transform: scale(0.97); }
+
+.speedometer-sparkline-wrap {
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 10px 12px;
+}
+.speedometer-sparkline-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 6px;
+}
+.speedometer-sparkline {
+    width: 100%;
+    height: 60px;
+    display: block;
+}
+.speedometer-stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+}
+.speedometer-stat-box {
+    background: var(--input-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 10px 6px;
+    text-align: center;
+}
+.speedometer-stat-label {
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+}
+.speedometer-stat-value {
+    font-size: 1rem;
+    font-weight: 900;
+    color: var(--text-main);
+    font-variant-numeric: tabular-nums;
+}
+.speedometer-distance-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, color-mix(in srgb, #0ea5e9 12%, var(--card-bg)), var(--card-bg));
+    border: 1px solid color-mix(in srgb, #0ea5e9 30%, var(--border-strong));
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+.speedometer-distance-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.speedometer-distance-value {
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: #0ea5e9;
+    font-variant-numeric: tabular-nums;
+}
+.speedometer-distance-value small {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+/* ============================================================
+   FIX — TOOLBAR ikonice unutar dugmića
+   ============================================================ */
+.toolbar-icon,
+.bottom-nav-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: visible;
+    position: relative;
+}
+.toolbar-icon svg,
+.bottom-nav-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    display: block;
+}
+
+/* ============================================================
+   FIX — LEVEL (libela) dodatna poboljšanja
+   ============================================================ */
+.level-panel {
+    max-width: 420px;
+}
+.level-visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 0;
+}
+/* ============================================================
    KRAJ style.css — Alatika 3.0 (v16)
    ============================================================ */
