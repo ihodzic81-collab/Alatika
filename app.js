@@ -9446,3 +9446,1166 @@ function resetPitchSmoothing() {
     pitchHistory.length = 0;
     consecutiveOutliers = 0;
 }
+// ============================================================
+// GPS — BRZINA
+// ============================================================
+const GPS_SPEED_UNIT_KEY = 'cx_gps_speed_unit';
+const GPS_SPEED_MAX_KEY = 'cx_gps_speed_max';
+
+function loadGpsUnit(key, defaultUnit) { try { return localStorage.getItem(key) || defaultUnit; } catch (e) { return defaultUnit; } }
+function saveGpsUnit(key, val) { try { localStorage.setItem(key, val); } catch (e) {} }
+
+let gpsSpeedState = { watchId: null, running: false, currentSpeedKmh: 0, maxSpeedKmh: 0, avgSpeedKmh: 0, totalSpeed: 0, samples: 0, accuracy: null, lastPos: null };
+
+function renderGpsBrzina() {
+    return `
+        <div class="converter-box gps-box">
+            <div class="gps-status-row">
+                <div class="gps-status-indicator" id="gps-speed-indicator"><span class="gps-status-dot"></span><span class="gps-status-text" id="gps-speed-status">${safeT('gps.status.off')}</span></div>
+                <select id="gps-speed-unit-select" class="gps-unit-select" onchange="gpsChangeSpeedUnit()">
+                    <option value="kmh">km/h</option><option value="mph">mph</option><option value="ms">m/s</option><option value="kn">kn</option><option value="fts">ft/s</option>
+                </select>
+            </div>
+            <div class="gps-big-display"><div class="gps-big-number" id="gps-speed-value">0.0</div><div class="gps-big-unit" id="gps-speed-unit-label">km/h</div></div>
+            <div class="gps-stats-mini">
+                <div class="gps-stat-mini"><div class="gps-stat-mini-label">${safeT('gps.speed.max')}</div><div class="gps-stat-mini-value" id="gps-speed-max">0.0</div></div>
+                <div class="gps-stat-mini"><div class="gps-stat-mini-label">${safeT('gps.speed.avg')}</div><div class="gps-stat-mini-value" id="gps-speed-avg">0.0</div></div>
+                <div class="gps-stat-mini"><div class="gps-stat-mini-label">${safeT('gps.speed.accuracy')}</div><div class="gps-stat-mini-value" id="gps-speed-accuracy">—</div></div>
+            </div>
+        </div>
+        <div class="gps-actions">
+            <button class="gps-btn-main" id="gps-speed-btn-start" onclick="gpsToggleSpeed()">${icon('play')} <span id="gps-speed-btn-label">${safeT('gps.start')}</span></button>
+            <button class="gps-btn-secondary" onclick="gpsResetSpeed()">${icon('rotateCcw')} ${safeT('gps.reset')}</button>
+        </div>
+        <div class="gps-info-note">${icon('info')} ${safeT('gps.speed.note')}</div>
+    `;
+}
+function gpsInitBrzina() {
+    const unit = loadGpsUnit(GPS_SPEED_UNIT_KEY, 'kmh');
+    const sel = el('gps-speed-unit-select'); if (sel) sel.value = unit;
+    gpsUpdateSpeedUnitLabels();
+    gpsSpeedState.maxSpeedKmh = parseFloat(localStorage.getItem(GPS_SPEED_MAX_KEY)) || 0;
+    gpsUpdateSpeedDisplay();
+}
+function gpsChangeSpeedUnit() { const sel = el('gps-speed-unit-select'); if (!sel) return; saveGpsUnit(GPS_SPEED_UNIT_KEY, sel.value); gpsUpdateSpeedUnitLabels(); gpsUpdateSpeedDisplay(); vibrate(10); }
+function gpsUpdateSpeedUnitLabels() { const unit = loadGpsUnit(GPS_SPEED_UNIT_KEY, 'kmh'); const labels = { kmh: 'km/h', mph: 'mph', ms: 'm/s', kn: 'kn', fts: 'ft/s' }; const labelEl = el('gps-speed-unit-label'); if (labelEl) labelEl.textContent = labels[unit] || 'km/h'; }
+function gpsConvertSpeed(kmh) {
+    const unit = loadGpsUnit(GPS_SPEED_UNIT_KEY, 'kmh');
+    switch (unit) {
+        case 'mph': return kmh * 0.621371; case 'ms': return kmh / 3.6;
+        case 'kn': return kmh * 0.539957; case 'fts': return kmh * 0.911344;
+        default: return kmh;
+    }
+}
+function gpsUpdateSpeedDisplay() {
+    const unit = loadGpsUnit(GPS_SPEED_UNIT_KEY, 'kmh');
+    const valEl = el('gps-speed-value'), maxEl = el('gps-speed-max'), avgEl = el('gps-speed-avg'), accEl = el('gps-speed-accuracy');
+    const decimals = (unit === 'ms' || unit === 'fts') ? 2 : 1;
+    if (valEl) valEl.textContent = fmt(gpsConvertSpeed(gpsSpeedState.currentSpeedKmh), decimals);
+    if (maxEl) maxEl.textContent = fmt(gpsConvertSpeed(gpsSpeedState.maxSpeedKmh), decimals);
+    if (avgEl) avgEl.textContent = fmt(gpsConvertSpeed(gpsSpeedState.avgSpeedKmh), decimals);
+    if (accEl) accEl.textContent = gpsSpeedState.accuracy != null ? `${Math.round(gpsSpeedState.accuracy)} m` : '—';
+}
+function gpsToggleSpeed() { if (gpsSpeedState.running) gpsStopSpeed(); else gpsStartSpeed(); }
+function gpsStartSpeed() {
+    if (!navigator.geolocation) { showToast(safeT('gps.error.noGeolocation'), 'error'); return; }
+    const indicator = el('gps-speed-indicator'); if (indicator) indicator.classList.add('active');
+    gpsSetSpeedStatus(safeT('gps.status.searching'));
+    const btnLabel = el('gps-speed-btn-label'); if (btnLabel) btnLabel.textContent = safeT('gps.stop');
+    const btn = el('gps-speed-btn-start'); if (btn) btn.classList.add('active');
+    gpsSpeedState.running = true;
+    try {
+        gpsSpeedState.watchId = navigator.geolocation.watchPosition(gpsOnSpeedPosition, gpsOnSpeedError, { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 });
+    } catch (e) { showToast(safeT('gps.error.generic'), 'error'); gpsStopSpeed(); }
+    vibrate(20); playTick(0, 1500, 0.08, 0.03);
+}
+function gpsStopSpeed() {
+    if (gpsSpeedState.watchId != null && navigator.geolocation) navigator.geolocation.clearWatch(gpsSpeedState.watchId);
+    gpsSpeedState.watchId = null; gpsSpeedState.running = false;
+    const indicator = el('gps-speed-indicator'); if (indicator) indicator.classList.remove('active');
+    gpsSetSpeedStatus(safeT('gps.status.off'));
+    const btnLabel = el('gps-speed-btn-label'); if (btnLabel) btnLabel.textContent = safeT('gps.start');
+    const btn = el('gps-speed-btn-start'); if (btn) btn.classList.remove('active');
+    vibrate(15);
+}
+function gpsOnSpeedPosition(pos) {
+    const speed = pos.coords.speed, accuracy = pos.coords.accuracy;
+    const speedKmh = (speed != null && !isNaN(speed) && speed >= 0) ? speed * 3.6 : 0;
+    const filteredKmh = speedKmh < 3 ? 0 : speedKmh;
+    gpsSpeedState.currentSpeedKmh = filteredKmh;
+    gpsSpeedState.accuracy = accuracy;
+    if (filteredKmh > 0) {
+        gpsSpeedState.totalSpeed += filteredKmh; gpsSpeedState.samples++;
+        gpsSpeedState.avgSpeedKmh = gpsSpeedState.totalSpeed / gpsSpeedState.samples;
+        if (filteredKmh > gpsSpeedState.maxSpeedKmh) { gpsSpeedState.maxSpeedKmh = filteredKmh; try { localStorage.setItem(GPS_SPEED_MAX_KEY, String(filteredKmh)); } catch (e) {} }
+        gpsSetSpeedStatus(safeT('gps.status.receiving'));
+    }
+    gpsUpdateSpeedDisplay();
+}
+function gpsOnSpeedError(err) {
+    let msg = safeT('gps.error.generic');
+    if (err.code === 1) msg = safeT('gps.error.permission');
+    else if (err.code === 2) msg = safeT('gps.error.unavailable');
+    else if (err.code === 3) msg = safeT('gps.error.timeout');
+    showToast(msg, 'error'); gpsSetSpeedStatus(safeT('gps.status.error'));
+}
+function gpsSetSpeedStatus(text) { const s = el('gps-speed-status'); if (s) s.textContent = text; }
+function gpsResetSpeed() {
+    gpsSpeedState.currentSpeedKmh = 0; gpsSpeedState.maxSpeedKmh = 0; gpsSpeedState.avgSpeedKmh = 0;
+    gpsSpeedState.totalSpeed = 0; gpsSpeedState.samples = 0; gpsSpeedState.accuracy = null;
+    try { localStorage.removeItem(GPS_SPEED_MAX_KEY); } catch (e) {}
+    gpsUpdateSpeedDisplay(); vibrate(15); playTick(0, 1400, 0.06, 0.02);
+    showToast(safeT('gps.resetDone'), 'info', 1400);
+}
+
+// ============================================================
+// GPS — ŠTOPERICA
+// ============================================================
+let gpsStopwatchState = { running: false, startTime: 0, elapsedMs: 0, rafId: null, laps: [], wakeLock: null };
+function renderGpsStoperica() {
+    return `
+        <div class="converter-box gps-box"><div class="gps-stopwatch-display"><div class="gps-stopwatch-time" id="gps-sw-time">00:00:00.00</div></div></div>
+        <div class="gps-actions">
+            <button class="gps-btn-main" id="gps-sw-btn-start" onclick="gpsToggleStopwatch()">${icon('play')} <span id="gps-sw-btn-label">${safeT('gps.start')}</span></button>
+            <button class="gps-btn-secondary" onclick="gpsLapStopwatch()" id="gps-sw-btn-lap">${icon('flag')} ${safeT('gps.sw.lap')}</button>
+            <button class="gps-btn-secondary" onclick="gpsResetStopwatch()" id="gps-sw-btn-reset">${icon('rotateCcw')} ${safeT('gps.reset')}</button>
+        </div>
+        <div class="converter-box gps-lap-box" id="gps-sw-laps-box" style="display:none;">
+            <div class="gps-lap-header"><span>#</span><span>${safeT('gps.sw.lapHeader.lap')}</span><span>${safeT('gps.sw.lapHeader.total')}</span></div>
+            <div id="gps-sw-laps-list" class="gps-lap-list"></div>
+        </div>
+    `;
+}
+function gpsInitStoperica() { gpsUpdateStopwatchDisplay(0); }
+function gpsToggleStopwatch() { if (gpsStopwatchState.running) gpsStopStopwatch(); else gpsStartStopwatch(); }
+async function gpsStartStopwatch() {
+    gpsStopwatchState.running = true; gpsStopwatchState.startTime = performance.now() - gpsStopwatchState.elapsedMs;
+    const btnLabel = el('gps-sw-btn-label'); if (btnLabel) btnLabel.textContent = safeT('gps.stop');
+    const btn = el('gps-sw-btn-start'); if (btn) btn.classList.add('active');
+    gpsRequestWakeLock(); gpsTickStopwatch();
+    vibrate(20); playTick(0, 1500, 0.08, 0.03);
+}
+function gpsStopStopwatch() {
+    gpsStopwatchState.running = false; gpsStopwatchState.elapsedMs = performance.now() - gpsStopwatchState.startTime;
+    if (gpsStopwatchState.rafId) { cancelAnimationFrame(gpsStopwatchState.rafId); gpsStopwatchState.rafId = null; }
+    const btnLabel = el('gps-sw-btn-label'); if (btnLabel) btnLabel.textContent = safeT('gps.start');
+    const btn = el('gps-sw-btn-start'); if (btn) btn.classList.remove('active');
+    gpsReleaseWakeLock(); vibrate(15);
+}
+function gpsTickStopwatch() {
+    if (!gpsStopwatchState.running) return;
+    const now = performance.now() - gpsStopwatchState.startTime;
+    gpsUpdateStopwatchDisplay(now);
+    gpsStopwatchState.rafId = requestAnimationFrame(gpsTickStopwatch);
+}
+function gpsUpdateStopwatchDisplay(ms) { const el1 = el('gps-sw-time'); if (!el1) return; el1.textContent = gpsFormatStopwatch(ms); }
+function gpsFormatStopwatch(ms) {
+    const total = Math.max(0, ms);
+    const totalSec = total / 1000;
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec - h * 3600) / 60);
+    const s = Math.floor(totalSec - h * 3600 - m * 60);
+    const cs = Math.floor((totalSec - Math.floor(totalSec)) * 100);
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
+}
+function gpsLapStopwatch() {
+    if (!gpsStopwatchState.running && gpsStopwatchState.elapsedMs === 0) { showToast(safeT('gps.sw.noLap'), 'info', 1400); return; }
+    const currentTotal = gpsStopwatchState.running ? performance.now() - gpsStopwatchState.startTime : gpsStopwatchState.elapsedMs;
+    const prevTotal = gpsStopwatchState.laps.length ? gpsStopwatchState.laps[gpsStopwatchState.laps.length - 1].total : 0;
+    const lapTime = currentTotal - prevTotal;
+    gpsStopwatchState.laps.push({ lap: lapTime, total: currentTotal });
+    gpsRenderLaps(); vibrate(10); playTick(0, 1400, 0.06, 0.02);
+}
+function gpsRenderLaps() {
+    const box = el('gps-sw-laps-box'), list = el('gps-sw-laps-list');
+    if (!box || !list) return;
+    if (!gpsStopwatchState.laps.length) { box.style.display = 'none'; return; }
+    box.style.display = 'block';
+    let minLap = Infinity, maxLap = -Infinity;
+    gpsStopwatchState.laps.forEach((l, i) => {
+        if (i === 0 && gpsStopwatchState.laps.length === 1) return;
+        if (l.lap < minLap) minLap = l.lap;
+        if (l.lap > maxLap) maxLap = l.lap;
+    });
+    const showColors = gpsStopwatchState.laps.length > 1;
+    list.innerHTML = gpsStopwatchState.laps.map((l, i) => {
+        const num = i + 1;
+        let cls = '';
+        if (showColors) { if (l.lap === minLap) cls = 'best'; else if (l.lap === maxLap) cls = 'worst'; }
+        return `<div class="gps-lap-row ${cls}"><span class="gps-lap-num">#${num}</span><span class="gps-lap-time">${gpsFormatStopwatch(l.lap)}</span><span class="gps-lap-total">${gpsFormatStopwatch(l.total)}</span></div>`;
+    }).join('');
+}
+function gpsResetStopwatch() {
+    if (gpsStopwatchState.running) { showToast(safeT('gps.sw.stopFirst'), 'warning', 1500); return; }
+    gpsStopwatchState.elapsedMs = 0; gpsStopwatchState.laps = [];
+    gpsUpdateStopwatchDisplay(0); gpsRenderLaps();
+    vibrate(15); playTick(0, 1400, 0.06, 0.02);
+}
+async function gpsRequestWakeLock() { if (!('wakeLock' in navigator)) return; try { gpsStopwatchState.wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} }
+function gpsReleaseWakeLock() { if (gpsStopwatchState.wakeLock) { try { gpsStopwatchState.wakeLock.release(); } catch (e) {} gpsStopwatchState.wakeLock = null; } }
+
+// ============================================================
+// GPS — TAJMER
+// ============================================================
+let gpsTimerState = { running: false, paused: false, totalMs: 0, remainingMs: 0, endTime: 0, rafId: null, intervalId: null, alarmIntervalId: null, wakeLock: null, alarming: false };
+function renderGpsTajmer() {
+    return `
+        <div class="converter-box gps-box">
+            <div class="gps-timer-input-row" id="gps-timer-input-row">
+                <div class="gps-timer-input-group"><label>HH</label><input type="number" id="gps-timer-h" class="gps-timer-input" min="0" max="23" placeholder="0" inputmode="numeric"></div>
+                <div class="gps-timer-sep">:</div>
+                <div class="gps-timer-input-group"><label>MM</label><input type="number" id="gps-timer-m" class="gps-timer-input" min="0" max="59" placeholder="0" inputmode="numeric"></div>
+                <div class="gps-timer-sep">:</div>
+                <div class="gps-timer-input-group"><label>SS</label><input type="number" id="gps-timer-s" class="gps-timer-input" min="0" max="59" placeholder="0" inputmode="numeric"></div>
+            </div>
+            <div class="gps-timer-presets">
+                <button class="gps-chip" onclick="gpsTimerPreset(60)">1 min</button>
+                <button class="gps-chip" onclick="gpsTimerPreset(300)">5 min</button>
+                <button class="gps-chip" onclick="gpsTimerPreset(600)">10 min</button>
+                <button class="gps-chip" onclick="gpsTimerPreset(900)">15 min</button>
+                <button class="gps-chip" onclick="gpsTimerPreset(1800)">30 min</button>
+                <button class="gps-chip" onclick="gpsTimerPreset(3600)">1 h</button>
+            </div>
+            <div class="gps-timer-display">
+                <div class="gps-timer-time" id="gps-timer-time">00:00:00</div>
+                <div class="gps-timer-progress-bar"><div class="gps-timer-progress-fill" id="gps-timer-progress"></div></div>
+            </div>
+        </div>
+        <div class="gps-actions">
+            <button class="gps-btn-main" id="gps-timer-btn-start" onclick="gpsToggleTimer()">${icon('play')} <span id="gps-timer-btn-label">${safeT('gps.start')}</span></button>
+            <button class="gps-btn-secondary" onclick="gpsResetTimer()">${icon('rotateCcw')} ${safeT('gps.reset')}</button>
+        </div>
+        <div class="gps-info-note">${icon('info')} ${safeT('gps.timer.note')}</div>
+    `;
+}
+function gpsInitTajmer() { gpsUpdateTimerDisplay(); }
+function gpsTimerPreset(seconds) {
+    if (gpsTimerState.running) { showToast(safeT('gps.timer.stopFirst'), 'warning', 1500); return; }
+    const h = Math.floor(seconds / 3600), m = Math.floor((seconds % 3600) / 60), s = seconds % 60;
+    const hEl = el('gps-timer-h'); if (hEl) hEl.value = h || '';
+    const mEl = el('gps-timer-m'); if (mEl) mEl.value = m || '';
+    const sEl = el('gps-timer-s'); if (sEl) sEl.value = s || '';
+    gpsTimerState.totalMs = seconds * 1000; gpsTimerState.remainingMs = seconds * 1000;
+    gpsUpdateTimerDisplay(); vibrate(10);
+}
+function gpsGetTimerInputMs() {
+    const h = parseInt(el('gps-timer-h')?.value) || 0;
+    const m = parseInt(el('gps-timer-m')?.value) || 0;
+    const s = parseInt(el('gps-timer-s')?.value) || 0;
+    return (h * 3600 + m * 60 + s) * 1000;
+}
+function gpsToggleTimer() {
+    if (gpsTimerState.alarming) { gpsStopAlarm(); return; }
+    if (gpsTimerState.running) { if (gpsTimerState.paused) gpsResumeTimer(); else gpsPauseTimer(); }
+    else gpsStartTimer();
+}
+function gpsStartTimer() {
+    const ms = gpsGetTimerInputMs();
+    if (ms <= 0) { showToast(safeT('gps.timer.enterTime'), 'warning'); return; }
+    gpsTimerState.totalMs = ms; gpsTimerState.remainingMs = ms;
+    gpsTimerState.running = true; gpsTimerState.paused = false;
+    gpsTimerState.endTime = performance.now() + ms; gpsTimerState.alarming = false;
+    gpsUpdateTimerButton(); gpsRequestTimerWakeLock(); gpsTickTimer();
+    gpsTimerState.intervalId = setInterval(gpsTickTimer, 200);
+    vibrate(20); playTick(0, 1500, 0.08, 0.03);
+}
+function gpsPauseTimer() {
+    if (!gpsTimerState.running || gpsTimerState.paused) return;
+    gpsTimerState.paused = true;
+    gpsTimerState.remainingMs = Math.max(0, gpsTimerState.endTime - performance.now());
+    if (gpsTimerState.rafId) { cancelAnimationFrame(gpsTimerState.rafId); gpsTimerState.rafId = null; }
+    if (gpsTimerState.intervalId) { clearInterval(gpsTimerState.intervalId); gpsTimerState.intervalId = null; }
+    gpsUpdateTimerButton(); vibrate(15);
+}
+function gpsResumeTimer() {
+    if (!gpsTimerState.running || !gpsTimerState.paused) return;
+    gpsTimerState.paused = false;
+    gpsTimerState.endTime = performance.now() + gpsTimerState.remainingMs;
+    gpsTickTimer(); gpsTimerState.intervalId = setInterval(gpsTickTimer, 200);
+    gpsUpdateTimerButton(); vibrate(15);
+}
+function gpsTickTimer() {
+    if (!gpsTimerState.running || gpsTimerState.paused) return;
+    const remaining = Math.max(0, gpsTimerState.endTime - performance.now());
+    gpsTimerState.remainingMs = remaining;
+    gpsUpdateTimerDisplay();
+    if (remaining <= 0) { gpsTimerComplete(); return; }
+    gpsTimerState.rafId = requestAnimationFrame(gpsTickTimer);
+}
+function gpsUpdateTimerDisplay() {
+    const timeEl = el('gps-timer-time'), progressEl = el('gps-timer-progress');
+    if (!timeEl) return;
+    const ms = gpsTimerState.remainingMs || gpsTimerState.totalMs || gpsGetTimerInputMs();
+    const sec = Math.ceil(ms / 1000);
+    const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+    timeEl.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    if (progressEl) { const total = gpsTimerState.totalMs || 1; const pct = Math.max(0, Math.min(100, (ms / total) * 100)); progressEl.style.width = pct + '%'; }
+}
+function gpsUpdateTimerButton() {
+    const label = el('gps-timer-btn-label'), btn = el('gps-timer-btn-start');
+    if (!label) return;
+    if (gpsTimerState.alarming) { label.textContent = safeT('gps.timer.stopAlarm'); if (btn) btn.classList.add('active'); }
+    else if (!gpsTimerState.running) { label.textContent = safeT('gps.start'); if (btn) btn.classList.remove('active'); }
+    else if (gpsTimerState.paused) { label.textContent = safeT('gps.timer.resume'); if (btn) btn.classList.remove('active'); }
+    else { label.textContent = safeT('gps.timer.pause'); if (btn) btn.classList.add('active'); }
+}
+function gpsTimerComplete() {
+    gpsTimerState.running = false; gpsTimerState.paused = false;
+    if (gpsTimerState.rafId) { cancelAnimationFrame(gpsTimerState.rafId); gpsTimerState.rafId = null; }
+    if (gpsTimerState.intervalId) { clearInterval(gpsTimerState.intervalId); gpsTimerState.intervalId = null; }
+    gpsTimerState.remainingMs = 0;
+    gpsUpdateTimerDisplay(); gpsStartAlarm();
+}
+function gpsStartAlarm() {
+    gpsTimerState.alarming = true; gpsUpdateTimerButton();
+    showToast(safeT('gps.timer.timeUp'), 'success', 4000);
+    let count = 0;
+    const beepOnce = () => {
+        if (!gpsTimerState.alarming) return;
+        if (count >= 10) { gpsStopAlarm(); return; }
+        count++; playAlarmBeep(); vibrate([300, 100, 300, 100, 300]);
+    };
+    beepOnce();
+    gpsTimerState.alarmIntervalId = setInterval(beepOnce, 3000);
+}
+function gpsStopAlarm() {
+    gpsTimerState.alarming = false;
+    if (gpsTimerState.alarmIntervalId) { clearInterval(gpsTimerState.alarmIntervalId); gpsTimerState.alarmIntervalId = null; }
+    gpsUpdateTimerButton(); vibrate(20);
+}
+function gpsResetTimer() {
+    if (gpsTimerState.running && !gpsTimerState.paused) { showToast(safeT('gps.timer.stopFirst'), 'warning', 1500); return; }
+    gpsStopAlarm();
+    gpsTimerState.running = false; gpsTimerState.paused = false;
+    gpsTimerState.totalMs = 0; gpsTimerState.remainingMs = 0;
+    if (gpsTimerState.rafId) { cancelAnimationFrame(gpsTimerState.rafId); gpsTimerState.rafId = null; }
+    if (gpsTimerState.intervalId) { clearInterval(gpsTimerState.intervalId); gpsTimerState.intervalId = null; }
+    gpsReleaseTimerWakeLock();
+    const hEl = el('gps-timer-h'); if (hEl) hEl.value = '';
+    const mEl = el('gps-timer-m'); if (mEl) mEl.value = '';
+    const sEl = el('gps-timer-s'); if (sEl) sEl.value = '';
+    gpsUpdateTimerDisplay(); gpsUpdateTimerButton();
+    vibrate(15); playTick(0, 1400, 0.06, 0.02);
+}
+async function gpsRequestTimerWakeLock() { if (!('wakeLock' in navigator)) return; try { gpsTimerState.wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} }
+function gpsReleaseTimerWakeLock() { if (gpsTimerState.wakeLock) { try { gpsTimerState.wakeLock.release(); } catch (e) {} gpsTimerState.wakeLock = null; } }
+function gpsCleanupAll() {
+    try { gpsStopSpeed(); } catch (e) {}
+    try { gpsStopStopwatch(); } catch (e) {}
+    try { gpsStopAlarm(); } catch (e) {}
+    try {
+        gpsTimerState.running = false;
+        if (gpsTimerState.rafId) { cancelAnimationFrame(gpsTimerState.rafId); gpsTimerState.rafId = null; }
+        if (gpsTimerState.intervalId) { clearInterval(gpsTimerState.intervalId); gpsTimerState.intervalId = null; }
+        gpsReleaseTimerWakeLock();
+    } catch (e) {}
+}
+
+// ============================================================
+// KONVERZIJE — OBUĆA, ODEĆA, BROJEVI
+// ============================================================
+const SHOE_SIZES = {
+    male: {
+        eu: [39, 40, 41, 42, 43, 44, 45, 46, 47, 48],
+        us: [6.5, 7, 8, 8.5, 9.5, 10, 11, 12, 12.5, 13.5],
+        uk: [6, 6.5, 7.5, 8, 9, 9.5, 10.5, 11.5, 12, 13],
+        cm: [24.5, 25, 25.5, 26, 27, 27.5, 28.5, 29.5, 30, 31]
+    },
+    female: {
+        eu: [35, 36, 37, 38, 39, 40, 41, 42, 43],
+        us: [5, 5.5, 6.5, 7.5, 8.5, 9, 10, 10.5, 11.5],
+        uk: [2.5, 3, 4, 5, 6, 6.5, 7.5, 8, 9],
+        cm: [22, 22.5, 23.5, 24, 25, 25.5, 26.5, 27, 28]
+    },
+    kids: {
+        eu: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35],
+        us: [4.5, 5.5, 6.5, 7, 8, 8.5, 9.5, 10.5, 11, 12, 12.5, 13, 1, 2, 2.5, 3.5],
+        uk: [4, 5, 6, 6.5, 7.5, 8, 9, 10, 10.5, 11.5, 12, 12.5, 13.5, 1, 1.5, 2.5],
+        cm: [12, 13, 14, 14.5, 15, 15.5, 16, 17, 17.5, 18, 18.5, 19, 20, 20.5, 21, 22]
+    }
+};
+function renderConversionObuca() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Konverzija veličina obuće između EU, US, UK sistema.</p>
+            <div class="input-field">
+                <label>Pol</label>
+                <select id="shoe-gender" class="custom-input" onchange="calculateShoeSize()">
+                    <option value="male">Muški</option>
+                    <option value="female">Ženski</option>
+                    <option value="kids">Deca</option>
+                </select>
+            </div>
+            <div class="conversion-grid">
+                <div class="conversion-field">
+                    <label>Iz sistema</label>
+                    <select id="shoe-from" class="custom-input" onchange="calculateShoeSize()">
+                        <option value="eu">EU</option>
+                        <option value="us">US</option>
+                        <option value="uk">UK</option>
+                        <option value="cm">CM (dužina stopala)</option>
+                    </select>
+                </div>
+                <div class="conversion-field">
+                    <label>U sistem</label>
+                    <select id="shoe-to" class="custom-input" onchange="calculateShoeSize()">
+                        <option value="eu">EU</option>
+                        <option value="us" selected>US</option>
+                        <option value="uk">UK</option>
+                        <option value="cm">CM (dužina stopala)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="input-field">
+                <label>Veličina</label>
+                <div class="input-wrapper">
+                    <input type="number" id="shoe-val" class="custom-input" placeholder="42" inputmode="decimal" oninput="calculateShoeSize()">
+                    <span class="unit" id="shoe-from-unit">EU</span>
+                </div>
+            </div>
+            ${calcButton('btn.calculate', 'calculateShoeSize()')}
+        </div>
+        <div class="conversion-result" id="shoe-result-box" style="display: none;">
+            <div class="conversion-result-label">Veličina</div>
+            <div class="conversion-result-value" id="res-shoe-val">0</div>
+            <div class="conversion-result-sub" id="res-shoe-system">US</div>
+        </div>
+    `;
+}
+function calculateShoeSize() {
+    const gender = el('shoe-gender') ? el('shoe-gender').value : 'male';
+    const from = el('shoe-from') ? el('shoe-from').value : 'eu';
+    const to = el('shoe-to') ? el('shoe-to').value : 'us';
+    const val = num('shoe-val');
+    const fromUnit = el('shoe-from-unit');
+    if (fromUnit) fromUnit.textContent = from.toUpperCase();
+    if (val === null) { hide('shoe-result-box'); return; }
+    const table = SHOE_SIZES[gender];
+    if (!table) return;
+    const fromArr = table[from];
+    if (!fromArr) return;
+    let closestIdx = 0;
+    let minDiff = Infinity;
+    fromArr.forEach((size, i) => {
+        const diff = Math.abs(size - val);
+        if (diff < minDiff) { minDiff = diff; closestIdx = i; }
+    });
+    const result = table[to][closestIdx];
+    const resultEl = el('res-shoe-val');
+    const systemEl = el('res-shoe-system');
+    if (resultEl) resultEl.textContent = result;
+    if (systemEl) systemEl.textContent = to.toUpperCase();
+    show('shoe-result-box');
+}
+
+const CLOTHING_SIZES = {
+    male: [
+        { intl: 'XS', eu: 44, us: '34', uk: '34' },
+        { intl: 'S', eu: 46, us: '36', uk: '36' },
+        { intl: 'M', eu: 48, us: '38', uk: '38' },
+        { intl: 'L', eu: 50, us: '40', uk: '40' },
+        { intl: 'XL', eu: 52, us: '42', uk: '42' },
+        { intl: 'XXL', eu: 54, us: '44', uk: '44' },
+        { intl: '3XL', eu: 56, us: '46', uk: '46' }
+    ],
+    female: [
+        { intl: 'XS', eu: 34, us: '2', uk: '6' },
+        { intl: 'S', eu: 36, us: '4', uk: '8' },
+        { intl: 'M', eu: 38, us: '6', uk: '10' },
+        { intl: 'L', eu: 40, us: '8', uk: '12' },
+        { intl: 'XL', eu: 42, us: '10', uk: '14' },
+        { intl: 'XXL', eu: 44, us: '12', uk: '16' },
+        { intl: '3XL', eu: 46, us: '14', uk: '18' }
+    ]
+};
+function renderConversionOdeca() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Konverzija veličina odeće između internacionalnih (S/M/L), EU, US i UK sistema.</p>
+            <div class="input-field">
+                <label>Pol</label>
+                <select id="clothing-gender" class="custom-input" onchange="calculateClothingSize()">
+                    <option value="male">Muški</option>
+                    <option value="female">Ženski</option>
+                </select>
+            </div>
+            <div class="conversion-grid">
+                <div class="conversion-field">
+                    <label>Iz sistema</label>
+                    <select id="clothing-from" class="custom-input" onchange="calculateClothingSize()">
+                        <option value="intl">Internacionalno (S/M/L)</option>
+                        <option value="eu" selected>EU</option>
+                        <option value="us">US</option>
+                        <option value="uk">UK</option>
+                    </select>
+                </div>
+                <div class="conversion-field">
+                    <label>U sistem</label>
+                    <select id="clothing-to" class="custom-input" onchange="calculateClothingSize()">
+                        <option value="intl">Internacionalno (S/M/L)</option>
+                        <option value="eu">EU</option>
+                        <option value="us" selected>US</option>
+                        <option value="uk">UK</option>
+                    </select>
+                </div>
+            </div>
+            <div class="input-field">
+                <label>Veličina</label>
+                <div class="input-wrapper">
+                    <input type="text" id="clothing-val" class="custom-input" placeholder="48 / M" oninput="calculateClothingSize()">
+                </div>
+            </div>
+            ${calcButton('btn.calculate', 'calculateClothingSize()')}
+        </div>
+        <div class="conversion-result" id="clothing-result-box" style="display: none;">
+            <div class="conversion-result-label">Veličina</div>
+            <div class="conversion-result-value" id="res-clothing-val">—</div>
+            <div class="conversion-result-sub" id="res-clothing-system">US</div>
+        </div>
+    `;
+}
+function calculateClothingSize() {
+    const gender = el('clothing-gender') ? el('clothing-gender').value : 'male';
+    const from = el('clothing-from') ? el('clothing-from').value : 'eu';
+    const to = el('clothing-to') ? el('clothing-to').value : 'us';
+    const inputEl = el('clothing-val');
+    if (!inputEl) return;
+    const val = inputEl.value.trim().toUpperCase();
+    if (!val) { hide('clothing-result-box'); return; }
+    const table = CLOTHING_SIZES[gender];
+    if (!table) return;
+    let row = null;
+    if (from === 'intl') {
+        row = table.find(r => r.intl === val);
+    } else {
+        const numVal = parseFloat(val);
+        if (!isNaN(numVal)) {
+            row = table.find(r => String(r[from]) === String(numVal));
+        }
+    }
+    if (!row) {
+        const resultEl = el('res-clothing-val');
+        const systemEl = el('res-clothing-system');
+        if (resultEl) resultEl.textContent = '—';
+        if (systemEl) systemEl.textContent = 'Nema podudaranja';
+        show('clothing-result-box');
+        return;
+    }
+    const result = row[to];
+    const resultEl = el('res-clothing-val');
+    const systemEl = el('res-clothing-system');
+    if (resultEl) resultEl.textContent = result;
+    if (systemEl) systemEl.textContent = to === 'intl' ? 'Internacionalno' : to.toUpperCase();
+    show('clothing-result-box');
+}
+
+function romanFromInt(num) {
+    if (num < 1 || num > 3999 || !Number.isInteger(num)) return null;
+    const romanMap = [
+        [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'],
+        [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'],
+        [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']
+    ];
+    let result = '';
+    for (const [value, symbol] of romanMap) {
+        while (num >= value) { result += symbol; num -= value; }
+    }
+    return result;
+}
+function intFromRoman(roman) {
+    const map = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
+    let result = 0;
+    const upper = roman.toUpperCase();
+    for (let i = 0; i < upper.length; i++) {
+        const cur = map[upper[i]];
+        const next = map[upper[i + 1]];
+        if (!cur) return null;
+        if (next && cur < next) result -= cur;
+        else result += cur;
+    }
+    return result;
+}
+function renderConversionBrojevi() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Konverzija brojeva između decimalnog, binarnog, oktalnog, heksadecimalnog i rimskog sistema.</p>
+            <div class="input-field">
+                <label>Unesi broj</label>
+                <input type="text" id="num-input" class="custom-input" placeholder="npr. 255 ili MCMXCV" oninput="calculateNumbers()">
+            </div>
+            <div class="input-field">
+                <label>Iz sistema</label>
+                <select id="num-from" class="custom-input" onchange="calculateNumbers()">
+                    <option value="dec" selected>Decimalni</option>
+                    <option value="bin">Binarni</option>
+                    <option value="oct">Oktalni</option>
+                    <option value="hex">Heksadecimalni</option>
+                    <option value="roman">Rimski</option>
+                </select>
+            </div>
+        </div>
+        <div class="numbers-grid" id="numbers-result" style="display: none;">
+            <div class="number-system-row" data-sys="dec">
+                <div class="number-system-label">Decimalni</div>
+                <div class="number-system-value" id="res-num-dec">—</div>
+            </div>
+            <div class="number-system-row" data-sys="bin">
+                <div class="number-system-label">Binarni</div>
+                <div class="number-system-value" id="res-num-bin">—</div>
+            </div>
+            <div class="number-system-row" data-sys="oct">
+                <div class="number-system-label">Oktalni</div>
+                <div class="number-system-value" id="res-num-oct">—</div>
+            </div>
+            <div class="number-system-row" data-sys="hex">
+                <div class="number-system-label">Heksadecimalni</div>
+                <div class="number-system-value" id="res-num-hex">—</div>
+            </div>
+            <div class="number-system-row" data-sys="roman">
+                <div class="number-system-label">Rimski</div>
+                <div class="number-system-value" id="res-num-roman">—</div>
+            </div>
+        </div>
+        <p class="section-desc" style="text-align: center; font-size: 0.72rem;">Rimski brojevi idu od 1 do 3999.</p>
+    `;
+}
+function calculateNumbers() {
+    const inputEl = el('num-input');
+    const fromEl = el('num-from');
+    if (!inputEl || !fromEl) return;
+    const raw = inputEl.value.trim();
+    const from = fromEl.value;
+    const resultBox = el('numbers-result');
+    if (!raw) {
+        if (resultBox) resultBox.style.display = 'none';
+        return;
+    }
+    let decimal = null;
+    try {
+        if (from === 'dec') {
+            const n = parseInt(raw, 10);
+            if (!isNaN(n)) decimal = n;
+        } else if (from === 'bin') {
+            if (/^[01]+$/.test(raw)) decimal = parseInt(raw, 2);
+        } else if (from === 'oct') {
+            if (/^[0-7]+$/.test(raw)) decimal = parseInt(raw, 8);
+        } else if (from === 'hex') {
+            if (/^[0-9A-Fa-f]+$/.test(raw)) decimal = parseInt(raw, 16);
+        } else if (from === 'roman') {
+            decimal = intFromRoman(raw);
+        }
+    } catch (e) {}
+    if (decimal === null || isNaN(decimal) || decimal < 0) {
+        if (resultBox) resultBox.style.display = 'block';
+        ['dec','bin','oct','hex','roman'].forEach(s => {
+            const el2 = el('res-num-' + s);
+            if (el2) el2.textContent = '—';
+        });
+        return;
+    }
+    const setV = (id, v) => { const e = el(id); if (e) e.textContent = v; };
+    setV('res-num-dec', decimal.toString(10));
+    setV('res-num-bin', decimal.toString(2));
+    setV('res-num-oct', decimal.toString(8));
+    setV('res-num-hex', decimal.toString(16).toUpperCase());
+    const roman = romanFromInt(decimal);
+    setV('res-num-roman', roman || '—');
+    if (resultBox) resultBox.style.display = 'flex';
+}
+
+// ============================================================
+// BARKOD
+// ============================================================
+let barcodeStream = null;
+let barcodeIntervalId = null;
+let barcodeDetector = null;
+
+function renderBarcodeScanner() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Skeniraj barkod kamerom telefona ili unesi ručno.</p>
+            <div class="barcode-camera-wrap" id="barcode-camera-wrap" style="display: none;">
+                <video id="barcode-video" autoplay playsinline muted></video>
+                <div class="barcode-overlay">
+                    <div class="barcode-frame"></div>
+                    <div class="barcode-scan-line"></div>
+                </div>
+            </div>
+            <button class="calc-btn-main" id="barcode-start-btn" onclick="startBarcodeScanner()">▶ Pokreni kameru</button>
+            <button class="gps-btn-secondary" id="barcode-stop-btn" style="display: none; width: 100%; margin-top: 8px;" onclick="stopBarcodeScanner()">⏹ Zaustavi kameru</button>
+            <div style="margin-top: 14px;">
+                <label style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 700;">Ručni unos barkoda</label>
+                <div class="input-wrapper" style="margin-top: 6px;">
+                    <input type="text" id="barcode-manual" class="custom-input" placeholder="npr. 1234567890123" inputmode="numeric">
+                </div>
+                <button class="calc-btn-main" style="margin-top: 8px;" onclick="useBarcodeManually()">Pretraži proizvod</button>
+            </div>
+        </div>
+        <div class="barcode-detected" id="barcode-detected" style="display: none;">
+            <div class="barcode-detected-label">Detektovan barkod</div>
+            <div class="barcode-detected-code" id="barcode-code">—</div>
+            <button class="calc-btn-main" style="margin-top: 12px;" onclick="addBarcodeToList()">Dodaj u listu za kupovinu</button>
+        </div>
+    `;
+}
+function initBarcodeScanner() { stopBarcodeScanner(); }
+async function startBarcodeScanner() {
+    const wrap = el('barcode-camera-wrap');
+    const startBtn = el('barcode-start-btn');
+    const stopBtn = el('barcode-stop-btn');
+    const video = el('barcode-video');
+    if (!wrap || !video) return;
+    try {
+        barcodeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = barcodeStream;
+        wrap.style.display = 'block';
+        if (startBtn) startBtn.style.display = 'none';
+        if (stopBtn) stopBtn.style.display = 'block';
+        if ('BarcodeDetector' in window) {
+            try {
+                barcodeDetector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code'] });
+                barcodeIntervalId = setInterval(async () => {
+                    if (!barcodeDetector || !video) return;
+                    try {
+                        const barcodes = await barcodeDetector.detect(video);
+                        if (barcodes && barcodes.length > 0) onBarcodeDetected(barcodes[0].rawValue);
+                    } catch (e) {}
+                }, 500);
+            } catch (e) {}
+        }
+    } catch (e) {
+        showToast('Greška pri pristupu kameri.', 'error', 3000);
+    }
+}
+function stopBarcodeScanner() {
+    const wrap = el('barcode-camera-wrap');
+    const startBtn = el('barcode-start-btn');
+    const stopBtn = el('barcode-stop-btn');
+    if (barcodeStream) { barcodeStream.getTracks().forEach(t => t.stop()); barcodeStream = null; }
+    if (barcodeIntervalId) { clearInterval(barcodeIntervalId); barcodeIntervalId = null; }
+    barcodeDetector = null;
+    if (wrap) wrap.style.display = 'none';
+    if (startBtn) startBtn.style.display = 'block';
+    if (stopBtn) stopBtn.style.display = 'none';
+}
+function onBarcodeDetected(code) {
+    if (!code) return;
+    stopBarcodeScanner();
+    const box = el('barcode-detected');
+    const codeEl = el('barcode-code');
+    if (box) box.style.display = 'block';
+    if (codeEl) codeEl.textContent = code;
+    vibrate([50, 30, 50]);
+}
+function useBarcodeManually() {
+    const input = el('barcode-manual');
+    if (!input) return;
+    const code = input.value.trim();
+    if (!code) { showToast('Unesi barkod.', 'warning'); return; }
+    onBarcodeDetected(code);
+}
+function addBarcodeToList() {
+    const codeEl = el('barcode-code');
+    if (!codeEl) return;
+    const code = codeEl.textContent;
+    if (!code || code === '—') return;
+    const list = loadShoppingList();
+    list.push({ id: Date.now() + Math.random(), name: 'Barkod: ' + code, qty: '', price: 0, bought: false, date: Date.now(), barcode: code });
+    saveShoppingList(list);
+    showToast('Dodato u listu za kupovinu.', 'success', 2000);
+}
+
+// ============================================================
+// PRICE TRACKING
+// ============================================================
+const PRICE_TRACKING_KEY = 'cx_price_tracking_v1';
+function loadPriceTracking() {
+    try { const raw = JSON.parse(localStorage.getItem(PRICE_TRACKING_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
+    return [];
+}
+function savePriceTracking(list) {
+    try { localStorage.setItem(PRICE_TRACKING_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function renderPriceTracking() {
+    return `
+        <div class="converter-box">
+            <div class="lista-head">
+                <div class="section-desc" style="margin:0;">Prati cene proizvoda kroz vreme.</div>
+                <button class="section-action-btn" onclick="openPriceTrackingModal()">+ Dodaj</button>
+            </div>
+            <div id="price-tracking-list" class="price-track-list"></div>
+        </div>
+    `;
+}
+function renderPriceTrackingList() {
+    const list = el('price-tracking-list');
+    if (!list) return;
+    const items = loadPriceTracking();
+    if (!items.length) {
+        list.innerHTML = `<div class="price-track-empty"><div class="price-track-empty-icon">📊</div><div>Nema proizvoda. Dodaj prvi!</div></div>`;
+        return;
+    }
+    let html = '';
+    items.forEach(item => {
+        const prices = item.prices || [];
+        const lowest = prices.length ? Math.min(...prices.map(p => p.price)) : 0;
+        const highest = prices.length ? Math.max(...prices.map(p => p.price)) : 0;
+        const avg = prices.length ? prices.reduce((s, p) => s + p.price, 0) / prices.length : 0;
+        const last = prices.length ? prices[prices.length - 1].price : 0;
+        const change = prices.length >= 2 ? last - prices[prices.length - 2].price : 0;
+        const changeClass = change > 0 ? 'up' : (change < 0 ? 'down' : '');
+        const changeText = change === 0 ? '—' : (change > 0 ? '+' : '') + money(change) + ' RSD';
+        html += `
+            <div class="price-track-card">
+                <div class="price-track-head">
+                    <div class="price-track-name">${escapeHtml(item.name)}</div>
+                    ${item.store ? `<div class="price-track-store">${escapeHtml(item.store)}</div>` : ''}
+                </div>
+                <div class="price-track-stats">
+                    <div class="price-track-stat"><div class="price-track-stat-label">Najniža</div><div class="price-track-stat-value low">${money(lowest)}</div></div>
+                    <div class="price-track-stat"><div class="price-track-stat-label">Prosečna</div><div class="price-track-stat-value">${money(avg)}</div></div>
+                    <div class="price-track-stat"><div class="price-track-stat-label">Najviša</div><div class="price-track-stat-value high">${money(highest)}</div></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:0.75rem;color:var(--text-secondary);font-weight:700;">Poslednja: ${money(last)} RSD</span>
+                    ${changeText !== '—' ? `<span class="price-track-change ${changeClass}">${changeText}</span>` : ''}
+                </div>
+                <div style="display:flex;gap:6px;margin-top:10px;">
+                    <button class="section-action-btn" style="flex:1;" onclick="openAddPriceModal('${item.id}')">+ Dodaj cenu</button>
+                    <button class="section-action-btn" style="flex:1;color:#f43f5e;border-color:rgba(244,63,94,0.4);" onclick="deletePriceTracking('${item.id}')">Obriši</button>
+                </div>
+            </div>
+        `;
+    });
+    list.innerHTML = html;
+}
+function openPriceTrackingModal() {
+    const modal = el('price-tracking-modal');
+    const body = el('price-tracking-modal-body');
+    if (!modal || !body) return;
+    body.innerHTML = `
+        <div class="converter-box">
+            ${inputFieldText('label.shop.itemName', 'pt-name', 'npr. Mleko 1L')}
+            ${inputFieldText('label.shop.price', 'pt-store', 'npr. Maxi')}
+            ${calcButton('btn.save', 'savePriceTrackingProduct()')}
+        </div>
+    `;
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+}
+function savePriceTrackingProduct() {
+    const name = el('pt-name') ? el('pt-name').value.trim() : '';
+    const store = el('pt-store') ? el('pt-store').value.trim() : '';
+    if (!name) { showToast('Unesi naziv proizvoda.', 'error'); return; }
+    const list = loadPriceTracking();
+    list.push({ id: 'pt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), name, store, prices: [], createdAt: Date.now() });
+    savePriceTracking(list);
+    closeModal('price-tracking-modal');
+    renderPriceTrackingList();
+    showToast('Proizvod dodat.', 'success', 1500);
+}
+function openAddPriceModal(productId) {
+    const list = loadPriceTracking();
+    const item = list.find(p => p.id === productId);
+    if (!item) return;
+    const price = prompt('Unesi cenu (RSD):');
+    if (!price) return;
+    const priceNum = parseNum(price);
+    if (!priceNum || priceNum <= 0) { showToast('Neispravna cena.', 'error'); return; }
+    const store = prompt('Prodavnica (opciono):') || item.store || '';
+    item.prices = item.prices || [];
+    item.prices.push({ price: priceNum, store: store, date: new Date().toISOString().slice(0, 10) });
+    savePriceTracking(list);
+    renderPriceTrackingList();
+    showToast('Cena dodata.', 'success', 1500);
+}
+function deletePriceTracking(productId) {
+    showConfirm('Obrisati ovaj proizvod i sve cene?').then(ok => {
+        if (!ok) return;
+        let list = loadPriceTracking();
+        list = list.filter(p => p.id !== productId);
+        savePriceTracking(list);
+        renderPriceTrackingList();
+        showToast('Proizvod obrisan.', 'info', 1500);
+    });
+}
+
+// ============================================================
+// ISTORIJA TOČENJA
+// ============================================================
+const FUEL_HISTORY_KEY = 'cx_fuel_history_v1';
+function loadFuelHistory() {
+    try { const raw = JSON.parse(localStorage.getItem(FUEL_HISTORY_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
+    return [];
+}
+function saveFuelHistory(list) {
+    try { localStorage.setItem(FUEL_HISTORY_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function renderFuelHistory() {
+    return `
+        <div class="converter-box">
+            <div class="lista-head">
+                <div class="section-desc" style="margin:0;">Prati točenja, potrošnju i troškove goriva.</div>
+                <button class="section-action-btn" onclick="openFuelHistoryModal()">+ Dodaj</button>
+            </div>
+            <div id="fuel-history-list" class="price-track-list"></div>
+        </div>
+    `;
+}
+function renderFuelHistoryList() {
+    const list = el('fuel-history-list');
+    if (!list) return;
+    const items = loadFuelHistory();
+    if (!items.length) {
+        list.innerHTML = `<div class="price-track-empty"><div class="price-track-empty-icon">⛽</div><div>Nema unosa. Dodaj prvo točenje!</div></div>`;
+        return;
+    }
+    const sorted = [...items].sort((a, b) => (a.km || 0) - (b.km || 0));
+    let totalLiters = 0, totalCost = 0, totalKm = 0, consumptionSum = 0, consumptionCount = 0;
+    for (let i = 1; i < sorted.length; i++) {
+        const kmDiff = sorted[i].km - sorted[i - 1].km;
+        if (kmDiff > 0) { consumptionSum += (sorted[i].liters / kmDiff) * 100; consumptionCount++; }
+    }
+    sorted.forEach(i => { totalLiters += i.liters || 0; totalCost += (i.liters || 0) * (i.price || 0); });
+    if (sorted.length >= 2) totalKm = sorted[sorted.length - 1].km - sorted[0].km;
+    const avgCons = consumptionCount > 0 ? consumptionSum / consumptionCount : 0;
+    const costPerKm = totalKm > 0 ? totalCost / totalKm : 0;
+    let rows = sorted.slice().reverse().map(item => `
+        <div class="price-track-card">
+            <div class="price-track-head"><div class="price-track-name">${escapeHtml(item.date)} • ${item.km} km</div><div class="price-track-store">${item.liters} L</div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div style="font-size:0.78rem;color:var(--text-secondary);">Cena/L: <strong style="color:var(--text-main);">${money(item.price)}</strong></div>
+                <div style="font-size:0.78rem;color:var(--text-secondary);text-align:right;">Ukupno: <strong style="color:#10b981;">${money(item.liters * item.price)}</strong></div>
+            </div>
+            <button class="section-action-btn" style="width:100%;margin-top:8px;color:#f43f5e;border-color:rgba(244,63,94,0.4);" onclick="deleteFuelEntry('${item.id}')">Obriši unos</button>
+        </div>
+    `).join('');
+    list.innerHTML = `
+        <div class="converter-box" style="margin-bottom:12px;">
+            <div class="rate-info-card" style="margin:0;">
+                <div class="rate-info-row"><span class="rate-info-label">Prosečna potrošnja</span><span class="rate-info-value accent">${fmt(avgCons, 2)} L/100km</span></div>
+                <div class="rate-info-row"><span class="rate-info-label">Ukupno litara</span><span class="rate-info-value">${fmt(totalLiters, 1)} L</span></div>
+                <div class="rate-info-row"><span class="rate-info-label">Ukupni trošak</span><span class="rate-info-value">${money(totalCost)} RSD</span></div>
+                <div class="rate-info-row"><span class="rate-info-label">Pređeno</span><span class="rate-info-value">${totalKm} km</span></div>
+                <div class="rate-info-row"><span class="rate-info-label">Cena po km</span><span class="rate-info-value">${money(costPerKm)} RSD</span></div>
+            </div>
+        </div>
+        ${rows}
+        <button class="section-action-btn" style="width:100%;color:#f43f5e;border-color:rgba(244,63,94,0.4);margin-top:12px;" onclick="clearFuelHistory()">Obriši sve</button>
+    `;
+}
+function openFuelHistoryModal() {
+    const modal = el('fuel-history-modal');
+    const body = el('fuel-history-modal-body');
+    if (!modal || !body) return;
+    body.innerHTML = `
+        <div class="converter-box">
+            <div class="input-field"><label>Datum</label><input type="date" id="fh-date" class="custom-input" value="${new Date().toISOString().slice(0, 10)}"></div>
+            ${inputField('label.auto.currentKm', 'fh-km', 'km', 'placeholder="150000"')}
+            ${inputField('label.auto.fuel', 'fh-liters', 'L', 'step="0.1" placeholder="45"')}
+            ${inputField('label.auto.price', 'fh-price', 'RSD/L', 'step="0.1" placeholder="180"')}
+            ${calcButton('btn.save', 'saveFuelEntry()')}
+        </div>
+    `;
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+}
+function saveFuelEntry() {
+    const date = el('fh-date') ? el('fh-date').value : '';
+    const km = num('fh-km');
+    const liters = num('fh-liters');
+    const price = num('fh-price');
+    if (!date || km === null || !liters || !price) { showToast('Popuni sva polja.', 'error'); return; }
+    const list = loadFuelHistory();
+    list.push({ id: 'fh_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), date, km, liters, price, createdAt: Date.now() });
+    saveFuelHistory(list);
+    closeModal('fuel-history-modal');
+    renderFuelHistoryList();
+    showToast('Točenje sačuvano.', 'success', 1500);
+}
+function deleteFuelEntry(id) {
+    let list = loadFuelHistory();
+    list = list.filter(i => i.id !== id);
+    saveFuelHistory(list);
+    renderFuelHistoryList();
+    showToast('Unos obrisan.', 'info', 1200);
+}
+function clearFuelHistory() {
+    showConfirm('Obrisati celu istoriju točenja?').then(ok => {
+        if (!ok) return;
+        saveFuelHistory([]);
+        renderFuelHistoryList();
+        showToast('Istorija obrisana.', 'info', 1500);
+    });
+}
+
+// ============================================================
+// PROFIL VOZILA
+// ============================================================
+const VEHICLE_PROFILE_KEY = 'cx_vehicle_profile_v1';
+function loadVehicleProfile() {
+    try { const raw = JSON.parse(localStorage.getItem(VEHICLE_PROFILE_KEY)); if (raw && typeof raw === 'object') return raw; } catch (e) {}
+    return {};
+}
+function saveVehicleProfileStore(p) {
+    try { localStorage.setItem(VEHICLE_PROFILE_KEY, JSON.stringify(p)); } catch (e) {}
+}
+function renderVehicleProfile() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Popuni podatke o vozilu — koristi se u kalkulacijama.</p>
+            ${inputFieldText('label.auto.model', 'vp-model', 'npr. VW Golf 7')}
+            ${inputFieldText('label.auto.plate', 'vp-plate', 'npr. NP123-AB')}
+            ${inputField('label.auto.technical', 'vp-year', '', 'placeholder="2018"')}
+            <div class="input-field">
+                <label>Tip goriva</label>
+                <select id="vp-fuel-type" class="custom-input">
+                    <option value="petrol">Benzin</option>
+                    <option value="diesel">Dizel</option>
+                    <option value="lpg">TNG</option>
+                    <option value="electric">Električni</option>
+                    <option value="hybrid">Hibrid</option>
+                </select>
+            </div>
+            ${inputField('label.auto.fuel', 'vp-tank', 'L', 'placeholder="55"')}
+            ${inputField('label.auto.avgConsumption', 'vp-consumption', 'L/100km', 'step="0.1" placeholder="7"')}
+            ${dateTripleField('label.auto.registrationExpires', 'vp-reg-date')}
+            ${dateTripleField('label.auto.technicalExpires', 'vp-tech-date')}
+            ${dateTripleField('label.auto.registrationAndInsurance', 'vp-ins-date')}
+            ${calcButton('btn.saveCarProfile', 'saveVehicleProfileData()')}
+            <button class="rem-delete-btn" onclick="clearVehicleProfile()">Obriši profil</button>
+        </div>
+        ${statsRow('vp-status-row', [
+            ['label.auto.registration', 'vp-stat-reg', '—'],
+            ['label.auto.technical', 'vp-stat-tech', '—'],
+            ['label.auto.registrationAndInsurance', 'vp-stat-ins', '—']
+        ])}
+    `;
+}
+function loadVehicleProfileIntoForm() {
+    const p = loadVehicleProfile();
+    const setV = (id, v) => { const e = el(id); if (e) e.value = v == null ? '' : v; };
+    setV('vp-model', p.model);
+    setV('vp-plate', p.plate);
+    setV('vp-year', p.year);
+    setV('vp-fuel-type', p.fuelType || 'petrol');
+    setV('vp-tank', p.tankCapacity);
+    setV('vp-consumption', p.avgConsumption);
+    if (p.regDate) setTripleDate('vp-reg-date', p.regDate);
+    if (p.techDate) setTripleDate('vp-tech-date', p.techDate);
+    if (p.insuranceDate) setTripleDate('vp-ins-date', p.insuranceDate);
+    updateVehicleProfileStatus();
+}
+function saveVehicleProfileData() {
+    const v = id => { const e = el(id); return e ? e.value.trim() : ''; };
+    const profile = {
+        model: v('vp-model'), plate: v('vp-plate'), year: v('vp-year'),
+        fuelType: v('vp-fuel-type') || 'petrol', tankCapacity: v('vp-tank'), avgConsumption: v('vp-consumption'),
+        regDate: getTripleDate('vp-reg-date'), techDate: getTripleDate('vp-tech-date'), insuranceDate: getTripleDate('vp-ins-date')
+    };
+    saveVehicleProfileStore(profile);
+    showToast('Profil vozila sačuvan.', 'success', 1800);
+    updateVehicleProfileStatus();
+}
+function clearVehicleProfile() {
+    showConfirm('Obrisati profil vozila?').then(ok => {
+        if (!ok) return;
+        try { localStorage.removeItem(VEHICLE_PROFILE_KEY); } catch (e) {}
+        showToast('Profil obrisan.', 'info', 1500);
+        loadVehicleProfileIntoForm();
+    });
+}
+function updateVehicleProfileStatus() {
+    const p = loadVehicleProfile();
+    const setV = (id, v) => { const e = el(id); if (e) e.innerText = v; };
+    const daysLeft = (iso) => {
+        if (!iso) return null;
+        const parts = iso.split('-').map(Number);
+        if (parts.length !== 3) return null;
+        const target = new Date(parts[0], parts[1] - 1, parts[2]);
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        return Math.round((target - today) / 86400000);
+    };
+    const fmtDays = (d) => {
+        if (d === null) return '—';
+        if (d < 0) return `Isteklo pre ${Math.abs(d)} d.`;
+        if (d === 0) return 'Danas';
+        return `${d} d.`;
+    };
+    setV('vp-stat-reg', fmtDays(daysLeft(p.regDate)));
+    setV('vp-stat-tech', fmtDays(daysLeft(p.techDate)));
+    setV('vp-stat-ins', fmtDays(daysLeft(p.insuranceDate)));
+    const row = el('vp-status-row');
+    if (row) row.style.display = 'flex';
+}
+
+// ============================================================
+// ROLL ELEMENT — animacija brojeva
+// ============================================================
+const ROLL_RE = /[-−]?\d[\d.]*(?:,\d+)?/g;
+function parseSr(token) { return parseFloat(token.replace('−', '-').replace(/\./g, '').replace(',', '.')); }
+function decimalsOf(token) { const i = token.indexOf(','); return i < 0 ? 0 : token.length - i - 1; }
+function fmtSr(value, decimals) {
+    const locale = currentLang === 'en' ? 'en-US' : 'sr-RS';
+    return value.toLocaleString(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+function rollElement(node, live) {
+    const finalHTML = node.innerHTML;
+    const tokens = finalHTML.match(ROLL_RE);
+    if (!tokens) return;
+    cancelAnimationFrame(node._raf);
+    const targets = tokens.map(parseSr);
+    const decs = tokens.map(decimalsOf);
+    let starts = targets.map(() => 0);
+    if (live && node._cur && node._cur.length === targets.length) starts = node._cur.slice();
+    if (starts.every((s, i) => s === targets[i])) { node._cur = targets; return; }
+    const duration = live ? 250 : (node.tagName === 'STRONG' ? 700 : 850);
+    const t0 = performance.now();
+    function frame(now) {
+        const p = Math.min(1, (now - t0) / duration);
+        const eased = 1 - Math.pow(1 - p, 3);
+        const cur = targets.map((t, i) => starts[i] + (t - starts[i]) * eased);
+        node._cur = cur;
+        if (p < 1) {
+            let k = 0;
+            node.innerHTML = finalHTML.replace(ROLL_RE, () => { const text = fmtSr(cur[k], decs[k]); k++; return text; });
+            node._raf = requestAnimationFrame(frame);
+        } else {
+            node.innerHTML = finalHTML;
+            node._cur = targets;
+        }
+    }
+    node._raf = requestAnimationFrame(frame);
+}
+const PULSE_MS = 25;
+const TICK_COUNT = 12;
+function rollFeedback(duration) {
+    const times = [0];
+    let last = 0;
+    for (let k = 1; k <= TICK_COUNT; k++) {
+        let t = duration * (1 - Math.pow(1 - k / TICK_COUNT, 1 / 3));
+        if (t - last < 38) t = last + 38;
+        times.push(t); last = t;
+    }
+    const pattern = [PULSE_MS];
+    for (let i = 1; i < times.length; i++) {
+        const gap = times[i] - times[i - 1];
+        const isLast = (i === times.length - 1);
+        pattern.push(Math.max(gap - PULSE_MS, 10), isLast ? PULSE_MS + 10 : PULSE_MS);
+    }
+    vibrate(pattern);
+    times.forEach((t, i) => {
+        const isLast = (i === times.length - 1);
+        const freq = 1700 - (i / times.length) * 600;
+        playTick(t / 1000, isLast ? 900 : freq, isLast ? 0.09 : 0.05, isLast ? 0.04 : 0.015);
+    });
+}
+
+// ============================================================
+// INIT — dodajemo initToolbarIcons i dodatne init pozive
+// ============================================================
+function populateNoteSelects() {
+    try {
+        // Placeholder za kompatibilnost
+    } catch (e) {}
+}
