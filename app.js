@@ -1526,21 +1526,6 @@ function speedometerReset() {
     showToast(safeT('gps.resetDone'), 'info', 1400);
 }
 
-async function speedometerRequestWakeLock() {
-    if (!('wakeLock' in navigator)) return;
-    try {
-        speedometerState.wakeLock = await navigator.wakeLock.request('screen');
-    } catch (e) {}
-}
-
-function speedometerReleaseWakeLock() {
-    if (speedometerState.wakeLock) {
-        try { speedometerState.wakeLock.release(); } catch (e) {}
-        speedometerState.wakeLock = null;
-    }
-}
-
-
 
 // ============================================================
 // BOTTOM NAVIGATION
