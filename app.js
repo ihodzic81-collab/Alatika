@@ -6372,3 +6372,592 @@ function updateWeatherVazduh() {
     }
     box.innerHTML = `${weatherLocationHeader()}<div class="aqi-card" style="--aqi-color: ${aqiColor};"><div class="aqi-value">${Math.round(aqiVal)}</div><div class="aqi-info"><div class="aqi-label">${safeT('weather.aqi.' + aqiKey)}</div><div class="aqi-sub">${safeT('weather.aqi.subtitle')}</div></div></div><div class="weather-section-title">${safeT('weather.section.pollutants')}</div>${aqi.pm2_5 !== undefined ? `<div class="aqi-pollutant-row"><span class="aqi-pollutant-name">PM2.5</span><span class="aqi-pollutant-value">${Math.round(aqi.pm2_5)} µg/m³</span></div>` : ''}${aqi.pm10 !== undefined ? `<div class="aqi-pollutant-row"><span class="aqi-pollutant-name">PM10</span><span class="aqi-pollutant-value">${Math.round(aqi.pm10)} µg/m³</span></div>` : ''}${aqi.nitrogen_dioxide !== undefined ? `<div class="aqi-pollutant-row"><span class="aqi-pollutant-name">NO₂</span><span class="aqi-pollutant-value">${Math.round(aqi.nitrogen_dioxide)} µg/m³</span></div>` : ''}${aqi.ozone !== undefined ? `<div class="aqi-pollutant-row"><span class="aqi-pollutant-name">O₃</span><span class="aqi-pollutant-value">${Math.round(aqi.ozone)} µg/m³</span></div>` : ''}${pollenHtml ? `<div class="weather-section-title">${safeT('weather.section.pollen')}</div>${pollenHtml}` : ''}`;
 }
+// ============================================================
+// MONEY — SVI KALKULATORI
+// ============================================================
+function renderMoneyPopust() {
+    return `
+        <div class="converter-box">
+            ${inputField('label.money.originalPrice', 'money-price', 'RSD', 'placeholder="2500"')}
+            ${inputField('label.money.discountPercent', 'money-discount', '%', 'placeholder="20"')}
+            ${calcButton('btn.calculate', 'calculateMoney()')}
+        </div>
+        ${resultCard('money-result-box', 'tag', 'label.money.newPrice', 'res-money-final', 'RSD', 'NOVAC', 'label.money.discount')}
+        ${statsRow('money-stats-row', [['label.money.saved', 'stat-money-saved', '0 RSD']])}
+    `;
+}
+function calculateMoney() {
+    const price = num('money-price');
+    const discount = num('money-discount');
+    if (!price || discount === null) { showToast('Unesi cenu i popust.', 'error'); return; }
+    const saved = price * (discount / 100);
+    const final = price - saved;
+    const rf = el('res-money-final'); if (rf) rf.innerText = money(final);
+    const ss = el('stat-money-saved'); if (ss) ss.innerText = money(saved) + ' RSD';
+    show('money-result-box');
+    show('money-stats-row');
+}
+
+function renderMoneyPDV() {
+    return `
+        <div class="converter-box">
+            ${inputField('label.money.amount', 'pdv-amount', 'RSD', 'placeholder="1000"')}
+            ${inputField('label.money.vatRate', 'pdv-rate', '%', 'value="20"')}
+            ${selectField('label.money.calcType', 'pdv-type', [
+                { value: 'add', text: safeT('option.money.addVat') },
+                { value: 'extract', text: safeT('option.money.extractVat') }
+            ])}
+            ${calcButton('btn.calculate', 'calculatePDV()')}
+        </div>
+        ${resultCard('pdv-result-box', 'percent', 'label.money.totalAmount', 'res-pdv-total', 'RSD', 'NOVAC', 'label.money.vat')}
+        ${statsRow('pdv-stats-row', [['label.money.base', 'stat-pdv-base', '0 RSD'], ['label.money.vatAmount', 'stat-pdv-tax', '0 RSD']])}
+    `;
+}
+function calculatePDV() {
+    const amount = num('pdv-amount');
+    const rate = num('pdv-rate') || 20;
+    const type = el('pdv-type') ? el('pdv-type').value : 'add';
+    if (!amount) { showToast('Unesi iznos.', 'error'); return; }
+    let base, vat, total;
+    if (type === 'add') {
+        base = amount;
+        vat = amount * (rate / 100);
+        total = amount + vat;
+    } else {
+        total = amount;
+        base = amount / (1 + rate / 100);
+        vat = total - base;
+    }
+    const rt = el('res-pdv-total'); if (rt) rt.innerText = money(total);
+    const sb = el('stat-pdv-base'); if (sb) sb.innerText = money(base) + ' RSD';
+    const st = el('stat-pdv-tax'); if (st) st.innerText = money(vat) + ' RSD';
+    show('pdv-result-box');
+    show('pdv-stats-row');
+}
+
+function renderMoneyKredit() {
+    return `
+        <div class="converter-box">
+            ${selectField('label.money.loanCurrency', 'credit-currency', [
+                { value: 'RSD', text: 'RSD' }, { value: 'EUR', text: 'EUR' },
+                { value: 'CHF', text: 'CHF' }, { value: 'USD', text: 'USD' }
+            ], 'RSD')}
+            <div class="input-field">
+                <label>${safeT('label.money.loanAmount')}</label>
+                <div class="input-wrapper"><input type="number" id="loan-amount" class="custom-input" placeholder="1000000" inputmode="decimal"><span class="unit" id="loan-amount-unit">RSD</span></div>
+            </div>
+            ${inputField('label.money.annualRate', 'loan-rate', '%', 'value="6.5" step="0.1"')}
+            ${inputField('label.money.loanPeriod', 'loan-months', safeT('unit.monthsShort'), 'value="60"')}
+            ${calcButton('btn.calculate', 'calculateLoan()')}
+        </div>
+        ${resultCard('loan-result-box', 'creditCard', 'label.money.monthlyPayment', 'res-loan-monthly', 'RSD/mes', 'NOVAC', 'label.money.loan')}
+        ${statsRow('loan-stats-row', [['label.money.totalInterest', 'stat-loan-interest', '0 RSD'], ['label.money.totalRepayment', 'stat-loan-total', '0 RSD']])}
+        <div id="loan-amort-wrap" style="display:none; margin-top: 16px;">
+            <div class="converter-box">
+                <div class="section-desc" style="margin-bottom: 10px;">${safeT('label.money.amortPlan')}</div>
+                <div class="amort-scroll"><table id="amort-table" class="amort-table"><thead><tr><th>${safeT('table.month')}</th><th>${safeT('table.payment')}</th><th>${safeT('table.interest')}</th><th>${safeT('table.principal')}</th><th>${safeT('table.balance')}</th></tr></thead><tbody id="amort-body"></tbody></table></div>
+            </div>
+        </div>
+    `;
+}
+function calculateLoan() {
+    const amount = num('loan-amount');
+    const rate = num('loan-rate') || 0;
+    const months = num('loan-months') || 0;
+    const currency = el('credit-currency') ? el('credit-currency').value : 'RSD';
+    const unitEl = el('loan-amount-unit'); if (unitEl) unitEl.innerText = currency;
+    if (!amount || !months) { showToast('Unesi iznos i period.', 'error'); return; }
+    const monthlyRate = rate / 100 / 12;
+    let monthly;
+    if (monthlyRate === 0) monthly = amount / months;
+    else {
+        const factor = Math.pow(1 + monthlyRate, months);
+        monthly = amount * monthlyRate * factor / (factor - 1);
+    }
+    const total = monthly * months;
+    const interest = total - amount;
+    const rm = el('res-loan-monthly'); if (rm) rm.innerText = money(monthly) + '/' + currency;
+    const si = el('stat-loan-interest'); if (si) si.innerText = money(interest) + ' ' + currency;
+    const st = el('stat-loan-total'); if (st) st.innerText = money(total) + ' ' + currency;
+    // Amortizaciona tabela
+    const body = el('amort-body');
+    if (body) {
+        let balance = amount;
+        let rows = '';
+        for (let i = 1; i <= Math.min(months, 12); i++) {
+            const interestPart = balance * monthlyRate;
+            const principalPart = monthly - interestPart;
+            balance -= principalPart;
+            rows += `<tr><td>${i}</td><td>${money(monthly)}</td><td>${money(interestPart)}</td><td>${money(principalPart)}</td><td>${money(Math.max(0, balance))}</td></tr>`;
+        }
+        body.innerHTML = rows;
+    }
+    const wrap = el('loan-amort-wrap'); if (wrap) wrap.style.display = 'block';
+    show('loan-result-box');
+    show('loan-stats-row');
+}
+function toggleAmortPreview() { /* opciono */ }
+
+function renderMoneyRate() {
+    return `
+        <div class="converter-box">
+            ${sectionDescKey('desc.money.rate')}
+            ${inputField('label.rate.startAmount', 'rate-start', 'RSD', 'placeholder="120000"')}
+            ${inputField('label.rate.count', 'rate-count', '', 'value="12" min="1" max="120"')}
+            ${dateTripleField('label.rate.firstDate', 'rate-first-date')}
+            ${selectField('label.rate.period', 'rate-period', [
+                { value: 'monthly', text: safeT('label.rate.period.monthly') },
+                { value: 'biweekly', text: safeT('label.rate.period.biweekly') },
+                { value: 'weekly', text: safeT('label.rate.period.weekly') }
+            ], 'monthly')}
+            ${inputField('label.rate.interest', 'rate-interest', '%', 'value="0" step="0.1"')}
+            ${inputFieldText('label.rate.description', 'rate-description', safeT('label.rate.descriptionPlaceholder'))}
+            ${calcButton('btn.calculate', 'calculateInstallments()')}
+        </div>
+        <div id="rate-calc-result-box" style="display: none;">
+            <div class="rate-info-card">
+                <div class="rate-info-row"><span class="rate-info-label">${safeT('label.rate.perInstallment')}</span><span class="rate-info-value accent" id="res-rate-per">0 RSD</span></div>
+                <div class="rate-info-row"><span class="rate-info-label">${safeT('label.rate.totalPayment')}</span><span class="rate-info-value" id="res-rate-total">0 RSD</span></div>
+                <div class="rate-info-row"><span class="rate-info-label">${safeT('label.rate.totalInterest')}</span><span class="rate-info-value" id="res-rate-interest">0 RSD</span></div>
+            </div>
+            <div class="rate-actions">
+                <button class="rate-action-btn rate-action-primary" onclick="saveInstallmentsAsReminders()">💾 ${safeT('label.rate.saveReminders')}</button>
+            </div>
+            <div class="rate-table-wrap" style="margin-top: 14px;"><div id="rate-table-body"></div></div>
+        </div>
+    `;
+}
+let currentInstallmentData = null;
+function calculateInstallments() {
+    const startAmount = num('rate-start');
+    const count = parseInt(num('rate-count')) || 0;
+    const firstDate = getTripleDate('rate-first-date');
+    const period = el('rate-period') ? el('rate-period').value : 'monthly';
+    const interestRate = num('rate-interest') || 0;
+    const description = el('rate-description') ? el('rate-description').value.trim() : '';
+    if (!startAmount || startAmount <= 0) { showToast('Unesi iznos.', 'error'); return; }
+    if (!count || count < 1 || count > 120) { showToast('Unesi broj rata (1-120).', 'error'); return; }
+    if (!firstDate) { showToast('Unesi datum prve rate.', 'error'); return; }
+    let monthlyRate = 0;
+    if (interestRate > 0) {
+        const periodsPerYear = period === 'monthly' ? 12 : (period === 'biweekly' ? 26 : 52);
+        monthlyRate = (interestRate / 100) / periodsPerYear;
+    }
+    let perInstallment;
+    if (monthlyRate === 0) perInstallment = startAmount / count;
+    else {
+        const factor = Math.pow(1 + monthlyRate, count);
+        perInstallment = (startAmount * monthlyRate * factor) / (factor - 1);
+    }
+    const totalPayment = perInstallment * count;
+    const totalInterest = totalPayment - startAmount;
+    const installments = [];
+    const firstDateObj = parseDate(firstDate);
+    for (let i = 0; i < count; i++) {
+        const date = new Date(firstDateObj);
+        if (period === 'monthly') date.setMonth(date.getMonth() + i);
+        else if (period === 'biweekly') date.setDate(date.getDate() + i * 14);
+        else date.setDate(date.getDate() + i * 7);
+        installments.push({ number: i + 1, date: date.toISOString().slice(0, 10), amount: perInstallment, paid: false });
+    }
+    currentInstallmentData = {
+        startAmount, count, period, interestRate,
+        description: description || safeT('label.rate.installment'),
+        installments, totalPayment, totalInterest, createdAt: Date.now()
+    };
+    const rp = el('res-rate-per'); if (rp) rp.innerText = money(perInstallment) + ' RSD';
+    const rt = el('res-rate-total'); if (rt) rt.innerText = money(totalPayment) + ' RSD';
+    const ri = el('res-rate-interest'); if (ri) ri.innerText = money(totalInterest) + ' RSD';
+    const tableBody = el('rate-table-body');
+    if (tableBody) {
+        tableBody.innerHTML = installments.map(inst => `
+            <div class="rate-item">
+                <div class="rate-item-check" style="cursor: default;"></div>
+                <div class="rate-item-number">${safeT('label.rate.rate')} ${inst.number}/${count}</div>
+                <div class="rate-item-date">${inst.date}</div>
+                <div class="rate-item-amount">${money(inst.amount)} RSD</div>
+            </div>
+        `).join('');
+    }
+    const box = el('rate-calc-result-box'); if (box) box.style.display = 'block';
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+}
+function saveInstallmentsAsReminders() {
+    if (!currentInstallmentData) { showToast('Prvo izračunaj rate.', 'error'); return; }
+    const groups = loadInstallmentGroups();
+    const newGroup = {
+        id: 'inst_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        description: currentInstallmentData.description,
+        startAmount: currentInstallmentData.startAmount,
+        count: currentInstallmentData.count,
+        period: currentInstallmentData.period,
+        interestRate: currentInstallmentData.interestRate,
+        installments: currentInstallmentData.installments.map(i => ({ ...i })),
+        createdAt: Date.now()
+    };
+    groups.push(newGroup);
+    saveInstallmentGroups(groups);
+    showToast(safeT('label.rate.savedAsReminders'), 'success', 2500);
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+    updateAppBadge();
+    const box = el('rate-calc-result-box'); if (box) box.style.display = 'none';
+}
+
+function renderMoneyPodela() {
+    return `
+        <div class="converter-box">
+            ${inputField('label.money.totalBill', 'split-total', 'RSD', 'placeholder="4500"')}
+            ${inputField('label.money.peopleCount', 'split-people', '', 'value="2" min="1"')}
+            ${inputField('label.money.tipOptional', 'split-tip', '%', 'placeholder="10"')}
+            ${calcButton('btn.calculate', 'calculateSplit()')}
+        </div>
+        ${resultCard('split-result-box', 'receipt', 'label.money.perPerson', 'res-split-val', 'RSD', 'NOVAC', 'label.money.split')}
+        ${statsRow('split-stats-row', [['label.money.withTip', 'stat-split-total', '0 RSD']])}
+    `;
+}
+function calculateSplit() {
+    const total = num('split-total');
+    const people = num('split-people') || 1;
+    const tip = num('split-tip') || 0;
+    if (!total) { showToast('Unesi iznos računa.', 'error'); return; }
+    const totalWithTip = total * (1 + tip / 100);
+    const perPerson = totalWithTip / people;
+    const rv = el('res-split-val'); if (rv) rv.innerText = money(perPerson);
+    const st = el('stat-split-total'); if (st) st.innerText = money(totalWithTip) + ' RSD';
+    show('split-result-box');
+    show('split-stats-row');
+}
+
+function renderMoneyPoredjenje() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Uporedi cenu dva proizvoda po jedinici mere.</p>
+            <div class="compare-group">
+                <div class="compare-title">Proizvod A</div>
+                ${inputField('label.shop.price', 'price-a', 'RSD', 'placeholder="200"')}
+                ${inputField('label.shop.quantity', 'qty-a', '', 'placeholder="1"')}
+                ${selectField('label.shop.unit', 'unit-a', [
+                    { value: 'kg', text: 'kg' }, { value: 'g', text: 'g' },
+                    { value: 'L', text: 'L' }, { value: 'ml', text: 'ml' }, { value: 'kom', text: 'kom' }
+                ])}
+            </div>
+            <div class="compare-group">
+                <div class="compare-title">Proizvod B</div>
+                ${inputField('label.shop.price', 'price-b', 'RSD', 'placeholder="180"')}
+                ${inputField('label.shop.quantity', 'qty-b', '', 'placeholder="0.9"')}
+                ${selectField('label.shop.unit', 'unit-b', [
+                    { value: 'kg', text: 'kg' }, { value: 'g', text: 'g' },
+                    { value: 'L', text: 'L' }, { value: 'ml', text: 'ml' }, { value: 'kom', text: 'kom' }
+                ])}
+            </div>
+            ${calcButton('btn.calculate', 'calculateMoneyPoredjenje()')}
+        </div>
+        ${resultCard('poredjenje-result-box', 'scale', 'label.shop.compareResult', 'res-poredjenje-winner', '', 'NOVAC', 'label.shop.compareShort')}
+        ${statsRow('poredjenje-stats-row', [
+            ['label.shop.productA', 'stat-poredjenje-a', '0'],
+            ['label.shop.productB', 'stat-poredjenje-b', '0'],
+            ['label.shop.difference', 'stat-poredjenje-diff', '0%']
+        ])}
+    `;
+}
+function calculateMoneyPoredjenje() {
+    const aP = num('price-a'), aQ = num('qty-a');
+    const aU = el('unit-a') ? el('unit-a').value : 'kg';
+    const bP = num('price-b'), bQ = num('qty-b');
+    const bU = el('unit-b') ? el('unit-b').value : 'kg';
+    if (!aP || !aQ || !bP || !bQ) { showToast('Unesi sve vrednosti.', 'error'); return; }
+    function toBase(price, qty, unit) {
+        if (unit === 'g' || unit === 'ml') return price / (qty / 1000);
+        return price / qty;
+    }
+    const aBase = toBase(aP, aQ, aU);
+    const bBase = toBase(bP, bQ, bU);
+    const winner = aBase < bBase ? safeT('label.shop.productACheaper') : (bBase < aBase ? safeT('label.shop.productBCheaper') : safeT('label.shop.samePrice'));
+    const rw = el('res-poredjenje-winner'); if (rw) rw.innerText = winner;
+    const sa = el('stat-poredjenje-a'); if (sa) sa.innerText = money(aBase);
+    const sb = el('stat-poredjenje-b'); if (sb) sb.innerText = money(bBase);
+    const sd = el('stat-poredjenje-diff'); if (sd) sd.innerText = fmt(Math.abs(aBase - bBase) / Math.max(aBase, bBase) * 100, 1) + '%';
+    show('poredjenje-result-box'); show('poredjenje-stats-row');
+}
+
+function renderMoneyStednja() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Izračunaj koliko meseci treba da uštediš za cilj.</p>
+            ${inputField('label.money.stednja.target', 'savings-target', 'RSD', 'placeholder="1000000"')}
+            ${inputField('label.money.stednja.current', 'savings-current', 'RSD', 'placeholder="0"')}
+            ${inputField('label.money.stednja.monthly', 'savings-monthly', 'RSD', 'placeholder="20000"')}
+            ${inputField('label.money.stednja.interest', 'savings-interest', '%', 'value="0" step="0.1"')}
+            ${calcButton('btn.calculate', 'calculateSavings()')}
+        </div>
+        ${resultCard('savings-result-box', 'piggyBank', 'label.money.stednja.months', 'res-savings-months', 'meseci', 'NOVAC', 'label.money.stednja.progress')}
+        ${statsRow('savings-stats-row', [
+            ['label.money.stednja.total', 'stat-savings-total', '0 RSD'],
+            ['label.money.stednja.interestEarned', 'stat-savings-interest', '0 RSD']
+        ])}
+        <div class="savings-progress" id="savings-progress-box" style="display: none;">
+            <div class="savings-amounts">
+                <span class="current" id="savings-current-label">0 RSD</span>
+                <span class="target" id="savings-target-label">0 RSD</span>
+            </div>
+            <div class="savings-progress-bar-wrap">
+                <div class="savings-progress-fill" id="savings-progress-fill" style="width: 0%;"></div>
+            </div>
+            <div class="savings-pct" id="savings-pct">0%</div>
+        </div>
+    `;
+}
+function calculateSavings() {
+    const target = num('savings-target');
+    const current = num('savings-current') || 0;
+    const monthly = num('savings-monthly');
+    const annualRate = num('savings-interest') || 0;
+    if (!target || target <= 0 || !monthly || monthly <= 0) {
+        showToast('Unesi cilj i mesečni iznos.', 'error');
+        return;
+    }
+    const remaining = Math.max(0, target - current);
+    if (remaining === 0) {
+        const rm = el('res-savings-months');
+        if (rm) rm.innerText = '0';
+        showToast('Cilj je već dostignut!', 'success', 2500);
+        show('savings-result-box');
+        return;
+    }
+    let months;
+    if (annualRate <= 0) months = Math.ceil(remaining / monthly);
+    else {
+        const monthlyRate = annualRate / 100 / 12;
+        months = Math.ceil(Math.log(1 + (remaining * monthlyRate) / monthly) / Math.log(1 + monthlyRate));
+    }
+    const totalSaved = monthly * months;
+    const interest = Math.max(0, totalSaved - remaining);
+    const rm = el('res-savings-months'); if (rm) rm.innerText = months;
+    const st = el('stat-savings-total'); if (st) st.innerText = money(totalSaved) + ' RSD';
+    const si = el('stat-savings-interest'); if (si) si.innerText = money(interest) + ' RSD';
+    show('savings-result-box'); show('savings-stats-row');
+    const pct = Math.min(100, (current / target) * 100);
+    const progressBox = el('savings-progress-box');
+    if (progressBox) progressBox.style.display = 'flex';
+    const fill = el('savings-progress-fill');
+    if (fill) fill.style.width = pct + '%';
+    const pctEl = el('savings-pct');
+    if (pctEl) pctEl.textContent = fmt(pct, 1) + '%';
+    const currLabel = el('savings-current-label');
+    if (currLabel) currLabel.textContent = money(current) + ' RSD';
+    const tgtLabel = el('savings-target-label');
+    if (tgtLabel) tgtLabel.textContent = money(target) + ' RSD';
+}
+
+function renderMoneyBudzet() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Izračunaj dnevni limit potrošnje na osnovu budžeta.</p>
+            ${inputField('label.shop.totalBudget', 'budzet-total-m', 'RSD', 'placeholder="30000"')}
+            ${selectField('label.shop.period', 'budzet-period-m', [
+                { value: '7', text: 'Nedelja (7 dana)' },
+                { value: '14', text: 'Dve nedelje (14 dana)' },
+                { value: '30', text: 'Mesec (30 dana)' }
+            ])}
+            ${inputField('label.shop.alreadySpent', 'budzet-spent-m', 'RSD', 'placeholder="0"')}
+            ${calcButton('btn.calculate', 'calculateMoneyBudzet()')}
+        </div>
+        ${resultCard('budzet-result-box-m', 'calendarSm', 'label.shop.dailyLimit', 'res-budzet-daily-m', 'RSD', 'NOVAC', 'label.shop.budgetShort')}
+        ${statsRow('budzet-stats-row-m', [
+            ['label.shop.untilEndOfPeriod', 'stat-budzet-left-m', '0 RSD'],
+            ['label.shop.daysCount', 'stat-budzet-days-m', '0'],
+            ['label.shop.dailyUntilEnd', 'stat-budzet-recalc-m', '0 RSD']
+        ])}
+    `;
+}
+function calculateMoneyBudzet() {
+    const total = num('budzet-total-m');
+    const period = el('budzet-period-m') ? parseInt(el('budzet-period-m').value) : 30;
+    const spent = num('budzet-spent-m') || 0;
+    if (!total || total <= 0) { showToast('Unesi budžet.', 'error'); return; }
+    const daily = total / period, left = Math.max(0, total - spent);
+    const rd = el('res-budzet-daily-m'); if (rd) rd.innerText = money(daily);
+    const sl = el('stat-budzet-left-m'); if (sl) sl.innerText = money(left) + ' RSD';
+    const sd = el('stat-budzet-days-m'); if (sd) sd.innerText = period;
+    const sr = el('stat-budzet-recalc-m'); if (sr) sr.innerText = money(left / period) + ' RSD';
+    show('budzet-result-box-m'); show('budzet-stats-row-m');
+}
+
+function renderMoneyNapojnica() {
+    return `
+        <div class="converter-box">
+            ${inputField('label.money.billAmount', 'tip-bill', 'RSD', 'placeholder="2500"')}
+            ${inputField('label.money.tipPercent', 'tip-percent', '%', 'placeholder="10"')}
+            ${inputField('label.money.peopleCount', 'tip-people', '', 'value="1" min="1"')}
+            ${calcButton('btn.calculate', 'calculateTip()')}
+        </div>
+        ${resultCard('tip-result-box', 'handshake', 'label.money.tipAmount', 'res-tip-val', 'RSD', 'NOVAC', 'label.money.tip')}
+        ${statsRow('tip-stats-row', [['label.money.totalToPay', 'stat-tip-total', '0 RSD'], ['label.money.perPerson', 'stat-tip-per-person', '0 RSD']])}
+    `;
+}
+function calculateTip() {
+    const bill = num('tip-bill');
+    const pct = num('tip-percent') || 0;
+    const people = num('tip-people') || 1;
+    if (!bill) { showToast('Unesi iznos računa.', 'error'); return; }
+    const tip = bill * (pct / 100);
+    const total = bill + tip;
+    const perPerson = total / people;
+    const rv = el('res-tip-val'); if (rv) rv.innerText = money(tip);
+    const st = el('stat-tip-total'); if (st) st.innerText = money(total) + ' RSD';
+    const sp = el('stat-tip-per-person'); if (sp) sp.innerText = money(perPerson) + ' RSD';
+    show('tip-result-box');
+    show('tip-stats-row');
+}
+
+// ============================================================
+// FX — KURSNE LISTE
+// ============================================================
+const CURRENCIES = [
+    { code: 'RSD', name: 'Srpski dinar', flag: '🇷🇸', rate: 1 },
+    { code: 'EUR', name: 'Evro', flag: '🇪🇺', rate: 117.20 },
+    { code: 'USD', name: 'Američki dolar', flag: '🇺🇸', rate: 108.50 },
+    { code: 'GBP', name: 'Britanska funta', flag: '🇬🇧', rate: 137.80 },
+    { code: 'CHF', name: 'Švajcarski franak', flag: '🇨🇭', rate: 122.40 },
+    { code: 'JPY', name: 'Japanski jen', flag: '🇯🇵', rate: 0.72 },
+    { code: 'CNY', name: 'Kineski juan', flag: '🇨🇳', rate: 14.95 },
+    { code: 'RUB', name: 'Ruska rublja', flag: '🇷🇺', rate: 1.18 },
+    { code: 'TRY', name: 'Turska lira', flag: '🇹🇷', rate: 3.15 },
+    { code: 'BAM', name: 'Konvertibilna marka', flag: '🇧🇦', rate: 59.90 },
+    { code: 'HRK', name: 'Hrvatska kuna', flag: '🇭🇷', rate: 15.55 },
+    { code: 'MKD', name: 'Makedonski denar', flag: '🇲🇰', rate: 1.90 },
+    { code: 'BGN', name: 'Bugarski lev', flag: '🇧🇬', rate: 59.95 },
+    { code: 'RON', name: 'Rumunski lej', flag: '🇷🇴', rate: 23.55 },
+    { code: 'HUF', name: 'Mađarska forinta', flag: '🇭🇺', rate: 0.30 },
+    { code: 'PLN', name: 'Poljski zlot', flag: '🇵🇱', rate: 26.85 },
+    { code: 'CZK', name: 'Češka kruna', flag: '🇨🇿', rate: 4.68 },
+    { code: 'CAD', name: 'Kanadski dolar', flag: '🇨🇦', rate: 78.60 },
+    { code: 'AUD', name: 'Australijski dolar', flag: '🇦🇺', rate: 71.40 }
+];
+const FX_STORAGE_KEY = 'cx_fx_rates_v3';
+function getFxLastUpdate() { try { const raw = JSON.parse(localStorage.getItem(FX_STORAGE_KEY)); if (raw && raw.updated) return raw.updated; } catch (e) {} return null; }
+function loadFxRates() {
+    try { const raw = JSON.parse(localStorage.getItem(FX_STORAGE_KEY)); if (raw && raw.rates && typeof raw.rates === 'object') { CURRENCIES.forEach(c => { if (typeof raw.rates[c.code] === 'number' && raw.rates[c.code] > 0) c.rate = raw.rates[c.code]; }); } } catch (e) {}
+}
+function saveFxRates() { try { const rates = {}; CURRENCIES.forEach(c => { rates[c.code] = c.rate; }); localStorage.setItem(FX_STORAGE_KEY, JSON.stringify({ rates, updated: Date.now() })); } catch (e) {} }
+function formatFxUpdated(ts) {
+    if (!ts) return currentLang === 'en' ? 'not refreshed' : 'nije osveženo';
+    const diffMin = Math.round((new Date() - new Date(ts)) / 60000);
+    if (diffMin < 1) return currentLang === 'en' ? 'just now' : 'upravo sad';
+    if (diffMin < 60) return (currentLang === 'en' ? '' : 'pre ') + diffMin + (currentLang === 'en' ? ' min ago' : ' min');
+    const diffH = Math.round(diffMin / 60);
+    if (diffH < 24) return (currentLang === 'en' ? '' : 'pre ') + diffH + (currentLang === 'en' ? 'h ago' : 'h');
+    return (currentLang === 'en' ? '' : 'pre ') + Math.floor(diffH / 24) + (currentLang === 'en' ? 'd ago' : ' d.');
+}
+async function refreshExchangeRates(silent = false) {
+    const btn = document.querySelector('.fx-refresh-btn');
+    if (btn) btn.classList.add('spinning');
+    setTimeout(() => { if (btn) btn.classList.remove('spinning'); }, 700);
+    if (!silent) showToast(currentLang === 'en' ? 'Refreshing rates...' : 'Osvežavam kurseve...', 'info', 1500);
+    try {
+        const res = await fetch('https://open.er-api.com/v6/latest/RSD', { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (!data || data.result !== 'success' || !data.rates) throw new Error('Neispravan');
+        CURRENCIES.forEach(c => {
+            if (c.code === 'RSD') { c.rate = 1; return; }
+            const rate = data.rates[c.code];
+            if (typeof rate === 'number' && rate > 0) c.rate = Number((1 / rate).toFixed(4));
+        });
+        saveFxRates();
+        populateCurrencySelects();
+        renderFxList();
+        updateFxUpdatedLabel();
+        calculateCurrency();
+        if (!silent) { showToast(currentLang === 'en' ? 'Rates refreshed' : 'Kursevi osveženi', 'success', 2000); vibrate(20); }
+    } catch (e) { if (!silent) showToast(currentLang === 'en' ? 'Error refreshing rates' : 'Greška pri osvežavanju', 'error', 2500); }
+}
+function populateCurrencySelects() {
+    const fromSel = el('fx-from'), toSel = el('fx-to');
+    if (!fromSel || !toSel) return;
+    const prevFrom = fromSel.value || 'RSD', prevTo = toSel.value || 'EUR';
+    fromSel.innerHTML = ''; toSel.innerHTML = '';
+    CURRENCIES.forEach(c => {
+        const o1 = document.createElement('option'); o1.value = c.code; o1.textContent = `${c.flag} ${c.code} — ${c.name}`; fromSel.appendChild(o1);
+        const o2 = document.createElement('option'); o2.value = c.code; o2.textContent = `${c.flag} ${c.code} — ${c.name}`; toSel.appendChild(o2);
+    });
+    fromSel.value = prevFrom || 'RSD';
+    toSel.value = prevTo || 'EUR';
+}
+function renderFxList() {
+    const list = el('fx-list');
+    if (!list) return;
+    list.innerHTML = '';
+    CURRENCIES.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'fx-list-item';
+        item.dataset.code = c.code;
+        item.innerHTML = `<div class="fx-flag">${c.flag}</div><div class="fx-list-info"><div class="fx-code">${c.code}</div><div class="fx-name">${c.name}</div></div><div class="fx-value">${fmt(c.rate, 4)}<small>RSD</small></div>`;
+        item.addEventListener('click', () => { const toSel = el('fx-to'); if (toSel) { toSel.value = c.code; calculateCurrency(); } });
+        list.appendChild(item);
+    });
+}
+function updateFxUpdatedLabel() {
+    const label = el('fx-updated-label');
+    if (!label) return;
+    const ts = getFxLastUpdate();
+    label.textContent = ts ? ((currentLang === 'en' ? 'updated ' : 'osveženo ') + formatFxUpdated(ts)) : safeT('label.money.manualEntry');
+}
+function swapCurrencies() {
+    const fromSel = el('fx-from'), toSel = el('fx-to');
+    if (!fromSel || !toSel) return;
+    const tmp = fromSel.value;
+    fromSel.value = toSel.value;
+    toSel.value = tmp;
+    calculateCurrency();
+    vibrate(10);
+}
+function getCurrencyByCode(code) { return CURRENCIES.find(c => c.code === code); }
+function calculateCurrency() {
+    const amount = num('fx-amount');
+    const fromSel = el('fx-from'), toSel = el('fx-to');
+    if (!fromSel || !toSel) return;
+    const fromCur = getCurrencyByCode(fromSel.value), toCur = getCurrencyByCode(toSel.value);
+    const info = el('fx-rate-info');
+    if (info && fromCur && toCur) info.innerHTML = `1 ${fromCur.code} = <strong>${fmt(fromCur.rate / toCur.rate, 4)}</strong> ${toCur.code}`;
+    if (!amount) { hide('fx-result-box'); return; }
+    if (!fromCur || !toCur) return;
+    const result = (amount * fromCur.rate) / toCur.rate;
+    const fv = el('res-fx-val'), fu = el('res-fx-unit');
+    if (fv) fv.innerText = toCur.rate >= 50 ? money(result) : fmt(result, 2);
+    if (fu) fu.innerText = toCur.code;
+    show('fx-result-box');
+}
+
+function renderMoneyValuta() {
+    return `
+        <div class="converter-box">
+            <div class="fx-head">
+                <div class="section-desc" style="margin-bottom: 0;">${safeT('label.money.exchangeList')} — <span id="fx-updated-label">${safeT('label.money.manualEntry')}</span></div>
+                <button class="fx-refresh-btn" onclick="refreshExchangeRates()" type="button">${icon('refresh')}</button>
+            </div>
+            <div class="input-field"><label>${safeT('label.money.amount')}</label><div class="input-wrapper"><input type="number" id="fx-amount" class="custom-input" placeholder="1000" inputmode="decimal" oninput="calculateCurrency()"></div></div>
+            <div class="fx-row">
+                <div class="input-field fx-col"><label>${safeT('label.money.fromCurrency')}</label><select id="fx-from" class="custom-input" onchange="calculateCurrency()"></select></div>
+                <button class="fx-swap-btn" onclick="swapCurrencies()" type="button">${icon('swap')}</button>
+                <div class="input-field fx-col"><label>${safeT('label.money.toCurrency')}</label><select id="fx-to" class="custom-input" onchange="calculateCurrency()"></select></div>
+            </div>
+            ${calcButton('btn.calculate', 'calculateCurrency()')}
+        </div>
+        <div id="fx-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left"><div class="pump-icon">${icon('exchange')}</div><div><div class="res-label">${safeT('result.label')}</div><h2><span id="res-fx-val">0</span> <small id="res-fx-unit">EUR</small></h2></div></div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-fx-val', 'res-fx-unit', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="NOVAC" data-label="Valuta" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="NOVAC" data-label="Valuta" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+        <div class="fx-rate-info" id="fx-rate-info"></div>
+        <div class="converter-box fx-list-box">
+            <div class="section-desc" style="margin-bottom: 10px;">${safeT('label.money.ratesList')}</div>
+            <div class="fx-list" id="fx-list"></div>
+        </div>
+    `;
+}
