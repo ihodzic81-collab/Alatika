@@ -7823,3 +7823,569 @@ function closeImageViewer(e) {
     if (modal) modal.classList.remove('show');
     vibrate(10);
 }
+// ============================================================
+// MERE (MEASURES)
+// ============================================================
+function measureTab(prefix, labelKey, units, fromDefault = '', toDefault = '') {
+    const fromOpts = units.map(u => ({ value: u.v, text: safeT(u.tKey), sel: u.v === fromDefault }));
+    const toOpts = units.map(u => ({ value: u.v, text: safeT(u.tKey), sel: u.v === toDefault }));
+    const fnName = 'calculate' + prefix.charAt(0).toUpperCase() + prefix.slice(1);
+    return `
+        <div class="converter-box">
+            <div class="input-field"><label>${safeT('label.measures.value')}</label><div class="input-wrapper"><input type="number" id="${prefix}-val" class="custom-input" placeholder="0" inputmode="decimal" oninput="${fnName}()"></div></div>
+            <div class="input-field"><label>${safeT('label.measures.from')}</label><select id="${prefix}-from" class="custom-input" onchange="${fnName}()">${fromOpts.map(o => `<option value="${o.value}"${o.sel ? ' selected' : ''}>${escapeHtml(o.text)}</option>`).join('')}</select></div>
+            <div class="swap-icon-container"><button class="swap-btn" onclick="swapInputs('${prefix}-from', '${prefix}-to'); ${fnName}();">${safeT('btn.swap')}</button></div>
+            <div class="input-field"><label>${safeT('label.measures.to')}</label><select id="${prefix}-to" class="custom-input" onchange="${fnName}()">${toOpts.map(o => `<option value="${o.value}"${o.sel ? ' selected' : ''}>${escapeHtml(o.text)}</option>`).join('')}</select></div>
+            ${calcButton('btn.calculate', `${fnName}()`)}
+        </div>
+        <div id="${prefix}-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left"><div class="pump-icon">${icon('ruler')}</div><div><div class="res-label">${safeT('result.label')}</div><h2><span id="res-${prefix}-val">0</span> <small id="res-${prefix}-unit"></small></h2></div></div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-${prefix}-val', 'res-${prefix}-unit', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="MERE" data-label="${escapeHtml(safeT(labelKey))}" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="MERE" data-label="${escapeHtml(safeT(labelKey))}" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+    `;
+}
+
+function renderMeasuresDuzina() {
+    return measureTab('length', 'label.measures.length', [
+        { v: 'm', tKey: 'option.measures.m' }, { v: 'km', tKey: 'option.measures.km' },
+        { v: 'cm', tKey: 'option.measures.cm' }, { v: 'mm', tKey: 'option.measures.mm' },
+        { v: 'ft', tKey: 'option.measures.ft' }, { v: 'in', tKey: 'option.measures.inch' }
+    ], 'm', 'cm');
+}
+function renderMeasuresTezina() {
+    return measureTab('weight', 'label.measures.weight', [
+        { v: 'kg', tKey: 'option.measures.kg' }, { v: 'g', tKey: 'option.measures.g' },
+        { v: 't', tKey: 'option.measures.t' }, { v: 'lbs', tKey: 'option.measures.lbs' },
+        { v: 'oz', tKey: 'option.measures.oz' }
+    ], 'kg', 'g');
+}
+function renderMeasuresPovrsina() {
+    return measureTab('area', 'label.measures.area', [
+        { v: 'm2', tKey: 'option.measures.m2' }, { v: 'ar', tKey: 'option.measures.ar' },
+        { v: 'ha', tKey: 'option.measures.ha' }, { v: 'km2', tKey: 'option.measures.km2' }
+    ], 'm2', 'ar');
+}
+function renderMeasuresZapremina() {
+    return measureTab('volume', 'label.measures.volume', [
+        { v: 'L', tKey: 'option.measures.L' }, { v: 'ml', tKey: 'option.measures.ml' },
+        { v: 'm3', tKey: 'option.measures.m3' }, { v: 'galus', tKey: 'option.measures.galus' },
+        { v: 'galuk', tKey: 'option.measures.galuk' }
+    ], 'L', 'ml');
+}
+function renderMeasuresBrzina() {
+    return measureTab('speed', 'label.measures.speed', [
+        { v: 'kmh', tKey: 'option.measures.kmh' }, { v: 'ms', tKey: 'option.measures.ms' },
+        { v: 'mph', tKey: 'option.measures.mph' }, { v: 'knot', tKey: 'option.measures.knot' }
+    ], 'kmh', 'ms');
+}
+function renderMeasuresPritisak() {
+    return measureTab('pres', 'label.measures.pressure', [
+        { v: 'bar', tKey: 'option.measures.bar' }, { v: 'psi', tKey: 'option.measures.psi' },
+        { v: 'kpa', tKey: 'option.measures.kpa' }, { v: 'atm', tKey: 'option.measures.atm' },
+        { v: 'mmhg', tKey: 'option.measures.mmhg' }
+    ], 'bar', 'psi');
+}
+function renderMeasuresPodaci() {
+    return measureTab('data', 'label.measures.data', [
+        { v: 'B', tKey: 'option.measures.B' }, { v: 'KB', tKey: 'option.measures.KB' },
+        { v: 'MB', tKey: 'option.measures.MB' }, { v: 'GB', tKey: 'option.measures.GB' },
+        { v: 'TB', tKey: 'option.measures.TB' }
+    ], 'GB', 'MB');
+}
+function renderMeasuresTemp() {
+    return `
+        <div class="converter-box">
+            <div class="input-field"><label>${safeT('label.measures.value')}</label><div class="input-wrapper"><input type="number" id="temp-val" class="custom-input" placeholder="25" inputmode="decimal" oninput="calculateTemp()"></div></div>
+            <div class="input-field"><label>${safeT('label.measures.from')}</label><select id="temp-from" class="custom-input" onchange="calculateTemp()"><option value="c">${safeT('option.measures.celsius')}</option><option value="f">${safeT('option.measures.fahrenheit')}</option><option value="k">${safeT('option.measures.kelvin')}</option></select></div>
+            <div class="swap-icon-container"><button class="swap-btn" onclick="swapInputs('temp-from', 'temp-to'); calculateTemp();">${safeT('btn.swap')}</button></div>
+            <div class="input-field"><label>${safeT('label.measures.to')}</label><select id="temp-to" class="custom-input" onchange="calculateTemp()"><option value="f">${safeT('option.measures.fahrenheit')}</option><option value="c">${safeT('option.measures.celsius')}</option><option value="k">${safeT('option.measures.kelvin')}</option></select></div>
+            ${calcButton('btn.calculate', 'calculateTemp()')}
+        </div>
+        <div id="temp-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left"><div class="pump-icon">${icon('thermometer')}</div><div><div class="res-label">${safeT('result.label')}</div><h2><span id="res-temp-val">0</span> <small id="res-temp-unit">°F</small></h2></div></div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-temp-val', 'res-temp-unit', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="MERE" data-label="Temp" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="MERE" data-label="Temp" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+    `;
+}
+
+const LENGTH_FACTORS = { m: 1, km: 1000, cm: 0.01, mm: 0.001, ft: 0.3048, in: 0.0254 };
+const LENGTH_LABELS = { m: 'm', km: 'km', cm: 'cm', mm: 'mm', ft: 'ft', in: 'in' };
+const WEIGHT_FACTORS = { g: 1, kg: 1000, t: 1000000, lbs: 453.592, oz: 28.3495 };
+const WEIGHT_LABELS = { g: 'g', kg: 'kg', t: 't', lbs: 'lbs', oz: 'oz' };
+const AREA_FACTORS = { m2: 1, ar: 100, ha: 10000, km2: 1000000 };
+const AREA_LABELS = { m2: 'm²', ar: 'ar', ha: 'ha', km2: 'km²' };
+const VOLUME_FACTORS = { L: 1, ml: 0.001, m3: 1000, galus: 3.785411784, galuk: 4.54609 };
+const VOLUME_LABELS = { L: 'L', ml: 'ml', m3: 'm³', galus: 'gal (US)', galuk: 'gal (UK)' };
+const PRES_FACTORS = { bar: 1, psi: 0.0689476, kpa: 0.01, atm: 1.01325, mmhg: 0.00133322 };
+const PRES_LABELS = { bar: 'bar', psi: 'psi', kpa: 'kPa', atm: 'atm', mmhg: 'mmHg' };
+const SPEED_FACTORS = { kmh: 0.277778, ms: 1, mph: 0.44704, knot: 0.514444 };
+const SPEED_LABELS = { kmh: 'km/h', ms: 'm/s', mph: 'mph', knot: 'kn' };
+const DATA_FACTORS = { B: 1, KB: 1024, MB: 1048576, GB: 1073741824, TB: 1099511627776 };
+const DATA_LABELS = { B: 'B', KB: 'KB', MB: 'MB', GB: 'GB', TB: 'TB' };
+
+function convertMeasure(prefix, factors, labels) {
+    const val = num(`${prefix}-val`);
+    if (val === null) { hide(`${prefix}-result-box`); return; }
+    const from = el(`${prefix}-from`) ? el(`${prefix}-from`).value : '';
+    const to = el(`${prefix}-to`) ? el(`${prefix}-to`).value : '';
+    const result = val * factors[from] / factors[to];
+    const rv = el(`res-${prefix}-val`); if (rv) rv.innerText = fmt(result);
+    const ru = el(`res-${prefix}-unit`); if (ru) ru.innerText = labels[to];
+    show(`${prefix}-result-box`, true);
+}
+function calculateLength() { convertMeasure('length', LENGTH_FACTORS, LENGTH_LABELS); }
+function calculateWeight() { convertMeasure('weight', WEIGHT_FACTORS, WEIGHT_LABELS); }
+function calculateArea() { convertMeasure('area', AREA_FACTORS, AREA_LABELS); }
+function calculatePres() { convertMeasure('pres', PRES_FACTORS, PRES_LABELS); }
+function calculateSpeed() { convertMeasure('speed', SPEED_FACTORS, SPEED_LABELS); }
+function calculateData() { convertMeasure('data', DATA_FACTORS, DATA_LABELS); }
+function calculateVolume() { convertMeasure('volume', VOLUME_FACTORS, VOLUME_LABELS); }
+
+function calculateTemp() {
+    const val = num('temp-val');
+    if (val === null) { hide('temp-result-box'); return; }
+    const from = el('temp-from') ? el('temp-from').value : 'c';
+    const to = el('temp-to') ? el('temp-to').value : 'f';
+    let celsius = val;
+    if (from === 'f') celsius = (val - 32) * 5 / 9;
+    else if (from === 'k') celsius = val - 273.15;
+    let result = celsius;
+    if (to === 'f') result = (celsius * 9 / 5) + 32;
+    else if (to === 'k') result = celsius + 273.15;
+    const labels = { c: '°C', f: '°F', k: 'K' };
+    const rv = el('res-temp-val'); if (rv) rv.innerText = fmt(result, 2);
+    const ru = el('res-temp-unit'); if (ru) ru.innerText = labels[to];
+    show('temp-result-box', true);
+}
+
+// ============================================================
+// ZDRAVLJE (HEALTH)
+// ============================================================
+function renderHealthBMI() {
+    return `<div class="converter-box">${sectionDescKey('desc.health.bmi')}${inputField('label.health.weight', 'health-weight', 'kg', 'placeholder="70"')}${inputField('label.health.height', 'health-height', 'cm', 'placeholder="175"')}${inputField('label.health.ageOptional', 'health-bmi-age', '', 'placeholder="30"')}${calcButton('btn.calculate', 'calculateBMI()')}</div>${resultCard('health-bmi-result-box', 'scale', 'label.health.yourBmi', 'res-bmi-val', '', 'ZDRAVLJE', 'label.health.bmi')}${statsRow('health-bmi-stats-row', [['label.health.category', 'stat-bmi-category', '—']])}`;
+}
+function renderHealthIdealna() {
+    return `<div class="converter-box">${sectionDescKey('desc.health.idealWeight')}${selectField('label.health.gender', 'health-gender', [{ value: 'male', text: safeT('option.health.male') }, { value: 'female', text: safeT('option.health.female') }])}${inputField('label.health.height', 'health-ideal-height', 'cm', 'placeholder="175"')}${calcButton('btn.calculate', 'calculateIdealWeight()')}</div>${resultCard('health-ideal-result-box', 'target', 'label.health.idealWeight', 'res-ideal-weight', 'kg', 'ZDRAVLJE', 'label.health.idealWeight')}${statsRow('health-ideal-stats-row', [['label.health.healthyRange', 'stat-ideal-range', '—']])}`;
+}
+function renderHealthBMR() {
+    return `<div class="converter-box">${sectionDescKey('desc.health.bmr')}${selectField('label.health.gender', 'bmr-gender', [{ value: 'male', text: safeT('option.health.male') }, { value: 'female', text: safeT('option.health.female') }])}${inputField('label.health.weight', 'bmr-weight', 'kg', 'placeholder="70"')}${inputField('label.health.height', 'bmr-height', 'cm', 'placeholder="175"')}${inputField('label.health.age', 'bmr-age', '', 'placeholder="30"')}${selectField('label.health.activityLevel', 'bmr-activity', [{ value: '1.2', text: safeT('option.health.sedentary') }, { value: '1.375', text: safeT('option.health.lightActivity') }, { value: '1.55', text: safeT('option.health.moderateActivity') }, { value: '1.725', text: safeT('option.health.highActivity') }])}${calcButton('btn.calculate', 'calculateBMR()')}</div>${resultCard('bmr-result-box', 'flame', 'label.health.dailyNeeds', 'res-bmr-val', 'kcal', 'ZDRAVLJE', 'label.health.bmrFull')}${statsRow('bmr-stats-row', [['label.health.basalMetabolism', 'stat-bmr-base', '0 kcal']])}`;
+}
+function renderHealthPuls() {
+    return `<div class="converter-box">${sectionDescKey('desc.health.pulse')}${inputField('label.health.age', 'hr-age', '', 'placeholder="30"')}${calcButton('btn.calculate', 'calculateHeartRate()')}</div>${resultCard('hr-result-box', 'heartPulse', 'label.health.maxPulse', 'res-hr-max', 'BPM', 'ZDRAVLJE', 'label.health.pulseFull')}<div id="hr-zones-wrap" class="hr-zones" style="display:none;"><div class="hr-zone-item"><span class="hr-zone-name">${safeT('zone.easy')}</span><strong id="hr-zone-1">—</strong></div><div class="hr-zone-item"><span class="hr-zone-name">${safeT('zone.fatBurn')}</span><strong id="hr-zone-2">—</strong></div><div class="hr-zone-item"><span class="hr-zone-name">${safeT('zone.cardio')}</span><strong id="hr-zone-3">—</strong></div><div class="hr-zone-item"><span class="hr-zone-name">${safeT('zone.intense')}</span><strong id="hr-zone-4">—</strong></div><div class="hr-zone-item"><span class="hr-zone-name">${safeT('zone.maximum')}</span><strong id="hr-zone-5">—</strong></div></div>`;
+}
+function renderHealthTrcanje() {
+    return `<div class="converter-box">${sectionDescKey('desc.health.running')}${inputField('label.health.distance', 'run-distance', 'km', 'placeholder="5"')}${inputField('label.health.timeMin', 'run-min', 'min', 'placeholder="25"')}${inputField('label.health.timeSec', 'run-sec', 'sec', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateRunning()')}</div>${resultCard('run-result-box', 'run', 'label.health.pace', 'res-run-pace', '/km', 'ZDRAVLJE', 'label.health.running')}${statsRow('run-stats-row', [['label.health.avgSpeed', 'stat-run-speed', '0 km/h'], ['label.health.totalTime', 'stat-run-total', '0']])}`;
+}
+function renderHealth1RM() {
+    return `<div class="converter-box">${sectionDescKey('desc.health.rm1')}${inputField('label.health.weight', 'rm1-weight', 'kg', 'placeholder="80"')}${inputField('label.health.reps', 'rm1-reps', '', 'placeholder="5"')}${calcButton('btn.calculate', 'calculate1RM()')}</div>${resultCard('rm1-result-box', 'dumbbell', 'label.health.rm1Estimate', 'res-rm1-val', 'kg', 'ZDRAVLJE', 'label.health.rm1')}${statsRow('rm1-stats-row', [['label.health.rm1_90', 'stat-rm1-90', '—'], ['label.health.rm1_80', 'stat-rm1-80', '—']])}`;
+}
+
+function calculateBMI() {
+    const weight = num('health-weight'), heightCm = num('health-height'), age = num('health-bmi-age');
+    if (!weight || !heightCm) { showToast(safeT('toast.error.enterWeightHeight') || 'Unesi težinu i visinu.', 'error'); return; }
+    const bmi = weight / Math.pow(heightCm / 100, 2);
+    let categoryKey;
+    if (age !== null && age < 18) categoryKey = 'label.health.underageBmi';
+    else if (bmi < 18.5) categoryKey = 'label.health.underweight';
+    else if (bmi < 25) categoryKey = 'label.health.normalWeight';
+    else if (bmi < 30) categoryKey = 'label.health.overweight';
+    else categoryKey = 'label.health.obese';
+    const bv = el('res-bmi-val'); if (bv) bv.innerText = fmt(bmi, 1);
+    const bc = el('stat-bmi-category'); if (bc) bc.innerText = safeT(categoryKey);
+    show('health-bmi-result-box'); show('health-bmi-stats-row');
+}
+function calculateIdealWeight() {
+    const height = num('health-ideal-height');
+    const gender = el('health-gender') ? el('health-gender').value : 'male';
+    if (!height) { showToast(safeT('toast.error.enterHeight') || 'Unesi visinu.', 'error'); return; }
+    const inchesOver = Math.max(0, (height - 152.4) / 2.54);
+    const ideal = (gender === 'male' ? 50 : 45.5) + (2.3 * inchesOver);
+    const heightM = height / 100;
+    const iw = el('res-ideal-weight'); if (iw) iw.innerText = fmt(ideal, 1);
+    const ir = el('stat-ideal-range'); if (ir) ir.innerText = fmt(18.5 * heightM * heightM, 1) + ' – ' + fmt(24.9 * heightM * heightM, 1) + ' kg';
+    show('health-ideal-result-box'); show('health-ideal-stats-row');
+}
+function calculateBMR() {
+    const weight = num('bmr-weight'), height = num('bmr-height'), age = num('bmr-age');
+    const gender = el('bmr-gender') ? el('bmr-gender').value : 'male';
+    const activity = el('bmr-activity') ? parseFloat(el('bmr-activity').value) : 1.375;
+    if (!weight || !height || !age) { showToast(safeT('toast.error.enterAll') || 'Unesi sve vrednosti.', 'error'); return; }
+    let bmr = (10 * weight) + (6.25 * height) - (5 * age) + (gender === 'male' ? 5 : -161);
+    const bv = el('res-bmr-val'); if (bv) bv.innerText = fmt(bmr * activity, 0);
+    const bb = el('stat-bmr-base'); if (bb) bb.innerText = fmt(bmr, 0) + ' kcal';
+    show('bmr-result-box'); show('bmr-stats-row');
+}
+function calculateHeartRate() {
+    const age = num('hr-age');
+    if (!age) { showToast(safeT('toast.error.enterAge') || 'Unesi godine.', 'error'); return; }
+    const max = 220 - age;
+    const zones = [[0.5, 0.6], [0.6, 0.7], [0.7, 0.8], [0.8, 0.9], [0.9, 1.0]];
+    const hm = el('res-hr-max'); if (hm) hm.innerText = fmt(max, 0);
+    show('hr-result-box');
+    zones.forEach((z, i) => {
+        const ze = el(`hr-zone-${i + 1}`);
+        if (ze) ze.innerText = `${Math.round(max * z[0])}–${Math.round(max * z[1])}`;
+    });
+    const zw = el('hr-zones-wrap'); if (zw) zw.style.display = 'flex';
+}
+function calculateRunning() {
+    const distance = num('run-distance'), min = num('run-min') || 0, sec = num('run-sec') || 0;
+    if (!distance) { showToast(safeT('toast.error.enterDistance') || 'Unesi distancu.', 'error'); return; }
+    const totalMinutes = min + (sec / 60);
+    if (totalMinutes === 0) { showToast(safeT('toast.error.enterTime') || 'Unesi vreme.', 'error'); return; }
+    const paceMin = totalMinutes / distance;
+    const paceMinWhole = Math.floor(paceMin), paceSec = Math.round((paceMin - paceMinWhole) * 60);
+    const rp = el('res-run-pace'); if (rp) rp.innerText = `${paceMinWhole}:${String(paceSec).padStart(2, '0')}`;
+    const rs = el('stat-run-speed'); if (rs) rs.innerText = fmt(distance / (totalMinutes / 60), 2) + ' km/h';
+    const rt = el('stat-run-total'); if (rt) rt.innerText = `${min}min ${sec}s`;
+    show('run-result-box'); show('run-stats-row');
+}
+function calculate1RM() {
+    const weight = num('rm1-weight'), reps = num('rm1-reps');
+    if (!weight || !reps || reps < 1 || reps > 15) { showToast(safeT('toast.error.enterWeightReps') || 'Unesi težinu i ponavljanja (1-15).', 'error'); return; }
+    const rm = weight * (1 + reps / 30);
+    const rv = el('res-rm1-val'); if (rv) rv.innerText = fmt(rm, 1);
+    const r90 = el('stat-rm1-90'); if (r90) r90.innerText = fmt(rm * 0.9, 1) + ' kg';
+    const r80 = el('stat-rm1-80'); if (r80) r80.innerText = fmt(rm * 0.8, 1) + ' kg';
+    show('rm1-result-box'); show('rm1-stats-row');
+}
+
+// ============================================================
+// VREME I DATUMI (TIME)
+// ============================================================
+const SR_DAYS = ['nedelja', 'ponedeljak', 'utorak', 'sreda', 'četvrtak', 'petak', 'subota'];
+const SR_MONTHS = ['januar', 'februar', 'mart', 'april', 'maj', 'jun', 'jul', 'avgust', 'septembar', 'oktobar', 'novembar', 'decembar'];
+const EN_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const EN_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function getDaysArr() { return currentLang === 'en' ? EN_DAYS : SR_DAYS; }
+function getMonthsArr() { return currentLang === 'en' ? EN_MONTHS : SR_MONTHS; }
+
+function parseDate(value) {
+    if (!value) return null;
+    const parts = value.split('-').map(Number);
+    if (parts.length !== 3) return null;
+    return new Date(parts[0], parts[1] - 1, parts[2]);
+}
+
+function renderTimeKonverter() {
+    const units = [
+        { v: 'seconds', k: 'option.time.seconds' }, { v: 'minutes', k: 'option.time.minutes' },
+        { v: 'hours', k: 'option.time.hours' }, { v: 'days', k: 'option.time.days' },
+        { v: 'weeks', k: 'option.time.weeks' }, { v: 'months', k: 'option.time.months' },
+        { v: 'years', k: 'option.time.years' }
+    ];
+    return `
+        <div class="converter-box">
+            ${inputField('label.time.value', 'time-value', '', 'placeholder="0"')}
+            <div class="input-field"><label>${safeT('label.time.fromUnit')}</label><select id="time-from" class="custom-input">${units.map(u => `<option value="${u.v}">${safeT(u.k)}</option>`).join('')}</select></div>
+            <div class="swap-icon-container"><button class="swap-btn" onclick="swapInputs('time-from', 'time-to'); convertTimeUnits();">${safeT('btn.swap')}</button></div>
+            <div class="input-field"><label>${safeT('label.time.toUnit')}</label><select id="time-to" class="custom-input">${units.map((u, i) => `<option value="${u.v}"${i === 1 ? ' selected' : ''}>${safeT(u.k)}</option>`).join('')}</select></div>
+            ${calcButton('btn.calculate', 'convertTimeUnits()')}
+        </div>
+        <div id="result-time-conv-box" class="result-card-green" style="display: none;">
+            <div class="res-left"><div class="pump-icon">${icon('hourglass')}</div><div><div class="res-label">${safeT('label.time.conversionResult')}</div><h3 id="res-time-conv-val" class="res-text">—</h3></div></div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-time-conv-val', '', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Konverzija" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Konverzija" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+    `;
+}
+function renderTimeRazlika() {
+    return `
+        <div class="converter-box">
+            ${dateTripleField('label.time.startDate', 'start-date')}
+            ${dateTripleField('label.time.endDate', 'end-date')}
+            ${calcButton('btn.calculate', 'calculateDateDifference()')}
+        </div>
+        <div id="result-date-box" class="result-card-green" style="display: none;">
+            <div class="res-left"><div class="pump-icon">${icon('calendarDays')}</div><div><div class="res-label">${safeT('label.time.difference')}</div><h3 id="res-date-val" class="res-text">—</h3></div></div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-date-val', '', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Razlika datuma" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Razlika datuma" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+    `;
+}
+function renderTimePomeraj() {
+    return `
+        <div class="converter-box">
+            ${dateTripleField('label.time.startDate', 'shift-date')}
+            ${inputField('label.time.daysCount', 'shift-days', '', 'placeholder="30"')}
+            <div class="input-field"><label>${safeT('label.time.operation')}</label><select id="shift-op" class="custom-input"><option value="add">${safeT('option.time.addDays')}</option><option value="sub">${safeT('option.time.subtractDays')}</option></select></div>
+            ${calcButton('btn.calculate', 'calculateDateShift()')}
+        </div>
+        <div id="shift-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left"><div class="pump-icon">${icon('calendarPlus')}</div><div><div class="res-label">${safeT('label.time.newDate')}</div><h3 id="res-shift-val" class="res-text">—</h3></div></div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-shift-val', '', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Pomeraj" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Pomeraj" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+    `;
+}
+function renderTimeGodine() {
+    return `
+        <div class="converter-box">
+            ${dateTripleField('label.time.birthDate', 'birth-date')}
+            ${calcButton('btn.calculate', 'calculateAge()')}
+        </div>
+        <div id="age-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left"><div class="pump-icon">${icon('cake')}</div><div><div class="res-label">${safeT('label.time.years')}</div><h2><span id="res-age-years">0</span> <small>${safeT('label.time.years')}</small></h2></div></div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-age-years', '', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Godine" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Godine" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+        ${statsRow('age-stats-row', [['label.time.detailed', 'stat-age-detail', '—'], ['label.time.nextBirthday', 'stat-age-next', '—']])}
+    `;
+}
+function renderTimeRadni() {
+    return `
+        <div class="converter-box">
+            ${dateTripleField('label.time.startDate', 'workdays-start')}
+            ${dateTripleField('label.time.endDate', 'workdays-end')}
+            ${calcButton('btn.calculate', 'calculateWorkdays()')}
+        </div>
+        <div id="workdays-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left"><div class="pump-icon">${icon('briefcaseSm')}</div><div><div class="res-label">${safeT('label.time.workdays')}</div><h2><span id="res-workdays-val">0</span></h2></div></div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-workdays-val', '', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Radni dani" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="VREME" data-label="Radni dani" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+        ${statsRow('workdays-stats-row', [['label.time.totalDays', 'stat-workdays-total', '0'], ['label.time.weekendDays', 'stat-workdays-weekend', '0']])}
+    `;
+}
+
+function calculateDateDifference() {
+    const startVal = getTripleDate('start-date'), endVal = getTripleDate('end-date');
+    if (!startVal || !endVal) { showToast(safeT('toast.error.enterBothDates') || 'Unesi oba datuma.', 'error'); return; }
+    let startDate = parseDate(startVal), endDate = parseDate(endVal);
+    if (startDate > endDate) { const t = startDate; startDate = endDate; endDate = t; }
+    let years = endDate.getFullYear() - startDate.getFullYear();
+    let months = endDate.getMonth() - startDate.getMonth();
+    let days = endDate.getDate() - startDate.getDate();
+    if (days < 0) { months--; days += new Date(endDate.getFullYear(), endDate.getMonth(), 0).getDate(); }
+    if (months < 0) { years--; months += 12; }
+    const totalDays = Math.round((endDate - startDate) / 86400000);
+    const dv = el('res-date-val');
+    if (dv) {
+        if (currentLang === 'en') dv.innerHTML = `${years} yr, ${months} mo, ${days} d<br>(${safeT('label.time.total')} ${fmt(totalDays, 0)} d)`;
+        else dv.innerHTML = `${years} god, ${months} mes, ${days} dana<br>(ukupno ${fmt(totalDays, 0)} dana)`;
+    }
+    show('result-date-box');
+}
+function calculateDateShift() {
+    const startVal = getTripleDate('shift-date'), days = num('shift-days');
+    const op = el('shift-op') ? el('shift-op').value : 'add';
+    if (!startVal || days === null) { showToast(safeT('toast.error.enterDateDays') || 'Unesi datum i dane.', 'error'); return; }
+    const date = parseDate(startVal);
+    date.setDate(date.getDate() + (op === 'sub' ? -Math.abs(days) : Math.abs(days)));
+    const sv = el('res-shift-val');
+    const daysArr = getDaysArr();
+    const monthsArr = getMonthsArr();
+    if (sv) sv.innerText = `${date.getDate()}. ${monthsArr[date.getMonth()]} ${date.getFullYear()}. (${daysArr[date.getDay()]})`;
+    show('shift-result-box');
+}
+function calculateAge() {
+    const birthVal = getTripleDate('birth-date');
+    if (!birthVal) { showToast(safeT('toast.error.enterBirthDate') || 'Unesi datum rođenja.', 'error'); return; }
+    const birth = parseDate(birthVal);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (birth > today) { showToast(safeT('toast.error.futureDate') || 'Datum u budućnosti.', 'error'); return; }
+    let years = today.getFullYear() - birth.getFullYear();
+    let months = today.getMonth() - birth.getMonth();
+    let days = today.getDate() - birth.getDate();
+    if (days < 0) { months--; days += new Date(today.getFullYear(), today.getMonth(), 0).getDate(); }
+    if (months < 0) { years--; months += 12; }
+    const ay = el('res-age-years'); if (ay) ay.innerText = years;
+    const ad = el('stat-age-detail');
+    if (ad) ad.innerText = currentLang === 'en' ? `${months} mo, ${days} d` : `${months} mes, ${days} d.`;
+    const nextBday = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
+    if (nextBday < today) nextBday.setFullYear(today.getFullYear() + 1);
+    const daysToBday = Math.round((nextBday - today) / 86400000);
+    const an = el('stat-age-next');
+    if (an) an.innerText = daysToBday === 0 ? safeT('label.time.todayBirthday') : safeT('label.time.in') + ' ' + daysToBday + ' ' + safeT('unit.daysShort');
+    show('age-result-box'); show('age-stats-row');
+}
+function calculateWorkdays() {
+    const startVal = getTripleDate('workdays-start'), endVal = getTripleDate('workdays-end');
+    if (!startVal || !endVal) { showToast(safeT('toast.error.enterBothDates') || 'Unesi oba datuma.', 'error'); return; }
+    let start = parseDate(startVal), end = parseDate(endVal);
+    if (start > end) { const tmp = start; start = end; end = tmp; }
+    let workdays = 0, weekend = 0, total = 0;
+    const cur = new Date(start);
+    while (cur <= end) {
+        const day = cur.getDay();
+        if (day === 0 || day === 6) weekend++; else workdays++;
+        total++; cur.setDate(cur.getDate() + 1);
+    }
+    const wv = el('res-workdays-val'); if (wv) wv.innerText = fmt(workdays, 0);
+    const wt = el('stat-workdays-total'); if (wt) wt.innerText = fmt(total, 0);
+    const ww = el('stat-workdays-weekend'); if (ww) ww.innerText = fmt(weekend, 0);
+    show('workdays-result-box'); show('workdays-stats-row');
+}
+
+const TIME_SECONDS = { seconds: 1, minutes: 60, hours: 3600, days: 86400, weeks: 604800, months: 2592000, years: 31536000 };
+const TIME_LABELS_KEY = { seconds: 'unit.secShort', minutes: 'unit.minShort', hours: 'unit.h', days: 'unit.daysShort', weeks: 'unit.weeksShort', months: 'unit.monthsShort', years: 'unit.yearsShort' };
+function convertTimeUnits() {
+    const val = num('time-value');
+    const from = el('time-from') ? el('time-from').value : 'hours';
+    const to = el('time-to') ? el('time-to').value : 'minutes';
+    if (val === null) { showToast(safeT('toast.error.enterValue') || 'Unesi vrednost.', 'error'); return; }
+    const result = val * TIME_SECONDS[from] / TIME_SECONDS[to];
+    const tv = el('res-time-conv-val');
+    if (tv) tv.innerText = `${fmt(result)} ${safeT(TIME_LABELS_KEY[to])}`;
+    show('result-time-conv-box');
+}
+
+// ============================================================
+// PRAZNICI (HOLIDAYS)
+// ============================================================
+const SR_HOLIDAYS_FIXED = [
+    { d: 1, m: 1, name: 'Nova godina', type: 'national' },
+    { d: 2, m: 1, name: 'Nova godina (drugi dan)', type: 'national' },
+    { d: 7, m: 1, name: 'Božić (pravoslavni)', type: 'religious' },
+    { d: 14, m: 1, name: 'Pravoslavna Nova godina', type: 'religious' },
+    { d: 15, m: 2, name: 'Dan državnosti Srbije', type: 'national' },
+    { d: 16, m: 2, name: 'Dan državnosti Srbije (drugi dan)', type: 'national' },
+    { d: 1, m: 5, name: 'Praznik rada', type: 'national' },
+    { d: 2, m: 5, name: 'Praznik rada (drugi dan)', type: 'national' },
+    { d: 11, m: 11, name: 'Dan primirja u Prvom svetskom ratu', type: 'national' }
+];
+function getHolidaysForYear(year) {
+    const list = SR_HOLIDAYS_FIXED.map(h => ({ date: new Date(year, h.m - 1, h.d), name: h.name, type: h.type }));
+    try {
+        const a = year % 4, b = year % 7, c = year % 19;
+        const d = (19 * c + 15) % 30;
+        const e = (2 * a + 4 * b - d + 34) % 7;
+        const month = Math.floor((d + e + 114) / 31);
+        const day = ((d + e + 114) % 31) + 1;
+        const easterDate = new Date(year, month - 1, day);
+        easterDate.setDate(easterDate.getDate() + 13);
+        list.push({ date: easterDate, name: 'Vaskrs', type: 'religious' });
+        const easterMonday = new Date(easterDate); easterMonday.setDate(easterMonday.getDate() + 1);
+        list.push({ date: easterMonday, name: 'Vaskrsni ponedeljak', type: 'religious' });
+    } catch (e) {}
+    return list.sort((a, b) => a.date - b.date);
+}
+function renderHolidays() {
+    const currentYear = new Date().getFullYear();
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Prikaz državnih i verskih praznika za Srbiju.</p>
+            ${inputField('label.time.years', 'holidays-year', '', `value="${currentYear}" oninput="renderHolidaysList()"`)}
+        </div>
+        <div id="holidays-list" class="holiday-list"></div>
+    `;
+}
+function renderHolidaysList() {
+    const list = el('holidays-list');
+    if (!list) return;
+    const yearEl = el('holidays-year');
+    const year = yearEl ? parseInt(yearEl.value) : new Date().getFullYear();
+    if (!year || year < 1900 || year > 2100) { list.innerHTML = ''; return; }
+    const holidays = getHolidaysForYear(year);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const nowMs = today.getTime();
+    let html = '';
+    holidays.forEach(h => {
+        const hDate = new Date(h.date); hDate.setHours(0, 0, 0, 0);
+        const days = Math.round((hDate - nowMs) / 86400000);
+        const isToday = days === 0, isTomorrow = days === 1, isPast = days < 0;
+        const cls = isToday ? 'today' : (isTomorrow ? 'tomorrow' : (isPast ? 'past' : ''));
+        const dayName = hDate.getDate();
+        const monthName = hDate.toLocaleDateString('sr-RS', { month: 'short' }).replace('.', '');
+        const daysText = isToday ? 'DANAS' : (isTomorrow ? 'SUTRA' : (isPast ? `pre ${Math.abs(days)} d.` : `${days} d.`));
+        html += `
+            <div class="holiday-card ${cls}">
+                <div class="holiday-date-box"><div class="holiday-day">${dayName}</div><div class="holiday-month">${monthName}</div></div>
+                <div class="holiday-info"><div class="holiday-name">${escapeHtml(h.name)}</div><div class="holiday-type">${h.type === 'religious' ? 'Verski' : 'Državni'}</div></div>
+                <div class="holiday-days-until">${daysText}</div>
+            </div>
+        `;
+    });
+    list.innerHTML = html;
+}
+
+// ============================================================
+// VREMENSKE ZONE
+// ============================================================
+const TIMEZONES = [
+    { id: 'UTC-12', offset: -12, label: 'UTC-12:00' }, { id: 'UTC-11', offset: -11, label: 'UTC-11:00' },
+    { id: 'UTC-10', offset: -10, label: 'UTC-10:00 (Havaji)' }, { id: 'UTC-9', offset: -9, label: 'UTC-09:00 (Aljaska)' },
+    { id: 'UTC-8', offset: -8, label: 'UTC-08:00 (LA)' }, { id: 'UTC-7', offset: -7, label: 'UTC-07:00 (Denver)' },
+    { id: 'UTC-6', offset: -6, label: 'UTC-06:00 (Čikago)' }, { id: 'UTC-5', offset: -5, label: 'UTC-05:00 (Njujork)' },
+    { id: 'UTC-4', offset: -4, label: 'UTC-04:00 (Karakaš)' }, { id: 'UTC-3', offset: -3, label: 'UTC-03:00 (Brazil)' },
+    { id: 'UTC-2', offset: -2, label: 'UTC-02:00' }, { id: 'UTC-1', offset: -1, label: 'UTC-01:00 (Azori)' },
+    { id: 'UTC+0', offset: 0, label: 'UTC±00:00 (London)' }, { id: 'UTC+1', offset: 1, label: 'UTC+01:00 (Beograd, Berlin)' },
+    { id: 'UTC+2', offset: 2, label: 'UTC+02:00 (Atina, Kairo)' }, { id: 'UTC+3', offset: 3, label: 'UTC+03:00 (Moskva)' },
+    { id: 'UTC+4', offset: 4, label: 'UTC+04:00 (Dubai)' }, { id: 'UTC+5', offset: 5, label: 'UTC+05:00 (Karachi)' },
+    { id: 'UTC+6', offset: 6, label: 'UTC+06:00 (Daka)' }, { id: 'UTC+7', offset: 7, label: 'UTC+07:00 (Bangkok)' },
+    { id: 'UTC+8', offset: 8, label: 'UTC+08:00 (Peking, Singapur)' }, { id: 'UTC+9', offset: 9, label: 'UTC+09:00 (Tokio)' },
+    { id: 'UTC+10', offset: 10, label: 'UTC+10:00 (Sidnej)' }, { id: 'UTC+11', offset: 11, label: 'UTC+11:00' },
+    { id: 'UTC+12', offset: 12, label: 'UTC+12:00 (Okland)' }
+];
+function renderTimeZone() {
+    const now = new Date();
+    const tzOptions = TIMEZONES.map(tz => `<option value="${tz.id}"${tz.offset === 1 ? ' selected' : ''}>${escapeHtml(tz.label)}</option>`).join('');
+    const tzOptionsTo = TIMEZONES.map(tz => `<option value="${tz.id}"${tz.offset === 8 ? ' selected' : ''}>${escapeHtml(tz.label)}</option>`).join('');
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Konvertuj vreme između vremenskih zona.</p>
+            <div class="timezone-grid">
+                <div class="timezone-field"><label>Iz zone</label><select id="tz-from" class="custom-input" onchange="calculateTimeZone()">${tzOptions}</select></div>
+                <div class="timezone-field"><label>U zonu</label><select id="tz-to" class="custom-input" onchange="calculateTimeZone()">${tzOptionsTo}</select></div>
+            </div>
+            <div class="timezone-grid">
+                <div class="timezone-field"><label>Vreme</label><input type="time" id="tz-time" class="custom-input" value="${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}" oninput="calculateTimeZone()"></div>
+                <div class="timezone-field"><label>Datum</label><input type="date" id="tz-date" class="custom-input" value="${now.toISOString().slice(0, 10)}" oninput="calculateTimeZone()"></div>
+            </div>
+            ${calcButton('btn.calculate', 'calculateTimeZone()')}
+        </div>
+        <div class="timezone-result-card" id="tz-result-box" style="display: none;">
+            <div class="timezone-result-label">Rezultat</div>
+            <div class="timezone-result-time" id="tz-result-time">--:--</div>
+            <div class="timezone-result-date" id="tz-result-date">—</div>
+            <div class="timezone-diff" id="tz-result-diff">Razlika: 0 sati</div>
+        </div>
+    `;
+}
+function calculateTimeZone() {
+    const fromEl = el('tz-from'), toEl = el('tz-to'), timeEl = el('tz-time'), dateEl = el('tz-date');
+    if (!fromEl || !toEl || !timeEl || !dateEl) return;
+    const fromTz = TIMEZONES.find(tz => tz.id === fromEl.value);
+    const toTz = TIMEZONES.find(tz => tz.id === toEl.value);
+    if (!fromTz || !toTz) return;
+    const [h, m] = timeEl.value.split(':').map(Number);
+    const [yy, mm, dd] = dateEl.value.split('-').map(Number);
+    if (isNaN(h) || isNaN(yy)) return;
+    const utcDate = new Date(Date.UTC(yy, mm - 1, dd, h, m));
+    utcDate.setUTCMinutes(utcDate.getUTCMinutes() - fromTz.offset * 60);
+    const targetDate = new Date(utcDate.getTime() + toTz.offset * 60 * 60000);
+    const resultH = String(targetDate.getUTCHours()).padStart(2, '0');
+    const resultM = String(targetDate.getUTCMinutes()).padStart(2, '0');
+    const resultD = targetDate.getUTCDate();
+    const resultMo = targetDate.getUTCMonth() + 1;
+    const resultY = targetDate.getUTCFullYear();
+    const diffHours = toTz.offset - fromTz.offset;
+    const rt = el('tz-result-time'); if (rt) rt.innerText = `${resultH}:${resultM}`;
+    const rd = el('tz-result-date'); if (rd) rd.innerText = `${resultD}.${resultMo}.${resultY}.`;
+    const rdiff = el('tz-result-diff');
+    if (rdiff) rdiff.innerText = `Razlika: ${diffHours >= 0 ? '+' : ''}${diffHours} sati`;
+    show('tz-result-box');
+}
