@@ -10693,7 +10693,232 @@ function populateNoteSelects() {
         // Placeholder za kompatibilnost
     } catch (e) {}
 }
+// ============================================================
+// SHOPPING — funkcije koje su nedostajale
+// ============================================================
 
+function renderShopUnit() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Izračunaj cenu po jedinici mere (kg, L, kom).</p>
+            ${inputField('label.shop.price', 'shop-unit-price', 'RSD', 'placeholder="250"')}
+            ${inputField('label.shop.quantity', 'shop-unit-qty', '', 'placeholder="1"')}
+            ${selectField('label.shop.unit', 'shop-unit-unit', [
+                { value: 'kg', text: 'kg' },
+                { value: 'g', text: 'g' },
+                { value: 'L', text: 'L' },
+                { value: 'ml', text: 'ml' },
+                { value: 'kom', text: 'kom' },
+                { value: 'm', text: 'm' }
+            ], 'kg')}
+            ${calcButton('btn.calculate', 'calculateShopUnit()')}
+        </div>
+        ${resultCard('shop-unit-result-box', 'barcode', 'label.shop.pricePerUnit', 'res-shop-unit', 'RSD', 'KUPOVINA', 'label.shop.pricePerUnit')}
+    `;
+}
+
+function calculateShopUnit() {
+    const price = num('shop-unit-price');
+    const qty = num('shop-unit-qty');
+    const unit = el('shop-unit-unit') ? el('shop-unit-unit').value : 'kg';
+    if (!price || !qty || qty <= 0) { showToast('Unesi cenu i količinu.', 'error'); return; }
+    let baseQty = qty;
+    if (unit === 'g' || unit === 'ml') baseQty = qty / 1000;
+    const perUnit = price / baseQty;
+    const rv = el('res-shop-unit');
+    if (rv) rv.innerText = money(perUnit);
+    show('shop-unit-result-box');
+}
+
+function renderShopCompare() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Uporedi dva proizvoda po ceni za istu količinu.</p>
+            ${inputField('label.shop.priceA', 'cmp-price-a', 'RSD', 'placeholder="200"')}
+            ${inputField('label.shop.quantity', 'cmp-qty-a', '', 'placeholder="1"')}
+            ${inputField('label.shop.priceB', 'cmp-price-b', 'RSD', 'placeholder="250"')}
+            ${inputField('label.shop.quantity', 'cmp-qty-b', '', 'placeholder="1.5"')}
+            ${calcButton('btn.calculate', 'calculateShopCompare()')}
+        </div>
+        ${resultCard('shop-compare-result-box', 'scale', 'label.shop.compareResult', 'res-shop-compare', '', 'KUPOVINA', 'label.shop.compareShort')}
+    `;
+}
+
+function calculateShopCompare() {
+    const pa = num('cmp-price-a'), qa = num('cmp-qty-a');
+    const pb = num('cmp-price-b'), qb = num('cmp-qty-b');
+    if (!pa || !qa || !pb || !qb) { showToast('Unesi sve vrednosti.', 'error'); return; }
+    const ua = pa / qa;
+    const ub = pb / qb;
+    const result = ua < ub ? safeT('label.shop.productACheaper') :
+                   (ub < ua ? safeT('label.shop.productBCheaper') : safeT('label.shop.samePrice'));
+    const rv = el('res-shop-compare');
+    if (rv) rv.innerText = result + ' (' + money(Math.abs(ua - ub)) + ' RSD/kom)';
+    show('shop-compare-result-box');
+}
+
+function renderShopLista() {
+    return `
+        <div class="converter-box">
+            <div class="lista-head">
+                <div class="section-desc" style="margin:0;">Lista za kupovinu</div>
+                <button class="section-action-btn" onclick="openShoppingListModal()">+ Dodaj</button>
+            </div>
+            <div id="shopping-list-container"></div>
+        </div>
+    `;
+}
+
+function openShoppingListModal() {
+    const name = prompt('Naziv stavke:');
+    if (!name) return;
+    const qty = prompt('Količina (opciono):') || '';
+    const list = loadShoppingList();
+    list.push({ id: Date.now() + Math.random(), name: name, qty: qty, price: 0, bought: false, date: Date.now() });
+    saveShoppingList(list);
+    renderShoppingList();
+    showToast('Stavka dodata.', 'success', 1500);
+}
+
+function renderShoppingList() {
+    const box = el('shopping-list-container');
+    if (!box) return;
+    const list = loadShoppingList();
+    if (!list.length) {
+        box.innerHTML = '<div class="receipt-empty"><div class="receipt-empty-icon">🛒</div><div>Lista je prazna. Dodaj prvu stavku!</div></div>';
+        return;
+    }
+    let html = '';
+    list.forEach(item => {
+        html += `
+            <div class="receipt-card" style="margin-bottom:8px;">
+                <div class="receipt-card-body">
+                    <div class="receipt-card-title">${escapeHtml(item.name)}</div>
+                    ${item.qty ? `<div class="receipt-card-meta"><span>${escapeHtml(item.qty)}</span></div>` : ''}
+                </div>
+                <div class="receipt-card-actions">
+                    <button class="receipt-card-action" onclick="toggleShoppingItemBought('${item.id}')">${item.bought ? '↩' : '✅'}</button>
+                    <button class="receipt-card-action danger" onclick="deleteShoppingItem('${item.id}')">🗑</button>
+                </div>
+            </div>
+        `;
+    });
+    box.innerHTML = html;
+}
+
+function loadShoppingList() {
+    try { const raw = JSON.parse(localStorage.getItem('cx_shopping_list')); if (Array.isArray(raw)) return raw; } catch (e) {}
+    return [];
+}
+
+function saveShoppingList(list) {
+    try { localStorage.setItem('cx_shopping_list', JSON.stringify(list)); } catch (e) {}
+}
+
+function toggleShoppingItemBought(id) {
+    const list = loadShoppingList();
+    const item = list.find(x => String(x.id) === String(id));
+    if (!item) return;
+    item.bought = !item.bought;
+    saveShoppingList(list);
+    renderShoppingList();
+}
+
+function deleteShoppingItem(id) {
+    let list = loadShoppingList();
+    list = list.filter(x => String(x.id) !== String(id));
+    saveShoppingList(list);
+    renderShoppingList();
+}
+
+function renderShopIsplati() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Da li se isplati kupiti veće pakovanje?</p>
+            ${inputField('label.shop.priceA', 'isplati-price-a', 'RSD', 'placeholder="200"')}
+            ${inputField('label.shop.quantity', 'isplati-qty-a', '', 'placeholder="1"')}
+            ${inputField('label.shop.priceB', 'isplati-price-b', 'RSD', 'placeholder="350"')}
+            ${inputField('label.shop.quantity', 'isplati-qty-b', '', 'placeholder="2"')}
+            ${calcButton('btn.calculate', 'calculateShopIsplati()')}
+        </div>
+        ${resultCard('shop-isplati-result-box', 'target', 'label.shop.worthIt', 'res-shop-isplati', '', 'KUPOVINA', 'label.shop.worthIt')}
+    `;
+}
+
+function calculateShopIsplati() {
+    const pa = num('isplati-price-a'), qa = num('isplati-qty-a');
+    const pb = num('isplati-price-b'), qb = num('isplati-qty-b');
+    if (!pa || !qa || !pb || !qb) { showToast('Unesi sve vrednosti.', 'error'); return; }
+    const ua = pa / qa;
+    const ub = pb / qb;
+    const diff = Math.abs(ua - ub) * Math.max(qa, qb);
+    let result;
+    if (Math.abs(ua - ub) < 0.01) result = safeT('label.shop.worthItSame');
+    else if (ub < ua) result = safeT('label.shop.worthItYes', money(diff));
+    else result = safeT('label.shop.worthItNo', money(diff));
+    const rv = el('res-shop-isplati');
+    if (rv) rv.innerText = result;
+    show('shop-isplati-result-box');
+}
+
+function renderShopRasipanje() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Izračunaj cenu po obroku i trošak bacanja.</p>
+            ${inputField('label.shop.groceryPrice', 'rasipanje-price', 'RSD', 'placeholder="2000"')}
+            ${inputField('label.shop.mealsCount', 'rasipanje-meals', '', 'placeholder="4"')}
+            ${inputField('label.shop.wastePercent', 'rasipanje-waste', '%', 'placeholder="10"')}
+            ${calcButton('btn.calculate', 'calculateShopRasipanje()')}
+        </div>
+        ${resultCard('shop-rasipanje-result-box', 'packageSm', 'label.shop.costPerMeal', 'res-shop-rasipanje', 'RSD', 'KUPOVINA', 'label.shop.perMealShort')}
+        ${statsRow('shop-rasipanje-stats', [
+            ['label.shop.withoutWaste', 'stat-rasipanje-base', '0 RSD'],
+            ['label.shop.wasteCost', 'stat-rasipanje-waste', '0 RSD']
+        ])}
+    `;
+}
+
+function calculateShopRasipanje() {
+    const price = num('rasipanje-price');
+    const meals = num('rasipanje-meals') || 1;
+    const waste = num('rasipanje-waste') || 0;
+    if (!price || !meals) { showToast('Unesi cenu i broj obroka.', 'error'); return; }
+    const baseCost = price / meals;
+    const wasteCost = price * (waste / 100);
+    const perMeal = (price + wasteCost) / meals;
+    const rv = el('res-shop-rasipanje');
+    if (rv) rv.innerText = money(perMeal);
+    const sb = el('stat-rasipanje-base'); if (sb) sb.innerText = money(baseCost) + ' RSD';
+    const sw = el('stat-rasipanje-waste'); if (sw) sw.innerText = money(wasteCost) + ' RSD';
+    show('shop-rasipanje-result-box');
+    show('shop-rasipanje-stats');
+}
+
+function renderShopBudzet() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Izračunaj dnevni limit potrošnje za kupovinu.</p>
+            ${inputField('label.shop.totalBudget', 'shop-budzet-total', 'RSD', 'placeholder="30000"')}
+            ${selectField('label.shop.period', 'shop-budzet-period', [
+                { value: '7', text: 'Nedelja (7 dana)' },
+                { value: '14', text: 'Dve nedelje (14 dana)' },
+                { value: '30', text: 'Mesec (30 dana)' }
+            ])}
+            ${calcButton('btn.calculate', 'calculateShopBudzet()')}
+        </div>
+        ${resultCard('shop-budzet-result-box', 'calendarSm', 'label.shop.dailyLimit', 'res-shop-budzet', 'RSD', 'KUPOVINA', 'label.shop.budgetShort')}
+    `;
+}
+
+function calculateShopBudzet() {
+    const total = num('shop-budzet-total');
+    const period = el('shop-budzet-period') ? parseInt(el('shop-budzet-period').value) : 30;
+    if (!total || total <= 0) { showToast('Unesi budžet.', 'error'); return; }
+    const daily = total / period;
+    const rv = el('res-shop-budzet');
+    if (rv) rv.innerText = money(daily);
+    show('shop-budzet-result-box');
+}
 // ============================================================
 // KRAJ app.js — Alatika 3.0 (v19 ETA 1)
 // ============================================================
