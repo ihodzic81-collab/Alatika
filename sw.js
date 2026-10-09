@@ -1,16 +1,16 @@
 // ============================================================
 // ALATIKA 3.0 — Service Worker
-// Verzija keša: v16
+// Verzija keša: v19
 // ============================================================
 
-const CACHE_NAME = 'alatika-v16';
+const CACHE_NAME = 'alatika-v19';
 
 const URLS_TO_CACHE = [
     './',
     './index.html',
-    './style.css?v=16',
-    './app.js?v=16',
-    './translations.js?v=16',
+    './style.css?v=19',
+    './app.js?v=19',
+    './translations.js?v=19',
     './manifest.json',
     './apple-touch-icon.png',
     './web-app-manifest-192x192.png',
