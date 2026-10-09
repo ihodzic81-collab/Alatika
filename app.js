@@ -8734,3 +8734,715 @@ function calculateOvertime() {
     const pr = el('stat-prek-rest'); if (pr) pr.innerText = money(rest * rate * 1.5) + ' RSD';
     show('prek-result-box'); show('prek-stats-row');
 }
+// ============================================================
+// GRAĐEVINA (HOMECALC)
+// ============================================================
+let openingsData = { paint: [], tile: [], block: [], board: [] };
+
+function renderHomePovrsina() {
+    return `<div class="converter-box">${sectionDescKey('desc.home.area')}${selectField('label.home.shape', 'shape-type', [{ value: 'rect', text: safeT('option.home.rectangle') }, { value: 'square', text: safeT('option.home.square') }, { value: 'circle', text: safeT('option.home.circle') }, { value: 'triangle', text: safeT('option.home.triangle') }], 'rect')}<div id="shape-rect-inputs">${inputField('label.home.length', 'shape-a', 'm', 'placeholder="5"')}${inputField('label.home.width', 'shape-b', 'm', 'placeholder="3"')}</div><div id="shape-square-inputs" style="display:none;">${inputField('label.home.side', 'shape-side', 'm', 'placeholder="4"')}</div><div id="shape-circle-inputs" style="display:none;">${inputField('label.home.diameter', 'shape-diameter', 'm', 'placeholder="4"')}</div><div id="shape-triangle-inputs" style="display:none;">${inputField('label.home.length', 'shape-base', 'm', 'placeholder="6"')}${inputField('label.home.height', 'shape-height', 'm', 'placeholder="4"')}</div>${calcButton('btn.calculate', 'calculateShapeArea()')}</div>${resultCard('shape-result-box', 'square', 'label.home.area', 'res-shape-area', 'm²', 'GRAĐEVINA', 'label.home.area')}`;
+}
+function renderHomeBlokovi() {
+    return `<div class="converter-box">${sectionDescKey('desc.home.blocks')}${inputField('label.home.wallLength', 'block-wall-l', 'm', 'placeholder="10"')}${inputField('label.home.wallHeight', 'block-wall-h', 'm', 'placeholder="2.8"')}${inputField('label.home.blockDimensions', 'block-l', 'cm', 'placeholder="25"')}${inputField('label.home.blockDimensions', 'block-h', 'cm', 'placeholder="19"')}${inputField('label.home.pricePerPiece', 'block-price', '€', 'placeholder="0"')}${calcButton('btn.calculate', 'calculateBlocks()')}</div>${resultCard('blocks-result-box', 'bricks', 'label.home.blocksNeeded', 'res-blocks-count', '', 'GRAĐEVINA', 'Blokovi')}${statsRow('blocks-stats-row', [['label.home.netArea', 'stat-blocks-area', '0 m²'], ['label.home.totalPrice', 'stat-blocks-price', '—']])}`;
+}
+function renderHomeBeton() {
+    return `<div class="converter-box">${sectionDescKey('desc.home.concrete')}${inputField('label.home.length', 'beton-l', 'm', 'placeholder="5"')}${inputField('label.home.width', 'beton-w', 'm', 'placeholder="3"')}${inputField('label.home.thickness', 'beton-h', 'm', 'placeholder="0.2"')}${calcButton('btn.calculate', 'calculateConcrete()')}</div>${resultCard('beton-result-box', 'building', 'label.home.concreteNeeded', 'res-beton-m3', 'm³', 'GRAĐEVINA', 'Beton')}`;
+}
+function renderHomeFarbanje() {
+    return `<div class="converter-box">${sectionDescKey('desc.home.painting')}${inputField('label.home.wallLength', 'paint-width', 'm', 'placeholder="10"')}${inputField('label.home.wallHeight', 'paint-height', 'm', 'placeholder="2.8"')}${inputField('label.home.wallCount', 'paint-walls', '', 'placeholder="4"')}${inputField('label.home.paintCoverage', 'paint-coverage', 'm²/L', 'placeholder="10"')}${calcButton('btn.calculate', 'calculatePaint()')}</div>${resultCard('paint-result-box', 'paint', 'label.home.paintNeeded', 'res-paint-liters', 'L', 'GRAĐEVINA', 'Farbanje')}${statsRow('paint-stats-row', [['label.home.totalArea', 'stat-paint-area', '0 m²'], ['label.home.openingsDeducted', 'stat-paint-openings', '0 m²']])}`;
+}
+function calculateShapeArea() {
+    const type = el('shape-type') ? el('shape-type').value : 'rect';
+    let area = 0;
+    if (type === 'rect') {
+        const a = num('shape-a'), b = num('shape-b');
+        if (!a || !b) { showToast(safeT('toast.error.enterLengthWidth') || 'Unesi dužinu i širinu.', 'error'); return; }
+        area = a * b;
+    } else if (type === 'square') {
+        const s = num('shape-side');
+        if (!s) { showToast(safeT('toast.error.enterSide') || 'Unesi stranu.', 'error'); return; }
+        area = s * s;
+    } else if (type === 'circle') {
+        const d = num('shape-diameter');
+        if (!d) { showToast(safeT('toast.error.enterDiameter') || 'Unesi prečnik.', 'error'); return; }
+        area = Math.PI * Math.pow(d / 2, 2);
+    } else if (type === 'triangle') {
+        const b = num('shape-base'), h = num('shape-height');
+        if (!b || !h) { showToast(safeT('toast.error.enterBaseHeight') || 'Unesi osnovu i visinu.', 'error'); return; }
+        area = (b * h) / 2;
+    }
+    const sa = el('res-shape-area'); if (sa) sa.innerText = fmt(area, 2);
+    show('shape-result-box');
+}
+function calculatePaint() {
+    const width = num('paint-width'), height = num('paint-height'), walls = num('paint-walls') || 0, coverage = num('paint-coverage') || 10;
+    if (!width || !height || !walls) { showToast(safeT('toast.error.enterWallDims') || 'Unesi dimenzije zida.', 'error'); return; }
+    const netArea = Math.max(0, width * height * walls - getOpeningsArea('paint'));
+    const pl = el('res-paint-liters'); if (pl) pl.innerText = fmt(netArea / coverage, 2);
+    const pa = el('stat-paint-area'); if (pa) pa.innerText = fmt(netArea, 2) + ' m²';
+    const po = el('stat-paint-openings'); if (po) po.innerText = fmt(getOpeningsArea('paint'), 2) + ' m²';
+    show('paint-result-box'); show('paint-stats-row');
+}
+function getOpeningsArea(type) {
+    return openingsData[type].reduce((sum, op) => sum + ((op.w || 0) * (op.h || 0)), 0);
+}
+function calculateConcrete() {
+    const l = num('beton-l'), w = num('beton-w'), h = num('beton-h');
+    if (!l || !w || !h) { showToast(safeT('toast.error.enterAllDimensions') || 'Unesi sve dimenzije.', 'error'); return; }
+    const bm = el('res-beton-m3'); if (bm) bm.innerText = fmt(l * w * h, 3);
+    show('beton-result-box');
+}
+function calculateBlocks() {
+    const wallL = num('block-wall-l'), wallH = num('block-wall-h'), blockL = num('block-l'), blockH = num('block-h');
+    if (!wallL || !wallH || !blockL || !blockH) { showToast(safeT('toast.error.enterBlockWallDims') || 'Unesi dimenzije zida i bloka.', 'error'); return; }
+    const netArea = Math.max(0, wallL * wallH - getOpeningsArea('block'));
+    const blocks = Math.ceil(netArea / ((blockL / 100) * (blockH / 100)));
+    const bc = el('res-blocks-count'); if (bc) bc.innerText = blocks;
+    const ba = el('stat-blocks-area'); if (ba) ba.innerText = fmt(netArea, 2) + ' m²';
+    const price = num('block-price');
+    const bp = el('stat-blocks-price'); if (bp) bp.innerText = price ? money(blocks * price) + ' €' : '—';
+    show('blocks-result-box'); show('blocks-stats-row');
+}
+function toggleShapeInputs() {
+    const type = el('shape-type') ? el('shape-type').value : 'rect';
+    const rect = el('shape-rect-inputs');
+    const square = el('shape-square-inputs');
+    const circle = el('shape-circle-inputs');
+    const triangle = el('shape-triangle-inputs');
+    if (rect) rect.style.display = type === 'rect' ? 'flex' : 'none';
+    if (square) square.style.display = type === 'square' ? 'flex' : 'none';
+    if (circle) circle.style.display = type === 'circle' ? 'flex' : 'none';
+    if (triangle) triangle.style.display = type === 'triangle' ? 'flex' : 'none';
+}
+
+// TROŠKOVNIK
+const COST_ESTIMATE_KEY = 'cx_cost_estimate_v1';
+function loadCostEstimate() {
+    try { const raw = JSON.parse(localStorage.getItem(COST_ESTIMATE_KEY)); if (Array.isArray(raw)) return raw; } catch (e) {}
+    return [];
+}
+function saveCostEstimate(list) {
+    try { localStorage.setItem(COST_ESTIMATE_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function renderCostEstimate() {
+    return `
+        <div class="converter-box">
+            <div class="lista-head">
+                <div class="section-desc" style="margin:0;">Vodi troškovnik materijala i radova.</div>
+                <button class="section-action-btn" onclick="openCostEstimateModal()">+ Dodaj</button>
+            </div>
+            <div id="cost-estimate-list"></div>
+        </div>
+    `;
+}
+function renderCostEstimateList() {
+    const wrap = el('cost-estimate-list');
+    if (!wrap) return;
+    const items = loadCostEstimate();
+    if (!items.length) {
+        wrap.innerHTML = `<div class="price-track-empty"><div class="price-track-empty-icon">📋</div><div>Nema stavki. Dodaj prvu!</div></div>`;
+        return;
+    }
+    let rowsHtml = '';
+    let grand = 0;
+    items.forEach(item => {
+        const total = (item.qty || 0) * (item.unitPrice || 0);
+        grand += total;
+        rowsHtml += `
+            <div class="cost-estimate-row">
+                <div class="cost-estimate-name">${escapeHtml(item.name)}</div>
+                <div class="cost-estimate-qty">${item.qty}</div>
+                <div class="cost-estimate-unit">${escapeHtml(item.unit || '')}</div>
+                <div class="cost-estimate-total">${money(total)}</div>
+                <button class="cost-estimate-remove" onclick="deleteCostEstimateItem('${item.id}')">✕</button>
+            </div>
+        `;
+    });
+    wrap.innerHTML = `
+        <div class="cost-estimate-table">
+            <div class="cost-estimate-head"><div>Naziv</div><div>Kol.</div><div>Jed.</div><div>Cena</div><div></div></div>
+            ${rowsHtml}
+        </div>
+        <div class="cost-estimate-grand-total"><span class="label">UKUPNO</span><span class="value">${money(grand)} RSD</span></div>
+        <div style="display:flex;gap:8px;">
+            <button class="section-action-btn" style="flex:1;" onclick="shareCostEstimate()">📤 Podeli</button>
+            <button class="section-action-btn" style="flex:1;color:#f43f5e;border-color:rgba(244,63,94,0.4);" onclick="clearCostEstimate()">Obriši sve</button>
+        </div>
+    `;
+}
+function openCostEstimateModal() {
+    const modal = el('cost-estimate-modal');
+    const body = el('cost-estimate-modal-body');
+    if (!modal || !body) return;
+    body.innerHTML = `
+        <div class="converter-box">
+            ${inputFieldText('label.shop.itemName', 'ce-name', 'npr. Blokovi')}
+            ${inputField('label.quantity', 'ce-qty', '', 'placeholder="100"')}
+            ${inputFieldText('label.shop.unit', 'ce-unit', 'kom / m² / kg')}
+            ${inputField('label.shop.price', 'ce-price', 'RSD', 'placeholder="80"')}
+            ${calcButton('btn.save', 'saveCostEstimateItem()')}
+        </div>
+    `;
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+}
+function saveCostEstimateItem() {
+    const name = el('ce-name') ? el('ce-name').value.trim() : '';
+    const qty = num('ce-qty') || 0;
+    const unit = el('ce-unit') ? el('ce-unit').value.trim() : '';
+    const unitPrice = num('ce-price') || 0;
+    if (!name) { showToast('Unesi naziv stavke.', 'error'); return; }
+    const list = loadCostEstimate();
+    list.push({ id: 'ce_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), name, qty, unit, unitPrice, createdAt: Date.now() });
+    saveCostEstimate(list);
+    closeModal('cost-estimate-modal');
+    renderCostEstimateList();
+    showToast('Stavka dodata.', 'success', 1500);
+}
+function deleteCostEstimateItem(id) {
+    let list = loadCostEstimate();
+    list = list.filter(i => i.id !== id);
+    saveCostEstimate(list);
+    renderCostEstimateList();
+    showToast('Stavka obrisana.', 'info', 1200);
+}
+function clearCostEstimate() {
+    showConfirm('Obrisati ceo troškovnik?').then(ok => {
+        if (!ok) return;
+        saveCostEstimate([]);
+        renderCostEstimateList();
+        showToast('Troškovnik obrisan.', 'info', 1500);
+    });
+}
+function shareCostEstimate() {
+    const items = loadCostEstimate();
+    if (!items.length) { showToast('Nema stavki.', 'info'); return; }
+    let text = 'TROŠKOVNIK — Alatika\n\n';
+    let grand = 0;
+    items.forEach(item => {
+        const total = (item.qty || 0) * (item.unitPrice || 0);
+        grand += total;
+        text += `${item.name}: ${item.qty} ${item.unit || ''} × ${money(item.unitPrice)} = ${money(total)} RSD\n`;
+    });
+    text += `\nUKUPNO: ${money(grand)} RSD`;
+    if (navigator.share) { navigator.share({ text }).catch(() => {}); }
+    else fallbackCopy(text, () => showToast('Kopirano.', 'success', 1500));
+}
+
+// ============================================================
+// KUHINJA
+// ============================================================
+function renderKitchenKasike() {
+    return `<div class="converter-box">${sectionDescKey('desc.kitchen.spoons')}${inputField('label.kitchen.value', 'spoon-val', '', 'placeholder="1"')}${selectField('label.kitchen.ingredient', 'spoon-ingredient', [{ value: 'secer', text: safeT('option.kitchen.sugar') }, { value: 'brasno', text: safeT('option.kitchen.flour') }, { value: 'so', text: safeT('option.kitchen.salt') }])}${calcButton('btn.calculate', 'calculateSpoon()')}</div><div id="spoon-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('spoon')}</div><div><div class="res-label">${safeT('label.kitchen.approxWeight')}</div><h2><span id="res-spoon-val">0</span> <small id="res-spoon-unit">g</small></h2></div></div></div>`;
+}
+function renderKitchenPecenje() {
+    return `<div class="converter-box">${sectionDescKey('desc.kitchen.baking')}${inputField('label.kitchen.value', 'oven-val', '', 'placeholder="180"')}${selectField('label.kitchen.fromUnit', 'oven-from', [{ value: 'c', text: '°C' }, { value: 'f', text: '°F' }, { value: 'gas', text: 'Gas' }])}${selectField('label.kitchen.toUnit', 'oven-to', [{ value: 'f', text: '°F' }, { value: 'c', text: '°C' }, { value: 'gas', text: 'Gas' }])}${calcButton('btn.calculate', 'calculateOven()')}</div><div id="oven-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('oven')}</div><div><div class="res-label">${safeT('result.label')}</div><h2><span id="res-oven-val">0</span> <small id="res-oven-unit">°F</small></h2></div></div></div>`;
+}
+function renderKitchenPorcije() {
+    return `<div class="converter-box">${sectionDescKey('desc.kitchen.portions')}${inputField('label.kitchen.originalPortions', 'portion-orig', '', 'placeholder="4"')}${inputField('label.kitchen.desiredPortions', 'portion-want', '', 'placeholder="6"')}${inputField('label.kitchen.ingredientQty', 'portion-qty', '', 'placeholder="200"')}${calcButton('btn.calculate', 'calculatePortion()')}</div><div id="portion-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('utensils')}</div><div><div class="res-label">${safeT('label.kitchen.qtyNeeded')}</div><h2><span id="res-portion-val">0</span> <small id="res-portion-unit">g</small></h2></div></div></div>`;
+}
+const SPOON_GRAMS = { secer: 20, brasno: 10, so: 25, kakao: 8, med: 25, ulje: 15, mleko: 15, pirinac: 20, ovsene: 8, griz: 15 };
+function calculateSpoon() {
+    const ing = el('spoon-ingredient') ? el('spoon-ingredient').value : 'secer';
+    const val = num('spoon-val');
+    if (val === null) { showToast(safeT('toast.error.enterValue') || 'Unesi vrednost.', 'error'); return; }
+    const gPerSpoon = SPOON_GRAMS[ing] || 20;
+    const sv = el('res-spoon-val'); if (sv) sv.innerText = fmt(val * gPerSpoon, 2);
+    const su = el('res-spoon-unit'); if (su) su.innerText = 'g';
+    show('spoon-result-box');
+}
+function calculateOven() {
+    const from = el('oven-from') ? el('oven-from').value : 'c';
+    const val = num('oven-val');
+    const to = el('oven-to') ? el('oven-to').value : 'f';
+    if (val === null) { showToast(safeT('toast.error.enterValue') || 'Unesi vrednost.', 'error'); return; }
+    let celsius;
+    if (from === 'f') celsius = (val - 32) * 5 / 9;
+    else if (from === 'gas') { const gasToC = { 1: 140, 2: 150, 3: 170, 4: 180, 5: 190, 6: 200, 7: 220, 8: 230, 9: 240 }; celsius = gasToC[Math.round(val)] || 180; }
+    else celsius = val;
+    let result, unit;
+    if (to === 'c') { result = celsius; unit = '°C'; }
+    else if (to === 'f') { result = (celsius * 9 / 5) + 32; unit = '°F'; }
+    else { const cToGas = [[135, 1], [145, 1.5], [155, 2], [165, 2.5], [175, 3], [185, 4], [195, 5], [205, 6], [215, 6.5], [225, 7], [235, 8], [245, 9]]; let closest = 4; for (const [c, g] of cToGas) { if (celsius <= c) { closest = g; break; } } result = closest; unit = 'Gas'; }
+    const ov = el('res-oven-val'); if (ov) ov.innerText = fmt(result, 0);
+    const ou = el('res-oven-unit'); if (ou) ou.innerText = unit;
+    show('oven-result-box');
+}
+function calculatePortion() {
+    const orig = num('portion-orig'), want = num('portion-want'), qty = num('portion-qty');
+    if (!orig || !want || !qty) { showToast(safeT('toast.error.enterAll') || 'Unesi sve vrednosti.', 'error'); return; }
+    const factor = want / orig;
+    const pv = el('res-portion-val'); if (pv) pv.innerText = fmt(qty * factor, 2);
+    show('portion-result-box');
+}
+
+// ============================================================
+// STRUJA (POWER)
+// ============================================================
+function renderPowerUredjaj() {
+    return `<div class="converter-box">${sectionDescKey('desc.power.device')}${inputField('label.power.powerWatts', 'power-watts', 'W', 'placeholder="1000"')}${inputField('label.power.hoursPerDay', 'power-hours', 'h', 'placeholder="2"')}${inputField('label.power.electricityPrice', 'power-price', 'RSD/kWh', 'value="12"')}${calcButton('btn.calculate', 'calculatePower()')}</div>${resultCard('power-result-box', 'zap', 'label.power.monthlyCost', 'res-power-month', 'RSD', 'STRUJA', 'label.power.deviceUsage')}${statsRow('power-stats-row', [['label.power.daily', 'stat-power-day', '0 RSD'], ['label.power.yearly', 'stat-power-year', '0 RSD'], ['label.power.kwhPerMonth', 'stat-power-kwh', '0']])}`;
+}
+function renderPowerBaterije() {
+    return `<div class="converter-box">${sectionDescKey('desc.power.battery')}${inputField('label.power.batteryVoltage', 'bat-volt', 'V', 'value="12"')}${inputField('label.power.capacity', 'bat-ah', 'Ah', 'placeholder="100"')}${inputField('label.power.load', 'bat-watt', 'W', 'placeholder="50"')}${inputField('label.power.depthOfDischarge', 'bat-dod', '%', 'value="80"')}${calcButton('btn.calculate', 'calculateBattery()')}</div>${resultCard('bat-result-box', 'battery', 'label.power.batteryLife', 'res-bat-time', 'h', 'STRUJA', 'label.power.batteryShort')}${statsRow('bat-stats-row', [['label.power.capacity', 'stat-bat-wh', '0 Wh'], ['label.power.usefulEnergy', 'stat-bat-wh-use', '0 Wh'], ['label.power.current', 'stat-bat-amp', '0 A']])}`;
+}
+function renderPowerKabl() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Preporučeni presek kabla i osigurač na osnovu struje i dužine.</p>
+            ${inputField('label.power.loadCurrent', 'kabl-amps', 'A', 'placeholder="16"')}
+            ${inputField('label.power.cableLength', 'kabl-len', 'm', 'placeholder="20"')}
+            ${inputField('label.power.voltage', 'kabl-volt', 'V', 'value="230"')}
+            ${selectField('label.power.cableType', 'kabl-type', [
+                { value: 'bakr', text: 'Bakar' },
+                { value: 'alu', text: 'Aluminijum' }
+            ], 'bakr')}
+            ${calcButton('btn.calculate', 'calculateCable()')}
+        </div>
+        <div id="kabl-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left">
+                <div class="pump-icon">${icon('cable')}</div>
+                <div>
+                    <div class="res-label">Preporučeni presek</div>
+                    <h2><span id="res-kabl-mm2">0</span> <small>mm²</small></h2>
+                </div>
+            </div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-kabl-mm2', 'mm²', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="STRUJA" data-label="Kabl" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="STRUJA" data-label="Kabl" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+        ${statsRow('kabl-stats-row', [
+            ['Osigurač', 'stat-kabl-osig', '0 A'],
+            ['Pad napona', 'stat-kabl-pad', '0 %'],
+            ['Materijal', 'stat-kabl-mat', '—']
+        ])}
+    `;
+}
+function calculatePower() {
+    const watts = num('power-watts'), hours = num('power-hours'), price = num('power-price') || 12;
+    if (!watts || !hours) { showToast(safeT('toast.error.enterPowerHours') || 'Unesi snagu i sate.', 'error'); return; }
+    const kwhDay = (watts * hours) / 1000;
+    const kwhMonth = kwhDay * 30;
+    const pm = el('res-power-month'); if (pm) pm.innerText = money(kwhMonth * price);
+    const pd = el('stat-power-day'); if (pd) pd.innerText = money(kwhDay * price) + ' RSD';
+    const py = el('stat-power-year'); if (py) py.innerText = money(kwhDay * 365 * price) + ' RSD';
+    const pk = el('stat-power-kwh'); if (pk) pk.innerText = fmt(kwhMonth, 1);
+    show('power-result-box'); show('power-stats-row');
+}
+function calculateBattery() {
+    const volt = num('bat-volt') || 12, ah = num('bat-ah'), watt = num('bat-watt'), dod = num('bat-dod') || 80;
+    if (!ah || !watt) { showToast(safeT('toast.error.enterCapacityLoad') || 'Unesi kapacitet i opterećenje.', 'error'); return; }
+    const wh = volt * ah, usefulWh = wh * (dod / 100);
+    const rv = el('res-bat-time'); if (rv) rv.innerText = fmt(usefulWh / watt, 2);
+    const sw = el('stat-bat-wh'); if (sw) sw.innerText = fmt(wh, 1) + ' Wh';
+    const su = el('stat-bat-wh-use'); if (su) su.innerText = fmt(usefulWh, 1) + ' Wh';
+    const sa = el('stat-bat-amp'); if (sa) sa.innerText = fmt(watt / volt, 2) + ' A';
+    show('bat-result-box'); show('bat-stats-row');
+}
+function calculateCable() {
+    const amps = num('kabl-amps');
+    const len = num('kabl-len');
+    const volts = num('kabl-volt') || 230;
+    const isCopper = !el('kabl-type') || el('kabl-type').value === 'bakr';
+    if (!amps || !len) { showToast('Unesi struju i dužinu kabla.', 'error'); return; }
+    const ampacity = isCopper
+        ? { 1.5: 14, 2.5: 20, 4: 26, 6: 34, 10: 46, 16: 62, 25: 80, 35: 100, 50: 125 }
+        : { 2.5: 15, 4: 20, 6: 26, 10: 36, 16: 48, 25: 62, 35: 78, 50: 96 };
+    const rho = isCopper ? 0.0178 : 0.0282;
+    const sections = Object.keys(ampacity).map(Number).sort((a, b) => a - b);
+    let chosen = null;
+    for (const s of sections) {
+        if (ampacity[s] >= amps * 1.15) { chosen = s; break; }
+    }
+    if (!chosen) chosen = sections[sections.length - 1];
+    const minSectionForDrop = (2 * rho * len * amps) / (volts * 0.05);
+    if (minSectionForDrop > chosen) {
+        for (const s of sections) {
+            if (s >= minSectionForDrop) { chosen = s; break; }
+        }
+    }
+    const dropPct = ((2 * rho * len * amps) / chosen / volts) * 100;
+    const fuses = [6, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125];
+    const recommendedFuse = fuses.find(f => f >= amps * 1.15) || 125;
+    const rv = el('res-kabl-mm2');
+    if (rv) rv.innerText = fmt(chosen, 1);
+    const so = el('stat-kabl-osig');
+    if (so) so.innerText = recommendedFuse + ' A';
+    const sp = el('stat-kabl-pad');
+    if (sp) sp.innerText = fmt(dropPct, 2) + ' %';
+    const sm = el('stat-kabl-mat');
+    if (sm) sm.innerText = isCopper ? 'Bakar' : 'Aluminijum';
+    show('kabl-result-box');
+    show('kabl-stats-row');
+}
+function renderSolarPanels() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Izračunaj koliko solarnih panela ti treba za dnevnu potrošnju.</p>
+            ${inputField('label.power.daily', 'solar-consumption', 'kWh', 'step="0.1" placeholder="15"')}
+            ${inputField('label.power.hoursPerDay', 'solar-hours', 'h', 'value="4" step="0.1"')}
+            ${inputField('label.power.powerWatts', 'solar-panel', 'W', 'value="400"')}
+            ${inputField('label.money.calcType', 'solar-efficiency', '%', 'value="80"')}
+            ${calcButton('btn.calculate', 'calculateSolar()')}
+        </div>
+        <div class="solar-result-card" id="solar-result-box" style="display: none;">
+            <div class="solar-result-value" id="res-solar-count">0</div>
+            <div class="solar-result-label">panela</div>
+            <div class="solar-result-sub" id="res-solar-total-power">Ukupno: 0 W</div>
+        </div>
+        ${statsRow('solar-stats-row', [
+            ['label.power.energy', 'stat-solar-prod', '0 kWh'],
+            ['label.power.power', 'stat-solar-system', '0 kW']
+        ])}
+    `;
+}
+function calculateSolar() {
+    const consumption = num('solar-consumption');
+    const sunHours = num('solar-hours') || 4;
+    const panelWatt = num('solar-panel') || 400;
+    const efficiency = (num('solar-efficiency') || 80) / 100;
+    if (!consumption || consumption <= 0) { showToast('Unesi dnevnu potrošnju.', 'error'); return; }
+    const effectivePanelWatt = panelWatt * efficiency;
+    const dailyProductionPerPanel = (effectivePanelWatt * sunHours) / 1000;
+    const panelsNeeded = Math.ceil(consumption / dailyProductionPerPanel);
+    const totalPower = panelsNeeded * panelWatt;
+    const totalProduction = panelsNeeded * dailyProductionPerPanel;
+    const rc = el('res-solar-count'); if (rc) rc.innerText = panelsNeeded;
+    const rtp = el('res-solar-total-power'); if (rtp) rtp.innerText = `Ukupno: ${totalPower} W`;
+    const sp = el('stat-solar-prod'); if (sp) sp.innerText = fmt(totalProduction, 2) + ' kWh';
+    const ss = el('stat-solar-system'); if (ss) ss.innerText = fmt(totalPower / 1000, 2) + ' kW';
+    show('solar-result-box'); show('solar-stats-row');
+}
+
+// ============================================================
+// MUZIKA — ŠTIMER
+// ============================================================
+function renderMusicStimer() {
+    return `
+        <div class="converter-box">
+            <div class="section-desc" style="margin-bottom: 12px;">${safeT('desc.music.tuner')}</div>
+            ${inputField('label.music.referenceFreq', 'tuner-a4', 'Hz', 'value="440"')}
+            <div class="input-field">
+                <label>${safeT('label.music.instrument')}</label>
+                <select id="tuner-instrument" class="custom-input" onchange="renderTunerStrings()">
+                    <option value="guitar-standard">${safeT('option.music.guitarStandard')}</option>
+                    <option value="guitar-dropd">${safeT('option.music.guitarDropD')}</option>
+                    <option value="guitar-halfdown">${safeT('option.music.guitarHalfDown')}</option>
+                    <option value="bass-4">${safeT('option.music.bass4')}</option>
+                    <option value="bass-5">${safeT('option.music.bass5')}</option>
+                    <option value="ukulele-soprano">${safeT('option.music.ukuleleSoprano')}</option>
+                    <option value="ukulele-baritone">${safeT('option.music.ukuleleBaritone')}</option>
+                    <option value="violin">${safeT('option.music.violin')}</option>
+                    <option value="cello">${safeT('option.music.cello')}</option>
+                    <option value="mandolin">${safeT('option.music.mandolin')}</option>
+                    <option value="banjo">${safeT('option.music.banjo')}</option>
+                    <option value="kontrabas">${safeT('option.music.doubleBass')}</option>
+                </select>
+            </div>
+        </div>
+        <div class="converter-box mic-tuner-box">
+            <div class="mic-tuner-header">
+                <div class="section-desc" style="margin: 0;">${safeT('label.music.micTunerDesc')}</div>
+            </div>
+            <button class="calc-btn-main mic-tuner-btn" id="tuner-mic-btn" onclick="toggleTunerMic()">
+                🎤 ${safeT('btn.enableMic')}
+            </button>
+            <div id="tuner-mic-result" class="tuner-mic-result" style="display: none;">
+                <div class="tuner-big-note" id="tuner-detected-note">—</div>
+                <div class="tuner-target-info" id="tuner-target-info"></div>
+                <div class="tuner-detected-freq" id="tuner-detected-freq">— Hz</div>
+                <div class="tuner-gauge-wrap">
+                    <div class="tuner-cents-bar">
+                        <div class="tuner-cents-zone flat"><span>♭</span></div>
+                        <div class="tuner-cents-zone center"><span>✓</span></div>
+                        <div class="tuner-cents-zone sharp"><span>♯</span></div>
+                        <div class="tuner-cents-center"></div>
+                        <div class="tuner-cents-marker" id="tuner-cents-marker" style="left: 50%;"></div>
+                    </div>
+                    <div class="tuner-cents-label" id="tuner-cents-label">0 cents</div>
+                </div>
+            </div>
+        </div>
+        <div class="tuner-strings-head">
+            <div class="section-desc" style="margin: 0;">${safeT('label.music.stringsReference')}</div>
+        </div>
+        <div id="tuner-strings" class="tuner-strings"></div>
+        <div id="tuner-status" class="tuner-status" style="display: none;">
+            <div class="tuner-note" id="tuner-note-display">—</div>
+            <div class="tuner-freq" id="tuner-freq-display">— Hz</div>
+        </div>
+        <button class="copy-btn" id="tuner-stop-btn" style="display: none; width: 100%; margin-top: 8px;" onclick="stopTunerTone()">
+            ${safeT('btn.stopTone')}
+        </button>
+    `;
+}
+const TUNER_INSTRUMENTS = {
+    'guitar-standard': { strings: [{ note: 'E', octave: 2, freq: 82.41 }, { note: 'A', octave: 2, freq: 110.00 }, { note: 'D', octave: 3, freq: 146.83 }, { note: 'G', octave: 3, freq: 196.00 }, { note: 'B', octave: 3, freq: 246.94 }, { note: 'E', octave: 4, freq: 329.63 }] },
+    'guitar-dropd': { strings: [{ note: 'D', octave: 2, freq: 73.42 }, { note: 'A', octave: 2, freq: 110.00 }, { note: 'D', octave: 3, freq: 146.83 }, { note: 'G', octave: 3, freq: 196.00 }, { note: 'B', octave: 3, freq: 246.94 }, { note: 'E', octave: 4, freq: 329.63 }] },
+    'guitar-halfdown': { strings: [{ note: 'D#', octave: 2, freq: 77.78 }, { note: 'G#', octave: 2, freq: 103.83 }, { note: 'C#', octave: 3, freq: 138.59 }, { note: 'F#', octave: 3, freq: 185.00 }, { note: 'A#', octave: 3, freq: 233.08 }, { note: 'D#', octave: 4, freq: 311.13 }] },
+    'bass-4': { strings: [{ note: 'E', octave: 1, freq: 41.20 }, { note: 'A', octave: 1, freq: 55.00 }, { note: 'D', octave: 2, freq: 73.42 }, { note: 'G', octave: 2, freq: 98.00 }] },
+    'bass-5': { strings: [{ note: 'B', octave: 0, freq: 30.87 }, { note: 'E', octave: 1, freq: 41.20 }, { note: 'A', octave: 1, freq: 55.00 }, { note: 'D', octave: 2, freq: 73.42 }, { note: 'G', octave: 2, freq: 98.00 }] },
+    'ukulele-soprano': { strings: [{ note: 'G', octave: 4, freq: 392.00 }, { note: 'C', octave: 4, freq: 261.63 }, { note: 'E', octave: 4, freq: 329.63 }, { note: 'A', octave: 4, freq: 440.00 }] },
+    'ukulele-baritone': { strings: [{ note: 'D', octave: 3, freq: 146.83 }, { note: 'G', octave: 3, freq: 196.00 }, { note: 'B', octave: 3, freq: 246.94 }, { note: 'E', octave: 4, freq: 329.63 }] },
+    'violin': { strings: [{ note: 'G', octave: 3, freq: 196.00 }, { note: 'D', octave: 4, freq: 293.66 }, { note: 'A', octave: 4, freq: 440.00 }, { note: 'E', octave: 5, freq: 659.25 }] },
+    'cello': { strings: [{ note: 'C', octave: 2, freq: 65.41 }, { note: 'G', octave: 2, freq: 98.00 }, { note: 'D', octave: 3, freq: 146.83 }, { note: 'A', octave: 3, freq: 220.00 }] },
+    'mandolin': { strings: [{ note: 'G', octave: 3, freq: 196.00 }, { note: 'D', octave: 4, freq: 293.66 }, { note: 'A', octave: 4, freq: 440.00 }, { note: 'E', octave: 5, freq: 659.25 }] },
+    'banjo': { strings: [{ note: 'G', octave: 4, freq: 392.00 }, { note: 'D', octave: 3, freq: 146.83 }, { note: 'G', octave: 3, freq: 196.00 }, { note: 'B', octave: 3, freq: 246.94 }, { note: 'D', octave: 4, freq: 293.66 }] },
+    'kontrabas': { strings: [{ note: 'E', octave: 1, freq: 41.20 }, { note: 'A', octave: 1, freq: 55.00 }, { note: 'D', octave: 2, freq: 73.42 }, { note: 'G', octave: 2, freq: 98.00 }] }
+};
+let tunerOscillator = null, tunerGain = null;
+let micStream = null, micAnalyser = null, micSource = null, micRunning = false, micRafId = null;
+
+function getA4() { const v = el('tuner-a4') ? parseNum(el('tuner-a4').value) : 440; return (v && v > 0) ? v : 440; }
+function renderTunerStrings() {
+    const sel = el('tuner-instrument');
+    if (!sel) return;
+    const inst = TUNER_INSTRUMENTS[sel.value];
+    const wrap = el('tuner-strings');
+    if (!wrap || !inst) return;
+    const ratio = getA4() / 440;
+    wrap.innerHTML = '';
+    inst.strings.forEach((s, i) => {
+        const freq = s.freq * ratio;
+        const btn = document.createElement('button');
+        btn.className = 'tuner-string-btn';
+        btn.type = 'button';
+        btn.dataset.index = i;
+        btn.innerHTML = `<span class="ts-num">${i + 1}.</span><span class="ts-note">${s.note}${s.octave}</span><span class="ts-freq">${freq.toFixed(2)} Hz</span>`;
+        btn.addEventListener('click', () => playTunerTone(freq, btn));
+        wrap.appendChild(btn);
+    });
+}
+function playTunerTone(freq, btn) {
+    try {
+        const isActive = btn && btn.classList.contains('active');
+        if (isActive) { stopTunerTone(); const s = el('tuner-status'); if (s) s.style.display = 'none'; return; }
+        if (!audioCtx) audioCtx = getAudio();
+        if (!audioCtx) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        stopTunerTone();
+        tunerOscillator = audioCtx.createOscillator();
+        tunerGain = audioCtx.createGain();
+        tunerOscillator.type = 'sine';
+        tunerOscillator.frequency.value = freq;
+        tunerGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+        tunerGain.gain.exponentialRampToValueAtTime(0.25, audioCtx.currentTime + 0.05);
+        tunerOscillator.connect(tunerGain);
+        tunerGain.connect(audioCtx.destination);
+        tunerOscillator.start();
+        const status = el('tuner-status');
+        if (status) { status.style.display = 'block'; const nd = el('tuner-note-display'); if (nd) nd.textContent = btn.querySelector('.ts-note').textContent; const fd = el('tuner-freq-display'); if (fd) fd.textContent = freq.toFixed(2) + ' Hz'; }
+        const sb = el('tuner-stop-btn'); if (sb) sb.style.display = 'block';
+        document.querySelectorAll('.tuner-string-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        vibrate(10);
+    } catch (e) {}
+}
+function stopTunerTone() {
+    if (tunerOscillator) { try { tunerGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.05); tunerOscillator.stop(audioCtx.currentTime + 0.1); } catch (e) {} tunerOscillator = null; tunerGain = null; }
+    const sb = el('tuner-stop-btn'); if (sb) sb.style.display = 'none';
+    document.querySelectorAll('.tuner-string-btn').forEach(b => b.classList.remove('active'));
+}
+async function toggleTunerMic() {
+    const btn = el('tuner-mic-btn');
+    if (micRunning) { stopTunerMic(); if (btn) { btn.textContent = '🎤 ' + safeT('btn.enableMic'); btn.classList.remove('active'); } return; }
+    try {
+        if (!audioCtx) audioCtx = getAudio();
+        if (!audioCtx) throw new Error('AudioContext not available');
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } });
+        micSource = audioCtx.createMediaStreamSource(micStream);
+        micAnalyser = audioCtx.createAnalyser();
+        micAnalyser.fftSize = 8192;
+        micAnalyser.smoothingTimeConstant = 0.5;
+        micSource.connect(micAnalyser);
+        micRunning = true;
+        resetPitchSmoothing();
+        if (btn) { btn.textContent = '⏹ ' + safeT('btn.stopMic'); btn.classList.add('active'); }
+        const r = el('tuner-mic-result'); if (r) r.style.display = 'block';
+        micLoop();
+        vibrate(20);
+        playTick(0, 1400, 0.08, 0.03);
+    } catch (e) { console.warn('Mic error:', e); showToast(safeT('toast.micError') || 'Greška pri pristupu mikrofonu', 'error', 2500); }
+}
+function stopTunerMic() {
+    micRunning = false;
+    if (micRafId) { cancelAnimationFrame(micRafId); micRafId = null; }
+    if (micStream) { micStream.getTracks().forEach(track => track.stop()); micStream = null; }
+    micSource = null; micAnalyser = null;
+    resetPitchSmoothing();
+    const r = el('tuner-mic-result'); if (r) r.style.display = 'none';
+}
+function micLoop() {
+    if (!micRunning || !micAnalyser) return;
+    const buffer = new Float32Array(micAnalyser.fftSize);
+    micAnalyser.getFloatTimeDomainData(buffer);
+    let freq = yinPitchDetect(buffer, audioCtx.sampleRate, { threshold: 0.12, minFreq: 60, maxFreq: 1500 });
+    if (freq <= 0 && typeof autoCorrelate === 'function') freq = autoCorrelate(buffer, audioCtx.sampleRate);
+    if (freq > 0) { const smoothed = smoothPitch(freq); if (smoothed > 0) updateTunerDisplay(smoothed); else showTunerNoSignal(); }
+    else showTunerNoSignal();
+    micRafId = requestAnimationFrame(micLoop);
+}
+function showTunerNoSignal() {
+    const dn = el('tuner-detected-note'); if (dn) dn.textContent = '—';
+    const df = el('tuner-detected-freq'); if (df) df.textContent = '— Hz';
+    const marker = el('tuner-cents-marker'); if (marker) marker.style.left = '50%';
+    const cl = el('tuner-cents-label'); if (cl) { cl.textContent = '0 cents'; cl.classList.remove('ok', 'close', 'far'); }
+}
+function autoCorrelate(buffer, sampleRate) {
+    const SIZE = buffer.length;
+    let rms = 0;
+    for (let i = 0; i < SIZE; i++) rms += buffer[i] * buffer[i];
+    rms = Math.sqrt(rms / SIZE);
+    if (rms < 0.01) return -1;
+    let r1 = 0, r2 = SIZE - 1;
+    const thres = 0.2;
+    for (let i = 0; i < SIZE / 2; i++) { if (Math.abs(buffer[i]) < thres) { r1 = i; break; } }
+    for (let i = 1; i < SIZE / 2; i++) { if (Math.abs(buffer[SIZE - i]) < thres) { r2 = SIZE - i; break; } }
+    const buf = buffer.slice(r1, r2);
+    const newSize = buf.length;
+    const c = new Array(newSize).fill(0);
+    for (let i = 0; i < newSize; i++) { for (let j = 0; j < newSize - i; j++) { c[i] += buf[j] * buf[j + i]; } }
+    let d = 0;
+    while (c[d] > c[d + 1]) d++;
+    let maxval = -1, maxpos = -1;
+    for (let i = d; i < newSize; i++) { if (c[i] > maxval) { maxval = c[i]; maxpos = i; } }
+    let T0 = maxpos;
+    const x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1];
+    const a = (x1 + x3 - 2 * x2) / 2, b = (x3 - x1) / 2;
+    if (a) T0 = T0 - b / (2 * a);
+    return sampleRate / T0;
+}
+function updateTunerDisplay(freq) {
+    const nearest = findNearestString(freq);
+    if (!nearest) return;
+    const { string, cents, index, targetFreq } = nearest;
+    const dn = el('tuner-detected-note'); if (dn) dn.textContent = `${string.note}${string.octave}`;
+    const ti = el('tuner-target-info');
+    if (ti) {
+        const statusText = Math.abs(cents) < 3 ? safeT('label.music.tunerInTune') : (Math.abs(cents) < 15 ? safeT('label.music.tunerClose') : safeT('label.music.tunerOut'));
+        ti.textContent = `${safeT('label.music.string')} ${index + 1} • ${statusText}`;
+        ti.classList.remove('ok', 'close', 'far');
+        if (Math.abs(cents) < 3) ti.classList.add('ok');
+        else if (Math.abs(cents) < 15) ti.classList.add('close');
+        else ti.classList.add('far');
+    }
+    const df = el('tuner-detected-freq'); if (df) df.textContent = freq.toFixed(2) + ' Hz → ' + targetFreq.toFixed(2) + ' Hz';
+    const marker = el('tuner-cents-marker');
+    if (marker) {
+        const clamped = Math.max(-50, Math.min(50, cents));
+        marker.style.left = (50 + (clamped / 50) * 45) + '%';
+        if (Math.abs(cents) < 3) marker.style.background = '#10b981';
+        else if (Math.abs(cents) < 15) marker.style.background = '#f59e0b';
+        else marker.style.background = '#f43f5e';
+    }
+    const cl = el('tuner-cents-label');
+    if (cl) {
+        const sign = cents > 0 ? '+' : '';
+        cl.textContent = `${sign}${Math.round(cents)} cents`;
+        cl.classList.remove('ok', 'close', 'far');
+        if (Math.abs(cents) < 3) cl.classList.add('ok');
+        else if (Math.abs(cents) < 15) cl.classList.add('close');
+        else cl.classList.add('far');
+    }
+    document.querySelectorAll('.tuner-string-btn').forEach(b => b.classList.remove('active'));
+    const activeBtn = document.querySelector(`.tuner-string-btn[data-index="${index}"]`);
+    if (activeBtn && Math.abs(cents) < 50) activeBtn.classList.add('active');
+}
+function findNearestString(freq) {
+    const sel = el('tuner-instrument');
+    if (!sel) return null;
+    const inst = TUNER_INSTRUMENTS[sel.value];
+    if (!inst) return null;
+    const ratio = getA4() / 440;
+    let nearest = null;
+    let minDiff = Infinity;
+    inst.strings.forEach((s, i) => {
+        const targetFreq = s.freq * ratio;
+        const cents = 1200 * Math.log2(freq / targetFreq);
+        if (Math.abs(cents) < Math.abs(minDiff)) { minDiff = cents; nearest = { index: i, string: s, cents, targetFreq }; }
+    });
+    return nearest;
+}
+
+// YIN PITCH DETECTION
+function yinPitchDetect(buffer, sampleRate, options = {}) {
+    const threshold = options.threshold || 0.12;
+    const minFreq = options.minFreq || 60;
+    const maxFreq = options.maxFreq || 1500;
+    const bufferSize = buffer.length;
+    const yinBufferSize = Math.floor(bufferSize / 2);
+    const yinBuffer = new Float32Array(yinBufferSize);
+    for (let tau = 0; tau < yinBufferSize; tau++) {
+        let sum = 0;
+        for (let i = 0; i < yinBufferSize; i++) {
+            const delta = buffer[i] - buffer[i + tau];
+            sum += delta * delta;
+        }
+        yinBuffer[tau] = sum;
+    }
+    yinBuffer[0] = 1;
+    let runningSum = 0;
+    for (let tau = 1; tau < yinBufferSize; tau++) {
+        runningSum += yinBuffer[tau];
+        yinBuffer[tau] *= tau / runningSum;
+    }
+    const minTau = Math.max(2, Math.floor(sampleRate / maxFreq));
+    const maxTau = Math.min(yinBufferSize - 1, Math.floor(sampleRate / minFreq));
+    let tauEstimate = -1;
+    for (let tau = minTau; tau < maxTau; tau++) {
+        if (yinBuffer[tau] < threshold) {
+            while (tau + 1 < maxTau && yinBuffer[tau + 1] < yinBuffer[tau]) tau++;
+            tauEstimate = tau;
+            break;
+        }
+    }
+    if (tauEstimate === -1) {
+        let minVal = Infinity;
+        for (let tau = minTau; tau < maxTau; tau++) {
+            if (yinBuffer[tau] < minVal) { minVal = yinBuffer[tau]; tauEstimate = tau; }
+        }
+        if (minVal > 0.5) return -1;
+    }
+    const betterTau = parabolicInterpolation(yinBuffer, tauEstimate);
+    const confidence = 1 - yinBuffer[tauEstimate];
+    if (confidence < 0.5) return -1;
+    return sampleRate / betterTau;
+}
+function parabolicInterpolation(yinBuffer, tau) {
+    if (tau < 1 || tau >= yinBuffer.length - 1) return tau;
+    const x0 = yinBuffer[tau - 1];
+    const x2 = yinBuffer[tau + 1];
+    if (x0 + x2 === 2 * yinBuffer[tau]) return tau;
+    const a = (x0 + x2 - 2 * yinBuffer[tau]) / 2;
+    const b = (x2 - x0) / 2;
+    if (a === 0) return tau;
+    return tau - b / (2 * a);
+}
+const pitchHistory = [];
+const PITCH_HISTORY_SIZE = 5;
+let consecutiveOutliers = 0;
+function smoothPitch(newFreq) {
+    if (newFreq <= 0) return -1;
+    pitchHistory.push(newFreq);
+    if (pitchHistory.length > PITCH_HISTORY_SIZE) pitchHistory.shift();
+    if (pitchHistory.length < 3) return newFreq;
+    const sorted = [...pitchHistory].sort((a, b) => a - b);
+    const median = sorted[Math.floor(sorted.length / 2)];
+    const deviation = Math.abs(newFreq - median) / median;
+    if (deviation > 0.20) {
+        consecutiveOutliers++;
+        if (consecutiveOutliers < 3) return median;
+        consecutiveOutliers = 0;
+        pitchHistory.length = 0;
+        pitchHistory.push(newFreq);
+        return newFreq;
+    }
+    consecutiveOutliers = 0;
+    return median;
+}
+function resetPitchSmoothing() {
+    pitchHistory.length = 0;
+    consecutiveOutliers = 0;
+}
