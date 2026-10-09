@@ -6080,3 +6080,295 @@ if (typeof window.parseDate !== 'function') {
         return new Date(parts[0], parts[1] - 1, parts[2]);
     };
 }
+// ============================================================
+// WEATHER
+// ============================================================
+const WEATHER_LOC_KEY = 'cx_weather_location_v1';
+const WEATHER_CACHE_KEY = 'cx_weather_cache_v1';
+const WEATHER_CACHE_TTL = 30 * 60 * 1000;
+
+let weatherState = { location: null, current: null, hourly: null, daily: null, aqi: null, pollen: null, loading: false, lastFetch: 0, stale: false };
+
+const WMO_CODES = {
+    0: 'clear', 1: 'mostlyClear', 2: 'partlyCloudy', 3: 'cloudy', 45: 'fog', 48: 'fogFrost',
+    51: 'drizzleLight', 53: 'drizzle', 55: 'drizzleHeavy', 56: 'freezingDrizzleLight', 57: 'freezingDrizzle',
+    61: 'rainLight', 63: 'rain', 65: 'rainHeavy', 66: 'freezingRainLight', 67: 'freezingRain',
+    71: 'snowLight', 73: 'snow', 75: 'snowHeavy', 77: 'snowFlurries', 80: 'showers', 81: 'showers', 82: 'showersHeavy',
+    85: 'snowShowers', 86: 'snowShowers', 95: 'thunderstorm', 96: 'thunderstormHail', 99: 'thunderstormHailHeavy'
+};
+const WMO_ICONS = { 0: 'sun', 1: 'sun', 2: 'cloudSun', 3: 'cloud', 45: 'cloud', 48: 'cloud', 51: 'cloudRain', 53: 'cloudRain', 55: 'cloudRain', 56: 'cloudSnow', 57: 'cloudSnow', 61: 'cloudRain', 63: 'cloudRain', 65: 'cloudRain', 66: 'cloudSnow', 67: 'cloudSnow', 71: 'cloudSnow', 73: 'cloudSnow', 75: 'cloudSnow', 77: 'cloudSnow', 80: 'cloudRain', 81: 'cloudRain', 82: 'cloudRain', 85: 'cloudSnow', 86: 'cloudSnow', 95: 'cloudLightning', 96: 'cloudLightning', 99: 'cloudLightning' };
+const WMO_ICON_COLORS = { sun: '#fbbf24', cloudSun: '#fbbf24', cloud: '#94a3b8', cloudRain: '#60a5fa', cloudSnow: '#e0e7ff', cloudLightning: '#facc15' };
+
+const CITY_MAP = {
+    'beograd': { name: 'Beograd', admin1: 'Srbija', country: 'Srbija', lat: 44.8176, lon: 20.4633 },
+    'novi sad': { name: 'Novi Sad', admin1: 'Vojvodina', country: 'Srbija', lat: 45.2671, lon: 19.8335 },
+    'nis': { name: 'Niš', admin1: 'Srbija', country: 'Srbija', lat: 43.3209, lon: 21.8958 }
+};
+
+function loadWeatherLocation() { try { const raw = JSON.parse(localStorage.getItem(WEATHER_LOC_KEY)); if (raw && raw.lat && raw.lon) return raw; } catch (e) {} return null; }
+function saveWeatherLocation(loc) { try { localStorage.setItem(WEATHER_LOC_KEY, JSON.stringify(loc)); } catch (e) {} }
+function loadWeatherCache() { try { const raw = JSON.parse(localStorage.getItem(WEATHER_CACHE_KEY)); if (raw && raw.data) return raw; } catch (e) {} return null; }
+function saveWeatherCache(data) { try { localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({ data, ts: Date.now() })); } catch (e) {} }
+
+async function geocodeCity(query) {
+    const normalized = normalizeText(query);
+    const cityKey = Object.keys(CITY_MAP).find(k => normalized.includes(k) || k.includes(normalized));
+    if (cityKey) return [CITY_MAP[cityKey]];
+    try {
+        const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=10&language=${currentLang}&format=json`;
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (data.results && data.results.length) {
+            return data.results.map(r => ({ name: r.name, admin1: r.admin1 || '', country: r.country || '', lat: r.latitude, lon: r.longitude }));
+        }
+    } catch (e) { console.warn('Geocoding greška:', e.message); }
+    return [];
+}
+async function fetchWeather(lat, lon) {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index&hourly=temperature_2m,precipitation_probability,weather_code,wind_speed_10m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max,wind_speed_10m_max,uv_index_max&timezone=auto&forecast_days=7`;
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+}
+async function fetchAQI(lat, lon) {
+    const url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,ozone,sulphur_dioxide&hourly=alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=auto&forecast_days=1`;
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+}
+async function initWeatherTab(tabId) {
+    if (!weatherState.location) {
+        const saved = loadWeatherLocation();
+        if (saved) weatherState.location = saved;
+        else { weatherState.location = CITY_MAP['beograd']; saveWeatherLocation(weatherState.location); }
+    }
+    const cache = loadWeatherCache();
+    if (cache && (Date.now() - cache.ts) < WEATHER_CACHE_TTL) {
+        weatherState.current = cache.data.current;
+        weatherState.hourly = cache.data.hourly;
+        weatherState.daily = cache.data.daily;
+        weatherState.aqi = cache.data.aqi;
+        weatherState.pollen = cache.data.pollen;
+        weatherState.lastFetch = cache.ts; weatherState.stale = false;
+        renderWeatherTabContent(tabId);
+        return;
+    }
+    await loadWeatherData(tabId);
+}
+async function loadWeatherData(tabId) {
+    const loc = weatherState.location;
+    if (!loc) return;
+    weatherState.loading = true;
+    renderWeatherTabContent(tabId);
+    try {
+        const [weather, aqi] = await Promise.all([fetchWeather(loc.lat, loc.lon), fetchAQI(loc.lat, loc.lon).catch(() => null)]);
+        weatherState.current = weather.current;
+        weatherState.hourly = weather.hourly;
+        weatherState.daily = weather.daily;
+        weatherState.aqi = aqi ? aqi.current : null;
+        weatherState.pollen = aqi ? aqi.hourly : null;
+        weatherState.lastFetch = Date.now(); weatherState.stale = false; weatherState.loading = false;
+        saveWeatherCache({ current: weatherState.current, hourly: weatherState.hourly, daily: weatherState.daily, aqi: weatherState.aqi, pollen: weatherState.pollen });
+        renderWeatherTabContent(tabId);
+    } catch (e) {
+        console.warn('Weather fetch error:', e.message);
+        weatherState.loading = false; weatherState.stale = true;
+        const cache = loadWeatherCache();
+        if (cache) {
+            weatherState.current = cache.data.current; weatherState.hourly = cache.data.hourly;
+            weatherState.daily = cache.data.daily; weatherState.aqi = cache.data.aqi; weatherState.pollen = cache.data.pollen;
+        }
+        renderWeatherTabContent(tabId);
+    }
+}
+function renderWeatherTabContent(tabId) {
+    if (tabId === 'prognoza') updateWeatherPrognoza();
+    else if (tabId === 'vazduh') updateWeatherVazduh();
+}
+async function refreshWeather() {
+    const btn = document.querySelector('.weather-refresh-btn');
+    if (btn) btn.classList.add('spinning');
+    setTimeout(() => { if (btn) btn.classList.remove('spinning'); }, 700);
+    showToast(safeT('weather.refreshing'), 'info', 1500);
+    try { localStorage.removeItem(WEATHER_CACHE_KEY); } catch (e) {}
+    const tabId = activeTab || 'prognoza';
+    await loadWeatherData(tabId);
+    vibrate(20); playTick(0, 1400, 0.08, 0.03);
+}
+function openLocationModal() {
+    const modal = el('location-modal');
+    if (!modal) return;
+    const input = el('location-search-input'); if (input) input.value = '';
+    const results = el('location-results'); if (results) results.innerHTML = '<div class="location-empty">' + safeT('weather.location.empty') + '</div>';
+    modal.classList.add('show'); document.body.classList.add('modal-open');
+    vibrate(15); playTick(0, 1400, 0.06, 0.02);
+    setTimeout(() => { if (input) input.focus(); }, 200);
+}
+async function searchLocation() {
+    const input = el('location-search-input');
+    const results = el('location-results');
+    if (!input || !results) return;
+    const q = input.value.trim();
+    if (!q || q.length < 2) { results.innerHTML = '<div class="location-empty">' + safeT('weather.location.minChars') + '</div>'; return; }
+    results.innerHTML = '<div class="location-empty">' + safeT('weather.location.searching') + '</div>';
+    const found = await geocodeCity(q);
+    if (!found.length) { results.innerHTML = '<div class="location-empty">' + safeT('weather.location.noResults') + ' "' + escapeHtml(q) + '".</div>'; return; }
+    results.innerHTML = '';
+    found.forEach(loc => {
+        const item = document.createElement('div');
+        item.className = 'location-result-item';
+        item.innerHTML = `<div class="location-result-name">${escapeHtml(loc.name)}</div><div class="location-result-region">${escapeHtml(loc.admin1 ? loc.admin1 + ', ' : '')}${escapeHtml(loc.country)}</div>`;
+        item.onclick = () => selectLocation(loc);
+        results.appendChild(item);
+    });
+}
+function selectLocation(loc) {
+    weatherState.location = loc;
+    saveWeatherLocation(loc);
+    try { localStorage.removeItem(WEATHER_CACHE_KEY); } catch (e) {}
+    closeModal('location-modal');
+    showToast(safeT('weather.location.selected') + ': ' + loc.name, 'success', 1500);
+    vibrate(20); playTick(0, 1500, 0.08, 0.03);
+    setTimeout(() => { const tabId = activeTab || 'prognoza'; loadWeatherData(tabId); }, 200);
+}
+function useGPSLocation() {
+    if (!navigator.geolocation) { showToast(safeT('weather.location.gpsUnsupported'), 'error'); return; }
+    showToast(safeT('weather.location.gpsSearching'), 'info', 2000);
+    navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+            const lat = pos.coords.latitude, lon = pos.coords.longitude;
+            let name = currentLang === 'en' ? 'My location' : 'Moja lokacija';
+            let admin1 = '', country = '';
+            try {
+                const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=${currentLang}`;
+                const res = await fetch(url);
+                if (res.ok) {
+                    const data = await res.json();
+                    const addr = data.address || {};
+                    name = addr.city || addr.town || addr.village || addr.municipality || name;
+                    admin1 = addr.state || addr.region || '';
+                    country = addr.country || '';
+                }
+            } catch (e) {}
+            selectLocation({ name, admin1, country, lat, lon });
+        },
+        () => { showToast(safeT('weather.location.gpsError'), 'error', 2500); },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 }
+    );
+}
+function renderWeatherPrognoza() { return `<div id="weather-prognoza-content"><div class="weather-loading"><div class="weather-loading-row"></div><div class="weather-loading-row"></div><div class="weather-loading-row"></div></div></div>`; }
+function renderWeatherVazduh() { return `<div id="weather-vazduh-content"><div class="weather-loading"><div class="weather-loading-row"></div><div class="weather-loading-row"></div></div></div>`; }
+function weatherLocationHeader() {
+    const loc = weatherState.location;
+    if (!loc) return '';
+    const name = loc.name + (loc.admin1 && loc.admin1 !== loc.name ? ', ' + loc.admin1 : '');
+    const staleBadge = weatherState.stale ? '<span class="weather-stale-badge">' + safeT('weather.stale') + '</span>' : '';
+    return `<div class="weather-location-row"><div class="weather-location" onclick="openLocationModal()" title="${safeT('weather.location.title')}">${icon('mapPin')}<span class="weather-location-name">${escapeHtml(name)}</span>${staleBadge}</div><button class="weather-refresh-btn" onclick="refreshWeather()" title="${safeT('weather.refresh')}">${icon('refresh')}</button></div>`;
+}
+function getWeatherInfo(code) {
+    const key = WMO_CODES[code];
+    if (!key) return { text: safeT('weather.condition.unknown'), icon: 'cloud' };
+    return { text: safeT('weather.condition.' + key), icon: WMO_ICONS[code] || 'cloud' };
+}
+function formatHour(isoStr) { const d = new Date(isoStr); return String(d.getHours()).padStart(2, '0') + ':00'; }
+function formatDayName(isoStr, index) {
+    if (index === 0) return safeT('weather.day.today');
+    if (index === 1) return safeT('weather.day.tomorrow');
+    const d = new Date(isoStr);
+    const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    return safeT('weather.day.' + days[d.getDay()]);
+}
+function updateWeatherPrognoza() {
+    const box = el('weather-prognoza-content');
+    if (!box) return;
+    const { current, hourly, daily, loading } = weatherState;
+    if (loading && !current) { box.innerHTML = `<div class="weather-loading"><div class="weather-loading-row"></div><div class="weather-loading-row"></div><div class="weather-loading-row"></div></div>`; return; }
+    if (!current) {
+        box.innerHTML = `<div class="weather-error"><div class="weather-error-icon">📡</div><div class="weather-error-title">${safeT('weather.error.noData')}</div><div class="weather-error-text">${safeT('weather.error.checkInternet')}</div><button class="weather-error-btn" onclick="refreshWeather()">${safeT('weather.error.retry')}</button></div>`;
+        return;
+    }
+    const info = getWeatherInfo(current.weather_code);
+    const temp = Math.round(current.temperature_2m);
+    const feels = Math.round(current.apparent_temperature);
+    const wind = Math.round(current.wind_speed_10m);
+    const humidity = current.relative_humidity_2m;
+    const now = new Date();
+    const startIdx = hourly.time.findIndex(t => new Date(t) >= now);
+    const hourlySlice = startIdx >= 0 ? hourly.time.slice(startIdx, startIdx + 24) : hourly.time.slice(0, 24);
+    let hourlyHtml = '';
+    hourlySlice.forEach((timeStr, i) => {
+        const idx = startIdx + i;
+        const t2 = Math.round(hourly.temperature_2m[idx]);
+        const code = hourly.weather_code[idx];
+        const rain = hourly.precipitation_probability[idx];
+        const wInfo = getWeatherInfo(code);
+        hourlyHtml += `<div class="weather-hour-card"><div class="weather-hour-time">${formatHour(timeStr)}</div><div class="weather-hour-icon" style="color: ${WMO_ICON_COLORS[wInfo.icon] || '#38bdf8'};">${icon(wInfo.icon)}</div><div class="weather-hour-temp">${t2}°</div>${rain > 20 ? `<div class="weather-hour-rain">${rain}%</div>` : ''}</div>`;
+    });
+    let dailyHtml = '';
+    daily.time.forEach((timeStr, i) => {
+        if (i > 6) return;
+        const code = daily.weather_code[i];
+        const tMax = Math.round(daily.temperature_2m_max[i]);
+        const tMin = Math.round(daily.temperature_2m_min[i]);
+        const rain = daily.precipitation_probability_max[i];
+        const windMax = Math.round(daily.wind_speed_10m_max[i]);
+        const wInfo = getWeatherInfo(code);
+        const comment = generateDayComment(code, tMax, tMin, rain, windMax);
+        dailyHtml += `<div class="weather-day-item"><div class="weather-day-name">${formatDayName(timeStr, i)}</div><div class="weather-day-icon" style="color: ${WMO_ICON_COLORS[wInfo.icon] || '#38bdf8'};">${icon(wInfo.icon)}</div><div class="weather-day-comment">${escapeHtml(comment)}</div><div class="weather-day-temps">${tMax}°<small> / ${tMin}°</small></div></div>`;
+    });
+    box.innerHTML = `${weatherLocationHeader()}<div class="weather-current"><div class="weather-temp-row"><div class="weather-temp-big">${temp}°</div><div class="weather-temp-info"><div class="weather-condition">${escapeHtml(info.text)}</div><div class="weather-feels">${safeT('weather.feels')} ${feels}°</div></div></div><div class="weather-meta-row"><div class="weather-meta-item">${icon('wind')} ${wind} km/h</div><div class="weather-meta-item">${icon('droplets')} ${humidity}%</div><div class="weather-meta-item">${icon('sun')} UV ${Math.round(current.uv_index || 0)}</div></div></div><div class="weather-section-title">${safeT('weather.section.hourly')}</div><div class="weather-hourly">${hourlyHtml}</div><div class="weather-section-title">${safeT('weather.section.daily')}</div><div class="weather-daily-list">${dailyHtml}</div>`;
+}
+function generateDayComment(code, tMax, tMin, rainProb, windMax) {
+    const comments = [];
+    if (code >= 95) comments.push(safeT('weather.comment.thunderstorm'));
+    else if (code >= 71 && code <= 77) comments.push(safeT('weather.comment.snow'));
+    else if (code >= 61 && code <= 67) comments.push(safeT('weather.comment.rain'));
+    else if (code >= 51 && code <= 57) comments.push(safeT('weather.comment.drizzle'));
+    else if (code === 45 || code === 48) comments.push(safeT('weather.comment.fog'));
+    else if (code === 0 || code === 1) comments.push(safeT('weather.comment.clear'));
+    else comments.push(safeT('weather.comment.cloudy'));
+    if (rainProb > 70 && code < 51) comments.push(safeT('weather.comment.possibleRain'));
+    if (windMax > 40) comments.push(safeT('weather.comment.windy'));
+    if (tMax > 30) comments.push(safeT('weather.comment.hot'));
+    if (tMin < 0) comments.push(safeT('weather.comment.frost'));
+    if (tMax - tMin > 15) comments.push(safeT('weather.comment.bigTempDiff'));
+    return comments.join(' • ');
+}
+function updateWeatherVazduh() {
+    const box = el('weather-vazduh-content');
+    if (!box) return;
+    const { aqi, pollen, loading } = weatherState;
+    if (loading && !aqi) { box.innerHTML = `<div class="weather-loading"><div class="weather-loading-row"></div><div class="weather-loading-row"></div></div>`; return; }
+    if (!aqi) {
+        box.innerHTML = `<div class="weather-error"><div class="weather-error-icon">🌫️</div><div class="weather-error-title">${safeT('weather.error.noAirQuality')}</div><div class="weather-error-text">${safeT('weather.error.noAirQualityText')}</div><button class="weather-error-btn" onclick="refreshWeather()">${safeT('weather.error.retry')}</button></div>`;
+        return;
+    }
+    const aqiVal = aqi.european_aqi || 0;
+    let aqiKey, aqiColor;
+    if (aqiVal <= 20) { aqiKey = 'excellent'; aqiColor = '#10b981'; }
+    else if (aqiVal <= 40) { aqiKey = 'good'; aqiColor = '#84cc16'; }
+    else if (aqiVal <= 60) { aqiKey = 'moderate'; aqiColor = '#f59e0b'; }
+    else if (aqiVal <= 80) { aqiKey = 'bad'; aqiColor = '#f97316'; }
+    else if (aqiVal <= 100) { aqiKey = 'veryBad'; aqiColor = '#f43f5e'; }
+    else { aqiKey = 'dangerous'; aqiColor = '#a855f7'; }
+    let pollenHtml = '';
+    if (pollen && pollen.time) {
+        const now = new Date();
+        const idx = pollen.time.findIndex(t => new Date(t) >= now);
+        const realIdx = idx >= 0 ? idx : 0;
+        const pollenTypes = [
+            { key: 'grass_pollen', nameKey: 'grass' }, { key: 'birch_pollen', nameKey: 'birch' },
+            { key: 'alder_pollen', nameKey: 'alder' }, { key: 'mugwort_pollen', nameKey: 'mugwort' },
+            { key: 'olive_pollen', nameKey: 'olive' }, { key: 'ragweed_pollen', nameKey: 'ragweed' }
+        ];
+        pollenTypes.forEach(pt => {
+            const val = pollen[pt.key] ? pollen[pt.key][realIdx] : null;
+            if (val === null || val === undefined) return;
+            let levelKey;
+            if (val < 10) levelKey = 'low'; else if (val < 50) levelKey = 'medium'; else levelKey = 'high';
+            pollenHtml += `<div class="pollen-row"><span class="pollen-name">${safeT('weather.pollen.' + pt.nameKey)}</span><span class="pollen-value ${levelKey}">${safeT('weather.pollen.' + levelKey)}</span></div>`;
+        });
+    }
+    box.innerHTML = `${weatherLocationHeader()}<div class="aqi-card" style="--aqi-color: ${aqiColor};"><div class="aqi-value">${Math.round(aqiVal)}</div><div class="aqi-info"><div class="aqi-label">${safeT('weather.aqi.' + aqiKey)}</div><div class="aqi-sub">${safeT('weather.aqi.subtitle')}</div></div></div><div class="weather-section-title">${safeT('weather.section.pollutants')}</div>${aqi.pm2_5 !== undefined ? `<div class="aqi-pollutant-row"><span class="aqi-pollutant-name">PM2.5</span><span class="aqi-pollutant-value">${Math.round(aqi.pm2_5)} µg/m³</span></div>` : ''}${aqi.pm10 !== undefined ? `<div class="aqi-pollutant-row"><span class="aqi-pollutant-name">PM10</span><span class="aqi-pollutant-value">${Math.round(aqi.pm10)} µg/m³</span></div>` : ''}${aqi.nitrogen_dioxide !== undefined ? `<div class="aqi-pollutant-row"><span class="aqi-pollutant-name">NO₂</span><span class="aqi-pollutant-value">${Math.round(aqi.nitrogen_dioxide)} µg/m³</span></div>` : ''}${aqi.ozone !== undefined ? `<div class="aqi-pollutant-row"><span class="aqi-pollutant-name">O₃</span><span class="aqi-pollutant-value">${Math.round(aqi.ozone)} µg/m³</span></div>` : ''}${pollenHtml ? `<div class="weather-section-title">${safeT('weather.section.pollen')}</div>${pollenHtml}` : ''}`;
+}
