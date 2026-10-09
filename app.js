@@ -4970,3 +4970,1113 @@ function calculateShopBudzet() {
     show('budzet-result-box');
     show('budzet-stats-row');
 }
+// ============================================================
+// PODSETNICI — Storage helperi
+// ============================================================
+const REMINDER_KEYS = {
+    birthdays: 'cx_birthdays',
+    bills: 'cx_bills',
+    vehicles: 'cx_vehicles',
+    documents: 'cx_documents',
+    subscriptions: 'cx_subscriptions',
+    medications: 'cx_medications',
+    anniversaries: 'cx_anniversaries',
+    notes: 'cx_notes'
+};
+
+function loadReminders(key) {
+    try {
+        const raw = JSON.parse(localStorage.getItem(key));
+        if (Array.isArray(raw)) return raw;
+    } catch (e) {}
+    return [];
+}
+function saveReminders(key, list) {
+    try { localStorage.setItem(key, JSON.stringify(list)); } catch (e) {}
+}
+function addReminder(key, item) {
+    const list = loadReminders(key);
+    item.id = item.id || (Date.now() + Math.random());
+    item.createdAt = item.createdAt || Date.now();
+    list.push(item);
+    saveReminders(key, list);
+    return item;
+}
+function updateReminder(key, id, changes) {
+    const list = loadReminders(key);
+    const idx = list.findIndex(x => x.id === id);
+    if (idx === -1) return;
+    list[idx] = Object.assign({}, list[idx], changes);
+    saveReminders(key, list);
+}
+function deleteReminder(key, id) {
+    let list = loadReminders(key);
+    list = list.filter(x => x.id !== id);
+    saveReminders(key, list);
+}
+
+function daysUntilDate(isoOrDate) {
+    if (!isoOrDate) return null;
+    const target = parseDate(isoOrDate);
+    if (!target || isNaN(target)) return null;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    target.setHours(0, 0, 0, 0);
+    return Math.round((target - today) / 86400000);
+}
+function daysToBirthday(isoDate) {
+    if (!isoDate) return null;
+    const parts = isoDate.split('-').map(Number);
+    if (parts.length < 3) return null;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    let next = new Date(today.getFullYear(), parts[1] - 1, parts[2]);
+    next.setHours(0, 0, 0, 0);
+    if (next < today) next.setFullYear(today.getFullYear() + 1);
+    return Math.round((next - today) / 86400000);
+}
+function daysToAnniversary(isoDate) { return daysToBirthday(isoDate); }
+function daysToBillDay(dayOfMonth) {
+    if (!dayOfMonth) return null;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const d = Math.max(1, Math.min(31, parseInt(dayOfMonth)));
+    let next = new Date(today.getFullYear(), today.getMonth(), d);
+    next.setHours(0, 0, 0, 0);
+    if (next < today) {
+        let nm = today.getMonth() + 1;
+        let ny = today.getFullYear();
+        if (nm > 11) { nm = 0; ny++; }
+        next = new Date(ny, nm, d);
+    }
+    return Math.round((next - today) / 86400000);
+}
+function formatDaysToHuman(days) {
+    if (days === null || days === undefined) return '—';
+    if (days === 0) return safeT('rem.dashboard.today');
+    if (days === 1) return safeT('rem.dashboard.tomorrow');
+    if (days === -1) return safeT('rem.dashboard.yesterday');
+    if (days < 0) return Math.abs(days) + ' ' + safeT('rem.days');
+    return days + ' ' + safeT('rem.days');
+}
+function urgencyClass(days) {
+    if (days === null || days === undefined) return 'later';
+    if (days < 0) return 'overdue';
+    if (days <= 7) return 'urgent';
+    if (days <= 30) return 'soon';
+    return 'later';
+}
+function urgencyColor(days) {
+    const cls = urgencyClass(days);
+    if (cls === 'overdue' || cls === 'urgent') return '#f43f5e';
+    if (cls === 'soon') return '#f59e0b';
+    return '#10b981';
+}
+function yearsSinceDate(isoDate) {
+    if (!isoDate) return null;
+    const parts = isoDate.split('-').map(Number);
+    if (parts.length < 3) return null;
+    const start = new Date(parts[0], parts[1] - 1, parts[2]);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    start.setHours(0, 0, 0, 0);
+    if (start > today) return null;
+    let years = today.getFullYear() - start.getFullYear();
+    let months = today.getMonth() - start.getMonth();
+    let days = today.getDate() - start.getDate();
+    if (days < 0) { months--; days += new Date(today.getFullYear(), today.getMonth(), 0).getDate(); }
+    if (months < 0) { years--; months += 12; }
+    return { years, months, days };
+}
+function nextJubileeYears(isoDate) {
+    if (!isoDate) return null;
+    const parts = isoDate.split('-').map(Number);
+    if (parts.length < 3) return null;
+    const start = new Date(parts[0], parts[1] - 1, parts[2]);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    start.setHours(0, 0, 0, 0);
+    if (start > today) return null;
+    const jubilees = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 100];
+    const currentYears = today.getFullYear() - start.getFullYear();
+    let nextJub = jubilees.find(j => j > currentYears);
+    if (!nextJub) nextJub = Math.ceil((currentYears + 1) / 10) * 10;
+    const nextDate = new Date(start.getFullYear() + nextJub, start.getMonth(), start.getDate());
+    const daysUntil = Math.round((nextDate - today) / 86400000);
+    return { years: nextJub, daysUntil };
+}
+
+// ============================================================
+// PODSETNICI — RENDER
+// ============================================================
+function renderRemindersHistory() {
+    return `
+        <div class="rem-history">
+            <div class="rem-history-controls">
+                <div class="rem-search-box">
+                    <span class="rem-search-icon">🔍</span>
+                    <input type="text" id="rem-history-search" class="rem-search-input" placeholder="${safeT('rem.history.search')}" oninput="renderRemindersHistoryList()">
+                </div>
+                <div class="rem-filter-row">
+                    <select id="rem-history-filter" class="rem-filter-select" onchange="renderRemindersHistoryList()">
+                        <option value="all">${safeT('rem.history.filter.all')}</option>
+                        <option value="done" selected>${safeT('rem.history.filter.done')}</option>
+                    </select>
+                    <select id="rem-history-month" class="rem-filter-select" onchange="renderRemindersHistoryList()">
+                        <option value="all">${safeT('rem.history.allMonths')}</option>
+                        ${['Januar','Februar','Mart','April','Maj','Jun','Jul','Avgust','Septembar','Oktobar','Novembar','Decembar'].map((m,i) => `<option value="${i+1}">${m}</option>`).join('')}
+                    </select>
+                    <select id="rem-history-year" class="rem-filter-select" onchange="renderRemindersHistoryList()">
+                        <option value="all">${safeT('rem.history.allYears')}</option>
+                    </select>
+                </div>
+                <div class="rem-history-actions-row">
+                    <button class="rem-action-mini" onclick="exportRemindersHistory()">📥 ${safeT('rem.history.export')}</button>
+                    <button class="rem-action-mini" onclick="shareRemindersHistory()">📤 Podeli</button>
+                </div>
+            </div>
+            <div id="rem-history-stats" class="rem-history-stats"></div>
+            <div id="rem-history-list" class="rem-history-list"></div>
+        </div>
+    `;
+}
+function renderRemindersBirthdays() {
+    return `<div class="converter-box"><div class="section-desc">${safeT('tab.podsetnici.rodjendani')}</div><div id="rem-bd-list" class="rem-list"></div><button class="calc-btn-main" onclick="openReminderForm('birthday')">${safeT('rem.add')}</button></div>`;
+}
+function renderRemindersBills() {
+    return `<div class="converter-box"><div class="section-desc">${safeT('tab.podsetnici.racuni')}</div><div id="rem-bills-summary" class="rem-summary"></div><div id="rem-bills-list" class="rem-list"></div><button class="calc-btn-main" onclick="openReminderForm('bill')">${safeT('rem.add')}</button></div>`;
+}
+function renderRemindersVehicles() {
+    return `<div class="converter-box"><div class="section-desc">${safeT('rem.veh.name')}</div><div id="rem-veh-list" class="rem-list"></div><button class="calc-btn-main" onclick="openReminderForm('vehicle')">${safeT('rem.add')} — ${safeT('rem.veh.name')}</button></div><div class="converter-box"><div class="section-desc">${safeT('rem.doc.type')}</div><div id="rem-doc-list" class="rem-list"></div><button class="calc-btn-main" onclick="openReminderForm('document')">${safeT('rem.add')} — ${safeT('rem.doc.type')}</button></div>`;
+}
+function renderRemindersSubscriptions() {
+    return `<div class="converter-box"><div class="section-desc">${safeT('tab.podsetnici.pretplate')}</div><div id="rem-subs-summary" class="rem-summary"></div><div id="rem-subs-list" class="rem-list"></div><button class="calc-btn-main" onclick="openReminderForm('subscription')">${safeT('rem.add')}</button></div>`;
+}
+function renderRemindersMedications() {
+    return `<div class="converter-box"><div class="section-desc">${safeT('tab.podsetnici.lekivi')}</div><div id="rem-meds-list" class="rem-list"></div><button class="calc-btn-main" onclick="openReminderForm('medication')">${safeT('rem.add')}</button></div>`;
+}
+function renderRemindersAnniversaries() {
+    return `<div class="converter-box"><div class="section-desc">${safeT('tab.podsetnici.godisnjice')}</div><div id="rem-ann-list" class="rem-list"></div><button class="calc-btn-main" onclick="openReminderForm('anniversary')">${safeT('rem.add')}</button></div>`;
+}
+function renderRemindersNotes() {
+    return `<div class="converter-box"><div class="section-desc">${safeT('tab.podsetnici.napomene')}</div><div id="rem-notes-list" class="rem-list"></div><button class="calc-btn-main" onclick="openReminderForm('note')">${safeT('rem.add')}</button></div>`;
+}
+
+function renderRemindersRate() {
+    const html = `
+        <div class="converter-box">
+            <div class="section-desc">Kalkulator rata</div>
+            ${inputField('label.rate.startAmount', 'rem-rate-start', 'RSD', 'placeholder="120000"')}
+            ${inputField('label.rate.count', 'rem-rate-count', '', 'value="12" min="1" max="120"')}
+            ${dateTripleField('label.rate.firstDate', 'rem-rate-first-date')}
+            ${selectField('label.rate.period', 'rem-rate-period', [
+                { value: 'monthly', text: safeT('label.rate.period.monthly') },
+                { value: 'biweekly', text: safeT('label.rate.period.biweekly') },
+                { value: 'weekly', text: safeT('label.rate.period.weekly') }
+            ], 'monthly')}
+            ${inputField('label.rate.interest', 'rem-rate-interest', '%', 'value="0" step="0.1"')}
+            ${inputFieldText('label.rate.description', 'rem-rate-description', safeT('label.rate.descriptionPlaceholder'))}
+            ${calcButton('btn.calculate', 'calculateRemindersInstallments()')}
+        </div>
+        <div id="rem-rate-calc-result-box" style="display: none;">
+            <div class="rate-info-card">
+                <div class="rate-info-row"><span class="rate-info-label">${safeT('label.rate.perInstallment')}</span><span class="rate-info-value accent" id="rem-res-rate-per">0 RSD</span></div>
+                <div class="rate-info-row"><span class="rate-info-label">${safeT('label.rate.totalPayment')}</span><span class="rate-info-value" id="rem-res-rate-total">0 RSD</span></div>
+                <div class="rate-info-row"><span class="rate-info-label">${safeT('label.rate.totalInterest')}</span><span class="rate-info-value" id="rem-res-rate-interest">0 RSD</span></div>
+            </div>
+            <div class="rate-actions">
+                <button class="rate-action-btn rate-action-primary" onclick="saveRemindersInstallments()">💾 ${safeT('label.rate.saveReminders')}</button>
+            </div>
+            <div class="rate-table-wrap" style="margin-top: 14px;"><div id="rem-rate-table-body"></div></div>
+        </div>
+        <div class="converter-box">
+            <div class="section-desc">Sačuvane rate</div>
+            <div id="rem-rate-list" class="rem-rate-list"></div>
+        </div>
+    `;
+    setTimeout(() => {
+        const box = el('rem-rate-list');
+        if (!box) return;
+        const groups = loadInstallmentGroups();
+        if (!groups.length) {
+            box.innerHTML = `<div class="rate-empty"><div class="rate-empty-icon">💳</div><div>${safeT('label.rate.noInstallments')}</div></div>`;
+            return;
+        }
+        const sortedGroups = [...groups].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        let innerHtml = '';
+        sortedGroups.forEach(group => {
+            const paidCount = (group.installments || []).filter(i => i.paid).length;
+            const totalCount = (group.installments || []).length;
+            const totalAmount = (group.installments || []).reduce((sum, i) => sum + (i.amount || 0), 0);
+            const isDone = paidCount >= totalCount;
+            const progress = totalCount > 0 ? (paidCount / totalCount) * 100 : 0;
+            innerHtml += `
+                <div class="rate-group" data-group-id="${escapeHtml(group.id)}">
+                    <div class="rate-group-head">
+                        <div>
+                            <div class="rate-group-title">${escapeHtml(group.description || safeT('label.rate.installment'))}</div>
+                            <div class="rate-group-sub">${totalCount} ${safeT('unit.monthsShort')} • ${totalAmount.toLocaleString('sr-RS')} RSD</div>
+                        </div>
+                        <div class="rate-group-badge ${isDone ? 'done' : ''}">${isDone ? '✓ ' + safeT('label.rate.paid') : paidCount + ' / ' + totalCount}</div>
+                    </div>
+                    <div class="rate-progress-wrap" style="margin: 0 0 10px 0; padding: 10px 12px;">
+                        <div class="rate-progress-head" style="margin-bottom: 6px; font-size: 0.72rem;">
+                            <span class="rate-progress-label">${safeT('label.rate.progress')}</span>
+                            <span class="rate-progress-count">${paidCount} / ${totalCount}</span>
+                        </div>
+                        <div class="rate-progress-bar"><div class="rate-progress-fill" style="width: ${progress}%;"></div></div>
+                    </div>
+                    <div class="rate-table-wrap" style="max-height: 250px;">
+                        ${(group.installments || []).map((inst, idx) => `
+                            <div class="rate-item ${inst.paid ? 'rate-item-paid' : ''}">
+                                <button class="rate-item-check" onclick="toggleInstallmentPaidFromReminders('${escapeHtml(group.id)}', ${idx})">${inst.paid ? '✓' : ''}</button>
+                                <div class="rate-item-number">${safeT('label.rate.rate')} ${inst.number}/${totalCount}</div>
+                                <div class="rate-item-date">${escapeHtml(inst.date || '—')}</div>
+                                <div class="rate-item-amount">${(inst.amount || 0).toLocaleString('sr-RS')} RSD</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="rate-actions" style="margin-top: 10px; flex-direction: row;">
+                        <button class="rate-action-btn rate-action-danger" style="flex: 1;" onclick="deleteInstallmentGroup('${escapeHtml(group.id)}')">${safeT('label.rate.deleteAll')}</button>
+                    </div>
+                </div>
+            `;
+        });
+        box.innerHTML = innerHtml;
+    }, 0);
+    return html;
+}
+
+let remCurrentInstallmentData = null;
+function calculateRemindersInstallments() {
+    const startAmount = num('rem-rate-start');
+    const count = parseInt(num('rem-rate-count')) || 0;
+    const firstDate = getTripleDate('rem-rate-first-date');
+    const period = el('rem-rate-period') ? el('rem-rate-period').value : 'monthly';
+    const interestRate = num('rem-rate-interest') || 0;
+    const description = el('rem-rate-description') ? el('rem-rate-description').value.trim() : '';
+    if (!startAmount || startAmount <= 0) { showToast(safeT('toast.error.enterAmount') || 'Unesi iznos.', 'error'); return; }
+    if (!count || count < 1 || count > 120) { showToast(safeT('toast.error.enterValue') || 'Unesi vrednost.', 'error'); return; }
+    if (!firstDate) { showToast(safeT('toast.error.enterDate') || 'Unesi datum.', 'error'); return; }
+    let monthlyRate = 0;
+    if (interestRate > 0) {
+        const periodsPerYear = period === 'monthly' ? 12 : (period === 'biweekly' ? 26 : 52);
+        monthlyRate = (interestRate / 100) / periodsPerYear;
+    }
+    let perInstallment;
+    if (monthlyRate === 0) perInstallment = startAmount / count;
+    else {
+        const factor = Math.pow(1 + monthlyRate, count);
+        perInstallment = (startAmount * monthlyRate * factor) / (factor - 1);
+    }
+    const totalPayment = perInstallment * count;
+    const totalInterest = totalPayment - startAmount;
+    const installments = [];
+    const firstDateObj = parseDate(firstDate);
+    for (let i = 0; i < count; i++) {
+        const date = new Date(firstDateObj);
+        if (period === 'monthly') date.setMonth(date.getMonth() + i);
+        else if (period === 'biweekly') date.setDate(date.getDate() + i * 14);
+        else date.setDate(date.getDate() + i * 7);
+        installments.push({ number: i + 1, date: date.toISOString().slice(0, 10), amount: perInstallment, paid: false });
+    }
+    remCurrentInstallmentData = {
+        startAmount, count, period, interestRate,
+        description: description || safeT('label.rate.installment'),
+        installments, totalPayment, totalInterest, createdAt: Date.now()
+    };
+    const rp = el('rem-res-rate-per'); if (rp) rp.innerText = money(perInstallment) + ' RSD';
+    const rt = el('rem-res-rate-total'); if (rt) rt.innerText = money(totalPayment) + ' RSD';
+    const ri = el('rem-res-rate-interest'); if (ri) ri.innerText = money(totalInterest) + ' RSD';
+    const tableBody = el('rem-rate-table-body');
+    if (tableBody) {
+        tableBody.innerHTML = installments.map(inst => `
+            <div class="rate-item">
+                <div class="rate-item-check" style="cursor: default;"></div>
+                <div class="rate-item-number">${safeT('label.rate.rate')} ${inst.number}/${count}</div>
+                <div class="rate-item-date">${inst.date}</div>
+                <div class="rate-item-amount">${money(inst.amount)} RSD</div>
+            </div>
+        `).join('');
+    }
+    const box = el('rem-rate-calc-result-box'); if (box) box.style.display = 'block';
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+}
+function saveRemindersInstallments() {
+    if (!remCurrentInstallmentData) { showToast('Prvo izračunaj rate', 'error'); return; }
+    const groups = loadInstallmentGroups();
+    const newGroup = {
+        id: 'inst_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        description: remCurrentInstallmentData.description,
+        startAmount: remCurrentInstallmentData.startAmount,
+        count: remCurrentInstallmentData.count,
+        period: remCurrentInstallmentData.period,
+        interestRate: remCurrentInstallmentData.interestRate,
+        installments: remCurrentInstallmentData.installments.map(i => ({ ...i })),
+        createdAt: Date.now()
+    };
+    groups.push(newGroup);
+    saveInstallmentGroups(groups);
+    showToast(safeT('label.rate.savedAsReminders'), 'success', 2500);
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+    updateAppBadge();
+    const box = el('rem-rate-calc-result-box'); if (box) box.style.display = 'none';
+    renderRemindersRate();
+}
+function toggleInstallmentPaidFromReminders(groupId, installmentIdx) {
+    const groups = loadInstallmentGroups();
+    const group = groups.find(g => g.id === groupId);
+    if (!group) return;
+    if (!group.installments || !group.installments[installmentIdx]) return;
+    group.installments[installmentIdx].paid = !group.installments[installmentIdx].paid;
+    group.updatedAt = Date.now();
+    saveInstallmentGroups(groups);
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+    if (el('rem-history-list')) renderRemindersHistoryList();
+    if (el('rem-rate-list')) renderRemindersRate();
+    updateAppBadge();
+}
+async function deleteInstallmentGroup(groupId) {
+    const ok = await showConfirm(safeT('label.rate.deleteConfirm'));
+    if (!ok) return;
+    let groups = loadInstallmentGroups();
+    groups = groups.filter(g => g.id !== groupId);
+    saveInstallmentGroups(groups);
+    try {
+        let bills = loadReminders('cx_bills');
+        bills = bills.filter(b => b.installmentGroupId !== groupId);
+        saveReminders('cx_bills', bills);
+    } catch (e) {}
+    showToast(safeT('label.rate.deleted'), 'info', 1500);
+    vibrate(15);
+    renderRemindersRate();
+    updateAppBadge();
+}
+
+const INSTALLMENT_GROUPS_KEY = 'cx_installment_groups';
+function loadInstallmentGroups() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(INSTALLMENT_GROUPS_KEY));
+        if (Array.isArray(raw)) return raw;
+    } catch (e) {}
+    return [];
+}
+function saveInstallmentGroups(groups) {
+    try { localStorage.setItem(INSTALLMENT_GROUPS_KEY, JSON.stringify(groups)); } catch (e) {}
+}
+
+function getAllReminderItems() {
+    const items = [];
+    loadReminders('cx_birthdays').forEach(b => {
+        items.push({ id: b.id, type: 'birthday', category: 'birthdays', title: b.name || 'Rođendan', subtitle: b.note || '', dueDate: b.date, isDone: !!b.done, icon: 'cake', color: '#ec4899', raw: b });
+    });
+    loadReminders('cx_bills').forEach(b => {
+        items.push({ id: b.id, type: 'bill', category: 'bills', title: b.name || 'Račun', subtitle: (b.amount ? b.amount + ' ' + (b.currency || 'RSD') : ''), dueDate: null, isDone: !!b.paid, icon: 'receipt', color: '#10b981', raw: b });
+    });
+    loadReminders('cx_vehicles').forEach(v => {
+        if (v.regDate) items.push({ id: v.id + '-reg', type: 'vehicle-reg', category: 'vehicles', title: (v.name || 'Vozilo') + ' — Registracija', subtitle: v.plate || '', dueDate: v.regDate, isDone: !!v.done, icon: 'car', color: '#f43f5e', raw: v });
+        if (v.techDate) items.push({ id: v.id + '-tech', type: 'vehicle-tech', category: 'vehicles', title: (v.name || 'Vozilo') + ' — Tehnički', subtitle: v.plate || '', dueDate: v.techDate, isDone: !!v.done, icon: 'wrench', color: '#f43f5e', raw: v });
+    });
+    loadReminders('cx_documents').forEach(d => {
+        items.push({ id: d.id, type: 'document', category: 'documents', title: d.name || 'Dokument', subtitle: '', dueDate: d.expires, isDone: !!d.done, icon: 'clipboard', color: '#8b5cf6', raw: d });
+    });
+    loadReminders('cx_subscriptions').forEach(s => {
+        items.push({ id: s.id, type: 'subscription', category: 'subscriptions', title: s.name || 'Pretplata', subtitle: (s.amount ? s.amount + ' ' + (s.currency || 'RSD') : ''), dueDate: null, isDone: !s.active, icon: 'creditCard', color: '#14b8a6', raw: s });
+    });
+    loadReminders('cx_medications').forEach(m => {
+        items.push({ id: m.id, type: 'medication', category: 'medications', title: m.name || 'Lek', subtitle: m.dose || '', dueDate: m.endDate, isDone: !!m.done, icon: 'heartPulse', color: '#ec4899', raw: m });
+    });
+    loadReminders('cx_anniversaries').forEach(a => {
+        items.push({ id: a.id, type: 'anniversary', category: 'anniversaries', title: a.name || 'Godišnjica', subtitle: a.note || '', dueDate: a.date, isDone: !!a.done, icon: 'gift', color: '#a855f7', raw: a });
+    });
+    loadReminders('cx_notes').forEach(n => {
+        items.push({ id: n.id, type: 'note', category: 'notes', title: n.title || 'Napomena', subtitle: n.description || '', dueDate: n.dueDate, isDone: !!n.done, icon: 'clipboard', color: '#f59e0b', raw: n });
+    });
+    try {
+        const groups = loadInstallmentGroups();
+        groups.forEach(group => {
+            (group.installments || []).forEach((inst, idx) => {
+                if (!inst.paid) return;
+                items.push({
+                    id: `${group.id}|${idx}`, type: 'installment', category: 'installments',
+                    title: `${group.description || safeT('label.rate.installment')} — ${safeT('label.rate.rate')} ${inst.number}/${group.installments.length}`,
+                    subtitle: `${(inst.amount || 0).toLocaleString('sr-RS')} RSD`,
+                    dueDate: inst.date, isDone: true, icon: 'creditCard', color: '#6b7280',
+                    raw: { groupId: group.id, idx }
+                });
+            });
+        });
+    } catch (e) {}
+    try {
+        const receipts = loadReceipts();
+        receipts.forEach(r => {
+            const amount = r.amount || 0;
+            const currency = r.currency || 'RSD';
+            const catLabel = safeT('receipt.category.' + (r.category || 'ostalo'));
+            items.push({
+                id: 'receipt_' + r.id,
+                type: 'receipt',
+                category: 'receipts',
+                title: catLabel + (r.period ? ' — ' + formatPeriodMonth(r.period) : ''),
+                subtitle: fmt(amount, 0) + ' ' + currency,
+                dueDate: r.dueDate,
+                isDone: !!r.paid,
+                icon: 'receipt',
+                color: r.paid ? '#10b981' : '#f43f5e',
+                raw: r
+            });
+        });
+    } catch (e) {}
+    return items;
+}
+
+function renderRemindersHistoryList() {
+    const listBox = el('rem-history-list');
+    const statsBox = el('rem-history-stats');
+    if (!listBox) return;
+    const allItems = getAllReminderItems();
+    populateYearDropdown(allItems);
+    const searchQuery = (el('rem-history-search') ? el('rem-history-search').value : '').toLowerCase().trim();
+    const statusFilter = el('rem-history-filter') ? el('rem-history-filter').value : 'done';
+    const monthFilter = el('rem-history-month') ? el('rem-history-month').value : 'all';
+    const yearFilter = el('rem-history-year') ? el('rem-history-year').value : 'all';
+    let filtered = allItems.filter(item => {
+        if (!item.isDone) return false;
+        if (monthFilter !== 'all') {
+            const itemMonth = item.dueDate ? new Date(item.dueDate).getMonth() + 1 : null;
+            if (itemMonth !== parseInt(monthFilter)) return false;
+        }
+        if (yearFilter !== 'all') {
+            const itemYear = item.dueDate ? new Date(item.dueDate).getFullYear() : null;
+            if (itemYear !== parseInt(yearFilter)) return false;
+        }
+        if (searchQuery) {
+            const name = (item.title || '').toLowerCase();
+            const desc = (item.subtitle || '').toLowerCase();
+            if (!name.includes(searchQuery) && !desc.includes(searchQuery)) return false;
+        }
+        return true;
+    });
+    filtered.sort((a, b) => {
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(b.dueDate) - new Date(a.dueDate);
+    });
+    if (statsBox) {
+        const totalDone = allItems.filter(i => i.isDone).length;
+        const thisMonth = new Date().getMonth();
+        const thisYear = new Date().getFullYear();
+        const doneThisMonth = allItems.filter(i => {
+            if (!i.isDone || !i.dueDate) return false;
+            const d = new Date(i.dueDate);
+            return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+        }).length;
+        statsBox.innerHTML = `
+            <div class="rem-stat-item"><div class="rem-stat-value">${totalDone}</div><div class="rem-stat-label">${safeT('rem.history.stats.done')}</div></div>
+            <div class="rem-stat-item"><div class="rem-stat-value">${doneThisMonth}</div><div class="rem-stat-label">${safeT('rem.history.stats.thisMonth')}</div></div>
+            <div class="rem-stat-item"><div class="rem-stat-value">${filtered.length}</div><div class="rem-stat-label">${safeT('rem.history.stats.total')}</div></div>
+        `;
+    }
+    if (filtered.length === 0) {
+        listBox.innerHTML = `<div class="rem-history-empty">${searchQuery || statusFilter !== 'all' || monthFilter !== 'all' || yearFilter !== 'all' ? safeT('rem.history.empty.filter') : safeT('rem.history.empty')}</div>`;
+        return;
+    }
+    listBox.innerHTML = filtered.map(item => renderHistoryItem(item)).join('');
+}
+
+function populateYearDropdown(items) {
+    const yearSelect = el('rem-history-year');
+    if (!yearSelect) return;
+    const currentValue = yearSelect.value;
+    const years = new Set();
+    const currentYear = new Date().getFullYear();
+    for (let i = -5; i <= 5; i++) years.add(currentYear + i);
+    items.forEach(item => {
+        if (item.dueDate) {
+            const year = new Date(item.dueDate).getFullYear();
+            if (!isNaN(year) && year >= 2020) years.add(year);
+        }
+    });
+    const sortedYears = Array.from(years).sort((a, b) => b - a);
+    yearSelect.innerHTML = `<option value="all">${safeT('rem.history.allYears')}</option>` + sortedYears.map(y => `<option value="${y}">${y}</option>`).join('');
+    if (currentValue && yearSelect.querySelector(`option[value="${currentValue}"]`)) yearSelect.value = currentValue;
+}
+
+function renderHistoryItem(item) {
+    const days = item.dueDate ? daysUntilDate(item.dueDate) : null;
+    const daysTxt = days !== null ? formatDaysToHuman(days) : '';
+    const color = days !== null ? urgencyColor(days) : item.color;
+    const doneClass = item.isDone ? ' rem-item-done' : '';
+    let yearsBadge = '';
+    if (item.type === 'anniversary' && item.dueDate) {
+        const ys = yearsSinceDate(item.dueDate);
+        if (ys) {
+            let yearsText = `${ys.years} ${safeT('rem.ann.yearsPassed')}`;
+            if (ys.months > 0 || ys.days > 0) {
+                yearsText += `, ${ys.months} ${safeT('rem.ann.monthsShort')}`;
+                if (ys.days > 0) yearsText += `, ${ys.days} ${safeT('rem.ann.daysShort')}`;
+            }
+            yearsBadge += `<div class="rem-years-badge"><span class="years-icon">💍</span>${escapeHtml(safeT('rem.ann.yearsTogether'))}: ${escapeHtml(yearsText)}</div>`;
+        }
+        const jub = nextJubileeYears(item.dueDate);
+        if (jub) yearsBadge += `<div class="rem-jubilee-badge"><span class="years-icon">🎉</span>${safeT('rem.ann.nextJubilee')}: ${jub.years} ${safeT('rem.ann.years')} — ${safeT('rem.ann.jubileeIn')} ${jub.daysUntil} ${safeT('rem.days')}</div>`;
+    }
+    return `
+        <div class="rem-history-item${doneClass}" style="--rem-color: ${color};">
+            <div class="rem-history-icon">${icon(item.icon)}</div>
+            <div class="rem-history-body">
+                <div class="rem-history-title">${escapeHtml(item.title)}</div>
+                ${item.subtitle ? `<div class="rem-history-sub">${escapeHtml(item.subtitle)}</div>` : ''}
+                ${item.dueDate ? `<div class="rem-history-date">📅 ${escapeHtml(item.dueDate)}${daysTxt ? ' • ' + escapeHtml(daysTxt) : ''}</div>` : ''}
+                ${yearsBadge}
+            </div>
+            <div class="rem-history-actions">
+                ${item.type !== 'installment' && item.type !== 'receipt' ? `<button class="rem-action-btn rem-action-edit" onclick="editReminderFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${safeT('rem.history.edit')}">${icon('edit')}</button>` : ''}
+                ${item.type !== 'receipt' ? `<button class="rem-action-btn rem-action-toggle ${item.isDone ? 'is-done' : ''}" onclick="toggleDoneFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${item.isDone ? safeT('rem.history.markActive') : safeT('rem.history.markDone')}">${item.isDone ? icon('refresh') : icon('check')}</button>` : ''}
+                <button class="rem-action-btn rem-action-delete" onclick="deleteFromHistory('${item.type}', '${item.category}', '${item.id}')" title="${safeT('rem.history.delete')}">${icon('trash')}</button>
+            </div>
+        </div>
+    `;
+}
+
+function getReminderStorageKey(type) {
+    const map = {
+        'birthday': 'cx_birthdays', 'bill': 'cx_bills', 'vehicle-reg': 'cx_vehicles', 'vehicle-tech': 'cx_vehicles',
+        'document': 'cx_documents', 'subscription': 'cx_subscriptions', 'medication': 'cx_medications',
+        'anniversary': 'cx_anniversaries', 'note': 'cx_notes'
+    };
+    return map[type] || null;
+}
+
+function editReminderFromHistory(type, category, id) {
+    const key = getReminderStorageKey(type);
+    if (!key) { showToast('Nepoznat tip', 'error'); return; }
+    let realId = id;
+    if (type === 'vehicle-reg' || type === 'vehicle-tech') realId = id.replace('-reg', '').replace('-tech', '');
+    const item = loadReminders(key).find(x => String(x.id) === String(realId));
+    if (!item) { showToast('Podsetnik nije pronađen', 'error'); return; }
+    const typeMap = {
+        'birthday': 'birthday', 'bill': 'bill', 'vehicle-reg': 'vehicle', 'vehicle-tech': 'vehicle',
+        'document': 'document', 'subscription': 'subscription', 'medication': 'medication',
+        'anniversary': 'anniversary', 'note': 'note'
+    };
+    const formType = typeMap[type];
+    if (formType && typeof openReminderForm === 'function') openReminderForm(formType, item);
+}
+
+function toggleDoneFromHistory(type, category, id) {
+    if (type === 'installment') {
+        const parts = id.split('|');
+        toggleInstallmentPaidFromReminders(parts[0], parseInt(parts[1]));
+        setTimeout(() => renderRemindersHistoryList(), 100);
+        return;
+    }
+    if (type === 'receipt') {
+        const receiptId = id.replace('receipt_', '');
+        const r = getReceiptById(receiptId);
+        if (!r) return;
+        if (r.paid) markReceiptUnpaid(receiptId);
+        else markReceiptPaid(receiptId);
+        setTimeout(() => renderRemindersHistoryList(), 150);
+        return;
+    }
+    const key = getReminderStorageKey(type);
+    if (!key) { showToast('Nepoznat tip', 'error'); return; }
+    let realId = id;
+    if (type === 'vehicle-reg' || type === 'vehicle-tech') realId = id.replace('-reg', '').replace('-tech', '');
+    const list = loadReminders(key);
+    const idx = list.findIndex(x => String(x.id) === String(realId));
+    if (idx === -1) { showToast('Podsetnik nije pronađen', 'error'); return; }
+    const item = list[idx];
+    let wasDone;
+    if (type === 'bill') { wasDone = !!item.paid; item.paid = !item.paid; }
+    else if (type === 'subscription') { wasDone = !item.active; item.active = !item.active; }
+    else { wasDone = !!item.done; item.done = !item.done; }
+    saveReminders(key, list);
+    if (wasDone) showToast('Vraćeno u aktivne podsetnike', 'success', 1800);
+    else showToast('Označeno kao završeno', 'success', 1800);
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+    setTimeout(() => { renderRemindersHistoryList(); updateAppBadge(); }, 100);
+}
+
+async function deleteFromHistory(type, category, id) {
+    if (type === 'installment') {
+        const parts = id.split('|');
+        const groupId = parts[0];
+        const idx = parseInt(parts[1]);
+        const ok = await showConfirm(safeT('confirm.rate.delete'));
+        if (!ok) return;
+        const groups = loadInstallmentGroups();
+        const group = groups.find(g => g.id === groupId);
+        if (!group) { showToast('Rata nije pronađena', 'error'); return; }
+        if (!group.installments || !group.installments[idx]) { showToast('Rata nije pronađena', 'error'); return; }
+        group.installments.splice(idx, 1);
+        group.updatedAt = Date.now();
+        if (group.installments.length === 0) {
+            const idxG = groups.findIndex(g => g.id === groupId);
+            if (idxG !== -1) groups.splice(idxG, 1);
+        } else group.installments.forEach((inst, i) => { inst.number = i + 1; });
+        saveInstallmentGroups(groups);
+        showToast('Rata obrisana', 'info', 1500);
+        vibrate(15);
+        renderRemindersHistoryList();
+        updateAppBadge();
+        return;
+    }
+    if (type === 'receipt') {
+        const receiptId = id.replace('receipt_', '');
+        deleteReceipt(receiptId);
+        setTimeout(() => renderRemindersHistoryList(), 200);
+        return;
+    }
+    const key = getReminderStorageKey(type);
+    if (!key) return;
+    const ok = await showConfirm(safeT('confirm.rem.delete'));
+    if (!ok) return;
+    let realId = id;
+    if (type === 'vehicle-reg' || type === 'vehicle-tech') realId = id.replace('-reg', '').replace('-tech', '');
+    let list = loadReminders(key);
+    list = list.filter(x => String(x.id) !== String(realId));
+    saveReminders(key, list);
+    showToast(safeT('toast.rem.deleted'), 'info', 1500);
+    vibrate(15);
+    renderRemindersHistoryList();
+    updateAppBadge();
+}
+
+function exportRemindersHistory() {
+    const allItems = getAllReminderItems();
+    if (!allItems.length) { showToast(safeT('rem.history.empty'), 'info'); return; }
+    const lines = ['=== ARHIVA PODSETNIKA ===', 'Datum izvoza: ' + new Date().toLocaleString('sr-RS'), ''];
+    const done = allItems.filter(i => i.isDone);
+    if (done.length) {
+        lines.push('--- ZAVRŠENI (' + done.length + ') ---');
+        done.forEach(item => {
+            lines.push('• ' + (item.title || ''));
+            if (item.subtitle) lines.push('  ' + item.subtitle);
+            if (item.dueDate) lines.push('  Rok: ' + item.dueDate);
+            lines.push('');
+        });
+    }
+    const text = lines.join('\n');
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'alatika-arhiva-' + new Date().toISOString().slice(0, 10) + '.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Fajl preuzet', 'success', 2000);
+    vibrate(20);
+}
+
+async function shareRemindersHistory() {
+    const allItems = getAllReminderItems();
+    const doneItems = allItems.filter(i => i.isDone);
+    if (!doneItems.length) { showToast(safeT('rem.history.empty'), 'info'); return; }
+    const lines = ['📦 ARHIVA PODSETNIKA — Alatika', ''];
+    lines.push('Ukupno završenih: ' + doneItems.length);
+    lines.push('');
+    doneItems.slice(0, 30).forEach(item => {
+        lines.push('• ' + (item.title || ''));
+        if (item.subtitle) lines.push('  ' + item.subtitle);
+        if (item.dueDate) lines.push('  Rok: ' + item.dueDate);
+    });
+    if (doneItems.length > 30) { lines.push(''); lines.push('... i još ' + (doneItems.length - 30) + ' stavki'); }
+    const text = lines.join('\n');
+    if (navigator.share) { try { await navigator.share({ title: 'Arhiva podsetnika — Alatika', text }); vibrate(20); } catch (e) {} }
+    else fallbackCopy(text, () => showToast('Kopirano u clipboard', 'success', 2000));
+}
+
+// ============================================================
+// REMINDER MODAL FORMA
+// ============================================================
+let currentReminderType = null;
+let currentReminderEditId = null;
+
+function openReminderForm(type, editItem = null) {
+    currentReminderType = type;
+    currentReminderEditId = editItem ? editItem.id : null;
+    const modal = el('reminder-modal');
+    const title = el('reminder-modal-title');
+    const body = el('reminder-modal-body');
+    if (!modal || !body) return;
+    const tkey = editItem ? 'rem.edit.title' : 'rem.add.title';
+    if (title) title.textContent = safeT(tkey);
+    body.innerHTML = buildReminderForm(type, editItem);
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+    vibrate(15);
+    playTick(0, 1400, 0.06, 0.02);
+    try { restoreInputsFor(body); } catch (e) {}
+    try { setupDateTriplesIn(body); } catch (e) {}
+    if (editItem) fillReminderForm(type, editItem);
+}
+
+function buildReminderForm(type, item) {
+    const forms = {
+        birthday: () => `${inputFieldText('rem.bd.name', 'rem-bd-name', safeT('placeholder.name'))}${dateTripleField('rem.bd.date', 'rem-bd-date')}${inputField('rem.bd.remindBefore', 'rem-bd-remind', safeT('rem.days'), 'value="3"')}<div class="input-field"><label>${safeT('rem.bd.favorite')}</label><label class="rem-check"><input type="checkbox" id="rem-bd-fav"><span></span></label></div>${inputFieldText('rem.bd.note', 'rem-bd-note', '')}`,
+        bill: () => `${inputFieldText('rem.bill.name', 'rem-bill-name', 'npr. Struja')}${inputField('rem.bill.amount', 'rem-bill-amount', 'RSD', 'placeholder="3000"')}${selectField('rem.bill.period', 'rem-bill-period', [{ value: 'monthly', text: safeT('rem.bill.period.monthly') }, { value: 'quarterly', text: safeT('rem.bill.period.quarterly') }, { value: 'yearly', text: safeT('rem.bill.period.yearly') }, { value: 'onetime', text: safeT('rem.bill.period.onetime') }], 'monthly')}${inputField('rem.bill.dayOfMonth', 'rem-bill-day', '', 'value="1" min="1" max="31"')}${inputField('rem.bill.reminder', 'rem-bill-remind', safeT('rem.days'), 'value="3"')}<div class="input-field"><label>${safeT('rem.bill.paid')}</label><label class="rem-check"><input type="checkbox" id="rem-bill-paid"><span></span></label></div>`,
+        vehicle: () => `${inputFieldText('rem.veh.name', 'rem-veh-name', 'npr. Golf 7')}${inputFieldText('rem.veh.plate', 'rem-veh-plate', 'npr. NP123-AB')}${dateTripleField('rem.veh.regDate', 'rem-veh-reg')}${dateTripleField('rem.veh.techDate', 'rem-veh-tech')}${dateTripleField('rem.veh.insuranceDate', 'rem-veh-ins')}${inputFieldText('rem.veh.note', 'rem-veh-note', '')}`,
+        document: () => `${selectField('rem.doc.type', 'rem-doc-type', [{ value: 'lk', text: safeT('rem.doc.type.lk') }, { value: 'passport', text: safeT('rem.doc.type.passport') }, { value: 'drivers', text: safeT('rem.doc.type.drivers') }, { value: 'health', text: safeT('rem.doc.type.health') }, { value: 'custom', text: safeT('rem.doc.type.custom') }])}${inputFieldText('rem.doc.name', 'rem-doc-name', '')}${dateTripleField('rem.doc.expires', 'rem-doc-exp')}${inputFieldText('rem.doc.note', 'rem-doc-note', '')}`,
+        subscription: () => `${inputFieldText('rem.sub.name', 'rem-sub-name', 'npr. Netflix')}${inputField('rem.sub.amount', 'rem-sub-amount', 'RSD', 'placeholder="999"')}${inputField('rem.sub.dayOfMonth', 'rem-sub-day', '', 'value="1" min="1" max="31"')}${selectField('rem.sub.period', 'rem-sub-period', [{ value: 'monthly', text: safeT('rem.bill.period.monthly') }, { value: 'yearly', text: safeT('rem.bill.period.yearly') }], 'monthly')}<div class="input-field"><label>${safeT('rem.sub.active')}</label><label class="rem-check"><input type="checkbox" id="rem-sub-active" checked><span></span></label></div>`,
+        medication: () => `${inputFieldText('rem.med.name', 'rem-med-name', 'npr. Aspirin')}${inputFieldText('rem.med.dose', 'rem-med-dose', 'npr. 100mg')}${selectField('rem.med.time', 'rem-med-time', [{ value: 'morning', text: safeT('rem.med.time.morning') }, { value: 'noon', text: safeT('rem.med.time.noon') }, { value: 'evening', text: safeT('rem.med.time.evening') }], 'morning')}${selectField('rem.med.frequency', 'rem-med-freq', [{ value: 'daily', text: safeT('rem.med.freq.daily') }, { value: 'everyOther', text: safeT('rem.med.freq.everyOther') }, { value: 'weekly', text: safeT('rem.med.freq.weekly') }], 'daily')}${dateTripleField('rem.med.startDate', 'rem-med-start')}${dateTripleField('rem.med.endDate', 'rem-med-end')}${inputField('rem.med.remaining', 'rem-med-remaining', '', 'placeholder="30"')}${inputFieldText('rem.med.note', 'rem-med-note', '')}`,
+        anniversary: () => `${inputFieldText('rem.ann.name', 'rem-ann-name', '')}${selectField('rem.ann.type', 'rem-ann-type', [{ value: 'wedding', text: safeT('rem.ann.type.wedding') }, { value: 'engagement', text: safeT('rem.ann.type.engagement') }, { value: 'firstDate', text: safeT('rem.ann.type.firstDate') }, { value: 'firstKiss', text: safeT('rem.ann.type.firstKiss') }, { value: 'meeting', text: safeT('rem.ann.type.meeting') }, { value: 'custom', text: safeT('rem.ann.type.custom') }], 'wedding')}${dateTripleField('rem.ann.date', 'rem-ann-date')}${inputField('rem.ann.remindBefore', 'rem-ann-remind', safeT('rem.days'), 'value="3"')}<div class="input-field"><label>${safeT('rem.ann.favorite')}</label><label class="rem-check"><input type="checkbox" id="rem-ann-fav"><span></span></label></div>${inputFieldText('rem.ann.note', 'rem-ann-note', '')}`,
+        note: () => `${inputFieldText('rem.note.title', 'rem-note-title', '')}<div class="input-field"><label>${safeT('rem.note.description')}</label><textarea id="rem-note-desc" class="custom-input rem-textarea" rows="4"></textarea></div>${dateTripleField('rem.note.dueDate', 'rem-note-due')}${selectField('rem.note.priority', 'rem-note-priority', [{ value: 'high', text: safeT('rem.priority.high') }, { value: 'medium', text: safeT('rem.priority.medium') }, { value: 'low', text: safeT('rem.priority.low') }], 'medium')}<div class="input-field"><label>${safeT('rem.note.done')}</label><label class="rem-check"><input type="checkbox" id="rem-note-done"><span></span></label></div>`
+    };
+    const fn = forms[type];
+    const html = fn ? fn() : '<p>Nepoznat tip</p>';
+    return `<div class="reminder-form-inner">${html}<div class="rem-form-actions"><button class="calc-btn-main" onclick="saveReminderForm()">${safeT('rem.save')}</button>${item ? `<button class="rem-delete-btn" onclick="confirmDeleteReminder()">${safeT('rem.delete')}</button>` : ''}</div></div>`;
+}
+
+function fillReminderForm(type, item) {
+    setTimeout(() => {
+        const setV = (id, v) => { const e = el(id); if (e) e.value = v == null ? '' : v; };
+        const setC = (id, v) => { const e = el(id); if (e) e.checked = !!v; };
+        const setD = (id, v) => { if (v) setTripleDate(id, v); };
+        switch (type) {
+            case 'birthday': setV('rem-bd-name', item.name); setD('rem-bd-date', item.date); setV('rem-bd-remind', item.remindBefore || 3); setC('rem-bd-fav', item.favorite); setV('rem-bd-note', item.note); break;
+            case 'bill': setV('rem-bill-name', item.name); setV('rem-bill-amount', item.amount); setV('rem-bill-period', item.period || 'monthly'); setV('rem-bill-day', item.dayOfMonth || 1); setV('rem-bill-remind', item.remindBefore || 3); setC('rem-bill-paid', item.paid); break;
+            case 'vehicle': setV('rem-veh-name', item.name); setV('rem-veh-plate', item.plate); setD('rem-veh-reg', item.regDate); setD('rem-veh-tech', item.techDate); setD('rem-veh-ins', item.insuranceDate); setV('rem-veh-note', item.note); break;
+            case 'document': setV('rem-doc-type', item.type || 'lk'); setV('rem-doc-name', item.name); setD('rem-doc-exp', item.expires); setV('rem-doc-note', item.note); break;
+            case 'subscription': setV('rem-sub-name', item.name); setV('rem-sub-amount', item.amount); setV('rem-sub-day', item.dayOfMonth || 1); setV('rem-sub-period', item.period || 'monthly'); setC('rem-sub-active', item.active); break;
+            case 'medication': setV('rem-med-name', item.name); setV('rem-med-dose', item.dose); setV('rem-med-time', item.time || 'morning'); setV('rem-med-freq', item.frequency || 'daily'); setD('rem-med-start', item.startDate); setD('rem-med-end', item.endDate); setV('rem-med-remaining', item.remaining); setV('rem-med-note', item.note); break;
+            case 'anniversary': setV('rem-ann-name', item.name); setV('rem-ann-type', item.annType || 'wedding'); setD('rem-ann-date', item.date); setV('rem-ann-remind', item.remindBefore || 3); setC('rem-ann-fav', item.favorite); setV('rem-ann-note', item.note); break;
+            case 'note': setV('rem-note-title', item.title); setV('rem-note-desc', item.description); setD('rem-note-due', item.dueDate); setV('rem-note-priority', item.priority || 'medium'); setC('rem-note-done', item.done); break;
+        }
+    }, 100);
+}
+
+function saveReminderForm() {
+    const type = currentReminderType;
+    if (!type) return;
+    const typeToKey = {
+        birthday: REMINDER_KEYS.birthdays, bill: REMINDER_KEYS.bills, vehicle: REMINDER_KEYS.vehicles,
+        document: REMINDER_KEYS.documents, subscription: REMINDER_KEYS.subscriptions, medication: REMINDER_KEYS.medications,
+        anniversary: REMINDER_KEYS.anniversaries, note: REMINDER_KEYS.notes
+    };
+    const key = typeToKey[type];
+    if (!key) return;
+    const v = id => { const e = el(id); return e ? e.value.trim() : ''; };
+    const n = id => { const e = el(id); return e ? parseNum(e.value) : null; };
+    const c = id => { const e = el(id); return e ? e.checked : false; };
+    let data = {};
+    switch (type) {
+        case 'birthday': {
+            const name = v('rem-bd-name'); const date = getTripleDate('rem-bd-date');
+            if (!name) { showToast(safeT('toast.rem.error.name') || 'Unesi ime.', 'error'); return; }
+            if (!date) { showToast(safeT('toast.rem.error.date') || 'Unesi datum.', 'error'); return; }
+            data = { name, date, remindBefore: n('rem-bd-remind') || 3, favorite: c('rem-bd-fav'), note: v('rem-bd-note') }; break;
+        }
+        case 'bill': {
+            const name = v('rem-bill-name'); const amount = n('rem-bill-amount');
+            if (!name) { showToast(safeT('toast.rem.error.name') || 'Unesi naziv.', 'error'); return; }
+            data = { name, amount: amount || 0, period: v('rem-bill-period') || 'monthly', dayOfMonth: n('rem-bill-day') || 1, remindBefore: n('rem-bill-remind') || 3, paid: c('rem-bill-paid') }; break;
+        }
+        case 'vehicle': {
+            const name = v('rem-veh-name');
+            if (!name) { showToast(safeT('toast.rem.error.name') || 'Unesi naziv.', 'error'); return; }
+            data = { name, plate: v('rem-veh-plate'), regDate: getTripleDate('rem-veh-reg'), techDate: getTripleDate('rem-veh-tech'), insuranceDate: getTripleDate('rem-veh-ins'), note: v('rem-veh-note') }; break;
+        }
+        case 'document': {
+            const docType = v('rem-doc-type') || 'lk';
+            data = { type: docType, name: v('rem-doc-name') || safeT('rem.doc.type.' + docType), expires: getTripleDate('rem-doc-exp'), note: v('rem-doc-note') };
+            if (!data.expires) { showToast(safeT('toast.rem.error.date') || 'Unesi datum.', 'error'); return; }
+            break;
+        }
+        case 'subscription': {
+            const name = v('rem-sub-name');
+            if (!name) { showToast(safeT('toast.rem.error.name') || 'Unesi naziv.', 'error'); return; }
+            data = { name, amount: n('rem-sub-amount') || 0, dayOfMonth: n('rem-sub-day') || 1, period: v('rem-sub-period') || 'monthly', active: c('rem-sub-active') }; break;
+        }
+        case 'medication': {
+            const name = v('rem-med-name');
+            if (!name) { showToast(safeT('toast.rem.error.name') || 'Unesi naziv.', 'error'); return; }
+            data = { name, dose: v('rem-med-dose'), time: v('rem-med-time') || 'morning', frequency: v('rem-med-freq') || 'daily', startDate: getTripleDate('rem-med-start'), endDate: getTripleDate('rem-med-end'), remaining: n('rem-med-remaining') || 0, note: v('rem-med-note') }; break;
+        }
+        case 'anniversary': {
+            const name = v('rem-ann-name'); const date = getTripleDate('rem-ann-date');
+            if (!name) { showToast(safeT('toast.rem.error.name') || 'Unesi naziv.', 'error'); return; }
+            if (!date) { showToast(safeT('toast.rem.error.date') || 'Unesi datum.', 'error'); return; }
+            data = { name, annType: v('rem-ann-type') || 'wedding', date, remindBefore: n('rem-ann-remind') || 3, favorite: c('rem-ann-fav'), note: v('rem-ann-note') }; break;
+        }
+        case 'note': {
+            const title = v('rem-note-title');
+            if (!title) { showToast(safeT('toast.rem.error.name') || 'Unesi naslov.', 'error'); return; }
+            data = { title, description: v('rem-note-desc'), dueDate: getTripleDate('rem-note-due'), priority: v('rem-note-priority') || 'medium', done: c('rem-note-done') }; break;
+        }
+    }
+    if (currentReminderEditId) updateReminder(key, currentReminderEditId, data);
+    else addReminder(key, data);
+    showToast(safeT('toast.rem.saved') || 'Sačuvano.', 'success');
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+    closeReminderModal();
+    renderReminderList(type);
+    updateAppBadge();
+}
+
+function closeReminderModal() {
+    const modal = el('reminder-modal');
+    if (modal) modal.classList.remove('show');
+    document.body.classList.remove('modal-open');
+    currentReminderType = null;
+    currentReminderEditId = null;
+}
+
+function confirmDeleteReminder() {
+    if (!currentReminderEditId || !currentReminderType) return;
+    const type = currentReminderType;
+    const id = currentReminderEditId;
+    const typeToKey = {
+        birthday: REMINDER_KEYS.birthdays, bill: REMINDER_KEYS.bills, vehicle: REMINDER_KEYS.vehicles,
+        document: REMINDER_KEYS.documents, subscription: REMINDER_KEYS.subscriptions, medication: REMINDER_KEYS.medications,
+        anniversary: REMINDER_KEYS.anniversaries, note: REMINDER_KEYS.notes
+    };
+    const key = typeToKey[type];
+    if (!key) return;
+    showConfirm(safeT('confirm.rem.delete')).then(ok => {
+        if (!ok) return;
+        deleteReminder(key, id);
+        showToast(safeT('toast.rem.deleted') || 'Obrisano.', 'info');
+        closeReminderModal();
+        renderReminderList(type);
+        updateAppBadge();
+    });
+}
+
+function renderReminderList(type) {
+    const typeToKey = {
+        birthday: REMINDER_KEYS.birthdays, bill: REMINDER_KEYS.bills, vehicle: REMINDER_KEYS.vehicles,
+        document: REMINDER_KEYS.documents, subscription: REMINDER_KEYS.subscriptions, medication: REMINDER_KEYS.medications,
+        anniversary: REMINDER_KEYS.anniversaries, note: REMINDER_KEYS.notes
+    };
+    const key = typeToKey[type];
+    if (!key) return;
+    const listId = {
+        birthday: 'rem-bd-list', bill: 'rem-bills-list', vehicle: 'rem-veh-list', document: 'rem-doc-list',
+        subscription: 'rem-subs-list', medication: 'rem-meds-list', anniversary: 'rem-ann-list', note: 'rem-notes-list'
+    }[type];
+    const list = el(listId);
+    if (!list) return;
+    const items = loadReminders(key);
+    if (items.length === 0) list.innerHTML = `<div class="rem-empty-small">${safeT('rem.empty')}</div>`;
+    else list.innerHTML = items.map(item => renderReminderItem(type, item)).join('');
+    if (type === 'bill') renderBillsSummary();
+    if (type === 'subscription') renderSubsSummary();
+}
+
+function renderReminderItem(type, item) {
+    let title = '', subtitle = '', days = null, accent = '#f59e0b';
+    switch (type) {
+        case 'birthday': title = item.name; days = daysToBirthday(item.date); subtitle = formatDaysToHuman(days); accent = urgencyColor(days); break;
+        case 'bill': { title = item.name; days = item.paid ? null : daysToBillDay(item.dayOfMonth); subtitle = `${item.amount || 0} ${item.currency || 'RSD'} • ${item.paid ? safeT('rem.paid') : formatDaysToHuman(days)}`; accent = item.paid ? '#10b981' : urgencyColor(days); break; }
+        case 'vehicle': {
+            title = item.name + (item.plate ? ' (' + item.plate + ')' : '');
+            const dates = [{ d: item.regDate, l: safeT('rem.veh.regDate') }, { d: item.techDate, l: safeT('rem.veh.techDate') }, { d: item.insuranceDate, l: safeT('rem.veh.insuranceDate') }].filter(x => x.d);
+            if (dates.length) {
+                const min = dates.reduce((a, b) => { const da = daysUntilDate(a.d); const db = daysUntilDate(b.d); return (db !== null && (da === null || db < da)) ? b : a; });
+                days = daysUntilDate(min.d); subtitle = min.l + ' • ' + formatDaysToHuman(days); accent = urgencyColor(days);
+            } break;
+        }
+        case 'document': title = item.name || item.type; days = daysUntilDate(item.expires); subtitle = safeT('rem.doc.expires') + ' • ' + formatDaysToHuman(days); accent = urgencyColor(days); break;
+        case 'subscription': title = item.name; days = item.active ? daysToBillDay(item.dayOfMonth) : null; subtitle = `${item.amount || 0} ${item.currency || 'RSD'} • ${item.active ? safeT('rem.active') : safeT('rem.inactive')}`; accent = item.active ? urgencyColor(days) : '#6b7280'; break;
+        case 'medication': title = item.name + (item.dose ? ' — ' + item.dose : ''); days = daysUntilDate(item.endDate); subtitle = `${safeT('rem.med.time.' + (item.time || 'morning'))} • ${safeT('rem.med.freq.' + (item.frequency || 'daily'))}${item.remaining ? ' • ' + item.remaining + ' tbl' : ''}`; accent = urgencyColor(days); break;
+        case 'anniversary': title = item.name; days = daysToAnniversary(item.date); subtitle = formatDaysToHuman(days); accent = urgencyColor(days); break;
+        case 'note': title = item.title; days = item.dueDate ? daysUntilDate(item.dueDate) : null; subtitle = item.description ? item.description.slice(0, 60) : ''; accent = item.priority === 'high' ? '#f43f5e' : item.priority === 'medium' ? '#f59e0b' : '#10b981'; break;
+    }
+    const daysTxt = days !== null ? formatDaysToHuman(days) : '';
+    const daysCol = days !== null ? urgencyColor(days) : '';
+    let yearsBadge = '';
+    if (type === 'anniversary' && item.date) {
+        const ys = yearsSinceDate(item.date);
+        if (ys) {
+            let yearsText = `${ys.years} ${safeT('rem.ann.yearsPassed')}`;
+            if (ys.months > 0 || ys.days > 0) yearsText += `, ${ys.months} ${safeT('rem.ann.monthsShort')}`;
+            yearsBadge = `<div class="rem-years-badge" style="font-size:0.68rem; padding: 3px 8px;"><span class="years-icon">💍</span>${escapeHtml(yearsText)}</div>`;
+        }
+    }
+    return `
+        <div class="rem-item" onclick="editReminder('${type}', ${item.id})">
+            <div class="rem-item-left">
+                <div class="rem-item-title">${escapeHtml(title)}</div>
+                ${subtitle ? `<div class="rem-item-sub">${escapeHtml(subtitle)}</div>` : ''}
+                ${yearsBadge}
+            </div>
+            ${days !== null ? `<div class="rem-item-days" style="color:${daysCol};">${escapeHtml(daysTxt)}</div>` : ''}
+            <button class="rem-item-delete" onclick="event.stopPropagation();deleteReminderById('${type}', ${item.id})">✕</button>
+        </div>
+    `;
+}
+
+function editReminder(type, id) {
+    const typeToKey = {
+        birthday: REMINDER_KEYS.birthdays, bill: REMINDER_KEYS.bills, vehicle: REMINDER_KEYS.vehicles,
+        document: REMINDER_KEYS.documents, subscription: REMINDER_KEYS.subscriptions, medication: REMINDER_KEYS.medications,
+        anniversary: REMINDER_KEYS.anniversaries, note: REMINDER_KEYS.notes
+    };
+    const key = typeToKey[type];
+    const item = loadReminders(key).find(x => x.id === id);
+    if (!item) return;
+    openReminderForm(type, item);
+}
+
+function deleteReminderById(type, id) {
+    const typeToKey = {
+        birthday: REMINDER_KEYS.birthdays, bill: REMINDER_KEYS.bills, vehicle: REMINDER_KEYS.vehicles,
+        document: REMINDER_KEYS.documents, subscription: REMINDER_KEYS.subscriptions, medication: REMINDER_KEYS.medications,
+        anniversary: REMINDER_KEYS.anniversaries, note: REMINDER_KEYS.notes
+    };
+    const key = typeToKey[type];
+    if (!key) return;
+    showConfirm(safeT('confirm.rem.delete')).then(ok => {
+        if (!ok) return;
+        deleteReminder(key, id);
+        showToast(safeT('toast.rem.deleted') || 'Obrisano.', 'info');
+        renderReminderList(type);
+        updateAppBadge();
+    });
+}
+
+function renderBillsSummary() {
+    const box = el('rem-bills-summary');
+    if (!box) return;
+    const bills = loadReminders('cx_bills');
+    let monthly = 0, yearly = 0;
+    bills.forEach(b => {
+        if (b.paid) return;
+        const amount = b.amount || 0;
+        let m = 0;
+        if (b.period === 'monthly') m = amount;
+        else if (b.period === 'quarterly') m = amount / 3;
+        else if (b.period === 'yearly') m = amount / 12;
+        monthly += m; yearly += m * 12;
+    });
+    if (bills.length === 0) { box.innerHTML = ''; return; }
+    box.innerHTML = `<div class="rem-summary-row"><span>${safeT('rem.total.monthly')}</span><strong>${money(monthly)} RSD</strong></div><div class="rem-summary-row"><span>${safeT('rem.total.yearly')}</span><strong>${money(yearly)} RSD</strong></div>`;
+}
+
+function renderSubsSummary() {
+    const box = el('rem-subs-summary');
+    if (!box) return;
+    const subs = loadReminders('cx_subscriptions');
+    let monthly = 0;
+    subs.forEach(s => {
+        if (!s.active) return;
+        const amount = s.amount || 0;
+        if (s.period === 'yearly') monthly += amount / 12;
+        else monthly += amount;
+    });
+    if (subs.length === 0) { box.innerHTML = ''; return; }
+    box.innerHTML = `<div class="rem-summary-row"><span>${safeT('rem.total.monthly')}</span><strong>${money(monthly)} RSD</strong></div><div class="rem-summary-row"><span>${safeT('rem.total.yearly')}</span><strong>${money(monthly * 12)} RSD</strong></div>`;
+}
+
+function hasActiveRemindersWithRemind() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayMs = today.getTime();
+    const dayMs = 86400000;
+    const isInReminderWindow = (targetIso, remindBeforeDays) => {
+        if (!targetIso) return false;
+        const parts = targetIso.split('-').map(Number);
+        if (parts.length !== 3) return false;
+        const target = new Date(parts[0], parts[1] - 1, parts[2]);
+        target.setHours(0, 0, 0, 0);
+        const targetMs = target.getTime();
+        const remindDays = parseInt(remindBeforeDays) || 0;
+        if (remindDays <= 0) return false;
+        const startMs = targetMs - (remindDays * dayMs);
+        return todayMs >= startMs && todayMs <= targetMs;
+    };
+    try {
+        if (loadReminders('cx_birthdays').some(b => !b.done && isInReminderWindow(b.date, b.remindBefore))) return true;
+        if (loadReminders('cx_anniversaries').some(a => !a.done && isInReminderWindow(a.date, a.remindBefore))) return true;
+        const bills = loadReminders('cx_bills');
+        for (const b of bills) {
+            if (b.paid) continue;
+            const day = parseInt(b.dayOfMonth) || 1;
+            const remind = parseInt(b.remindBefore) || 0;
+            if (remind <= 0) continue;
+            let next = new Date(today.getFullYear(), today.getMonth(), day);
+            next.setHours(0, 0, 0, 0);
+            if (next.getTime() < todayMs) {
+                let nm = today.getMonth() + 1;
+                let ny = today.getFullYear();
+                if (nm > 11) { nm = 0; ny++; }
+                next = new Date(ny, nm, day);
+                next.setHours(0, 0, 0, 0);
+            }
+            const startMs = next.getTime() - (remind * dayMs);
+            if (todayMs >= startMs && todayMs <= next.getTime()) return true;
+        }
+        const meds = loadReminders('cx_medications');
+        for (const m of meds) {
+            if (m.done) continue;
+            if (m.endDate) {
+                const parts = m.endDate.split('-').map(Number);
+                if (parts.length === 3) {
+                    const end = new Date(parts[0], parts[1] - 1, parts[2]);
+                    end.setHours(0, 0, 0, 0);
+                    if (todayMs <= end.getTime()) return true;
+                }
+            } else return true;
+        }
+        const notes = loadReminders('cx_notes');
+        for (const n of notes) {
+            if (n.done) continue;
+            if (n.dueDate && isInReminderWindow(n.dueDate, 7)) return true;
+        }
+        const vehicles = loadReminders('cx_vehicles');
+        for (const v of vehicles) {
+            if (v.done) continue;
+            if (isInReminderWindow(v.regDate, 30)) return true;
+            if (isInReminderWindow(v.techDate, 30)) return true;
+            if (isInReminderWindow(v.insuranceDate, 30)) return true;
+        }
+        const docs = loadReminders('cx_documents');
+        for (const d of docs) {
+            if (d.done) continue;
+            if (isInReminderWindow(d.expires, 30)) return true;
+        }
+        const subs = loadReminders('cx_subscriptions');
+        for (const s of subs) {
+            if (!s.active) continue;
+            const day = parseInt(s.dayOfMonth) || 1;
+            let next = new Date(today.getFullYear(), today.getMonth(), day);
+            next.setHours(0, 0, 0, 0);
+            if (next.getTime() < todayMs) {
+                let nm = today.getMonth() + 1;
+                let ny = today.getFullYear();
+                if (nm > 11) { nm = 0; ny++; }
+                next = new Date(ny, nm, day);
+                next.setHours(0, 0, 0, 0);
+            }
+            const startMs = next.getTime() - (3 * dayMs);
+            if (todayMs >= startMs && todayMs <= next.getTime()) return true;
+        }
+        const groups = loadInstallmentGroups();
+        for (const g of groups) {
+            for (const inst of (g.installments || [])) {
+                if (inst.paid) continue;
+                if (isInReminderWindow(inst.date, 3)) return true;
+            }
+        }
+    } catch (e) { return false; }
+    return false;
+}
+
+// ============================================================
+// PARSE DATE — kratka verzija (ako već nije definisana)
+// ============================================================
+if (typeof window.parseDate !== 'function') {
+    window.parseDate = function(value) {
+        if (!value) return null;
+        const parts = value.split('-').map(Number);
+        if (parts.length !== 3) return null;
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+    };
+}
