@@ -276,7 +276,7 @@ const CATEGORIES = {
     shopping: {
         name: 'Kupovina', icon: 'cart', accent: '#14b8a6',
         tabs: [
-            { id: 'unit', name: 'Cena po jedinici', icon: 'barcode', render: renderShopUnit },
+            // { id: 'unit', name: 'Cena po jedinici', icon: 'barcode', render: renderShopUnit },
             { id: 'compare', name: 'Poređenje', icon: 'scale', render: renderShopCompare },
             { id: 'lista', name: 'Lista za kupovinu', icon: 'list', render: renderShopLista },
             { id: 'barkod', name: 'Skeniranje barkoda', icon: 'qrCode', render: renderBarcodeScanner },
