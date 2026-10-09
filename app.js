@@ -277,13 +277,13 @@ const CATEGORIES = {
         name: 'Kupovina', icon: 'cart', accent: '#14b8a6',
         tabs: [
             // { id: 'unit', name: 'Cena po jedinici', icon: 'barcode', render: renderShopUnit },
-            { id: 'compare', name: 'Poređenje', icon: 'scale', render: renderShopCompare },
-            { id: 'lista', name: 'Lista za kupovinu', icon: 'list', render: renderShopLista },
-            { id: 'barkod', name: 'Skeniranje barkoda', icon: 'qrCode', render: renderBarcodeScanner },
-            { id: 'pracenje', name: 'Praćenje cena', icon: 'trending', render: renderPriceTracking },
-            { id: 'isplati', name: 'Isplati se', icon: 'target', render: renderShopIsplati },
-            { id: 'racuni', name: 'Cena po obroku', icon: 'packageSm', render: renderShopRasipanje },
-            { id: 'budzet', name: 'Dnevni budžet', icon: 'calendarSm', render: renderShopBudzet }
+            // { id: 'compare', name: 'Poređenje', icon: 'scale', render: renderShopCompare },
+            // { id: 'lista', name: 'Lista za kupovinu', icon: 'list', render: renderShopLista },
+            // { id: 'barkod', name: 'Skeniranje barkoda', icon: 'qrCode', render: renderBarcodeScanner },
+            // { id: 'pracenje', name: 'Praćenje cena', icon: 'trending', render: renderPriceTracking },
+            // { id: 'isplati', name: 'Isplati se', icon: 'target', render: renderShopIsplati },
+            // { id: 'racuni', name: 'Cena po obroku', icon: 'packageSm', render: renderShopRasipanje },
+            // { id: 'budzet', name: 'Dnevni budžet', icon: 'calendarSm', render: renderShopBudzet }
         ]
     },
     auto: {
