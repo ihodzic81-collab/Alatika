@@ -2469,7 +2469,6 @@ function renderAllToolsSections() {
 
     container.innerHTML = html;
 }
-
 function toggleAllToolsSubcat(mainCatId, subcatId) {
     if (allToolsViewState.activeMainCat !== mainCatId) {
         allToolsViewState.activeMainCat = mainCatId;
