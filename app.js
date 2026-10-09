@@ -1,6 +1,6 @@
 // ============================================================
 // ALATIKA 3.0 — app.js
-// Verzija: v17 (ispravljena)
+// Verzija: v19 (ETA 1)
 // ============================================================
 
 // ================= POMOĆNE =================
@@ -206,9 +206,11 @@ const ICONS = {
 function icon(name) {
     return ICONS[name] || ICONS.info;
 }
-
 // ============================================================
-// CATEGORIES — v17
+// CATEGORIES — v19 (ETA 1)
+// Izmene:
+//   - nova kategorija racuni (3 taba)
+//   - money.tabs: racuni uklonjen, valuta prvi
 // ============================================================
 const CATEGORIES = {
     podsetnici: {
@@ -225,6 +227,14 @@ const CATEGORIES = {
             { id: 'napomene', name: 'Napomene', icon: 'clipboard', render: renderRemindersNotes }
         ]
     },
+    racuni: {
+        name: 'Računi', icon: 'receipt', accent: '#0ea5e9',
+        tabs: [
+            { id: 'moji', name: 'Moji računi', icon: 'receipt', render: renderRacuni },
+            { id: 'pregled', name: 'Pregled', icon: 'chart', render: renderRacuniPregled },
+            { id: 'analiza', name: 'Analiza', icon: 'trending', render: renderRacuniAnaliza }
+        ]
+    },
     weather: {
         name: 'Vreme', icon: 'cloudSun', accent: '#38bdf8',
         tabs: [
@@ -235,6 +245,7 @@ const CATEGORIES = {
     money: {
         name: 'Novac', icon: 'wallet', accent: '#10b981',
         tabs: [
+            { id: 'valuta', name: 'Kursna lista', icon: 'exchange', render: renderMoneyValuta },
             { id: 'popust', name: 'Popust i procenat', icon: 'tag', render: renderMoneyPopust },
             { id: 'pdv', name: 'PDV', icon: 'percent', render: renderMoneyPDV },
             { id: 'kredit', name: 'Kredit', icon: 'creditCard', render: renderMoneyKredit },
@@ -242,9 +253,7 @@ const CATEGORIES = {
             { id: 'podela', name: 'Podela računa i napojnica', icon: 'receipt', render: renderMoneyPodela },
             { id: 'poredjenje', name: 'Poređenje cena', icon: 'scale', render: renderMoneyPoredjenje },
             { id: 'budzet', name: 'Budžet', icon: 'calendarSm', render: renderMoneyBudzet },
-            { id: 'stednja', name: 'Štednja', icon: 'piggyBank', render: renderMoneyStednja },
-            { id: 'valuta', name: 'Kursna lista', icon: 'exchange', render: renderMoneyValuta },
-            { id: 'racuni', name: 'Računi', icon: 'receipt', render: renderRacuni }
+            { id: 'stednja', name: 'Štednja', icon: 'piggyBank', render: renderMoneyStednja }
         ]
     },
     measures: {
@@ -373,9 +382,13 @@ const CATEGORIES = {
     }
 };
 
+// ============================================================
+// MAIN_CATEGORIES — v19 (7 glavnih, dodato racuni kao 3.)
+// ============================================================
 const MAIN_CATEGORIES = [
     { id: 'vozila', name: 'Vozila', icon: 'car', accent: '#f43f5e', subcats: ['auto', 'bike'] },
     { id: 'novac_posao', name: 'Novac i posao', icon: 'wallet', accent: '#10b981', subcats: ['money', 'work', 'shopping'] },
+    { id: 'racuni', name: 'Računi', icon: 'receipt', accent: '#0ea5e9', subcats: ['racuni'] },
     { id: 'mere_vreme', name: 'Mere i vreme', icon: 'ruler', accent: '#8b5cf6', subcats: ['measures', 'time', 'weather'] },
     { id: 'kuca_dom', name: 'Kuća i domaćinstvo', icon: 'home', accent: '#ea580c', subcats: ['homecalc', 'kitchen'] },
     { id: 'zdravlje_telo', name: 'Zdravlje i telo', icon: 'heartPulse', accent: '#ec4899', subcats: ['health'] },
@@ -388,6 +401,15 @@ function getMainCategoryById(id) {
 
 function getTabCount(categoryId, tabId) {
     try {
+        if (categoryId === 'racuni') {
+            if (tabId === 'moji') {
+                try {
+                    const list = loadReceipts();
+                    return list.filter(r => !r.paid).length;
+                } catch (e) { return 0; }
+            }
+            return 0;
+        }
         if (categoryId !== 'podsetnici') return 0;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -1486,7 +1508,6 @@ function speedometerReleaseWakeLock() {
         speedometerState.wakeLock = null;
     }
 }
-
 // ============================================================
 // BOTTOM NAVIGATION
 // ============================================================
@@ -1552,7 +1573,7 @@ function goHome() {
 }
 
 // ============================================================
-// ZADATAK 1: BRZI PREGLED
+// BRZI PREGLED
 // ============================================================
 function renderTodayDashboard() {
     const content = el('today-content');
@@ -1715,7 +1736,7 @@ function renderBrziPregledGroup(groupKey, title, color, items) {
         else if (item.type === 'vehicle-reg' || item.type === 'vehicle-tech') clickTarget = `openCalc('podsetnici', 'vozila')`;
         else if (item.type === 'document') clickTarget = `openCalc('podsetnici', 'vozila')`;
         else if (item.type === 'note') clickTarget = `openCalc('podsetnici', 'napomene')`;
-        else if (item.type === 'receipt') clickTarget = `openCalc('money', 'racuni')`;
+        else if (item.type === 'receipt') clickTarget = `openCalc('racuni', 'moji')`;
         else if (item.type === 'installment') clickTarget = `openCalc('podsetnici', 'rate')`;
 
         return `
@@ -2285,10 +2306,9 @@ function clearSearch() {
 }
 
 // ============================================================
-// SVI ALATI MODAL
+// SVI ALATI MODAL — NOVA ARHITEKTURA (OPCIJA A)
 // ============================================================
 const allToolsViewState = {
-    view: 'main',
     activeMainCat: null,
     openSubcats: {}
 };
@@ -2297,7 +2317,6 @@ function openAllToolsModal() {
     const modal = el('all-tools-modal');
     if (!modal) return;
 
-    allToolsViewState.view = 'main';
     allToolsViewState.activeMainCat = null;
     allToolsViewState.openSubcats = {};
 
@@ -2313,7 +2332,7 @@ function openAllToolsModal() {
     if (title) title.textContent = safeT('allTools.title');
 
     renderAllToolsFavorites();
-    renderAllToolsMainCats();
+    renderAllToolsSections();
 
     modal.classList.add('show');
     document.body.classList.add('modal-open');
@@ -2324,31 +2343,7 @@ function openAllToolsModal() {
 }
 
 function allToolsGoBack() {
-    if (allToolsViewState.view === 'main') {
-        closeModal('all-tools-modal');
-        return;
-    }
-    allToolsViewState.view = 'main';
-    allToolsViewState.activeMainCat = null;
-    allToolsViewState.openSubcats = {};
-
-    const backBtn = el('all-tools-back-btn');
-    if (backBtn) backBtn.style.display = 'none';
-    const title = el('all-tools-modal-title');
-    if (title) title.textContent = safeT('allTools.title');
-
-    const searchInput = el('all-tools-search');
-    if (searchInput) searchInput.value = '';
-    const clearBtn = el('all-tools-search-clear');
-    if (clearBtn) clearBtn.style.display = 'none';
-
-    const favWrap = el('all-tools-favorites-wrap');
-    if (favWrap) favWrap.style.display = '';
-    renderAllToolsFavorites();
-    renderAllToolsMainCats();
-
-    vibrate(10);
-    playTick(0, 1200, 0.04, 0.012);
+    closeModal('all-tools-modal');
 }
 
 function renderAllToolsFavorites() {
@@ -2356,7 +2351,7 @@ function renderAllToolsFavorites() {
     const chips = el('all-tools-favorites-chips');
     if (!wrap || !chips) return;
 
-    const favs = loadFavorites().slice(0, 4);
+    const favs = loadFavorites().slice(0, 6);
     if (favs.length === 0) {
         wrap.style.display = 'none';
         chips.innerHTML = '';
@@ -2391,155 +2386,100 @@ function renderAllToolsFavorites() {
     });
 }
 
-function renderAllToolsMainCats() {
+function renderAllToolsSections() {
     const container = el('all-tools-sections');
     if (!container) return;
 
-    let html = '<div class="all-tools-main-cats-grid">';
+    let html = '';
+
     MAIN_CATEGORIES.forEach(mainCat => {
-        let toolsCount = 0;
+        html += `<div class="all-tools-section" style="--section-accent: ${mainCat.accent};">
+            <div class="all-tools-section-header">
+                <span class="all-tools-section-icon">${icon(mainCat.icon)}</span>
+                <span class="all-tools-section-name">${escapeHtml(mainCat.name)}</span>
+            </div>
+            <div class="all-tools-section-chips">
+        `;
+
         mainCat.subcats.forEach(subId => {
             const cat = CATEGORIES[subId];
-            if (cat) toolsCount += cat.tabs.length;
+            if (!cat) return;
+            const accent = getCategoryAccent(subId);
+            const totalTools = cat.tabs.length;
+            const isActive = allToolsViewState.activeMainCat === mainCat.id && allToolsViewState.openSubcats[subId] === true;
+
+            html += `<button type="button" class="all-tools-subcat-chip-btn${isActive ? ' active' : ''}"
+                    style="--qt-accent: ${accent};"
+                    onclick="event.stopPropagation(); toggleAllToolsSubcat('${mainCat.id}', '${subId}')">
+                <span class="all-tools-subcat-chip-icon">${icon(cat.icon)}</span>
+                <span class="all-tools-subcat-chip-name">${escapeHtml(safeT('cat.' + subId))}</span>
+                <span class="all-tools-subcat-chip-count">${totalTools}</span>
+            </button>`;
         });
 
-        html += `
-            <button type="button" class="all-tools-main-cat"
-                    style="--cat-accent: ${mainCat.accent};"
-                    onclick="openAllToolsMainCat('${mainCat.id}')">
-                <span class="all-tools-main-cat-icon">${icon(mainCat.icon)}</span>
-                <span class="all-tools-main-cat-name">${escapeHtml(mainCat.name)}</span>
-                <span class="all-tools-main-cat-count">${toolsCount} ${toolsCount === 1 ? 'alat' : 'alata'}</span>
-            </button>
-        `;
-    });
-    html += '</div>';
+        html += `</div>`;
 
-    container.innerHTML = html;
-}
+        if (allToolsViewState.activeMainCat === mainCat.id && Object.keys(allToolsViewState.openSubcats).some(k => allToolsViewState.openSubcats[k])) {
+            mainCat.subcats.forEach(subId => {
+                if (!allToolsViewState.openSubcats[subId]) return;
+                const cat = CATEGORIES[subId];
+                if (!cat) return;
+                const accent = getCategoryAccent(subId);
 
-function openAllToolsMainCat(mainCatId) {
-    const mainCat = getMainCategoryById(mainCatId);
-    if (!mainCat) return;
+                let tabsHtml = '';
+                cat.tabs.forEach(tab => {
+                    const favKey = `${subId}:${tab.id}`;
+                    const isFav = isFavorite(favKey);
+                    const badgeCount = getTabCount(subId, tab.id);
+                    const badgeHtml = badgeCount > 0
+                        ? `<span class="all-tools-tab-badge">${badgeCount > 99 ? '99+' : badgeCount}</span>`
+                        : '';
+                    const favHtml = isFav
+                        ? `<span class="all-tools-tab-fav">${icon('starFill')}</span>`
+                        : '';
 
-    allToolsViewState.view = 'sub';
-    allToolsViewState.activeMainCat = mainCatId;
-    allToolsViewState.openSubcats = {};
+                    tabsHtml += `
+                        <button type="button" class="all-tools-tab"
+                                style="--tab-accent: ${accent};"
+                                onclick="event.stopPropagation(); openCalcFromAllTools('${subId}', '${tab.id}')"
+                                title="${escapeHtml(safeT('tab.' + subId + '.' + tab.id))}">
+                            ${badgeHtml}
+                            ${favHtml}
+                            <span class="all-tools-tab-icon">${icon(tab.icon)}</span>
+                            <span class="all-tools-tab-label">${escapeHtml(safeT('tab.' + subId + '.' + tab.id))}</span>
+                        </button>
+                    `;
+                });
 
-    const favWrap = el('all-tools-favorites-wrap');
-    if (favWrap) favWrap.style.display = 'none';
-
-    const backBtn = el('all-tools-back-btn');
-    if (backBtn) backBtn.style.display = 'flex';
-    const title = el('all-tools-modal-title');
-    if (title) title.textContent = mainCat.name;
-
-    const searchInput = el('all-tools-search');
-    if (searchInput) searchInput.value = '';
-    const clearBtn = el('all-tools-search-clear');
-    if (clearBtn) clearBtn.style.display = 'none';
-
-    renderAllToolsSubCats(mainCat);
-
-    vibrate(12);
-    playTick(0, 1300, 0.05, 0.015);
-}
-
-function renderAllToolsSubCats(mainCat) {
-    const container = el('all-tools-sections');
-    if (!container) return;
-
-    let html = '<div class="all-tools-subcats-grid">';
-
-    mainCat.subcats.forEach(subId => {
-        const cat = CATEGORIES[subId];
-        if (!cat) return;
-        const accent = getCategoryAccent(subId);
-        const totalTools = cat.tabs.length;
-        const isOpen = allToolsViewState.openSubcats[subId] === true;
-        const openClass = isOpen ? ' open' : '';
-        const ariaExpanded = isOpen ? 'true' : 'false';
-
-        const chipHtml = `<div class="all-tools-subcat-chip" style="--cat-accent: ${accent};">${icon(cat.icon)} ${escapeHtml(safeT('cat.' + subId))}</div>`;
-
-        let tabsHtml = '';
-        cat.tabs.forEach(tab => {
-            const favKey = `${subId}:${tab.id}`;
-            const isFav = isFavorite(favKey);
-            const badgeCount = getTabCount(subId, tab.id);
-            const badgeHtml = badgeCount > 0
-                ? `<span class="all-tools-tab-badge">${badgeCount > 99 ? '99+' : badgeCount}</span>`
-                : '';
-            const favHtml = isFav
-                ? `<span class="all-tools-tab-fav">${icon('starFill')}</span>`
-                : '';
-
-            tabsHtml += `
-                <button type="button" class="all-tools-tab"
-                        style="--tab-accent: ${accent};"
-                        onclick="event.stopPropagation(); openCalcFromAllTools('${subId}', '${tab.id}')"
-                        title="${escapeHtml(safeT('tab.' + subId + '.' + tab.id))}">
-                    ${badgeHtml}
-                    ${favHtml}
-                    <span class="all-tools-tab-icon">${icon(tab.icon)}</span>
-                    <span class="all-tools-tab-label">${escapeHtml(safeT('tab.' + subId + '.' + tab.id))}</span>
-                </button>
-            `;
-        });
-
-        html += `
-            <div class="all-tools-subcat${openClass}"
-                 data-subcat-id="${subId}"
-                 style="--cat-accent: ${accent};">
-                ${chipHtml}
-                <button type="button" class="all-tools-subcat-head"
-                        onclick="toggleAllToolsSubcat('${subId}')"
-                        aria-expanded="${ariaExpanded}">
-                    <span class="all-tools-subcat-icon">${icon(cat.icon)}</span>
-                    <span class="all-tools-subcat-info">
-                        <span class="all-tools-subcat-name">${escapeHtml(safeT('cat.' + subId))}</span>
-                        <span class="all-tools-subcat-count">${totalTools} ${totalTools === 1 ? 'alat' : 'alata'}</span>
-                    </span>
-                    <span class="all-tools-subcat-arrow">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                    </span>
-                </button>
-                <div class="all-tools-subcat-body">
-                    <div class="all-tools-subcat-body-inner">
-                        <div class="all-tools-tabs-grid">${tabsHtml}</div>
+                html += `<div class="all-tools-subcat-panel" style="--cat-accent: ${accent};">
+                    <div class="all-tools-subcat-panel-header">
+                        <span class="all-tools-subcat-panel-icon">${icon(cat.icon)}</span>
+                        <span class="all-tools-subcat-panel-name">${escapeHtml(safeT('cat.' + subId))}</span>
+                        <button type="button" class="all-tools-subcat-panel-close" onclick="event.stopPropagation(); toggleAllToolsSubcat('${mainCat.id}', '${subId}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        </button>
                     </div>
-                </div>
-            </div>
-        `;
+                    <div class="all-tools-tabs-grid">${tabsHtml}</div>
+                </div>`;
+            });
+        }
+
+        html += `</div>`;
     });
 
-    html += '</div>';
     container.innerHTML = html;
 }
 
-function toggleAllToolsSubcat(subcatId) {
-    const el2 = document.querySelector(`.all-tools-subcat[data-subcat-id="${subcatId}"]`);
-    if (!el2) return;
-    const isOpen = el2.classList.contains('open');
-    el2.classList.toggle('open', !isOpen);
-    allToolsViewState.openSubcats[subcatId] = !isOpen;
-    const head = el2.querySelector('.all-tools-subcat-head');
-    if (head) head.setAttribute('aria-expanded', (!isOpen).toString());
+function toggleAllToolsSubcat(mainCatId, subcatId) {
+    if (allToolsViewState.activeMainCat !== mainCatId) {
+        allToolsViewState.activeMainCat = mainCatId;
+        allToolsViewState.openSubcats = {};
+    }
+    const wasOpen = allToolsViewState.openSubcats[subcatId] === true;
+    allToolsViewState.openSubcats[subcatId] = !wasOpen;
+    renderAllToolsSections();
     vibrate(8);
     playTick(0, 1200, 0.04, 0.012);
-}
-
-function closeAnyOpenAllToolsCat() {
-    if (allToolsViewState.view !== 'sub') return false;
-    const openCats = document.querySelectorAll('.all-tools-subcat.open');
-    if (openCats.length === 0) return false;
-    openCats.forEach(cat => {
-        cat.classList.remove('open');
-        const subId = cat.dataset.subcatId;
-        if (subId) allToolsViewState.openSubcats[subId] = false;
-    });
-    vibrate(8);
-    return true;
 }
 
 function openCalcFromAllTools(catId, tabId) {
@@ -2560,14 +2500,8 @@ function handleAllToolsSearch() {
     if (favWrap) favWrap.style.display = q ? 'none' : '';
 
     if (!q) {
-        if (allToolsViewState.view === 'main') {
-            renderAllToolsMainCats();
-        } else {
-            const mainCat = getMainCategoryById(allToolsViewState.activeMainCat);
-            if (mainCat) renderAllToolsSubCats(mainCat);
-        }
-        if (favWrap) favWrap.style.display = allToolsViewState.view === 'main' ? '' : 'none';
-        if (allToolsViewState.view === 'main') renderAllToolsFavorites();
+        renderAllToolsSections();
+        if (favWrap) favWrap.style.display = '';
         return;
     }
 
@@ -2610,17 +2544,10 @@ function clearAllToolsSearch() {
     const clearBtn = el('all-tools-search-clear');
     if (clearBtn) clearBtn.style.display = 'none';
     const favWrap = el('all-tools-favorites-wrap');
-
-    if (allToolsViewState.view === 'main') {
-        if (favWrap) favWrap.style.display = '';
-        renderAllToolsFavorites();
-        renderAllToolsMainCats();
-    } else {
-        const mainCat = getMainCategoryById(allToolsViewState.activeMainCat);
-        if (mainCat) renderAllToolsSubCats(mainCat);
-    }
+    if (favWrap) favWrap.style.display = '';
+    renderAllToolsFavorites();
+    renderAllToolsSections();
 }
-
 // ============================================================
 // TOAST
 // ============================================================
@@ -2652,6 +2579,9 @@ function showToast(message, type = 'info', duration = 3000) {
     else if (type === 'success') vibrate(15);
 }
 
+// ============================================================
+// CONFIRM
+// ============================================================
 let confirmResolver = null;
 function showConfirm(message, title = null) {
     return new Promise((resolve) => {
@@ -2672,6 +2602,9 @@ function closeConfirm(result) {
     vibrate(10);
 }
 
+// ============================================================
+// ZVUK I VIBRACIJA
+// ============================================================
 let settings = { sound: true, haptic: true };
 try {
     const saved = JSON.parse(localStorage.getItem('cx_fx'));
@@ -2759,6 +2692,9 @@ function playAlarmBeep() {
     } catch (e) {}
 }
 
+// ============================================================
+// RIPPLE
+// ============================================================
 function createRipple(e) {
     const target = e.currentTarget;
     if (!target) return;
@@ -2776,13 +2712,16 @@ function createRipple(e) {
     setTimeout(() => { if (ripple.parentNode) ripple.remove(); }, 600);
 }
 function setupRipple() {
-    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn, .modal-fav-star, .modal-settings-btn, .weather-refresh-btn, .location-gps-btn, .weather-location, .icon-btn-text, .about-row, .tabs-settings-reset-btn, .tabs-settings-save-btn, .gps-btn-main, .gps-btn-secondary, .gps-chip, .gps-color-swatch, .tabs-settings-color-reset, .toolbar-btn, .bottom-nav-btn, .mytool-item, .today-item, .holiday-card, .all-tools-main-btn, .all-tools-main-cat, .all-tools-subcat-head, .all-tools-tab, .all-tools-search-item, .all-tools-fav-chip, .all-tools-back-btn, .stopwatch-btn, .timer-btn, .timer-preset-btn, .timer-option-btn, .speedometer-actions .gps-btn-main, .speedometer-actions .gps-btn-secondary, .receipt-card, .receipt-chip, .receipt-card-action, .receipt-details-action, .receipt-status-btn, .receipt-add-btn';
+    const selector = '.calc-btn-main, .copy-btn, .back-btn, .swap-btn, .settings-toggle-btn, .confirm-btn, .openings-add-btn, .fx-refresh-btn, .fx-swap-btn, .copy-btn-mini, .lista-clear-btn, .quick-tool, .all-tool, .tab-btn, .section-action-btn, .modal-fav-star, .modal-settings-btn, .weather-refresh-btn, .location-gps-btn, .weather-location, .icon-btn-text, .about-row, .tabs-settings-reset-btn, .tabs-settings-save-btn, .gps-btn-main, .gps-btn-secondary, .gps-chip, .gps-color-swatch, .tabs-settings-color-reset, .toolbar-btn, .bottom-nav-btn, .mytool-item, .today-item, .holiday-card, .all-tools-main-btn, .all-tools-main-cat, .all-tools-subcat-head, .all-tools-tab, .all-tools-search-item, .all-tools-fav-chip, .all-tools-back-btn, .all-tools-subcat-chip-btn, .all-tools-subcat-panel-close, .stopwatch-btn, .timer-btn, .timer-preset-btn, .timer-option-btn, .speedometer-actions .gps-btn-main, .speedometer-actions .gps-btn-secondary, .receipt-card, .receipt-chip, .receipt-card-action, .receipt-details-action, .receipt-status-btn, .receipt-add-btn';
     document.addEventListener('pointerdown', (e) => {
         const t = e.target.closest(selector);
         if (t) createRipple({ currentTarget: t, clientX: e.clientX, clientY: e.clientY });
     }, { passive: true });
 }
 
+// ============================================================
+// PODEŠAVANJA
+// ============================================================
 function updateSettingsUI() {
     try {
         const themeBtn = el('settings-theme-btn');
@@ -2837,16 +2776,11 @@ function setLanguageFromSettings(lang) {
         if (typeof renderFavorites === 'function') renderFavorites();
         if (typeof renderHistory === 'function') renderHistory();
         if (typeof updateSettingsUI === 'function') updateSettingsUI();
-        if (typeof renderAllToolsMainCats === 'function') {
+        if (typeof renderAllToolsSections === 'function') {
             const allToolsModal = el('all-tools-modal');
             if (allToolsModal && allToolsModal.classList.contains('show')) {
-                if (allToolsViewState.view === 'main') {
-                    renderAllToolsFavorites();
-                    renderAllToolsMainCats();
-                } else {
-                    const mainCat = getMainCategoryById(allToolsViewState.activeMainCat);
-                    if (mainCat) renderAllToolsSubCats(mainCat);
-                }
+                renderAllToolsFavorites();
+                renderAllToolsSections();
             }
         }
     }
@@ -2865,6 +2799,9 @@ function toggleTheme() {
     } catch (e) {}
 }
 
+// ============================================================
+// COPY / SHARE
+// ============================================================
 function swapInputs(fromId, toId) {
     const fromSelect = el(fromId), toSelect = el(toId);
     if (!fromSelect || !toSelect) return;
@@ -2921,6 +2858,9 @@ async function shareResult(btn) {
     } catch (e) {}
 }
 
+// ============================================================
+// ISTORIJA
+// ============================================================
 function loadHistory() {
     try { return JSON.parse(localStorage.getItem('cx_history')) || []; } catch (e) { return []; }
 }
@@ -3124,7 +3064,6 @@ function trackCategoryUse(categoryId) {
         localStorage.setItem(CATEGORY_CLICKS_KEY, JSON.stringify(counts));
     } catch (e) {}
 }
-
 // ============================================================
 // NAVIGACIJA — MODALI
 // ============================================================
@@ -3158,6 +3097,7 @@ function openCategory(categoryId) {
     playTick(0, 1400, 0.06, 0.02);
     try { history.pushState({ modal: 'category', category: categoryId }, '', ''); } catch (e) {}
 }
+
 function openCategoryBack(categoryId) {
     const cat = CATEGORIES[categoryId];
     if (!cat) return;
@@ -3178,6 +3118,7 @@ function openCategoryBack(categoryId) {
     vibrate(15);
     playTick(0, 1400, 0.06, 0.02);
 }
+
 function renderCategoryTabs(categoryId, tabBar, cat) {
     if (!tabBar || !cat) return;
     const layout = getCategoryTabsLayout(categoryId);
@@ -3275,12 +3216,18 @@ function openCalc(categoryId, tabId) {
     if (tabId === 'troskovnik') setTimeout(() => { if (typeof renderCostEstimateList === 'function') renderCostEstimateList(); }, 50);
     if (tabId === 'praznici') setTimeout(() => { if (typeof renderHolidaysList === 'function') renderHolidaysList(); }, 50);
     if (tabId === 'barkod') setTimeout(() => { if (typeof initBarcodeScanner === 'function') initBarcodeScanner(); }, 50);
-    if (tabId === 'racuni' && categoryId === 'money') {
+
+    if (categoryId === 'racuni') {
         setTimeout(() => {
-            if (typeof renderRacuni === 'function') {
+            if (tabId === 'moji') {
+                if (typeof renderRacuniList === 'function') renderRacuniList();
                 if (typeof loadReceiptThumbnails === 'function') loadReceiptThumbnails();
+            } else if (tabId === 'pregled') {
+                if (typeof renderRacuniPregledList === 'function') renderRacuniPregledList();
+            } else if (tabId === 'analiza') {
+                if (typeof renderRacuniAnalizaAll === 'function') renderRacuniAnalizaAll();
             }
-        }, 100);
+        }, 80);
     }
 
     if (categoryId === 'podsetnici') {
@@ -3338,7 +3285,6 @@ function closeModal(modalId) {
     if (modalId === 'tabs-settings-modal') { tabsSettingsCategory = null; tabsSettingsDraft = null; }
     if (modalId === 'all-tools-modal') {
         document.body.classList.remove('modal-open');
-        allToolsViewState.view = 'main';
         allToolsViewState.activeMainCat = null;
         allToolsViewState.openSubcats = {};
     }
@@ -3367,7 +3313,6 @@ function closeAllModals() {
     activeTab = null;
     tabsSettingsCategory = null;
     tabsSettingsDraft = null;
-    allToolsViewState.view = 'main';
     allToolsViewState.activeMainCat = null;
     allToolsViewState.openSubcats = {};
     if (typeof gpsCleanupAll === 'function') { try { gpsCleanupAll(); } catch (e) {} }
@@ -3385,7 +3330,7 @@ function closeAllModals() {
 // BRZI ALATI
 // ============================================================
 const QUICK_TOOLS_KEY = 'cx_quick_tools_v2';
-const DEFAULT_QUICK_TOOLS = ['podsetnici', 'money', 'weather', 'health'];
+const DEFAULT_QUICK_TOOLS = ['podsetnici', 'money', 'weather', 'racuni'];
 const MAX_QUICK_TOOLS = 4;
 
 function getQuickTools() {
@@ -3516,16 +3461,8 @@ function toggleFavorite(event, key) {
     if (currentScreenId === 'mytools-screen') renderMyToolsScreen();
     const allToolsModal = el('all-tools-modal');
     if (allToolsModal && allToolsModal.classList.contains('show')) {
-        if (allToolsViewState.view === 'main') {
-            renderAllToolsFavorites();
-            renderAllToolsMainCats();
-        } else {
-            const mainCat = getMainCategoryById(allToolsViewState.activeMainCat);
-            if (mainCat) {
-                renderAllToolsFavorites();
-                renderAllToolsSubCats(mainCat);
-            }
-        }
+        renderAllToolsFavorites();
+        renderAllToolsSections();
     }
 }
 function renderFavorites() {
@@ -3610,6 +3547,9 @@ function dismissFavHint() {
     vibrate(10);
 }
 
+// ============================================================
+// BADGE
+// ============================================================
 const BADGE_HINT_KEY = 'cx_hint_dismissed_badge';
 
 function getUrgentRemindersCount() {
@@ -3659,6 +3599,9 @@ function dismissBadgeHint() {
     vibrate(10);
 }
 
+// ============================================================
+// ARHIVA
+// ============================================================
 const ARCHIVE_KEY = 'cx_archive';
 const ARCHIVE_AUTO_CLEANUP_KEY = 'cx_archive_auto_cleanup';
 const ARCHIVE_MAX_AGE_DAYS = 730;
@@ -3701,6 +3644,9 @@ function runArchiveAutoCleanup() {
     } catch (e) {}
 }
 
+// ============================================================
+// DATE TRIPLE
+// ============================================================
 function isoToParts(iso) {
     if (!iso || typeof iso !== 'string') return null;
     const parts = iso.split('-').map(Number);
@@ -3811,6 +3757,9 @@ function setupShapeTypeListener(root) {
     });
 }
 
+// ============================================================
+// INPUT PERSISTENCE
+// ============================================================
 const INPUT_STORAGE_KEY = 'cx_inputs_v1';
 let inputCache = {};
 function loadInputCache() {
@@ -3859,6 +3808,9 @@ function setupInputPersistence() {
     }, true);
 }
 
+// ============================================================
+// TAB LAYOUT
+// ============================================================
 const TABS_LAYOUT_KEY = 'cx_tabs_layout';
 function loadTabsLayout() {
     try {
@@ -4025,6 +3977,9 @@ function resetTabsLayout() {
     vibrate(15);
 }
 
+// ============================================================
+// ACCENT COLORS
+// ============================================================
 const ACCENT_COLORS_KEY = 'cx_accent_colors';
 const ACCENT_PALETTE = [
     { id: 'crvena', color: '#f43f5e', nameSr: 'Crvena', nameEn: 'Red' },
@@ -4124,6 +4079,9 @@ function resetAccentColor() {
     showToast(safeT('tabs.settings.color.resetDone'), 'info', 1600);
 }
 
+// ============================================================
+// O APLIKACIJI
+// ============================================================
 const APP_VERSION = '3.0';
 const APP_DATE_SR = 'Oktobar 2026';
 const APP_DATE_EN = 'October 2026';
@@ -4149,6 +4107,9 @@ function openAboutModal() {
     playTick(0, 1400, 0.06, 0.02);
 }
 
+// ============================================================
+// BACK BUTTON / HISTORY
+// ============================================================
 function setupBackButton() {
     try { history.replaceState({ screen: 'home-screen', home: true }, '', ''); } catch (e) {}
     window.addEventListener('popstate', (e) => {
@@ -4191,12 +4152,12 @@ function setupBackButton() {
         }
 
         if (allToolsModal && allToolsModal.classList.contains('show')) {
-            if (allToolsViewState.view === 'sub') {
-                allToolsGoBack();
+            if (allToolsViewState.openSubcats && Object.keys(allToolsViewState.openSubcats).some(k => allToolsViewState.openSubcats[k])) {
+                allToolsViewState.activeMainCat = null;
+                allToolsViewState.openSubcats = {};
+                renderAllToolsSections();
                 return;
             }
-            const closed = closeAnyOpenAllToolsCat();
-            if (closed) return;
             allToolsModal.classList.remove('show');
             document.body.classList.remove('modal-open');
             vibrate(10);
@@ -4256,6 +4217,9 @@ function setupBackButton() {
     });
 }
 
+// ============================================================
+// OSVEŽAVANJE STATIČNIH TEKSTOVA
+// ============================================================
 function refreshUIText() {
     try {
         const subtitle = el('app-subtitle'); if (subtitle) subtitle.textContent = safeT('app.subtitle');
@@ -4346,6 +4310,9 @@ function refreshUIText() {
     } catch (e) { console.warn('refreshUIText greška:', e); }
 }
 
+// ============================================================
+// INIT
+// ============================================================
 function initApp() {
     try { settings.archiveAutoCleanup = getArchiveAutoCleanupSetting(); } catch (e) {}
 
@@ -4425,6 +4392,9 @@ function initToolbarIcons() {
     });
 }
 
+// ============================================================
+// HASH ROUTING (za PWA shortcuts)
+// ============================================================
 function handleInitialHash() {
     const hash = (window.location.hash || '').replace('#', '').trim();
     if (!hash) return;
@@ -4446,6 +4416,8 @@ function handleInitialHash() {
         setTimeout(() => openCategory('weather'), 300);
     } else if (hash === 'health') {
         setTimeout(() => openCategory('health'), 300);
+    } else if (hash === 'racuni') {
+        setTimeout(() => openCategory('racuni'), 300);
     }
 }
 
@@ -4457,7 +4429,6 @@ if (document.readyState === 'loading') {
 } else {
     initApp();
 }
-
 // ============================================================
 // RENDER POMOĆNE
 // ============================================================
@@ -4552,426 +4523,1987 @@ function statsRow(boxId, items) {
 function sectionDescKey(key) { return `<p class="section-desc">${safeT(key)}</p>`; }
 
 // ============================================================
-// SHOPPING — Cena po jedinici  ⭐ NOVO
+// RACUNI — Postojeći tab "Moji računi" + NOVI Pregled + NOVI Analiza
 // ============================================================
-function renderShopUnit() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Izračunaj cenu po jedinici mere (kg, L, kom) da uporediš proizvode.</p>
-            ${inputField('label.shop.totalPrice', 'shop-unit-price', 'RSD', 'placeholder="250"')}
-            ${inputField('label.shop.quantity', 'shop-unit-qty', '', 'placeholder="1"')}
-            ${selectField('label.shop.unit', 'shop-unit-type', [
-                { value: 'kg', text: 'kg' },
-                { value: 'g', text: 'g' },
-                { value: 'L', text: 'L' },
-                { value: 'ml', text: 'ml' },
-                { value: 'kom', text: 'kom' }
-            ], 'kg')}
-            ${calcButton('btn.calculate', 'calculateShopUnit()')}
-        </div>
-        <div id="shop-unit-result-box" class="result-card-green" style="display: none;">
-            <div class="res-left">
-                <div class="pump-icon">${icon('barcode')}</div>
-                <div>
-                    <div class="res-label">${safeT('label.shop.pricePerUnit')}</div>
-                    <h2><span id="res-shop-unit-val">0</span> <small id="res-shop-unit-label">RSD/kg</small></h2>
-                </div>
-            </div>
-            <div class="res-actions">
-                <button class="copy-btn" onclick="copyResult('res-shop-unit-val', 'res-shop-unit-label', event)">${safeT('result.copy')}</button>
-                <button class="copy-btn" data-category="KUPOVINA" data-label="Cena po jedinici" onclick="saveHistory(this)">${safeT('result.save')}</button>
-                <button class="copy-btn" data-category="KUPOVINA" data-label="Cena po jedinici" onclick="shareResult(this)">${safeT('result.share')}</button>
-            </div>
-        </div>
-    `;
-}
+const RECEIPTS_DB_NAME = 'alatika_db';
+const RECEIPTS_DB_VERSION = 1;
+const RECEIPTS_STORE_NAME = 'receipt_images';
+const RECEIPTS_STORAGE_KEY = 'cx_receipts';
+let receiptsDBPromise = null;
 
-function calculateShopUnit() {
-    const price = num('shop-unit-price');
-    const qty = num('shop-unit-qty');
-    const unit = el('shop-unit-type') ? el('shop-unit-type').value : 'kg';
-    if (!price || !qty) { showToast('Unesi cenu i količinu.', 'error'); return; }
-    let basePrice, label;
-    if (unit === 'g' || unit === 'ml') {
-        basePrice = price / (qty / 1000);
-        label = 'RSD/' + (unit === 'g' ? 'kg' : 'L');
-    } else {
-        basePrice = price / qty;
-        label = 'RSD/' + unit;
+function initReceiptsDB() {
+    if (receiptsDBPromise) return receiptsDBPromise;
+    if (!('indexedDB' in window)) {
+        console.warn('IndexedDB nije podržan');
+        return Promise.reject(new Error('IndexedDB not supported'));
     }
-    const rv = el('res-shop-unit-val');
-    const rl = el('res-shop-unit-label');
-    if (rv) rv.innerText = money(basePrice);
-    if (rl) rl.innerText = label;
-    show('shop-unit-result-box');
+    receiptsDBPromise = new Promise((resolve, reject) => {
+        const req = indexedDB.open(RECEIPTS_DB_NAME, RECEIPTS_DB_VERSION);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(RECEIPTS_STORE_NAME)) {
+                db.createObjectStore(RECEIPTS_STORE_NAME, { keyPath: 'receiptId' });
+            }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = (e) => { console.warn('IndexedDB open error:', e.target.error); reject(e.target.error); };
+    });
+    return receiptsDBPromise;
 }
 
-// ============================================================
-// SHOPPING — Poređenje  ⭐ NOVO
-// ============================================================
-function renderShopCompare() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Uporedi dva proizvoda po ceni za istu jedinicu mere.</p>
-            <div class="compare-group">
-                <div class="compare-title">${safeT('label.shop.productA')}</div>
-                ${inputField('label.shop.price', 'shop-cmp-price-a', 'RSD', 'placeholder="200"')}
-                ${inputField('label.shop.quantity', 'shop-cmp-qty-a', '', 'placeholder="1"')}
-                ${selectField('label.shop.unit', 'shop-cmp-unit-a', [
-                    { value: 'kg', text: 'kg' }, { value: 'g', text: 'g' },
-                    { value: 'L', text: 'L' }, { value: 'ml', text: 'ml' }, { value: 'kom', text: 'kom' }
-                ])}
-            </div>
-            <div class="compare-group">
-                <div class="compare-title">${safeT('label.shop.productB')}</div>
-                ${inputField('label.shop.price', 'shop-cmp-price-b', 'RSD', 'placeholder="180"')}
-                ${inputField('label.shop.quantity', 'shop-cmp-qty-b', '', 'placeholder="0.9"')}
-                ${selectField('label.shop.unit', 'shop-cmp-unit-b', [
-                    { value: 'kg', text: 'kg' }, { value: 'g', text: 'g' },
-                    { value: 'L', text: 'L' }, { value: 'ml', text: 'ml' }, { value: 'kom', text: 'kom' }
-                ])}
-            </div>
-            ${calcButton('btn.calculate', 'calculateShopCompare()')}
-        </div>
-        <div id="shop-cmp-result-box" class="result-card-green" style="display: none;">
-            <div class="res-left">
-                <div class="pump-icon">${icon('scale')}</div>
-                <div>
-                    <div class="res-label">${safeT('label.shop.compareResult')}</div>
-                    <h3 id="res-shop-cmp-winner" class="res-text">—</h3>
-                </div>
-            </div>
-            <div class="res-actions">
-                <button class="copy-btn" onclick="copyResult('res-shop-cmp-winner', '', event)">${safeT('result.copy')}</button>
-                <button class="copy-btn" data-category="KUPOVINA" data-label="Poređenje" onclick="saveHistory(this)">${safeT('result.save')}</button>
-                <button class="copy-btn" data-category="KUPOVINA" data-label="Poređenje" onclick="shareResult(this)">${safeT('result.share')}</button>
-            </div>
-        </div>
-        ${statsRow('shop-cmp-stats-row', [
-            ['label.shop.priceA', 'stat-shop-cmp-a', '0'],
-            ['label.shop.priceB', 'stat-shop-cmp-b', '0'],
-            ['label.shop.difference', 'stat-shop-cmp-diff', '0%']
-        ])}
-    `;
-}
-
-function calculateShopCompare() {
-    const priceA = num('shop-cmp-price-a'), qtyA = num('shop-cmp-qty-a');
-    const unitA = el('shop-cmp-unit-a') ? el('shop-cmp-unit-a').value : 'kg';
-    const priceB = num('shop-cmp-price-b'), qtyB = num('shop-cmp-qty-b');
-    const unitB = el('shop-cmp-unit-b') ? el('shop-cmp-unit-b').value : 'kg';
-    if (!priceA || !qtyA || !priceB || !qtyB) { showToast('Unesi sve vrednosti.', 'error'); return; }
-    function toBase(price, qty, unit) {
-        if (unit === 'g' || unit === 'ml') return price / (qty / 1000);
-        return price / qty;
-    }
-    const aBase = toBase(priceA, qtyA, unitA);
-    const bBase = toBase(priceB, qtyB, unitB);
-    const winner = aBase < bBase ? safeT('label.shop.productACheaper')
-        : (bBase < aBase ? safeT('label.shop.productBCheaper') : safeT('label.shop.samePrice'));
-    const rw = el('res-shop-cmp-winner'); if (rw) rw.innerText = winner;
-    const sa = el('stat-shop-cmp-a'); if (sa) sa.innerText = money(aBase);
-    const sb = el('stat-shop-cmp-b'); if (sb) sb.innerText = money(bBase);
-    const sd = el('stat-shop-cmp-diff'); if (sd) sd.innerText = fmt(Math.abs(aBase - bBase) / Math.max(aBase, bBase) * 100, 1) + '%';
-    show('shop-cmp-result-box');
-    show('shop-cmp-stats-row');
-}
-
-// ============================================================
-// SHOPPING — Lista za kupovinu  ⭐ NOVO
-// ============================================================
-const SHOPPING_LIST_KEY = 'cx_shopping_list';
-function loadShoppingList() {
+async function saveReceiptImage(receiptId, file) {
     try {
-        const raw = JSON.parse(localStorage.getItem(SHOPPING_LIST_KEY));
+        const db = await initReceiptsDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(RECEIPTS_STORE_NAME, 'readwrite');
+            const store = tx.objectStore(RECEIPTS_STORE_NAME);
+            const record = {
+                receiptId: String(receiptId),
+                blob: file,
+                mimeType: file.type || 'image/jpeg',
+                uploadedAt: Date.now()
+            };
+            const req = store.put(record);
+            req.onsuccess = () => resolve(record);
+            req.onerror = (e) => reject(e.target.error);
+        });
+    } catch (e) {
+        console.warn('saveReceiptImage error:', e);
+        throw e;
+    }
+}
+
+async function loadReceiptImage(receiptId) {
+    try {
+        const db = await initReceiptsDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(RECEIPTS_STORE_NAME, 'readonly');
+            const store = tx.objectStore(RECEIPTS_STORE_NAME);
+            const req = store.get(String(receiptId));
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = (e) => reject(e.target.error);
+        });
+    } catch (e) {
+        console.warn('loadReceiptImage error:', e);
+        return null;
+    }
+}
+
+async function deleteReceiptImage(receiptId) {
+    try {
+        const db = await initReceiptsDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(RECEIPTS_STORE_NAME, 'readwrite');
+            const store = tx.objectStore(RECEIPTS_STORE_NAME);
+            const req = store.delete(String(receiptId));
+            req.onsuccess = () => resolve();
+            req.onerror = (e) => reject(e.target.error);
+        });
+    } catch (e) {
+        console.warn('deleteReceiptImage error:', e);
+    }
+}
+
+async function compressImage(file, maxWidth = 1600, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    let w = img.width, h = img.height;
+                    if (w > maxWidth) { h = Math.round((maxWidth / w) * h); w = maxWidth; }
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    canvas.toBlob((blob) => {
+                        if (!blob) { reject(new Error('Canvas toBlob failed')); return; }
+                        resolve(blob);
+                    }, 'image/jpeg', quality);
+                } catch (err) { reject(err); }
+            };
+            img.onerror = () => reject(new Error('Image load failed'));
+            img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('FileReader failed'));
+        reader.readAsDataURL(file);
+    });
+}
+
+function loadReceipts() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(RECEIPTS_STORAGE_KEY));
         if (Array.isArray(raw)) return raw;
     } catch (e) {}
     return [];
 }
-function saveShoppingList(list) {
-    try { localStorage.setItem(SHOPPING_LIST_KEY, JSON.stringify(list)); } catch (e) {}
+function saveReceiptsList(list) {
+    try { localStorage.setItem(RECEIPTS_STORAGE_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function getReceiptById(id) {
+    return loadReceipts().find(r => String(r.id) === String(id)) || null;
+}
+function calculateReceiptStats() {
+    const list = loadReceipts();
+    const total = list.length;
+    const unpaid = list.filter(r => !r.paid).length;
+    const thisMonth = new Date().toISOString().slice(0, 7);
+    const thisMonthTotal = list
+        .filter(r => r.period === thisMonth)
+        .reduce((sum, r) => sum + (r.amount || 0), 0);
+    return { total, unpaid, thisMonthTotal };
+}
+function formatPeriodMonth(periodIso) {
+    if (!periodIso) return '';
+    const parts = periodIso.split('-');
+    if (parts.length !== 2) return periodIso;
+    const months = ['januar', 'februar', 'mart', 'april', 'maj', 'jun', 'jul', 'avgust', 'septembar', 'oktobar', 'novembar', 'decembar'];
+    const monthIdx = parseInt(parts[1]) - 1;
+    if (isNaN(monthIdx) || monthIdx < 0 || monthIdx > 11) return periodIso;
+    return months[monthIdx] + ' ' + parts[0];
+}
+function daysBetweenToday(isoDate) {
+    if (!isoDate) return null;
+    const parts = isoDate.split('-').map(Number);
+    if (parts.length !== 3) return null;
+    const target = new Date(parts[0], parts[1] - 1, parts[2]);
+    target.setHours(0, 0, 0, 0);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return Math.round((target - today) / 86400000);
 }
 
-function renderShopLista() {
+// ---------- Sync: receipt ↔ cx_bills ----------
+function syncReceiptToBill(receipt) {
+    if (!receipt) return;
+    let bills = loadReminders('cx_bills');
+    const existingIdx = bills.findIndex(b => String(b.receiptId) === String(receipt.id));
+    if (receipt.paid) {
+        if (existingIdx !== -1) {
+            bills.splice(existingIdx, 1);
+            saveReminders('cx_bills', bills);
+        }
+        return;
+    }
+    const catLabel = safeT('receipt.category.' + (receipt.category || 'ostalo'));
+    const periodLabel = formatPeriodMonth(receipt.period);
+    const billName = catLabel + (periodLabel ? ' — ' + periodLabel : '');
+    const dueParts = receipt.dueDate ? receipt.dueDate.split('-').map(Number) : null;
+    const dayOfMonth = dueParts ? dueParts[2] : 1;
+    const billData = {
+        id: 'receipt_bill_' + receipt.id,
+        receiptId: receipt.id,
+        source: 'receipt',
+        name: billName,
+        amount: receipt.amount || 0,
+        currency: receipt.currency || 'RSD',
+        period: 'monthly',
+        dayOfMonth,
+        remindBefore: receipt.remindBefore || 3,
+        paid: false
+    };
+    if (existingIdx !== -1) bills[existingIdx] = Object.assign({}, bills[existingIdx], billData);
+    else bills.push(billData);
+    saveReminders('cx_bills', bills);
+}
+function removeBillByReceiptId(receiptId) {
+    let bills = loadReminders('cx_bills');
+    const before = bills.length;
+    bills = bills.filter(b => String(b.receiptId) !== String(receiptId));
+    if (bills.length !== before) saveReminders('cx_bills', bills);
+}
+
+// ---------- STATE ----------
+let receiptState = {
+    editingId: null,
+    draftImageBlob: null,
+    draftCategory: 'struja',
+    draftPaid: false,
+    removeImage: false,
+    currentObjectUrl: null
+};
+let receiptDetailsObjectUrl = null;
+
+// ============================================================
+// TAB 1: MOJI RACUNI (postojeći)
+// ============================================================
+function renderRacuni() {
+    const list = loadReceipts();
+    const stats = calculateReceiptStats();
+
+    let html = '';
+
+    html += `<div class="receipt-screen-header">
+        <div>
+            <div style="font-size:1.05rem;font-weight:900;color:var(--text-main);">${safeT('receipt.title')}</div>
+            <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;margin-top:2px;">${safeT('tab.racuni.moji')}</div>
+        </div>
+        <button class="receipt-add-btn" onclick="openReceiptModal()">
+            📸 ${safeT('receipt.add')}
+        </button>
+    </div>`;
+
+    html += `<div class="receipt-search-wrap">
+        <input type="text" id="receipt-search" class="receipt-search" placeholder="${safeT('receipt.search')}" oninput="renderRacuniList()">
+    </div>`;
+
+    html += `<div class="receipt-stats">
+        <div class="receipt-stat">
+            <div class="receipt-stat-value">${stats.total}</div>
+            <div class="receipt-stat-label">${safeT('receipt.stats.total')}</div>
+        </div>
+        <div class="receipt-stat">
+            <div class="receipt-stat-value unpaid">${stats.unpaid}</div>
+            <div class="receipt-stat-label">${safeT('receipt.stats.unpaid')}</div>
+        </div>
+        <div class="receipt-stat">
+            <div class="receipt-stat-value month">${fmt(stats.thisMonthTotal, 0)}</div>
+            <div class="receipt-stat-label">${safeT('receipt.stats.thisMonth')}</div>
+        </div>
+    </div>`;
+
+    html += `<div id="receipt-list-container"></div>`;
+
+    if (list.length > 0) html += renderReceiptTrend(list);
+
+    setTimeout(() => { renderRacuniList(); }, 0);
+
+    return html;
+}
+
+function renderRacuniList() {
+    const container = el('receipt-list-container');
+    if (!container) return;
+    const list = loadReceipts();
+    const query = (el('receipt-search') ? el('receipt-search').value : '').trim().toLowerCase();
+
+    let filtered = list;
+    if (query) {
+        filtered = list.filter(r => {
+            const catLabel = safeT('receipt.category.' + (r.category || 'ostalo')).toLowerCase();
+            const note = (r.note || '').toLowerCase();
+            const period = (r.period || '').toLowerCase();
+            const amountStr = String(r.amount || '');
+            return catLabel.includes(query) || note.includes(query) || period.includes(query) || amountStr.includes(query);
+        });
+    }
+
+    const unpaid = filtered.filter(r => !r.paid).sort((a, b) => {
+        if (!a.dueDate && !b.dueDate) return b.createdAt - a.createdAt;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate) - new Date(b.dueDate);
+    });
+    const paid = filtered.filter(r => r.paid).sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
+
+    let html = '';
+
+    if (unpaid.length > 0) {
+        html += `<div class="receipt-section-title" style="color:#f43f5e;">🔴 ${safeT('receipt.unpaid')}</div>`;
+        html += `<div class="receipt-list">`;
+        unpaid.forEach(r => { html += renderReceiptCard(r); });
+        html += `</div>`;
+    }
+
+    if (paid.length > 0) {
+        html += `<div class="receipt-section-title" style="color:#10b981;">✅ ${safeT('receipt.paid')}</div>`;
+        html += `<div class="receipt-list">`;
+        paid.forEach(r => { html += renderReceiptCard(r); });
+        html += `</div>`;
+    }
+
+    if (filtered.length === 0) {
+        html = `<div class="receipt-empty">
+            <div class="receipt-empty-icon">📄</div>
+            <div>${list.length === 0 ? safeT('receipt.noReceipts') : safeT('receipt.noReceiptsYet')}</div>
+        </div>`;
+    }
+
+    container.innerHTML = html;
+
+    setTimeout(() => loadReceiptThumbnails(), 50);
+}
+
+function renderReceiptCard(r) {
+    const catLabel = safeT('receipt.category.' + (r.category || 'ostalo'));
+    const periodLabel = formatPeriodMonth(r.period);
+    const days = !r.paid && r.dueDate ? daysBetweenToday(r.dueDate) : null;
+
+    let dueText = '';
+    let dueClass = '';
+    if (!r.paid && days !== null) {
+        if (days < 0) { dueText = `${safeT('receipt.overdueBy')} ${Math.abs(days)} ${safeT('receipt.daysLeft')}`; dueClass = 'overdue'; }
+        else if (days === 0) { dueText = safeT('brziPregled.today'); dueClass = 'soon'; }
+        else if (days <= 3) { dueText = `${safeT('receipt.dueIn')} ${days} ${safeT('receipt.daysLeft')}`; dueClass = 'soon'; }
+        else { dueText = `${safeT('receipt.dueIn')} ${days} ${safeT('receipt.daysLeft')}`; dueClass = 'ok'; }
+    }
+
+    const statusClass = r.paid ? 'paid' : (days !== null && days < 0 ? 'overdue' : 'unpaid');
+
     return `
-        <div class="converter-box">
-            <div class="lista-head">
-                <div class="section-desc" style="margin:0;">${safeT('tab.shopping.lista')}</div>
-                <button class="lista-clear-btn" onclick="clearShoppingList()">${safeT('btn.clearWholeList')}</button>
+        <div class="receipt-card ${statusClass}" data-receipt-id="${escapeHtml(r.id)}">
+            <div class="receipt-thumb" data-thumb-id="${escapeHtml(r.id)}">
+                <div class="receipt-thumb-empty">📄</div>
             </div>
-            <div id="lista-items"></div>
-            <div class="input-field">
-                <label>${safeT('label.shop.itemName')}</label>
-                <div class="input-wrapper">
-                    <input type="text" id="lista-name" class="custom-input" placeholder="${safeT('placeholder.itemName')}">
+            <div class="receipt-card-body">
+                <div class="receipt-card-title">${escapeHtml(catLabel)}${periodLabel ? ' — ' + escapeHtml(periodLabel) : ''}</div>
+                <div class="receipt-card-amount">${fmt(r.amount, 0)} ${r.currency || 'RSD'}</div>
+                <div class="receipt-card-meta">
+                    ${r.dueDate ? `<span>📅 ${escapeHtml(r.dueDate)}</span>` : ''}
+                    ${r.paid && r.paidDate ? `<span>✅ ${escapeHtml(r.paidDate)}</span>` : ''}
+                </div>
+                ${dueText ? `<div class="receipt-card-due ${dueClass}">⚠ ${escapeHtml(dueText)}</div>` : ''}
+            </div>
+            <div class="receipt-card-actions" onclick="event.stopPropagation();">
+                <button class="receipt-card-action primary" onclick="openReceiptDetails('${escapeHtml(r.id)}')">
+                    ${safeT('receipt.details')}
+                </button>
+                ${!r.paid
+                    ? `<button class="receipt-card-action" onclick="markReceiptPaid('${escapeHtml(r.id)}')">✅ ${safeT('receipt.markPaid')}</button>`
+                    : `<button class="receipt-card-action" onclick="markReceiptUnpaid('${escapeHtml(r.id)}')">↩ ${safeT('receipt.markUnpaid')}</button>`}
+                <button class="receipt-card-action danger" onclick="deleteReceipt('${escapeHtml(r.id)}')">🗑</button>
+            </div>
+        </div>
+    `;
+}
+
+async function loadReceiptThumbnails() {
+    const list = loadReceipts();
+    for (const r of list) {
+        if (!r.hasImage) continue;
+        const thumb = document.querySelector(`[data-thumb-id="${r.id}"]`);
+        if (!thumb || thumb.dataset.loaded === '1') continue;
+        try {
+            const rec = await loadReceiptImage(r.id);
+            if (!rec || !rec.blob) continue;
+            const url = URL.createObjectURL(rec.blob);
+            thumb.innerHTML = `<img src="${url}" alt="" loading="lazy">`;
+            thumb.dataset.loaded = '1';
+        } catch (e) {}
+    }
+}
+
+function renderReceiptTrend(list) {
+    const now = new Date();
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        months.push({ key, label: d.toLocaleDateString('sr-RS', { month: 'short' }), total: 0 });
+    }
+    list.forEach(r => {
+        const m = months.find(x => x.key === r.period);
+        if (m) m.total += r.amount || 0;
+    });
+    const maxTotal = Math.max(...months.map(m => m.total), 1);
+    const avg = months.reduce((s, m) => s + m.total, 0) / months.length;
+    const thisMonth = months[months.length - 1].total;
+    const diffPct = avg > 0 ? ((thisMonth - avg) / avg) * 100 : 0;
+
+    let barsHtml = '';
+    months.forEach((m, i) => {
+        const h = Math.max(4, (m.total / maxTotal) * 60);
+        const isCurrent = i === months.length - 1;
+        barsHtml += `<div class="receipt-trend-bar${isCurrent ? ' current' : ''}" style="height: ${h}px;" title="${m.label}: ${fmt(m.total, 0)} RSD"></div>`;
+    });
+
+    return `
+        <div class="receipt-trend-card">
+            <div class="receipt-trend-title">📈 ${safeT('receipt.trend')}</div>
+            <div class="receipt-trend-chart">${barsHtml}</div>
+            <div class="receipt-trend-labels">
+                ${months.map(m => `<span>${m.label}</span>`).join('')}
+            </div>
+            <div class="receipt-trend-stats">
+                <span>${safeT('receipt.average')}: <strong>${fmt(avg, 0)} RSD</strong></span>
+                <span>${safeT('receipt.thisMonthTotal')}: <strong>${fmt(thisMonth, 0)} RSD</strong> ${diffPct !== 0 ? `<span style="color:${diffPct > 0 ? '#f43f5e' : '#10b981'};">${diffPct > 0 ? '+' : ''}${fmt(diffPct, 1)}%</span>` : ''}</span>
+            </div>
+        </div>
+    `;
+}
+
+// ============================================================
+// TAB 2: PREGLED PO KATEGORIJAMA (NOVO)
+// ============================================================
+let racuniPregledFilter = {
+    category: 'all',
+    status: 'all',
+    period: 'all'
+};
+
+function renderRacuniPregled() {
+    const list = loadReceipts();
+
+    let html = '';
+
+    // Smart summary panel
+    html += renderRacuniPregledSummary(list);
+
+    // Filter bar
+    html += renderRacuniPregledFilters(list);
+
+    // Category cards
+    html += `<div id="racuni-pregled-categories"></div>`;
+
+    // Upcoming reminders
+    html += renderRacuniPregledUpcoming(list);
+
+    setTimeout(() => { renderRacuniPregledList(); }, 0);
+
+    return html;
+}
+
+function renderRacuniPregledSummary(list) {
+    const now = new Date();
+    const thisMonth = now.toISOString().slice(0, 7);
+    const thisMonthList = list.filter(r => r.period === thisMonth);
+    const totalMonth = thisMonthList.reduce((s, r) => s + (r.amount || 0), 0);
+    const paidMonth = thisMonthList.filter(r => r.paid).reduce((s, r) => s + (r.amount || 0), 0);
+    const unpaidMonth = thisMonthList.filter(r => !r.paid).reduce((s, r) => s + (r.amount || 0), 0);
+    const unpaidCount = thisMonthList.filter(r => !r.paid).length;
+
+    // Smart insight
+    let insight = '';
+    if (unpaidCount > 0) {
+        insight = `Imaš ${unpaidCount} ${unpaidCount === 1 ? 'neplaćen' : 'neplaćenih'} ${unpaidCount === 1 ? 'račun' : 'računa'} za ${formatPeriodMonth(thisMonth)} — ukupno ${fmt(unpaidMonth, 0)} RSD.`;
+    } else if (thisMonthList.length > 0) {
+        insight = `Svi računi za ${formatPeriodMonth(thisMonth)} su plaćeni. Bravo! 🎉`;
+    } else {
+        insight = `Još nema računa za ${formatPeriodMonth(thisMonth)}.`;
+    }
+
+    return `
+        <div class="racuni-pregled-summary">
+            <div class="racuni-pregled-summary-title">📊 ${formatPeriodMonth(thisMonth)}</div>
+            <div class="racuni-pregled-summary-grid">
+                <div class="racuni-pregled-summary-item">
+                    <div class="racuni-pregled-summary-value">${fmt(totalMonth, 0)}</div>
+                    <div class="racuni-pregled-summary-label">Ukupno</div>
+                </div>
+                <div class="racuni-pregled-summary-item">
+                    <div class="racuni-pregled-summary-value paid">${fmt(paidMonth, 0)}</div>
+                    <div class="racuni-pregled-summary-label">Plaćeno</div>
+                </div>
+                <div class="racuni-pregled-summary-item">
+                    <div class="racuni-pregled-summary-value unpaid">${fmt(unpaidMonth, 0)}</div>
+                    <div class="racuni-pregled-summary-label">Neplaćeno</div>
                 </div>
             </div>
-            <div class="input-field">
-                <label>${safeT('label.shop.qtyOptional')}</label>
-                <div class="input-wrapper">
-                    <input type="text" id="lista-qty" class="custom-input" placeholder="${safeT('placeholder.qty')}">
+            <div class="racuni-pregled-insight">💡 ${insight}</div>
+        </div>
+    `;
+}
+
+function renderRacuniPregledFilters(list) {
+    const categories = ['all', 'struja', 'voda', 'komunalije', 'grejanje', 'porez', 'internet', 'telefon', 'info', 'kirija', 'ostalo'];
+    const periods = ['all'];
+    const seenPeriods = new Set();
+    list.forEach(r => { if (r.period) seenPeriods.add(r.period); });
+    const sortedPeriods = Array.from(seenPeriods).sort().reverse();
+    periods.push(...sortedPeriods);
+
+    let catOptions = `<option value="all">Sve kategorije</option>`;
+    categories.slice(1).forEach(c => {
+        const sel = racuniPregledFilter.category === c ? ' selected' : '';
+        catOptions += `<option value="${c}"${sel}>${safeT('receipt.category.' + c)}</option>`;
+    });
+
+    let periodOptions = `<option value="all">Svi meseci</option>`;
+    sortedPeriods.forEach(p => {
+        const sel = racuniPregledFilter.period === p ? ' selected' : '';
+        periodOptions += `<option value="${p}"${sel}>${formatPeriodMonth(p)}</option>`;
+    });
+
+    return `
+        <div class="racuni-pregled-filters">
+            <select id="rp-filter-category" class="racuni-pregled-filter" onchange="onRacuniPregledFilterChange()">${catOptions}</select>
+            <select id="rp-filter-period" class="racuni-pregled-filter" onchange="onRacuniPregledFilterChange()">${periodOptions}</select>
+            <select id="rp-filter-status" class="racuni-pregled-filter" onchange="onRacuniPregledFilterChange()">
+                <option value="all"${racuniPregledFilter.status === 'all' ? ' selected' : ''}>Svi statusi</option>
+                <option value="unpaid"${racuniPregledFilter.status === 'unpaid' ? ' selected' : ''}>Neplaćeno</option>
+                <option value="paid"${racuniPregledFilter.status === 'paid' ? ' selected' : ''}>Plaćeno</option>
+            </select>
+        </div>
+    `;
+}
+
+function onRacuniPregledFilterChange() {
+    racuniPregledFilter.category = el('rp-filter-category') ? el('rp-filter-category').value : 'all';
+    racuniPregledFilter.period = el('rp-filter-period') ? el('rp-filter-period').value : 'all';
+    racuniPregledFilter.status = el('rp-filter-status') ? el('rp-filter-status').value : 'all';
+    renderRacuniPregledList();
+    vibrate(8);
+}
+
+function renderRacuniPregledList() {
+    const container = el('racuni-pregled-categories');
+    if (!container) return;
+    const list = loadReceipts();
+
+    let filtered = list;
+    if (racuniPregledFilter.category !== 'all') filtered = filtered.filter(r => r.category === racuniPregledFilter.category);
+    if (racuniPregledFilter.period !== 'all') filtered = filtered.filter(r => r.period === racuniPregledFilter.period);
+    if (racuniPregledFilter.status === 'unpaid') filtered = filtered.filter(r => !r.paid);
+    if (racuniPregledFilter.status === 'paid') filtered = filtered.filter(r => r.paid);
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<div class="receipt-empty" style="margin-top: 16px;"><div class="receipt-empty-icon">🔍</div><div>Nema računa za izabrane filtere.</div></div>`;
+        return;
+    }
+
+    // Group by category
+    const byCat = {};
+    filtered.forEach(r => {
+        const cat = r.category || 'ostalo';
+        if (!byCat[cat]) byCat[cat] = { total: 0, count: 0, unpaid: 0, paid: 0 };
+        byCat[cat].total += r.amount || 0;
+        byCat[cat].count++;
+        if (r.paid) byCat[cat].paid += r.amount || 0;
+        else byCat[cat].unpaid += r.amount || 0;
+    });
+
+    const sortedCats = Object.keys(byCat).sort((a, b) => byCat[b].total - byCat[a].total);
+    const maxTotal = Math.max(...sortedCats.map(c => byCat[c].total), 1);
+
+    let html = `<div class="racuni-pregled-cats-list">`;
+    sortedCats.forEach(cat => {
+        const data = byCat[cat];
+        const catLabel = safeT('receipt.category.' + cat);
+        const progress = data.total > 0 ? (data.paid / data.total) * 100 : 0;
+        const barWidth = (data.total / maxTotal) * 100;
+        const color = getReceiptCategoryColor(cat);
+
+        html += `
+            <div class="racuni-pregled-cat-card" style="--cat-color: ${color};">
+                <div class="racuni-pregled-cat-header">
+                    <div class="racuni-pregled-cat-icon">${icon(getReceiptCategoryIcon(cat))}</div>
+                    <div class="racuni-pregled-cat-name">${escapeHtml(catLabel)}</div>
+                    <div class="racuni-pregled-cat-count">${data.count}×</div>
+                </div>
+                <div class="racuni-pregled-cat-amount">${fmt(data.total, 0)} RSD</div>
+                <div class="racuni-pregled-cat-bar-wrap">
+                    <div class="racuni-pregled-cat-bar" style="width: ${barWidth}%;"></div>
+                </div>
+                <div class="racuni-pregled-cat-status">
+                    <span style="color: #10b981;">✅ ${fmt(data.paid, 0)}</span>
+                    ${data.unpaid > 0 ? `<span style="color: #f43f5e;">⚠ ${fmt(data.unpaid, 0)}</span>` : ''}
+                </div>
+                ${data.total > 0 ? `<div class="racuni-pregled-cat-progress"><div class="racuni-pregled-cat-progress-fill" style="width: ${progress}%;"></div></div>` : ''}
+            </div>
+        `;
+    });
+    html += `</div>`;
+
+    container.innerHTML = html;
+}
+
+function renderRacuniPregledUpcoming(list) {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const upcoming = list.filter(r => !r.paid && r.dueDate).map(r => {
+        const days = daysBetweenToday(r.dueDate);
+        return { ...r, days };
+    }).filter(r => r.days !== null && r.days >= 0 && r.days <= 7).sort((a, b) => a.days - b.days);
+
+    if (upcoming.length === 0) return '';
+
+    let html = `
+        <div class="racuni-pregled-upcoming">
+            <div class="racuni-pregled-upcoming-title">⏰ Dospeva u narednih 7 dana</div>
+            <div class="racuni-pregled-upcoming-list">
+    `;
+    upcoming.forEach(r => {
+        const catLabel = safeT('receipt.category.' + (r.category || 'ostalo'));
+        const dayText = r.days === 0 ? 'Danas' : r.days === 1 ? 'Sutra' : `${r.days} d.`;
+        const dayClass = r.days === 0 ? 'today' : r.days <= 2 ? 'soon' : 'ok';
+        html += `
+            <div class="racuni-pregled-upcoming-item">
+                <div class="racuni-pregled-upcoming-info">
+                    <div class="racuni-pregled-upcoming-name">${escapeHtml(catLabel)}</div>
+                    <div class="racuni-pregled-upcoming-meta">${escapeHtml(r.dueDate)} • ${fmt(r.amount, 0)} RSD</div>
+                </div>
+                <div class="racuni-pregled-upcoming-days ${dayClass}">${dayText}</div>
+                <button class="racuni-pregled-upcoming-btn" onclick="markReceiptPaid('${escapeHtml(r.id)}'); renderRacuniPregledRefresh();">✅</button>
+            </div>
+        `;
+    });
+    html += `</div></div>`;
+    return html;
+}
+
+function renderRacuniPregledRefresh() {
+    const body = el('calc-body');
+    if (body && activeTab === 'pregled' && activeCategory === 'racuni') {
+        body.innerHTML = renderRacuniPregled();
+    }
+}
+
+function getReceiptCategoryColor(cat) {
+    const colors = {
+        struja: '#eab308',
+        voda: '#0ea5e9',
+        komunalije: '#8b5cf6',
+        grejanje: '#f97316',
+        porez: '#dc2626',
+        internet: '#06b6d4',
+        telefon: '#14b8a6',
+        info: '#6366f1',
+        kirija: '#ec4899',
+        ostalo: '#6b7280'
+    };
+    return colors[cat] || '#6b7280';
+}
+
+function getReceiptCategoryIcon(cat) {
+    const icons = {
+        struja: 'zap',
+        voda: 'droplet',
+        komunalije: 'building',
+        grejanje: 'flame',
+        porez: 'receipt',
+        internet: 'globe',
+        telefon: 'bell',
+        info: 'info',
+        kirija: 'home',
+        ostalo: 'fileText'
+    };
+    return icons[cat] || 'fileText';
+}
+
+// ============================================================
+// TAB 3: ANALIZA (NOVO)
+// ============================================================
+function renderRacuniAnaliza() {
+    const list = loadReceipts();
+
+    let html = '';
+
+    // Top summary
+    html += renderRacuniAnalizaTopSummary(list);
+
+    // Bar chart — last 6 months
+    html += renderRacuniAnalizaMonthlyChart(list);
+
+    // Comparison with previous month
+    html += renderRacuniAnalizaComparison(list);
+
+    // Top spenders
+    html += renderRacuniAnalizaTopSpenders(list);
+
+    // Prediction
+    html += renderRacuniAnalizaPrediction(list);
+
+    // Smart advice
+    html += renderRacuniAnalizaAdvice(list);
+
+    setTimeout(() => { renderRacuniAnalizaAll(); }, 0);
+
+    return html;
+}
+
+function renderRacuniAnalizaAll() {
+    // Helper koji poziva refresh svih dinamičkih delova
+    const list = loadReceipts();
+    const monthlyEl = el('racuni-analiza-monthly-chart');
+    if (monthlyEl) {
+        const now = new Date();
+        const months = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+            months.push({ key, label: d.toLocaleDateString('sr-RS', { month: 'short' }), total: 0 });
+        }
+        list.forEach(r => {
+            const m = months.find(x => x.key === r.period);
+            if (m) m.total += r.amount || 0;
+        });
+        const maxTotal = Math.max(...months.map(m => m.total), 1);
+        let barsHtml = '';
+        months.forEach((m, i) => {
+            const h = Math.max(8, (m.total / maxTotal) * 100);
+            const isCurrent = i === months.length - 1;
+            barsHtml += `<div class="racuni-analiza-bar-wrap"><div class="racuni-analiza-bar${isCurrent ? ' current' : ''}" style="height: ${h}%;" title="${m.label}: ${fmt(m.total, 0)} RSD"></div></div>`;
+        });
+        monthlyEl.innerHTML = barsHtml;
+    }
+}
+
+function renderRacuniAnalizaTopSummary(list) {
+    const allTime = list.reduce((s, r) => s + (r.amount || 0), 0);
+    const paid = list.filter(r => r.paid).reduce((s, r) => s + (r.amount || 0), 0);
+    const unpaid = list.filter(r => !r.paid).reduce((s, r) => s + (r.amount || 0), 0);
+
+    const periodSet = new Set(list.map(r => r.period).filter(Boolean));
+    const months = periodSet.size || 1;
+    const avgMonth = allTime / months;
+
+    return `
+        <div class="racuni-analiza-summary">
+            <div class="racuni-analiza-summary-item">
+                <div class="racuni-analiza-summary-value">${fmt(allTime, 0)}</div>
+                <div class="racuni-analiza-summary-label">Ukupno (sve vreme)</div>
+            </div>
+            <div class="racuni-analiza-summary-item">
+                <div class="racuni-analiza-summary-value paid">${fmt(paid, 0)}</div>
+                <div class="racuni-analiza-summary-label">Plaćeno</div>
+            </div>
+            <div class="racuni-analiza-summary-item">
+                <div class="racuni-analiza-summary-value unpaid">${fmt(unpaid, 0)}</div>
+                <div class="racuni-analiza-summary-label">Neplaćeno</div>
+            </div>
+            <div class="racuni-analiza-summary-item">
+                <div class="racuni-analiza-summary-value">${fmt(avgMonth, 0)}</div>
+                <div class="racuni-analiza-summary-label">Prosečno/mesec</div>
+            </div>
+        </div>
+    `;
+}
+
+function renderRacuniAnalizaMonthlyChart(list) {
+    const now = new Date();
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        months.push({ key, label: d.toLocaleDateString('sr-RS', { month: 'short' }), total: 0 });
+    }
+    list.forEach(r => {
+        const m = months.find(x => x.key === r.period);
+        if (m) m.total += r.amount || 0;
+    });
+    const maxTotal = Math.max(...months.map(m => m.total), 1);
+
+    let barsHtml = '';
+    months.forEach((m, i) => {
+        const h = Math.max(8, (m.total / maxTotal) * 100);
+        const isCurrent = i === months.length - 1;
+        barsHtml += `<div class="racuni-analiza-bar-wrap"><div class="racuni-analiza-bar${isCurrent ? ' current' : ''}" style="height: ${h}%;" title="${m.label}: ${fmt(m.total, 0)} RSD"></div></div>`;
+    });
+
+    return `
+        <div class="racuni-analiza-chart-card">
+            <div class="racuni-analiza-chart-title">📈 Troškovi po mesecima</div>
+            <div class="racuni-analiza-chart" id="racuni-analiza-monthly-chart">${barsHtml}</div>
+            <div class="racuni-analiza-chart-labels">
+                ${months.map(m => `<span>${m.label}</span>`).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function renderRacuniAnalizaComparison(list) {
+    const now = new Date();
+    const thisMonth = now.toISOString().slice(0, 7);
+    const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonth = lastMonthDate.toISOString().slice(0, 7);
+
+    const thisTotal = list.filter(r => r.period === thisMonth).reduce((s, r) => s + (r.amount || 0), 0);
+    const lastTotal = list.filter(r => r.period === lastMonth).reduce((s, r) => s + (r.amount || 0), 0);
+
+    if (lastTotal === 0 && thisTotal === 0) return '';
+
+    const diff = thisTotal - lastTotal;
+    const diffPct = lastTotal > 0 ? (diff / lastTotal) * 100 : 0;
+    const color = diff > 0 ? '#f43f5e' : diff < 0 ? '#10b981' : '#6b7280';
+    const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+
+    return `
+        <div class="racuni-analiza-comparison-card" style="--diff-color: ${color};">
+            <div class="racuni-analiza-comparison-title">📊 Poređenje sa prošlim mesecom</div>
+            <div class="racuni-analiza-comparison-grid">
+                <div class="racuni-analiza-comparison-item">
+                    <div class="racuni-analiza-comparison-label">${formatPeriodMonth(lastMonth)}</div>
+                    <div class="racuni-analiza-comparison-value">${fmt(lastTotal, 0)} RSD</div>
+                </div>
+                <div class="racuni-analiza-comparison-arrow" style="color: ${color};">${arrow}</div>
+                <div class="racuni-analiza-comparison-item">
+                    <div class="racuni-analiza-comparison-label">${formatPeriodMonth(thisMonth)}</div>
+                    <div class="racuni-analiza-comparison-value">${fmt(thisTotal, 0)} RSD</div>
                 </div>
             </div>
+            <div class="racuni-analiza-comparison-diff" style="color: ${color};">
+                ${diff > 0 ? '+' : ''}${fmt(diff, 0)} RSD (${diff > 0 ? '+' : ''}${fmt(diffPct, 1)}%)
+            </div>
+        </div>
+    `;
+}
+
+function renderRacuniAnalizaTopSpenders(list) {
+    if (list.length === 0) return '';
+    const byCat = {};
+    list.forEach(r => {
+        const cat = r.category || 'ostalo';
+        if (!byCat[cat]) byCat[cat] = 0;
+        byCat[cat] += r.amount || 0;
+    });
+    const sorted = Object.keys(byCat).sort((a, b) => byCat[b] - byCat[a]).slice(0, 3);
+    if (sorted.length === 0) return '';
+
+    let html = `
+        <div class="racuni-analiza-topspenders">
+            <div class="racuni-analiza-topspenders-title">🏆 Top 3 kategorije (sve vreme)</div>
+            <div class="racuni-analiza-topspenders-list">
+    `;
+    sorted.forEach((cat, idx) => {
+        const catLabel = safeT('receipt.category.' + cat);
+        const color = getReceiptCategoryColor(cat);
+        const medal = ['🥇', '🥈', '🥉'][idx];
+        html += `
+            <div class="racuni-analiza-topspenders-item" style="--cat-color: ${color};">
+                <div class="racuni-analiza-topspenders-medal">${medal}</div>
+                <div class="racuni-analiza-topspenders-name">${escapeHtml(catLabel)}</div>
+                <div class="racuni-analiza-topspenders-value">${fmt(byCat[cat], 0)} RSD</div>
+            </div>
+        `;
+    });
+    html += `</div></div>`;
+    return html;
+}
+
+function renderRacuniAnalizaPrediction(list) {
+    const now = new Date();
+    const last3 = [];
+    for (let i = 1; i <= 3; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        last3.push(d.toISOString().slice(0, 7));
+    }
+    const totals = last3.map(p => list.filter(r => r.period === p).reduce((s, r) => s + (r.amount || 0), 0));
+    const validTotals = totals.filter(t => t > 0);
+    if (validTotals.length === 0) return '';
+    const avg = validTotals.reduce((s, t) => s + t, 0) / validTotals.length;
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString().slice(0, 7);
+
+    return `
+        <div class="racuni-analiza-prediction">
+            <div class="racuni-analiza-prediction-title">🔮 Predikcija za ${formatPeriodMonth(nextMonth)}</div>
+            <div class="racuni-analiza-prediction-value">${fmt(avg, 0)} RSD</div>
+            <div class="racuni-analiza-prediction-sub">Na osnovu proseka poslednjih ${validTotals.length} ${validTotals.length === 1 ? 'meseca' : 'meseci'}</div>
+        </div>
+    `;
+}
+
+function renderRacuniAnalizaAdvice(list) {
+    const now = new Date();
+    const thisMonth = now.toISOString().slice(0, 7);
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().slice(0, 7);
+
+    const byCatThis = {};
+    const byCatLast = {};
+    list.forEach(r => {
+        if (r.period === thisMonth) byCatThis[r.category] = (byCatThis[r.category] || 0) + (r.amount || 0);
+        if (r.period === lastMonth) byCatLast[r.category] = (byCatLast[r.category] || 0) + (r.amount || 0);
+    });
+
+    const warnings = [];
+    Object.keys(byCatThis).forEach(cat => {
+        const cur = byCatThis[cat];
+        const prev = byCatLast[cat] || 0;
+        if (prev > 0) {
+            const pct = ((cur - prev) / prev) * 100;
+            if (pct > 20) warnings.push({ cat, pct });
+        }
+    });
+
+    if (warnings.length === 0) {
+        return `
+            <div class="racuni-analiza-advice racuni-analiza-advice-ok">
+                <div class="racuni-analiza-advice-icon">✅</div>
+                <div class="racuni-analiza-advice-text">Sve je pod kontrolom — nema značajnih porasta troškova.</div>
+            </div>
+        `;
+    }
+
+    warnings.sort((a, b) => b.pct - a.pct);
+    const top = warnings[0];
+    const catLabel = safeT('receipt.category.' + top.cat);
+
+    return `
+        <div class="racuni-analiza-advice racuni-analiza-advice-warning">
+            <div class="racuni-analiza-advice-icon">⚠️</div>
+            <div class="racuni-analiza-advice-text">
+                <strong>${escapeHtml(catLabel)}</strong> ti je porasla <strong>+${fmt(top.pct, 0)}%</strong> u odnosu na prošli mesec. Proveri potrošnju.
+            </div>
+        </div>
+    `;
+}
+
+// ============================================================
+// FORMA — MODAL
+// ============================================================
+function openReceiptModal(receiptId = null) {
+    const modal = el('receipt-modal');
+    const body = el('receipt-modal-body');
+    const titleEl = el('receipt-modal-title');
+    if (!modal || !body) return;
+
+    const isEdit = !!receiptId;
+    const r = isEdit ? getReceiptById(receiptId) : null;
+
+    receiptState.editingId = isEdit ? receiptId : null;
+    receiptState.draftImageBlob = null;
+    receiptState.draftCategory = r ? r.category : 'struja';
+    receiptState.draftPaid = r ? !!r.paid : false;
+    receiptState.removeImage = false;
+    receiptState.currentObjectUrl = null;
+
+    if (titleEl) titleEl.textContent = isEdit ? safeT('receipt.edit') : safeT('receipt.new');
+
+    body.innerHTML = buildReceiptForm(r);
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+    vibrate(15);
+    playTick(0, 1400, 0.06, 0.02);
+
+    if (isEdit && r && r.hasImage) {
+        (async () => {
+            try {
+                const rec = await loadReceiptImage(receiptId);
+                if (rec && rec.blob) {
+                    const url = URL.createObjectURL(rec.blob);
+                    receiptState.currentObjectUrl = url;
+                    const prev = el('receipt-preview-wrap');
+                    const empty = el('receipt-upload-area');
+                    if (prev) {
+                        prev.style.display = 'block';
+                        const img = el('receipt-preview-img');
+                        if (img) img.src = url;
+                        if (empty) empty.style.display = 'none';
+                    }
+                }
+            } catch (e) {}
+        })();
+    }
+}
+
+function buildReceiptForm(r) {
+    const isEdit = !!r;
+    const now = new Date();
+    const defaultPeriod = r ? r.period : now.toISOString().slice(0, 7);
+    const defaultDueDate = r && r.dueDate ? r.dueDate : '';
+
+    const categories = ['struja','voda','komunalije','grejanje','porez','internet','telefon','info','kirija','ostalo'];
+    let chipsHtml = '';
+    categories.forEach(cat => {
+        const sel = (receiptState.draftCategory === cat) ? ' selected' : '';
+        chipsHtml += `<button type="button" class="receipt-chip${sel}" data-cat="${cat}" onclick="selectReceiptCategory('${cat}', this)">${safeT('receipt.category.' + cat)}</button>`;
+    });
+
+    const paidSel = receiptState.draftPaid ? ' selected' : '';
+    const unpaidSel = receiptState.draftPaid ? '' : ' selected';
+
+    const months = ['januar', 'februar', 'mart', 'april', 'maj', 'jun', 'jul', 'avgust', 'septembar', 'oktobar', 'novembar', 'decembar'];
+    const periodParts = (defaultPeriod || '').split('-');
+    const curMonth = periodParts[1] ? parseInt(periodParts[1]) : (now.getMonth() + 1);
+    const curYear = periodParts[0] ? parseInt(periodParts[0]) : now.getFullYear();
+    let monthOptions = '';
+    months.forEach((m, i) => {
+        const v = i + 1;
+        const sel = (v === curMonth) ? ' selected' : '';
+        monthOptions += `<option value="${v}"${sel}>${m}</option>`;
+    });
+    let yearOptions = '';
+    for (let y = now.getFullYear() - 2; y <= now.getFullYear() + 1; y++) {
+        const sel = (y === curYear) ? ' selected' : '';
+        yearOptions += `<option value="${y}"${sel}>${y}</option>`;
+    }
+
+    return `
+        <div class="receipt-form-step">
+            <div class="receipt-step-title">${safeT('receipt.uploadStep')}</div>
+            <div id="receipt-upload-area" class="receipt-upload-area" onclick="document.getElementById('receipt-file-input').click()">
+                <div class="receipt-upload-icon">📷</div>
+                <div class="receipt-upload-text">${safeT('receipt.uploadPhoto')} / ${safeT('receipt.uploadGallery')}</div>
+                <div class="receipt-upload-hint">${safeT('receipt.uploadHint')}</div>
+                <input type="file" id="receipt-file-input" accept="image/*" capture="environment" style="display:none;" onchange="handleReceiptImageUpload(event)">
+            </div>
+            <div id="receipt-preview-wrap" class="receipt-preview-wrap" style="display:none;">
+                <img id="receipt-preview-img" class="receipt-preview-img" alt="">
+                <button type="button" class="receipt-preview-remove" onclick="removeReceiptImagePreview()">✕</button>
+            </div>
+        </div>
+
+        <div class="receipt-form-step">
+            <div class="receipt-step-title">${safeT('receipt.dataStep')}</div>
             <div class="input-field">
-                <label>${safeT('label.shop.estimatedPrice')}</label>
+                <label>${safeT('receipt.category')}</label>
+                <div class="receipt-category-chips" id="receipt-category-chips">${chipsHtml}</div>
+            </div>
+            <div class="input-field">
+                <label>${safeT('receipt.amount')}</label>
                 <div class="input-wrapper">
-                    <input type="number" id="lista-price" class="custom-input" placeholder="0" inputmode="decimal">
+                    <input type="number" id="receipt-amount" class="custom-input" placeholder="3500" inputmode="decimal" value="${r ? r.amount : ''}">
                     <span class="unit">RSD</span>
                 </div>
             </div>
-            <button class="calc-btn-main" onclick="addShoppingItem()">${safeT('btn.shop.addItem')}</button>
+            <div class="input-field">
+                <label>${safeT('receipt.period')}</label>
+                <div class="receipt-period-selects">
+                    <select id="receipt-period-month">${monthOptions}</select>
+                    <select id="receipt-period-year">${yearOptions}</select>
+                </div>
+            </div>
+            <div class="input-field">
+                <label>${safeT('receipt.status')}</label>
+                <div class="receipt-status-row">
+                    <button type="button" class="receipt-status-btn paid${paidSel}" data-paid="1" onclick="selectReceiptStatus(true)">✅ ${safeT('receipt.paid')}</button>
+                    <button type="button" class="receipt-status-btn unpaid${unpaidSel}" data-paid="0" onclick="selectReceiptStatus(false)">⚠ ${safeT('receipt.unpaid')}</button>
+                </div>
+            </div>
+            <div class="input-field" id="receipt-due-field" style="${receiptState.draftPaid ? 'display:none;' : ''}">
+                <label>${safeT('receipt.dueDate')}</label>
+                <div class="input-wrapper">
+                    <input type="date" id="receipt-due-date" class="custom-input" value="${defaultDueDate}">
+                </div>
+            </div>
         </div>
+
+        <div class="receipt-form-step" id="receipt-reminder-step" style="${receiptState.draftPaid ? 'display:none;' : ''}">
+            <div class="receipt-step-title">${safeT('receipt.reminderStep')}</div>
+            <div class="receipt-reminder-row">
+                <input type="checkbox" id="receipt-remind-check" ${(!r || (r.remindBefore > 0)) ? 'checked' : ''}>
+                <label for="receipt-remind-check">${safeT('receipt.remindBefore')}</label>
+                <input type="number" id="receipt-remind-days" class="receipt-reminder-days" value="${r && r.remindBefore ? r.remindBefore : 3}" min="1" max="30">
+                <span style="font-size:0.75rem;color:var(--text-secondary);font-weight:700;">${safeT('receipt.daysBefore')}</span>
+            </div>
+        </div>
+
+        <div class="input-field">
+            <label>${safeT('receipt.note')}</label>
+            <div class="input-wrapper">
+                <input type="text" id="receipt-note" class="custom-input" placeholder="" value="${r && r.note ? escapeHtml(r.note) : ''}">
+            </div>
+        </div>
+
+        <button class="calc-btn-main" onclick="saveReceipt()" style="margin-top:12px;">
+            ${safeT('receipt.save')}
+        </button>
     `;
 }
 
-function renderShoppingList() {
-    const box = el('lista-items');
-    if (!box) return;
-    const list = loadShoppingList();
-    if (!list.length) {
-        box.innerHTML = `<div class="chart-empty"><span class="chart-empty-icon">🛒</span>${safeT('toast.listEmpty')}</div>`;
-        return;
-    }
-    let html = '';
-    let total = 0, boughtTotal = 0, boughtCount = 0;
-    list.forEach(item => {
-        const price = (item.price || 0);
-        if (item.bought) { boughtTotal += price; boughtCount++; }
-        else total += price;
-        html += `
-            <div class="lista-item${item.bought ? ' bought' : ''}">
-                <button class="lista-check" onclick="toggleShoppingItem('${item.id}')">${item.bought ? '✓' : ''}</button>
-                <div class="lista-item-info">
-                    <div class="lista-item-name">${escapeHtml(item.name)}</div>
-                    ${item.qty ? `<div class="lista-item-qty">${escapeHtml(item.qty)}</div>` : ''}
-                </div>
-                <div class="lista-item-price">${item.price ? money(item.price) : '—'}</div>
-                <button class="lista-item-remove" onclick="removeShoppingItem('${item.id}')">✕</button>
-            </div>
-        `;
-    });
-    box.innerHTML = html;
-    const wrap = box.parentElement;
-    if (wrap) {
-        const old = wrap.querySelector('.lista-total');
-        if (old) old.remove();
-        const totalEl = document.createElement('div');
-        totalEl.className = 'lista-total';
-        totalEl.innerHTML = `
-            <div class="lista-total-left">
-                <div class="lista-total-label">${safeT('label.shop.remaining')}</div>
-                <div class="lista-total-value">${money(total)} RSD</div>
-            </div>
-            <div class="lista-total-right">
-                <div class="lista-total-label">${safeT('label.shop.bought')} (${boughtCount})</div>
-                <div class="lista-total-value">${money(boughtTotal)} RSD</div>
-            </div>
-        `;
-        wrap.appendChild(totalEl);
+function selectReceiptCategory(cat, btn) {
+    receiptState.draftCategory = cat;
+    document.querySelectorAll('#receipt-category-chips .receipt-chip').forEach(b => b.classList.remove('selected'));
+    if (btn) btn.classList.add('selected');
+    vibrate(8);
+}
+
+function selectReceiptStatus(paid) {
+    receiptState.draftPaid = !!paid;
+    document.querySelectorAll('.receipt-status-btn').forEach(b => b.classList.remove('selected'));
+    const target = paid ? '.receipt-status-btn.paid' : '.receipt-status-btn.unpaid';
+    const t = document.querySelector(target);
+    if (t) t.classList.add('selected');
+    const dueField = el('receipt-due-field');
+    const reminderStep = el('receipt-reminder-step');
+    if (dueField) dueField.style.display = paid ? 'none' : 'block';
+    if (reminderStep) reminderStep.style.display = paid ? 'none' : 'block';
+    vibrate(8);
+}
+
+async function handleReceiptImageUpload(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { showToast('Izaberi sliku.', 'warning'); return; }
+    try {
+        const compressed = await compressImage(file, 1600, 0.8);
+        receiptState.draftImageBlob = compressed;
+        receiptState.removeImage = false;
+        if (receiptState.currentObjectUrl) {
+            try { URL.revokeObjectURL(receiptState.currentObjectUrl); } catch (err) {}
+        }
+        const url = URL.createObjectURL(compressed);
+        receiptState.currentObjectUrl = url;
+        const prev = el('receipt-preview-wrap');
+        const empty = el('receipt-upload-area');
+        const img = el('receipt-preview-img');
+        if (img) img.src = url;
+        if (prev) prev.style.display = 'block';
+        if (empty) empty.style.display = 'none';
+        vibrate(15);
+        playTick(0, 1400, 0.06, 0.02);
+    } catch (err) {
+        console.warn('Compress error:', err);
+        showToast('Greška pri obradi slike.', 'error', 2500);
     }
 }
 
-function addShoppingItem() {
-    const nameEl = el('lista-name');
-    const qtyEl = el('lista-qty');
-    const priceEl = el('lista-price');
-    if (!nameEl) return;
-    const name = nameEl.value.trim();
-    if (!name) { showToast(safeT('toast.error.enterItemName'), 'error'); return; }
-    const list = loadShoppingList();
-    list.push({
-        id: 'li_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-        name,
-        qty: qtyEl ? qtyEl.value.trim() : '',
-        price: priceEl ? (parseNum(priceEl.value) || 0) : 0,
-        bought: false,
-        date: Date.now()
-    });
-    saveShoppingList(list);
-    if (nameEl) nameEl.value = '';
-    if (qtyEl) qtyEl.value = '';
-    if (priceEl) priceEl.value = '';
-    renderShoppingList();
-    showToast(safeT('toast.itemAdded'), 'success', 1500);
+function removeReceiptImagePreview() {
+    receiptState.draftImageBlob = null;
+    receiptState.removeImage = true;
+    if (receiptState.currentObjectUrl) {
+        try { URL.revokeObjectURL(receiptState.currentObjectUrl); } catch (e) {}
+        receiptState.currentObjectUrl = null;
+    }
+    const prev = el('receipt-preview-wrap');
+    const empty = el('receipt-upload-area');
+    if (prev) prev.style.display = 'none';
+    if (empty) empty.style.display = 'flex';
+    const fileInput = el('receipt-file-input');
+    if (fileInput) fileInput.value = '';
+    showToast(safeT('receipt.imageRemoved'), 'info', 1200);
 }
 
-function toggleShoppingItem(id) {
-    const list = loadShoppingList();
-    const idx = list.findIndex(i => String(i.id) === String(id));
+function saveReceipt() {
+    const v = id => { const e = el(id); return e ? e.value.trim() : ''; };
+    const n = id => { const e = el(id); return e ? parseNum(e.value) : null; };
+    const c = id => { const e = el(id); return e ? e.checked : false; };
+    const category = receiptState.draftCategory || 'struja';
+    const amount = n('receipt-amount');
+    const periodMonth = el('receipt-period-month') ? parseInt(el('receipt-period-month').value) : (new Date().getMonth() + 1);
+    const periodYear = el('receipt-period-year') ? parseInt(el('receipt-period-year').value) : new Date().getFullYear();
+    const period = periodYear + '-' + String(periodMonth).padStart(2, '0');
+    const paid = receiptState.draftPaid;
+    const dueDate = v('receipt-due-date');
+    const remindBefore = n('receipt-remind-days') || 3;
+    const useReminder = c('receipt-remind-check');
+    const note = v('receipt-note');
+
+    if (!amount || amount <= 0) { showToast('Unesi iznos računa.', 'error'); return; }
+    if (!paid && !dueDate) { showToast('Unesi rok plaćanja.', 'error'); return; }
+
+    const now = Date.now();
+    const receiptId = receiptState.editingId || ('rc_' + now + '_' + Math.random().toString(36).slice(2, 7));
+    const isNew = !receiptState.editingId;
+
+    const receiptData = {
+        id: receiptId,
+        category,
+        amount,
+        currency: 'RSD',
+        period,
+        paid: !!paid,
+        paidDate: paid ? new Date().toISOString().slice(0, 10) : null,
+        dueDate: paid ? null : dueDate,
+        remindBefore: useReminder ? remindBefore : 0,
+        hasImage: !!receiptState.draftImageBlob,
+        note,
+        createdAt: isNew ? now : (getReceiptById(receiptId)?.createdAt || now),
+        updatedAt: now
+    };
+
+    const list = loadReceipts();
+    if (isNew) list.push(receiptData);
+    else {
+        const idx = list.findIndex(r => String(r.id) === String(receiptId));
+        if (idx !== -1) list[idx] = Object.assign({}, list[idx], receiptData);
+        else list.push(receiptData);
+    }
+    saveReceiptsList(list);
+
+    if (receiptState.draftImageBlob) {
+        saveReceiptImage(receiptId, receiptState.draftImageBlob).catch(err => {
+            console.warn('Greška pri čuvanju slike:', err);
+            showToast('Slika nije sačuvana', 'warning', 2500);
+        });
+    } else if (receiptState.removeImage && receiptState.editingId) {
+        deleteReceiptImage(receiptId).catch(() => {});
+    }
+
+    syncReceiptToBill(receiptData);
+
+    showToast(isNew ? 'Račun sačuvan.' : 'Račun izmenjen.', 'success', 1800);
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+
+    closeModal('receipt-modal');
+    receiptState = { editingId: null, draftImageBlob: null, draftCategory: 'struja', draftPaid: false, removeImage: false, currentObjectUrl: null };
+
+    if (activeCategory === 'racuni') {
+        const body = el('calc-body');
+        if (body) {
+            if (activeTab === 'moji') body.innerHTML = renderRacuni();
+            else if (activeTab === 'pregled') body.innerHTML = renderRacuniPregled();
+            else if (activeTab === 'analiza') body.innerHTML = renderRacuniAnaliza();
+        }
+        setTimeout(() => {
+            if (activeTab === 'moji') loadReceiptThumbnails();
+        }, 100);
+    }
+    updateAppBadge();
+}
+
+function updateReceipt(id, changes) {
+    const list = loadReceipts();
+    const idx = list.findIndex(r => String(r.id) === String(id));
     if (idx === -1) return;
-    list[idx].bought = !list[idx].bought;
-    saveShoppingList(list);
-    renderShoppingList();
+    list[idx] = Object.assign({}, list[idx], changes, { updatedAt: Date.now() });
+    saveReceiptsList(list);
+    syncReceiptToBill(list[idx]);
+    updateAppBadge();
+}
+
+async function deleteReceipt(id) {
+    const ok = await showConfirm(safeT('receipt.deleteConfirm'));
+    if (!ok) return;
+    let list = loadReceipts();
+    list = list.filter(r => String(r.id) !== String(id));
+    saveReceiptsList(list);
+    removeBillByReceiptId(id);
+    try { await deleteReceiptImage(id); } catch (e) {}
+    showToast('Račun obrisan.', 'info', 1600);
+    vibrate(15);
+    if (activeCategory === 'racuni') {
+        const body = el('calc-body');
+        if (body) {
+            if (activeTab === 'moji') body.innerHTML = renderRacuni();
+            else if (activeTab === 'pregled') body.innerHTML = renderRacuniPregled();
+            else if (activeTab === 'analiza') body.innerHTML = renderRacuniAnaliza();
+        }
+        setTimeout(() => {
+            if (activeTab === 'moji') loadReceiptThumbnails();
+        }, 100);
+    }
+    updateAppBadge();
+}
+
+function markReceiptPaid(id) {
+    const list = loadReceipts();
+    const idx = list.findIndex(r => String(r.id) === String(id));
+    if (idx === -1) return;
+    list[idx].paid = true;
+    list[idx].paidDate = new Date().toISOString().slice(0, 10);
+    list[idx].updatedAt = Date.now();
+    saveReceiptsList(list);
+    removeBillByReceiptId(id);
+    showToast('Račun plaćen.', 'success', 1500);
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+    if (activeCategory === 'racuni') {
+        const body = el('calc-body');
+        if (body) {
+            if (activeTab === 'moji') body.innerHTML = renderRacuni();
+            else if (activeTab === 'pregled') body.innerHTML = renderRacuniPregled();
+            else if (activeTab === 'analiza') body.innerHTML = renderRacuniAnaliza();
+        }
+        setTimeout(() => {
+            if (activeTab === 'moji') loadReceiptThumbnails();
+        }, 100);
+    }
+    updateAppBadge();
+}
+
+function markReceiptUnpaid(id) {
+    const list = loadReceipts();
+    const idx = list.findIndex(r => String(r.id) === String(id));
+    if (idx === -1) return;
+    list[idx].paid = false;
+    list[idx].paidDate = null;
+    list[idx].updatedAt = Date.now();
+    saveReceiptsList(list);
+    syncReceiptToBill(list[idx]);
+    showToast('Račun vraćen u neplaćeno.', 'info', 1600);
+    vibrate(15);
+    if (activeCategory === 'racuni') {
+        const body = el('calc-body');
+        if (body) {
+            if (activeTab === 'moji') body.innerHTML = renderRacuni();
+            else if (activeTab === 'pregled') body.innerHTML = renderRacuniPregled();
+            else if (activeTab === 'analiza') body.innerHTML = renderRacuniAnaliza();
+        }
+        setTimeout(() => {
+            if (activeTab === 'moji') loadReceiptThumbnails();
+        }, 100);
+    }
+    updateAppBadge();
+}
+
+function openReceiptDetails(id) {
+    const r = getReceiptById(id);
+    if (!r) { showToast('Račun nije pronađen', 'error'); return; }
+
+    const modal = el('receipt-details-modal');
+    const body = el('receipt-details-body');
+    if (!modal || !body) return;
+
+    const catLabel = safeT('receipt.category.' + (r.category || 'ostalo'));
+    const periodLabel = formatPeriodMonth(r.period);
+    const days = !r.paid && r.dueDate ? daysBetweenToday(r.dueDate) : null;
+
+    let dueText = '';
+    if (!r.paid && days !== null) {
+        if (days < 0) dueText = `${safeT('receipt.overdueBy')} ${Math.abs(days)} ${safeT('receipt.daysLeft')}`;
+        else if (days === 0) dueText = safeT('brziPregled.today');
+        else dueText = `${safeT('receipt.dueIn')} ${days} ${safeT('receipt.daysLeft')}`;
+    }
+
+    body.innerHTML = `
+        <div class="receipt-details-image" id="receipt-details-image" onclick="openImageViewer('${escapeHtml(r.id)}')">
+            <div class="receipt-details-image-empty">${r.hasImage ? '📷' : safeT('receipt.noImage')}</div>
+        </div>
+        <div class="receipt-details-title">
+            ${escapeHtml(catLabel)}${periodLabel ? ' — ' + escapeHtml(periodLabel) : ''}
+            <span class="receipt-details-status ${r.paid ? 'paid' : 'unpaid'}">${r.paid ? safeT('receipt.paid') : safeT('receipt.unpaid')}</span>
+        </div>
+        <div class="receipt-details-rows">
+            <div class="receipt-details-row">
+                <span class="receipt-details-row-label">${safeT('receipt.amount')}</span>
+                <span class="receipt-details-row-value">${fmt(r.amount, 0)} ${r.currency || 'RSD'}</span>
+            </div>
+            ${r.dueDate ? `<div class="receipt-details-row">
+                <span class="receipt-details-row-label">${safeT('receipt.dueDate')}</span>
+                <span class="receipt-details-row-value">${escapeHtml(r.dueDate)}${dueText ? ' (' + escapeHtml(dueText) + ')' : ''}</span>
+            </div>` : ''}
+            ${r.paidDate ? `<div class="receipt-details-row">
+                <span class="receipt-details-row-label">${safeT('receipt.paidOn')}</span>
+                <span class="receipt-details-row-value">${escapeHtml(r.paidDate)}</span>
+            </div>` : ''}
+            ${r.note ? `<div class="receipt-details-row">
+                <span class="receipt-details-row-label">${safeT('receipt.note')}</span>
+                <span class="receipt-details-row-value">${escapeHtml(r.note)}</span>
+            </div>` : ''}
+        </div>
+        <div class="receipt-details-actions">
+            ${!r.paid
+                ? `<button class="receipt-details-action primary" onclick="markReceiptPaid('${escapeHtml(r.id)}'); closeModal('receipt-details-modal');">✅ ${safeT('receipt.markPaid')}</button>`
+                : `<button class="receipt-details-action secondary" onclick="markReceiptUnpaid('${escapeHtml(r.id)}'); closeModal('receipt-details-modal');">↩ ${safeT('receipt.markUnpaid')}</button>`}
+            <button class="receipt-details-action secondary" onclick="closeModal('receipt-details-modal'); openReceiptModal('${escapeHtml(r.id)}');">✏️ ${safeT('receipt.edit')}</button>
+            <button class="receipt-details-action danger" onclick="closeModal('receipt-details-modal'); deleteReceipt('${escapeHtml(r.id)}');">🗑 ${safeT('receipt.delete')}</button>
+        </div>
+    `;
+
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+    vibrate(15);
+    playTick(0, 1400, 0.06, 0.02);
+
+    if (r.hasImage) {
+        (async () => {
+            try {
+                const rec = await loadReceiptImage(r.id);
+                if (rec && rec.blob) {
+                    if (receiptDetailsObjectUrl) {
+                        try { URL.revokeObjectURL(receiptDetailsObjectUrl); } catch (e) {}
+                    }
+                    receiptDetailsObjectUrl = URL.createObjectURL(rec.blob);
+                    const img = el('receipt-details-image');
+                    if (img) img.innerHTML = `<img src="${receiptDetailsObjectUrl}" alt="">`;
+                }
+            } catch (e) {}
+        })();
+    }
+}
+
+async function openImageViewer(receiptId) {
+    const r = getReceiptById(receiptId);
+    if (!r || !r.hasImage) return;
+    const modal = el('image-viewer-modal');
+    const img = el('image-viewer-img');
+    if (!modal || !img) return;
+    try {
+        const rec = await loadReceiptImage(receiptId);
+        if (!rec || !rec.blob) return;
+        const url = URL.createObjectURL(rec.blob);
+        img.src = url;
+        img.dataset.objectUrl = url;
+        modal.classList.add('show');
+        document.body.classList.add('modal-open');
+        vibrate(15);
+    } catch (e) {}
+}
+
+function closeImageViewer(e) {
+    if (e) e.stopPropagation();
+    const modal = el('image-viewer-modal');
+    const img = el('image-viewer-img');
+    if (img && img.dataset.objectUrl) {
+        try { URL.revokeObjectURL(img.dataset.objectUrl); } catch (err) {}
+        img.dataset.objectUrl = '';
+        img.src = '';
+    }
+    if (modal) modal.classList.remove('show');
     vibrate(10);
 }
-
-function removeShoppingItem(id) {
-    let list = loadShoppingList();
-    list = list.filter(i => String(i.id) !== String(id));
-    saveShoppingList(list);
-    renderShoppingList();
-}
-
-async function clearShoppingList() {
-    const ok = await showConfirm(safeT('confirm.clearList'));
-    if (!ok) return;
-    saveShoppingList([]);
-    renderShoppingList();
-    showToast(safeT('toast.listCleared'), 'info', 1500);
-}
-
 // ============================================================
-// SHOPPING — Isplati se  ⭐ NOVO
+// MONEY — SVI KALKULATORI
 // ============================================================
-function renderShopIsplati() {
+function renderMoneyPopust() {
     return `
         <div class="converter-box">
-            <p class="section-desc">Da li se isplati ići u daleku prodavnicu zbog niže cene?</p>
-            ${inputField('label.shop.savingsPerItem', 'isplati-savings', 'RSD', 'placeholder="50"')}
-            ${inputField('label.shop.itemsCount', 'isplati-count', '', 'placeholder="10"')}
-            ${inputField('label.shop.oneWayDistance', 'isplati-distance', 'km', 'step="0.1" placeholder="5"')}
-            ${inputField('label.shop.carConsumption', 'isplati-consumption', 'L/100km', 'step="0.1" value="7"')}
-            ${inputField('label.shop.fuelPrice', 'isplati-fuel-price', 'RSD', 'step="0.1" value="180"')}
-            ${calcButton('btn.calculate', 'calculateShopIsplati()')}
+            ${inputField('label.money.originalPrice', 'money-price', 'RSD', 'placeholder="2500"')}
+            ${inputField('label.money.discountPercent', 'money-discount', '%', 'placeholder="20"')}
+            ${calcButton('btn.calculate', 'calculateMoney()')}
         </div>
-        <div id="isplati-result-box" class="result-card-green" style="display: none;">
-            <div class="res-left">
-                <div class="pump-icon">${icon('target')}</div>
-                <div>
-                    <div class="res-label">${safeT('label.shop.worthIt')}</div>
-                    <h3 id="res-isplati-text" class="res-text">—</h3>
-                </div>
-            </div>
-            <div class="res-actions">
-                <button class="copy-btn" onclick="copyResult('res-isplati-text', '', event)">${safeT('result.copy')}</button>
-                <button class="copy-btn" data-category="KUPOVINA" data-label="Isplati se" onclick="saveHistory(this)">${safeT('result.save')}</button>
-                <button class="copy-btn" data-category="KUPOVINA" data-label="Isplati se" onclick="shareResult(this)">${safeT('result.share')}</button>
-            </div>
-        </div>
-        ${statsRow('isplati-stats-row', [
-            ['label.shop.savings', 'stat-isplati-savings', '0 RSD'],
-            ['label.shop.tripCost', 'stat-isplati-trip', '0 RSD'],
-            ['label.shop.net', 'stat-isplati-net', '0 RSD']
-        ])}
+        ${resultCard('money-result-box', 'tag', 'label.money.newPrice', 'res-money-final', 'RSD', 'NOVAC', 'label.money.discount')}
+        ${statsRow('money-stats-row', [['label.money.saved', 'stat-money-saved', '0 RSD']])}
     `;
 }
-
-function calculateShopIsplati() {
-    const savings = num('isplati-savings');
-    const count = num('isplati-count') || 1;
-    const distance = num('isplati-distance');
-    const consumption = num('isplati-consumption') || 7;
-    const fuelPrice = num('isplati-fuel-price') || 180;
-    if (!savings || !distance) { showToast('Unesi uštedu i distancu.', 'error'); return; }
-    const totalSavings = savings * count;
-    const liters = (distance * 2 / 100) * consumption;
-    const tripCost = liters * fuelPrice;
-    const net = totalSavings - tripCost;
-    const rt = el('res-isplati-text');
-    if (net > 0) {
-        if (rt) rt.innerText = safeT('label.shop.worthItYes', fmt(net, 0));
-    } else if (net < 0) {
-        if (rt) rt.innerText = safeT('label.shop.worthItNo', fmt(-net, 0));
-    } else {
-        if (rt) rt.innerText = safeT('label.shop.worthItSame');
-    }
-    const ss = el('stat-isplati-savings'); if (ss) ss.innerText = money(totalSavings) + ' RSD';
-    const st = el('stat-isplati-trip'); if (st) st.innerText = money(tripCost) + ' RSD';
-    const sn = el('stat-isplati-net'); if (sn) sn.innerText = money(net) + ' RSD';
-    show('isplati-result-box');
-    show('isplati-stats-row');
+function calculateMoney() {
+    const price = num('money-price');
+    const discount = num('money-discount');
+    if (!price || discount === null) { showToast('Unesi cenu i popust.', 'error'); return; }
+    const saved = price * (discount / 100);
+    const final = price - saved;
+    const rf = el('res-money-final'); if (rf) rf.innerText = money(final);
+    const ss = el('stat-money-saved'); if (ss) ss.innerText = money(saved) + ' RSD';
+    show('money-result-box');
+    show('money-stats-row');
 }
 
-// ============================================================
-// SHOPPING — Cena po obroku  ⭐ NOVO
-// ============================================================
-function renderShopRasipanje() {
+function renderMoneyPDV() {
     return `
         <div class="converter-box">
-            <p class="section-desc">${safeT('label.shop.costPerMeal')}.</p>
-            ${inputField('label.shop.groceryPrice', 'rasipanje-price', 'RSD', 'placeholder="2000"')}
-            ${inputField('label.shop.mealsCount', 'rasipanje-meals', '', 'placeholder="6"')}
-            ${inputField('label.shop.wastePercent', 'rasipanje-waste', '%', 'placeholder="10"')}
-            ${calcButton('btn.calculate', 'calculateShopRasipanje()')}
-        </div>
-        <div id="rasipanje-result-box" class="result-card-green" style="display: none;">
-            <div class="res-left">
-                <div class="pump-icon">${icon('packageSm')}</div>
-                <div>
-                    <div class="res-label">${safeT('label.shop.costPerMeal')}</div>
-                    <h2><span id="res-rasipanje-val">0</span> <small>RSD</small></h2>
-                </div>
-            </div>
-            <div class="res-actions">
-                <button class="copy-btn" onclick="copyResult('res-rasipanje-val', 'RSD', event)">${safeT('result.copy')}</button>
-                <button class="copy-btn" data-category="KUPOVINA" data-label="Cena po obroku" onclick="saveHistory(this)">${safeT('result.save')}</button>
-                <button class="copy-btn" data-category="KUPOVINA" data-label="Cena po obroku" onclick="shareResult(this)">${safeT('result.share')}</button>
-            </div>
-        </div>
-        ${statsRow('rasipanje-stats-row', [
-            ['label.shop.withoutWaste', 'stat-rasipanje-without', '0 RSD'],
-            ['label.shop.wasteCost', 'stat-rasipanje-waste', '0 RSD']
-        ])}
-    `;
-}
-
-function calculateShopRasipanje() {
-    const price = num('rasipanje-price');
-    const meals = num('rasipanje-meals');
-    const waste = num('rasipanje-waste') || 0;
-    if (!price || !meals) { showToast('Unesi cenu i broj obroka.', 'error'); return; }
-    const perMeal = price / meals;
-    const perMealWithWaste = price / (meals * (1 - waste / 100));
-    const wasteCost = (perMealWithWaste - perMeal) * meals;
-    const rv = el('res-rasipanje-val'); if (rv) rv.innerText = money(perMealWithWaste);
-    const sw = el('stat-rasipanje-without'); if (sw) sw.innerText = money(perMeal) + ' RSD';
-    const sww = el('stat-rasipanje-waste'); if (sww) sww.innerText = money(wasteCost) + ' RSD';
-    show('rasipanje-result-box');
-    show('rasipanje-stats-row');
-}
-
-// ============================================================
-// SHOPPING — Dnevni budžet  ⭐ NOVO
-// ============================================================
-function renderShopBudzet() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">${safeT('label.shop.dailyLimit')}</p>
-            ${inputField('label.shop.totalBudget', 'budzet-total', 'RSD', 'placeholder="30000"')}
-            ${selectField('label.shop.period', 'budzet-period', [
-                { value: '7', text: safeT('option.shop.week') },
-                { value: '14', text: safeT('option.shop.twoWeeks') },
-                { value: '30', text: safeT('option.shop.month') }
+            ${inputField('label.money.amount', 'pdv-amount', 'RSD', 'placeholder="1000"')}
+            ${inputField('label.money.vatRate', 'pdv-rate', '%', 'value="20"')}
+            ${selectField('label.money.calcType', 'pdv-type', [
+                { value: 'add', text: safeT('option.money.addVat') },
+                { value: 'extract', text: safeT('option.money.extractVat') }
             ])}
-            ${inputField('label.shop.alreadySpent', 'budzet-spent', 'RSD', 'placeholder="0"')}
-            ${calcButton('btn.calculate', 'calculateShopBudzet()')}
+            ${calcButton('btn.calculate', 'calculatePDV()')}
         </div>
-        ${resultCard('budzet-result-box', 'calendarSm', 'label.shop.dailyLimit', 'res-budzet-daily', 'RSD', 'KUPOVINA', 'label.shop.budgetShort')}
-        ${statsRow('budzet-stats-row', [
-            ['label.shop.untilEndOfPeriod', 'stat-budzet-left', '0 RSD'],
-            ['label.shop.daysCount', 'stat-budzet-days', '0'],
-            ['label.shop.dailyUntilEnd', 'stat-budzet-recalc', '0 RSD']
+        ${resultCard('pdv-result-box', 'percent', 'label.money.totalAmount', 'res-pdv-total', 'RSD', 'NOVAC', 'label.money.vat')}
+        ${statsRow('pdv-stats-row', [['label.money.base', 'stat-pdv-base', '0 RSD'], ['label.money.vatAmount', 'stat-pdv-tax', '0 RSD']])}
+    `;
+}
+function calculatePDV() {
+    const amount = num('pdv-amount');
+    const rate = num('pdv-rate') || 20;
+    const type = el('pdv-type') ? el('pdv-type').value : 'add';
+    if (!amount) { showToast('Unesi iznos.', 'error'); return; }
+    let base, vat, total;
+    if (type === 'add') {
+        base = amount;
+        vat = amount * (rate / 100);
+        total = amount + vat;
+    } else {
+        total = amount;
+        base = amount / (1 + rate / 100);
+        vat = total - base;
+    }
+    const rt = el('res-pdv-total'); if (rt) rt.innerText = money(total);
+    const sb = el('stat-pdv-base'); if (sb) sb.innerText = money(base) + ' RSD';
+    const st = el('stat-pdv-tax'); if (st) st.innerText = money(vat) + ' RSD';
+    show('pdv-result-box');
+    show('pdv-stats-row');
+}
+
+function renderMoneyKredit() {
+    return `
+        <div class="converter-box">
+            ${selectField('label.money.loanCurrency', 'credit-currency', [
+                { value: 'RSD', text: 'RSD' }, { value: 'EUR', text: 'EUR' },
+                { value: 'CHF', text: 'CHF' }, { value: 'USD', text: 'USD' }
+            ], 'RSD')}
+            <div class="input-field">
+                <label>${safeT('label.money.loanAmount')}</label>
+                <div class="input-wrapper"><input type="number" id="loan-amount" class="custom-input" placeholder="1000000" inputmode="decimal"><span class="unit" id="loan-amount-unit">RSD</span></div>
+            </div>
+            ${inputField('label.money.annualRate', 'loan-rate', '%', 'value="6.5" step="0.1"')}
+            ${inputField('label.money.loanPeriod', 'loan-months', safeT('unit.monthsShort'), 'value="60"')}
+            ${calcButton('btn.calculate', 'calculateLoan()')}
+        </div>
+        ${resultCard('loan-result-box', 'creditCard', 'label.money.monthlyPayment', 'res-loan-monthly', 'RSD/mes', 'NOVAC', 'label.money.loan')}
+        ${statsRow('loan-stats-row', [['label.money.totalInterest', 'stat-loan-interest', '0 RSD'], ['label.money.totalRepayment', 'stat-loan-total', '0 RSD']])}
+        <div id="loan-amort-wrap" style="display:none; margin-top: 16px;">
+            <div class="converter-box">
+                <div class="section-desc" style="margin-bottom: 10px;">${safeT('label.money.amortPlan')}</div>
+                <div class="amort-scroll"><table id="amort-table" class="amort-table"><thead><tr><th>${safeT('table.month')}</th><th>${safeT('table.payment')}</th><th>${safeT('table.interest')}</th><th>${safeT('table.principal')}</th><th>${safeT('table.balance')}</th></tr></thead><tbody id="amort-body"></tbody></table></div>
+            </div>
+        </div>
+    `;
+}
+function calculateLoan() {
+    const amount = num('loan-amount');
+    const rate = num('loan-rate') || 0;
+    const months = num('loan-months') || 0;
+    const currency = el('credit-currency') ? el('credit-currency').value : 'RSD';
+    const unitEl = el('loan-amount-unit'); if (unitEl) unitEl.innerText = currency;
+    if (!amount || !months) { showToast('Unesi iznos i period.', 'error'); return; }
+    const monthlyRate = rate / 100 / 12;
+    let monthly;
+    if (monthlyRate === 0) monthly = amount / months;
+    else {
+        const factor = Math.pow(1 + monthlyRate, months);
+        monthly = amount * monthlyRate * factor / (factor - 1);
+    }
+    const total = monthly * months;
+    const interest = total - amount;
+    const rm = el('res-loan-monthly'); if (rm) rm.innerText = money(monthly) + '/' + currency;
+    const si = el('stat-loan-interest'); if (si) si.innerText = money(interest) + ' ' + currency;
+    const st = el('stat-loan-total'); if (st) st.innerText = money(total) + ' ' + currency;
+    const body = el('amort-body');
+    if (body) {
+        let balance = amount;
+        let rows = '';
+        for (let i = 1; i <= Math.min(months, 12); i++) {
+            const interestPart = balance * monthlyRate;
+            const principalPart = monthly - interestPart;
+            balance -= principalPart;
+            rows += `<tr><td>${i}</td><td>${money(monthly)}</td><td>${money(interestPart)}</td><td>${money(principalPart)}</td><td>${money(Math.max(0, balance))}</td></tr>`;
+        }
+        body.innerHTML = rows;
+    }
+    const wrap = el('loan-amort-wrap'); if (wrap) wrap.style.display = 'block';
+    show('loan-result-box');
+    show('loan-stats-row');
+}
+function toggleAmortPreview() { /* opciono */ }
+
+function renderMoneyRate() {
+    return `
+        <div class="converter-box">
+            ${sectionDescKey('desc.money.rate')}
+            ${inputField('label.rate.startAmount', 'rate-start', 'RSD', 'placeholder="120000"')}
+            ${inputField('label.rate.count', 'rate-count', '', 'value="12" min="1" max="120"')}
+            ${dateTripleField('label.rate.firstDate', 'rate-first-date')}
+            ${selectField('label.rate.period', 'rate-period', [
+                { value: 'monthly', text: safeT('label.rate.period.monthly') },
+                { value: 'biweekly', text: safeT('label.rate.period.biweekly') },
+                { value: 'weekly', text: safeT('label.rate.period.weekly') }
+            ], 'monthly')}
+            ${inputField('label.rate.interest', 'rate-interest', '%', 'value="0" step="0.1"')}
+            ${inputFieldText('label.rate.description', 'rate-description', safeT('label.rate.descriptionPlaceholder'))}
+            ${calcButton('btn.calculate', 'calculateInstallments()')}
+        </div>
+        <div id="rate-calc-result-box" style="display: none;">
+            <div class="rate-info-card">
+                <div class="rate-info-row"><span class="rate-info-label">${safeT('label.rate.perInstallment')}</span><span class="rate-info-value accent" id="res-rate-per">0 RSD</span></div>
+                <div class="rate-info-row"><span class="rate-info-label">${safeT('label.rate.totalPayment')}</span><span class="rate-info-value" id="res-rate-total">0 RSD</span></div>
+                <div class="rate-info-row"><span class="rate-info-label">${safeT('label.rate.totalInterest')}</span><span class="rate-info-value" id="res-rate-interest">0 RSD</span></div>
+            </div>
+            <div class="rate-actions">
+                <button class="rate-action-btn rate-action-primary" onclick="saveInstallmentsAsReminders()">💾 ${safeT('label.rate.saveReminders')}</button>
+            </div>
+            <div class="rate-table-wrap" style="margin-top: 14px;"><div id="rate-table-body"></div></div>
+        </div>
+    `;
+}
+let currentInstallmentData = null;
+function calculateInstallments() {
+    const startAmount = num('rate-start');
+    const count = parseInt(num('rate-count')) || 0;
+    const firstDate = getTripleDate('rate-first-date');
+    const period = el('rate-period') ? el('rate-period').value : 'monthly';
+    const interestRate = num('rate-interest') || 0;
+    const description = el('rate-description') ? el('rate-description').value.trim() : '';
+    if (!startAmount || startAmount <= 0) { showToast('Unesi iznos.', 'error'); return; }
+    if (!count || count < 1 || count > 120) { showToast('Unesi broj rata (1-120).', 'error'); return; }
+    if (!firstDate) { showToast('Unesi datum prve rate.', 'error'); return; }
+    let monthlyRate = 0;
+    if (interestRate > 0) {
+        const periodsPerYear = period === 'monthly' ? 12 : (period === 'biweekly' ? 26 : 52);
+        monthlyRate = (interestRate / 100) / periodsPerYear;
+    }
+    let perInstallment;
+    if (monthlyRate === 0) perInstallment = startAmount / count;
+    else {
+        const factor = Math.pow(1 + monthlyRate, count);
+        perInstallment = (startAmount * monthlyRate * factor) / (factor - 1);
+    }
+    const totalPayment = perInstallment * count;
+    const totalInterest = totalPayment - startAmount;
+    const installments = [];
+    const firstDateObj = parseDate(firstDate);
+    for (let i = 0; i < count; i++) {
+        const date = new Date(firstDateObj);
+        if (period === 'monthly') date.setMonth(date.getMonth() + i);
+        else if (period === 'biweekly') date.setDate(date.getDate() + i * 14);
+        else date.setDate(date.getDate() + i * 7);
+        installments.push({ number: i + 1, date: date.toISOString().slice(0, 10), amount: perInstallment, paid: false });
+    }
+    currentInstallmentData = {
+        startAmount, count, period, interestRate,
+        description: description || safeT('label.rate.installment'),
+        installments, totalPayment, totalInterest, createdAt: Date.now()
+    };
+    const rp = el('res-rate-per'); if (rp) rp.innerText = money(perInstallment) + ' RSD';
+    const rt = el('res-rate-total'); if (rt) rt.innerText = money(totalPayment) + ' RSD';
+    const ri = el('res-rate-interest'); if (ri) ri.innerText = money(totalInterest) + ' RSD';
+    const tableBody = el('rate-table-body');
+    if (tableBody) {
+        tableBody.innerHTML = installments.map(inst => `
+            <div class="rate-item">
+                <div class="rate-item-check" style="cursor: default;"></div>
+                <div class="rate-item-number">${safeT('label.rate.rate')} ${inst.number}/${count}</div>
+                <div class="rate-item-date">${inst.date}</div>
+                <div class="rate-item-amount">${money(inst.amount)} RSD</div>
+            </div>
+        `).join('');
+    }
+    const box = el('rate-calc-result-box'); if (box) box.style.display = 'block';
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+}
+function saveInstallmentsAsReminders() {
+    if (!currentInstallmentData) { showToast('Prvo izračunaj rate.', 'error'); return; }
+    const groups = loadInstallmentGroups();
+    const newGroup = {
+        id: 'inst_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        description: currentInstallmentData.description,
+        startAmount: currentInstallmentData.startAmount,
+        count: currentInstallmentData.count,
+        period: currentInstallmentData.period,
+        interestRate: currentInstallmentData.interestRate,
+        installments: currentInstallmentData.installments.map(i => ({ ...i })),
+        createdAt: Date.now()
+    };
+    groups.push(newGroup);
+    saveInstallmentGroups(groups);
+    showToast(safeT('label.rate.savedAsReminders'), 'success', 2500);
+    vibrate(20);
+    playTick(0, 1500, 0.08, 0.03);
+    updateAppBadge();
+    const box = el('rate-calc-result-box'); if (box) box.style.display = 'none';
+}
+
+function renderMoneyPodela() {
+    return `
+        <div class="converter-box">
+            ${inputField('label.money.totalBill', 'split-total', 'RSD', 'placeholder="4500"')}
+            ${inputField('label.money.peopleCount', 'split-people', '', 'value="2" min="1"')}
+            ${inputField('label.money.tipOptional', 'split-tip', '%', 'placeholder="10"')}
+            ${calcButton('btn.calculate', 'calculateSplit()')}
+        </div>
+        ${resultCard('split-result-box', 'receipt', 'label.money.perPerson', 'res-split-val', 'RSD', 'NOVAC', 'label.money.split')}
+        ${statsRow('split-stats-row', [['label.money.withTip', 'stat-split-total', '0 RSD']])}
+    `;
+}
+function calculateSplit() {
+    const total = num('split-total');
+    const people = num('split-people') || 1;
+    const tip = num('split-tip') || 0;
+    if (!total) { showToast('Unesi iznos računa.', 'error'); return; }
+    const totalWithTip = total * (1 + tip / 100);
+    const perPerson = totalWithTip / people;
+    const rv = el('res-split-val'); if (rv) rv.innerText = money(perPerson);
+    const st = el('stat-split-total'); if (st) st.innerText = money(totalWithTip) + ' RSD';
+    show('split-result-box');
+    show('split-stats-row');
+}
+
+function renderMoneyPoredjenje() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Uporedi cenu dva proizvoda po jedinici mere.</p>
+            <div class="compare-group">
+                <div class="compare-title">Proizvod A</div>
+                ${inputField('label.shop.price', 'price-a', 'RSD', 'placeholder="200"')}
+                ${inputField('label.shop.quantity', 'qty-a', '', 'placeholder="1"')}
+                ${selectField('label.shop.unit', 'unit-a', [
+                    { value: 'kg', text: 'kg' }, { value: 'g', text: 'g' },
+                    { value: 'L', text: 'L' }, { value: 'ml', text: 'ml' }, { value: 'kom', text: 'kom' }
+                ])}
+            </div>
+            <div class="compare-group">
+                <div class="compare-title">Proizvod B</div>
+                ${inputField('label.shop.price', 'price-b', 'RSD', 'placeholder="180"')}
+                ${inputField('label.shop.quantity', 'qty-b', '', 'placeholder="0.9"')}
+                ${selectField('label.shop.unit', 'unit-b', [
+                    { value: 'kg', text: 'kg' }, { value: 'g', text: 'g' },
+                    { value: 'L', text: 'L' }, { value: 'ml', text: 'ml' }, { value: 'kom', text: 'kom' }
+                ])}
+            </div>
+            ${calcButton('btn.calculate', 'calculateMoneyPoredjenje()')}
+        </div>
+        ${resultCard('poredjenje-result-box', 'scale', 'label.shop.compareResult', 'res-poredjenje-winner', '', 'NOVAC', 'label.shop.compareShort')}
+        ${statsRow('poredjenje-stats-row', [
+            ['label.shop.productA', 'stat-poredjenje-a', '0'],
+            ['label.shop.productB', 'stat-poredjenje-b', '0'],
+            ['label.shop.difference', 'stat-poredjenje-diff', '0%']
         ])}
     `;
 }
+function calculateMoneyPoredjenje() {
+    const aP = num('price-a'), aQ = num('qty-a');
+    const aU = el('unit-a') ? el('unit-a').value : 'kg';
+    const bP = num('price-b'), bQ = num('qty-b');
+    const bU = el('unit-b') ? el('unit-b').value : 'kg';
+    if (!aP || !aQ || !bP || !bQ) { showToast('Unesi sve vrednosti.', 'error'); return; }
+    function toBase(price, qty, unit) {
+        if (unit === 'g' || unit === 'ml') return price / (qty / 1000);
+        return price / qty;
+    }
+    const aBase = toBase(aP, aQ, aU);
+    const bBase = toBase(bP, bQ, bU);
+    const winner = aBase < bBase ? safeT('label.shop.productACheaper') : (bBase < aBase ? safeT('label.shop.productBCheaper') : safeT('label.shop.samePrice'));
+    const rw = el('res-poredjenje-winner'); if (rw) rw.innerText = winner;
+    const sa = el('stat-poredjenje-a'); if (sa) sa.innerText = money(aBase);
+    const sb = el('stat-poredjenje-b'); if (sb) sb.innerText = money(bBase);
+    const sd = el('stat-poredjenje-diff'); if (sd) sd.innerText = fmt(Math.abs(aBase - bBase) / Math.max(aBase, bBase) * 100, 1) + '%';
+    show('poredjenje-result-box'); show('poredjenje-stats-row');
+}
 
-function calculateShopBudzet() {
-    const total = num('budzet-total');
-    const period = el('budzet-period') ? parseInt(el('budzet-period').value) : 30;
-    const spent = num('budzet-spent') || 0;
+function renderMoneyStednja() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Izračunaj koliko meseci treba da uštediš za cilj.</p>
+            ${inputField('label.money.stednja.target', 'savings-target', 'RSD', 'placeholder="1000000"')}
+            ${inputField('label.money.stednja.current', 'savings-current', 'RSD', 'placeholder="0"')}
+            ${inputField('label.money.stednja.monthly', 'savings-monthly', 'RSD', 'placeholder="20000"')}
+            ${inputField('label.money.stednja.interest', 'savings-interest', '%', 'value="0" step="0.1"')}
+            ${calcButton('btn.calculate', 'calculateSavings()')}
+        </div>
+        ${resultCard('savings-result-box', 'piggyBank', 'label.money.stednja.months', 'res-savings-months', 'meseci', 'NOVAC', 'label.money.stednja.progress')}
+        ${statsRow('savings-stats-row', [
+            ['label.money.stednja.total', 'stat-savings-total', '0 RSD'],
+            ['label.money.stednja.interestEarned', 'stat-savings-interest', '0 RSD']
+        ])}
+        <div class="savings-progress" id="savings-progress-box" style="display: none;">
+            <div class="savings-amounts">
+                <span class="current" id="savings-current-label">0 RSD</span>
+                <span class="target" id="savings-target-label">0 RSD</span>
+            </div>
+            <div class="savings-progress-bar-wrap">
+                <div class="savings-progress-fill" id="savings-progress-fill" style="width: 0%;"></div>
+            </div>
+            <div class="savings-pct" id="savings-pct">0%</div>
+        </div>
+    `;
+}
+function calculateSavings() {
+    const target = num('savings-target');
+    const current = num('savings-current') || 0;
+    const monthly = num('savings-monthly');
+    const annualRate = num('savings-interest') || 0;
+    if (!target || target <= 0 || !monthly || monthly <= 0) {
+        showToast('Unesi cilj i mesečni iznos.', 'error');
+        return;
+    }
+    const remaining = Math.max(0, target - current);
+    if (remaining === 0) {
+        const rm = el('res-savings-months');
+        if (rm) rm.innerText = '0';
+        showToast('Cilj je već dostignut!', 'success', 2500);
+        show('savings-result-box');
+        return;
+    }
+    let months;
+    if (annualRate <= 0) months = Math.ceil(remaining / monthly);
+    else {
+        const monthlyRate = annualRate / 100 / 12;
+        months = Math.ceil(Math.log(1 + (remaining * monthlyRate) / monthly) / Math.log(1 + monthlyRate));
+    }
+    const totalSaved = monthly * months;
+    const interest = Math.max(0, totalSaved - remaining);
+    const rm = el('res-savings-months'); if (rm) rm.innerText = months;
+    const st = el('stat-savings-total'); if (st) st.innerText = money(totalSaved) + ' RSD';
+    const si = el('stat-savings-interest'); if (si) si.innerText = money(interest) + ' RSD';
+    show('savings-result-box'); show('savings-stats-row');
+    const pct = Math.min(100, (current / target) * 100);
+    const progressBox = el('savings-progress-box');
+    if (progressBox) progressBox.style.display = 'flex';
+    const fill = el('savings-progress-fill');
+    if (fill) fill.style.width = pct + '%';
+    const pctEl = el('savings-pct');
+    if (pctEl) pctEl.textContent = fmt(pct, 1) + '%';
+    const currLabel = el('savings-current-label');
+    if (currLabel) currLabel.textContent = money(current) + ' RSD';
+    const tgtLabel = el('savings-target-label');
+    if (tgtLabel) tgtLabel.textContent = money(target) + ' RSD';
+}
+
+function renderMoneyBudzet() {
+    return `
+        <div class="converter-box">
+            <p class="section-desc">Izračunaj dnevni limit potrošnje na osnovu budžeta.</p>
+            ${inputField('label.shop.totalBudget', 'budzet-total-m', 'RSD', 'placeholder="30000"')}
+            ${selectField('label.shop.period', 'budzet-period-m', [
+                { value: '7', text: 'Nedelja (7 dana)' },
+                { value: '14', text: 'Dve nedelje (14 dana)' },
+                { value: '30', text: 'Mesec (30 dana)' }
+            ])}
+            ${inputField('label.shop.alreadySpent', 'budzet-spent-m', 'RSD', 'placeholder="0"')}
+            ${calcButton('btn.calculate', 'calculateMoneyBudzet()')}
+        </div>
+        ${resultCard('budzet-result-box-m', 'calendarSm', 'label.shop.dailyLimit', 'res-budzet-daily-m', 'RSD', 'NOVAC', 'label.shop.budgetShort')}
+        ${statsRow('budzet-stats-row-m', [
+            ['label.shop.untilEndOfPeriod', 'stat-budzet-left-m', '0 RSD'],
+            ['label.shop.daysCount', 'stat-budzet-days-m', '0'],
+            ['label.shop.dailyUntilEnd', 'stat-budzet-recalc-m', '0 RSD']
+        ])}
+    `;
+}
+function calculateMoneyBudzet() {
+    const total = num('budzet-total-m');
+    const period = el('budzet-period-m') ? parseInt(el('budzet-period-m').value) : 30;
+    const spent = num('budzet-spent-m') || 0;
     if (!total || total <= 0) { showToast('Unesi budžet.', 'error'); return; }
-    const daily = total / period;
-    const left = Math.max(0, total - spent);
-    const daysLeft = Math.max(1, period - Math.floor(spent / daily));
-    const rd = el('res-budzet-daily'); if (rd) rd.innerText = money(daily);
-    const sl = el('stat-budzet-left'); if (sl) sl.innerText = money(left) + ' RSD';
-    const sd = el('stat-budzet-days'); if (sd) sd.innerText = period;
-    const sr = el('stat-budzet-recalc'); if (sr) sr.innerText = money(left / daysLeft) + ' RSD';
-    show('budzet-result-box');
-    show('budzet-stats-row');
+    const daily = total / period, left = Math.max(0, total - spent);
+    const rd = el('res-budzet-daily-m'); if (rd) rd.innerText = money(daily);
+    const sl = el('stat-budzet-left-m'); if (sl) sl.innerText = money(left) + ' RSD';
+    const sd = el('stat-budzet-days-m'); if (sd) sd.innerText = period;
+    const sr = el('stat-budzet-recalc-m'); if (sr) sr.innerText = money(left / period) + ' RSD';
+    show('budzet-result-box-m'); show('budzet-stats-row-m');
+}
+
+function renderMoneyNapojnica() {
+    return `
+        <div class="converter-box">
+            ${inputField('label.money.billAmount', 'tip-bill', 'RSD', 'placeholder="2500"')}
+            ${inputField('label.money.tipPercent', 'tip-percent', '%', 'placeholder="10"')}
+            ${inputField('label.money.peopleCount', 'tip-people', '', 'value="1" min="1"')}
+            ${calcButton('btn.calculate', 'calculateTip()')}
+        </div>
+        ${resultCard('tip-result-box', 'handshake', 'label.money.tipAmount', 'res-tip-val', 'RSD', 'NOVAC', 'label.money.tip')}
+        ${statsRow('tip-stats-row', [['label.money.totalToPay', 'stat-tip-total', '0 RSD'], ['label.money.perPerson', 'stat-tip-per-person', '0 RSD']])}
+    `;
+}
+function calculateTip() {
+    const bill = num('tip-bill');
+    const pct = num('tip-percent') || 0;
+    const people = num('tip-people') || 1;
+    if (!bill) { showToast('Unesi iznos računa.', 'error'); return; }
+    const tip = bill * (pct / 100);
+    const total = bill + tip;
+    const perPerson = total / people;
+    const rv = el('res-tip-val'); if (rv) rv.innerText = money(tip);
+    const st = el('stat-tip-total'); if (st) st.innerText = money(total) + ' RSD';
+    const sp = el('stat-tip-per-person'); if (sp) sp.innerText = money(perPerson) + ' RSD';
+    show('tip-result-box');
+    show('tip-stats-row');
+}
+
+// ============================================================
+// FX — KURSNE LISTE
+// ============================================================
+const CURRENCIES = [
+    { code: 'RSD', name: 'Srpski dinar', flag: '🇷🇸', rate: 1 },
+    { code: 'EUR', name: 'Evro', flag: '🇪🇺', rate: 117.20 },
+    { code: 'USD', name: 'Američki dolar', flag: '🇺🇸', rate: 108.50 },
+    { code: 'GBP', name: 'Britanska funta', flag: '🇬🇧', rate: 137.80 },
+    { code: 'CHF', name: 'Švajcarski franak', flag: '🇨🇭', rate: 122.40 },
+    { code: 'JPY', name: 'Japanski jen', flag: '🇯🇵', rate: 0.72 },
+    { code: 'CNY', name: 'Kineski juan', flag: '🇨🇳', rate: 14.95 },
+    { code: 'RUB', name: 'Ruska rublja', flag: '🇷🇺', rate: 1.18 },
+    { code: 'TRY', name: 'Turska lira', flag: '🇹🇷', rate: 3.15 },
+    { code: 'BAM', name: 'Konvertibilna marka', flag: '🇧🇦', rate: 59.90 },
+    { code: 'HRK', name: 'Hrvatska kuna', flag: '🇭🇷', rate: 15.55 },
+    { code: 'MKD', name: 'Makedonski denar', flag: '🇲🇰', rate: 1.90 },
+    { code: 'BGN', name: 'Bugarski lev', flag: '🇧🇬', rate: 59.95 },
+    { code: 'RON', name: 'Rumunski lej', flag: '🇷🇴', rate: 23.55 },
+    { code: 'HUF', name: 'Mađarska forinta', flag: '🇭🇺', rate: 0.30 },
+    { code: 'PLN', name: 'Poljski zlot', flag: '🇵🇱', rate: 26.85 },
+    { code: 'CZK', name: 'Češka kruna', flag: '🇨🇿', rate: 4.68 },
+    { code: 'CAD', name: 'Kanadski dolar', flag: '🇨🇦', rate: 78.60 },
+    { code: 'AUD', name: 'Australijski dolar', flag: '🇦🇺', rate: 71.40 }
+];
+const FX_STORAGE_KEY = 'cx_fx_rates_v3';
+function getFxLastUpdate() { try { const raw = JSON.parse(localStorage.getItem(FX_STORAGE_KEY)); if (raw && raw.updated) return raw.updated; } catch (e) {} return null; }
+function loadFxRates() {
+    try { const raw = JSON.parse(localStorage.getItem(FX_STORAGE_KEY)); if (raw && raw.rates && typeof raw.rates === 'object') { CURRENCIES.forEach(c => { if (typeof raw.rates[c.code] === 'number' && raw.rates[c.code] > 0) c.rate = raw.rates[c.code]; }); } } catch (e) {}
+}
+function saveFxRates() { try { const rates = {}; CURRENCIES.forEach(c => { rates[c.code] = c.rate; }); localStorage.setItem(FX_STORAGE_KEY, JSON.stringify({ rates, updated: Date.now() })); } catch (e) {} }
+function formatFxUpdated(ts) {
+    if (!ts) return currentLang === 'en' ? 'not refreshed' : 'nije osveženo';
+    const diffMin = Math.round((new Date() - new Date(ts)) / 60000);
+    if (diffMin < 1) return currentLang === 'en' ? 'just now' : 'upravo sad';
+    if (diffMin < 60) return (currentLang === 'en' ? '' : 'pre ') + diffMin + (currentLang === 'en' ? ' min ago' : ' min');
+    const diffH = Math.round(diffMin / 60);
+    if (diffH < 24) return (currentLang === 'en' ? '' : 'pre ') + diffH + (currentLang === 'en' ? 'h ago' : 'h');
+    return (currentLang === 'en' ? '' : 'pre ') + Math.floor(diffH / 24) + (currentLang === 'en' ? 'd ago' : ' d.');
+}
+async function refreshExchangeRates(silent = false) {
+    const btn = document.querySelector('.fx-refresh-btn');
+    if (btn) btn.classList.add('spinning');
+    setTimeout(() => { if (btn) btn.classList.remove('spinning'); }, 700);
+    if (!silent) showToast(currentLang === 'en' ? 'Refreshing rates...' : 'Osvežavam kurseve...', 'info', 1500);
+    try {
+        const res = await fetch('https://open.er-api.com/v6/latest/RSD', { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (!data || data.result !== 'success' || !data.rates) throw new Error('Neispravan');
+        CURRENCIES.forEach(c => {
+            if (c.code === 'RSD') { c.rate = 1; return; }
+            const rate = data.rates[c.code];
+            if (typeof rate === 'number' && rate > 0) c.rate = Number((1 / rate).toFixed(4));
+        });
+        saveFxRates();
+        populateCurrencySelects();
+        renderFxList();
+        updateFxUpdatedLabel();
+        calculateCurrency();
+        if (!silent) { showToast(currentLang === 'en' ? 'Rates refreshed' : 'Kursevi osveženi', 'success', 2000); vibrate(20); }
+    } catch (e) { if (!silent) showToast(currentLang === 'en' ? 'Error refreshing rates' : 'Greška pri osvežavanju', 'error', 2500); }
+}
+function populateCurrencySelects() {
+    const fromSel = el('fx-from'), toSel = el('fx-to');
+    if (!fromSel || !toSel) return;
+    const prevFrom = fromSel.value || 'RSD', prevTo = toSel.value || 'EUR';
+    fromSel.innerHTML = ''; toSel.innerHTML = '';
+    CURRENCIES.forEach(c => {
+        const o1 = document.createElement('option'); o1.value = c.code; o1.textContent = `${c.flag} ${c.code} — ${c.name}`; fromSel.appendChild(o1);
+        const o2 = document.createElement('option'); o2.value = c.code; o2.textContent = `${c.flag} ${c.code} — ${c.name}`; toSel.appendChild(o2);
+    });
+    fromSel.value = prevFrom || 'RSD';
+    toSel.value = prevTo || 'EUR';
+}
+function renderFxList() {
+    const list = el('fx-list');
+    if (!list) return;
+    list.innerHTML = '';
+    CURRENCIES.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'fx-list-item';
+        item.dataset.code = c.code;
+        item.innerHTML = `<div class="fx-flag">${c.flag}</div><div class="fx-list-info"><div class="fx-code">${c.code}</div><div class="fx-name">${c.name}</div></div><div class="fx-value">${fmt(c.rate, 4)}<small>RSD</small></div>`;
+        item.addEventListener('click', () => { const toSel = el('fx-to'); if (toSel) { toSel.value = c.code; calculateCurrency(); } });
+        list.appendChild(item);
+    });
+}
+function updateFxUpdatedLabel() {
+    const label = el('fx-updated-label');
+    if (!label) return;
+    const ts = getFxLastUpdate();
+    label.textContent = ts ? ((currentLang === 'en' ? 'updated ' : 'osveženo ') + formatFxUpdated(ts)) : safeT('label.money.manualEntry');
+}
+function swapCurrencies() {
+    const fromSel = el('fx-from'), toSel = el('fx-to');
+    if (!fromSel || !toSel) return;
+    const tmp = fromSel.value;
+    fromSel.value = toSel.value;
+    toSel.value = tmp;
+    calculateCurrency();
+    vibrate(10);
+}
+function getCurrencyByCode(code) { return CURRENCIES.find(c => c.code === code); }
+function calculateCurrency() {
+    const amount = num('fx-amount');
+    const fromSel = el('fx-from'), toSel = el('fx-to');
+    if (!fromSel || !toSel) return;
+    const fromCur = getCurrencyByCode(fromSel.value), toCur = getCurrencyByCode(toSel.value);
+    const info = el('fx-rate-info');
+    if (info && fromCur && toCur) info.innerHTML = `1 ${fromCur.code} = <strong>${fmt(fromCur.rate / toCur.rate, 4)}</strong> ${toCur.code}`;
+    if (!amount) { hide('fx-result-box'); return; }
+    if (!fromCur || !toCur) return;
+    const result = (amount * fromCur.rate) / toCur.rate;
+    const fv = el('res-fx-val'), fu = el('res-fx-unit');
+    if (fv) fv.innerText = toCur.rate >= 50 ? money(result) : fmt(result, 2);
+    if (fu) fu.innerText = toCur.code;
+    show('fx-result-box');
+}
+
+function renderMoneyValuta() {
+    return `
+        <div class="converter-box">
+            <div class="fx-head">
+                <div class="section-desc" style="margin-bottom: 0;">${safeT('label.money.exchangeList')} — <span id="fx-updated-label">${safeT('label.money.manualEntry')}</span></div>
+                <button class="fx-refresh-btn" onclick="refreshExchangeRates()" type="button">${icon('refresh')}</button>
+            </div>
+            <div class="input-field"><label>${safeT('label.money.amount')}</label><div class="input-wrapper"><input type="number" id="fx-amount" class="custom-input" placeholder="1000" inputmode="decimal" oninput="calculateCurrency()"></div></div>
+            <div class="fx-row">
+                <div class="input-field fx-col"><label>${safeT('label.money.fromCurrency')}</label><select id="fx-from" class="custom-input" onchange="calculateCurrency()"></select></div>
+                <button class="fx-swap-btn" onclick="swapCurrencies()" type="button">${icon('swap')}</button>
+                <div class="input-field fx-col"><label>${safeT('label.money.toCurrency')}</label><select id="fx-to" class="custom-input" onchange="calculateCurrency()"></select></div>
+            </div>
+            ${calcButton('btn.calculate', 'calculateCurrency()')}
+        </div>
+        <div id="fx-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left"><div class="pump-icon">${icon('exchange')}</div><div><div class="res-label">${safeT('result.label')}</div><h2><span id="res-fx-val">0</span> <small id="res-fx-unit">EUR</small></h2></div></div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-fx-val', 'res-fx-unit', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="NOVAC" data-label="Valuta" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="NOVAC" data-label="Valuta" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+        <div class="fx-rate-info" id="fx-rate-info"></div>
+        <div class="converter-box fx-list-box">
+            <div class="section-desc" style="margin-bottom: 10px;">${safeT('label.money.ratesList')}</div>
+            <div class="fx-list" id="fx-list"></div>
+        </div>
+    `;
 }
 // ============================================================
-// PODSETNICI — Storage helperi
+// PODSETNICI — Storage helperi + rendering
 // ============================================================
 const REMINDER_KEYS = {
     birthdays: 'cx_birthdays',
@@ -6070,7 +7602,7 @@ function hasActiveRemindersWithRemind() {
 }
 
 // ============================================================
-// PARSE DATE — kratka verzija (ako već nije definisana)
+// PARSE DATE
 // ============================================================
 if (typeof window.parseDate !== 'function') {
     window.parseDate = function(value) {
@@ -6080,6 +7612,7 @@ if (typeof window.parseDate !== 'function') {
         return new Date(parts[0], parts[1] - 1, parts[2]);
     };
 }
+
 // ============================================================
 // WEATHER
 // ============================================================
@@ -6372,1457 +7905,7 @@ function updateWeatherVazduh() {
     }
     box.innerHTML = `${weatherLocationHeader()}<div class="aqi-card" style="--aqi-color: ${aqiColor};"><div class="aqi-value">${Math.round(aqiVal)}</div><div class="aqi-info"><div class="aqi-label">${safeT('weather.aqi.' + aqiKey)}</div><div class="aqi-sub">${safeT('weather.aqi.subtitle')}</div></div></div><div class="weather-section-title">${safeT('weather.section.pollutants')}</div>${aqi.pm2_5 !== undefined ? `<div class="aqi-pollutant-row"><span class="aqi-pollutant-name">PM2.5</span><span class="aqi-pollutant-value">${Math.round(aqi.pm2_5)} µg/m³</span></div>` : ''}${aqi.pm10 !== undefined ? `<div class="aqi-pollutant-row"><span class="aqi-pollutant-name">PM10</span><span class="aqi-pollutant-value">${Math.round(aqi.pm10)} µg/m³</span></div>` : ''}${aqi.nitrogen_dioxide !== undefined ? `<div class="aqi-pollutant-row"><span class="aqi-pollutant-name">NO₂</span><span class="aqi-pollutant-value">${Math.round(aqi.nitrogen_dioxide)} µg/m³</span></div>` : ''}${aqi.ozone !== undefined ? `<div class="aqi-pollutant-row"><span class="aqi-pollutant-name">O₃</span><span class="aqi-pollutant-value">${Math.round(aqi.ozone)} µg/m³</span></div>` : ''}${pollenHtml ? `<div class="weather-section-title">${safeT('weather.section.pollen')}</div>${pollenHtml}` : ''}`;
 }
-// ============================================================
-// MONEY — SVI KALKULATORI
-// ============================================================
-function renderMoneyPopust() {
-    return `
-        <div class="converter-box">
-            ${inputField('label.money.originalPrice', 'money-price', 'RSD', 'placeholder="2500"')}
-            ${inputField('label.money.discountPercent', 'money-discount', '%', 'placeholder="20"')}
-            ${calcButton('btn.calculate', 'calculateMoney()')}
-        </div>
-        ${resultCard('money-result-box', 'tag', 'label.money.newPrice', 'res-money-final', 'RSD', 'NOVAC', 'label.money.discount')}
-        ${statsRow('money-stats-row', [['label.money.saved', 'stat-money-saved', '0 RSD']])}
-    `;
-}
-function calculateMoney() {
-    const price = num('money-price');
-    const discount = num('money-discount');
-    if (!price || discount === null) { showToast('Unesi cenu i popust.', 'error'); return; }
-    const saved = price * (discount / 100);
-    const final = price - saved;
-    const rf = el('res-money-final'); if (rf) rf.innerText = money(final);
-    const ss = el('stat-money-saved'); if (ss) ss.innerText = money(saved) + ' RSD';
-    show('money-result-box');
-    show('money-stats-row');
-}
 
-function renderMoneyPDV() {
-    return `
-        <div class="converter-box">
-            ${inputField('label.money.amount', 'pdv-amount', 'RSD', 'placeholder="1000"')}
-            ${inputField('label.money.vatRate', 'pdv-rate', '%', 'value="20"')}
-            ${selectField('label.money.calcType', 'pdv-type', [
-                { value: 'add', text: safeT('option.money.addVat') },
-                { value: 'extract', text: safeT('option.money.extractVat') }
-            ])}
-            ${calcButton('btn.calculate', 'calculatePDV()')}
-        </div>
-        ${resultCard('pdv-result-box', 'percent', 'label.money.totalAmount', 'res-pdv-total', 'RSD', 'NOVAC', 'label.money.vat')}
-        ${statsRow('pdv-stats-row', [['label.money.base', 'stat-pdv-base', '0 RSD'], ['label.money.vatAmount', 'stat-pdv-tax', '0 RSD']])}
-    `;
-}
-function calculatePDV() {
-    const amount = num('pdv-amount');
-    const rate = num('pdv-rate') || 20;
-    const type = el('pdv-type') ? el('pdv-type').value : 'add';
-    if (!amount) { showToast('Unesi iznos.', 'error'); return; }
-    let base, vat, total;
-    if (type === 'add') {
-        base = amount;
-        vat = amount * (rate / 100);
-        total = amount + vat;
-    } else {
-        total = amount;
-        base = amount / (1 + rate / 100);
-        vat = total - base;
-    }
-    const rt = el('res-pdv-total'); if (rt) rt.innerText = money(total);
-    const sb = el('stat-pdv-base'); if (sb) sb.innerText = money(base) + ' RSD';
-    const st = el('stat-pdv-tax'); if (st) st.innerText = money(vat) + ' RSD';
-    show('pdv-result-box');
-    show('pdv-stats-row');
-}
-
-function renderMoneyKredit() {
-    return `
-        <div class="converter-box">
-            ${selectField('label.money.loanCurrency', 'credit-currency', [
-                { value: 'RSD', text: 'RSD' }, { value: 'EUR', text: 'EUR' },
-                { value: 'CHF', text: 'CHF' }, { value: 'USD', text: 'USD' }
-            ], 'RSD')}
-            <div class="input-field">
-                <label>${safeT('label.money.loanAmount')}</label>
-                <div class="input-wrapper"><input type="number" id="loan-amount" class="custom-input" placeholder="1000000" inputmode="decimal"><span class="unit" id="loan-amount-unit">RSD</span></div>
-            </div>
-            ${inputField('label.money.annualRate', 'loan-rate', '%', 'value="6.5" step="0.1"')}
-            ${inputField('label.money.loanPeriod', 'loan-months', safeT('unit.monthsShort'), 'value="60"')}
-            ${calcButton('btn.calculate', 'calculateLoan()')}
-        </div>
-        ${resultCard('loan-result-box', 'creditCard', 'label.money.monthlyPayment', 'res-loan-monthly', 'RSD/mes', 'NOVAC', 'label.money.loan')}
-        ${statsRow('loan-stats-row', [['label.money.totalInterest', 'stat-loan-interest', '0 RSD'], ['label.money.totalRepayment', 'stat-loan-total', '0 RSD']])}
-        <div id="loan-amort-wrap" style="display:none; margin-top: 16px;">
-            <div class="converter-box">
-                <div class="section-desc" style="margin-bottom: 10px;">${safeT('label.money.amortPlan')}</div>
-                <div class="amort-scroll"><table id="amort-table" class="amort-table"><thead><tr><th>${safeT('table.month')}</th><th>${safeT('table.payment')}</th><th>${safeT('table.interest')}</th><th>${safeT('table.principal')}</th><th>${safeT('table.balance')}</th></tr></thead><tbody id="amort-body"></tbody></table></div>
-            </div>
-        </div>
-    `;
-}
-function calculateLoan() {
-    const amount = num('loan-amount');
-    const rate = num('loan-rate') || 0;
-    const months = num('loan-months') || 0;
-    const currency = el('credit-currency') ? el('credit-currency').value : 'RSD';
-    const unitEl = el('loan-amount-unit'); if (unitEl) unitEl.innerText = currency;
-    if (!amount || !months) { showToast('Unesi iznos i period.', 'error'); return; }
-    const monthlyRate = rate / 100 / 12;
-    let monthly;
-    if (monthlyRate === 0) monthly = amount / months;
-    else {
-        const factor = Math.pow(1 + monthlyRate, months);
-        monthly = amount * monthlyRate * factor / (factor - 1);
-    }
-    const total = monthly * months;
-    const interest = total - amount;
-    const rm = el('res-loan-monthly'); if (rm) rm.innerText = money(monthly) + '/' + currency;
-    const si = el('stat-loan-interest'); if (si) si.innerText = money(interest) + ' ' + currency;
-    const st = el('stat-loan-total'); if (st) st.innerText = money(total) + ' ' + currency;
-    // Amortizaciona tabela
-    const body = el('amort-body');
-    if (body) {
-        let balance = amount;
-        let rows = '';
-        for (let i = 1; i <= Math.min(months, 12); i++) {
-            const interestPart = balance * monthlyRate;
-            const principalPart = monthly - interestPart;
-            balance -= principalPart;
-            rows += `<tr><td>${i}</td><td>${money(monthly)}</td><td>${money(interestPart)}</td><td>${money(principalPart)}</td><td>${money(Math.max(0, balance))}</td></tr>`;
-        }
-        body.innerHTML = rows;
-    }
-    const wrap = el('loan-amort-wrap'); if (wrap) wrap.style.display = 'block';
-    show('loan-result-box');
-    show('loan-stats-row');
-}
-function toggleAmortPreview() { /* opciono */ }
-
-function renderMoneyRate() {
-    return `
-        <div class="converter-box">
-            ${sectionDescKey('desc.money.rate')}
-            ${inputField('label.rate.startAmount', 'rate-start', 'RSD', 'placeholder="120000"')}
-            ${inputField('label.rate.count', 'rate-count', '', 'value="12" min="1" max="120"')}
-            ${dateTripleField('label.rate.firstDate', 'rate-first-date')}
-            ${selectField('label.rate.period', 'rate-period', [
-                { value: 'monthly', text: safeT('label.rate.period.monthly') },
-                { value: 'biweekly', text: safeT('label.rate.period.biweekly') },
-                { value: 'weekly', text: safeT('label.rate.period.weekly') }
-            ], 'monthly')}
-            ${inputField('label.rate.interest', 'rate-interest', '%', 'value="0" step="0.1"')}
-            ${inputFieldText('label.rate.description', 'rate-description', safeT('label.rate.descriptionPlaceholder'))}
-            ${calcButton('btn.calculate', 'calculateInstallments()')}
-        </div>
-        <div id="rate-calc-result-box" style="display: none;">
-            <div class="rate-info-card">
-                <div class="rate-info-row"><span class="rate-info-label">${safeT('label.rate.perInstallment')}</span><span class="rate-info-value accent" id="res-rate-per">0 RSD</span></div>
-                <div class="rate-info-row"><span class="rate-info-label">${safeT('label.rate.totalPayment')}</span><span class="rate-info-value" id="res-rate-total">0 RSD</span></div>
-                <div class="rate-info-row"><span class="rate-info-label">${safeT('label.rate.totalInterest')}</span><span class="rate-info-value" id="res-rate-interest">0 RSD</span></div>
-            </div>
-            <div class="rate-actions">
-                <button class="rate-action-btn rate-action-primary" onclick="saveInstallmentsAsReminders()">💾 ${safeT('label.rate.saveReminders')}</button>
-            </div>
-            <div class="rate-table-wrap" style="margin-top: 14px;"><div id="rate-table-body"></div></div>
-        </div>
-    `;
-}
-let currentInstallmentData = null;
-function calculateInstallments() {
-    const startAmount = num('rate-start');
-    const count = parseInt(num('rate-count')) || 0;
-    const firstDate = getTripleDate('rate-first-date');
-    const period = el('rate-period') ? el('rate-period').value : 'monthly';
-    const interestRate = num('rate-interest') || 0;
-    const description = el('rate-description') ? el('rate-description').value.trim() : '';
-    if (!startAmount || startAmount <= 0) { showToast('Unesi iznos.', 'error'); return; }
-    if (!count || count < 1 || count > 120) { showToast('Unesi broj rata (1-120).', 'error'); return; }
-    if (!firstDate) { showToast('Unesi datum prve rate.', 'error'); return; }
-    let monthlyRate = 0;
-    if (interestRate > 0) {
-        const periodsPerYear = period === 'monthly' ? 12 : (period === 'biweekly' ? 26 : 52);
-        monthlyRate = (interestRate / 100) / periodsPerYear;
-    }
-    let perInstallment;
-    if (monthlyRate === 0) perInstallment = startAmount / count;
-    else {
-        const factor = Math.pow(1 + monthlyRate, count);
-        perInstallment = (startAmount * monthlyRate * factor) / (factor - 1);
-    }
-    const totalPayment = perInstallment * count;
-    const totalInterest = totalPayment - startAmount;
-    const installments = [];
-    const firstDateObj = parseDate(firstDate);
-    for (let i = 0; i < count; i++) {
-        const date = new Date(firstDateObj);
-        if (period === 'monthly') date.setMonth(date.getMonth() + i);
-        else if (period === 'biweekly') date.setDate(date.getDate() + i * 14);
-        else date.setDate(date.getDate() + i * 7);
-        installments.push({ number: i + 1, date: date.toISOString().slice(0, 10), amount: perInstallment, paid: false });
-    }
-    currentInstallmentData = {
-        startAmount, count, period, interestRate,
-        description: description || safeT('label.rate.installment'),
-        installments, totalPayment, totalInterest, createdAt: Date.now()
-    };
-    const rp = el('res-rate-per'); if (rp) rp.innerText = money(perInstallment) + ' RSD';
-    const rt = el('res-rate-total'); if (rt) rt.innerText = money(totalPayment) + ' RSD';
-    const ri = el('res-rate-interest'); if (ri) ri.innerText = money(totalInterest) + ' RSD';
-    const tableBody = el('rate-table-body');
-    if (tableBody) {
-        tableBody.innerHTML = installments.map(inst => `
-            <div class="rate-item">
-                <div class="rate-item-check" style="cursor: default;"></div>
-                <div class="rate-item-number">${safeT('label.rate.rate')} ${inst.number}/${count}</div>
-                <div class="rate-item-date">${inst.date}</div>
-                <div class="rate-item-amount">${money(inst.amount)} RSD</div>
-            </div>
-        `).join('');
-    }
-    const box = el('rate-calc-result-box'); if (box) box.style.display = 'block';
-    vibrate(20);
-    playTick(0, 1500, 0.08, 0.03);
-}
-function saveInstallmentsAsReminders() {
-    if (!currentInstallmentData) { showToast('Prvo izračunaj rate.', 'error'); return; }
-    const groups = loadInstallmentGroups();
-    const newGroup = {
-        id: 'inst_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-        description: currentInstallmentData.description,
-        startAmount: currentInstallmentData.startAmount,
-        count: currentInstallmentData.count,
-        period: currentInstallmentData.period,
-        interestRate: currentInstallmentData.interestRate,
-        installments: currentInstallmentData.installments.map(i => ({ ...i })),
-        createdAt: Date.now()
-    };
-    groups.push(newGroup);
-    saveInstallmentGroups(groups);
-    showToast(safeT('label.rate.savedAsReminders'), 'success', 2500);
-    vibrate(20);
-    playTick(0, 1500, 0.08, 0.03);
-    updateAppBadge();
-    const box = el('rate-calc-result-box'); if (box) box.style.display = 'none';
-}
-
-function renderMoneyPodela() {
-    return `
-        <div class="converter-box">
-            ${inputField('label.money.totalBill', 'split-total', 'RSD', 'placeholder="4500"')}
-            ${inputField('label.money.peopleCount', 'split-people', '', 'value="2" min="1"')}
-            ${inputField('label.money.tipOptional', 'split-tip', '%', 'placeholder="10"')}
-            ${calcButton('btn.calculate', 'calculateSplit()')}
-        </div>
-        ${resultCard('split-result-box', 'receipt', 'label.money.perPerson', 'res-split-val', 'RSD', 'NOVAC', 'label.money.split')}
-        ${statsRow('split-stats-row', [['label.money.withTip', 'stat-split-total', '0 RSD']])}
-    `;
-}
-function calculateSplit() {
-    const total = num('split-total');
-    const people = num('split-people') || 1;
-    const tip = num('split-tip') || 0;
-    if (!total) { showToast('Unesi iznos računa.', 'error'); return; }
-    const totalWithTip = total * (1 + tip / 100);
-    const perPerson = totalWithTip / people;
-    const rv = el('res-split-val'); if (rv) rv.innerText = money(perPerson);
-    const st = el('stat-split-total'); if (st) st.innerText = money(totalWithTip) + ' RSD';
-    show('split-result-box');
-    show('split-stats-row');
-}
-
-function renderMoneyPoredjenje() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Uporedi cenu dva proizvoda po jedinici mere.</p>
-            <div class="compare-group">
-                <div class="compare-title">Proizvod A</div>
-                ${inputField('label.shop.price', 'price-a', 'RSD', 'placeholder="200"')}
-                ${inputField('label.shop.quantity', 'qty-a', '', 'placeholder="1"')}
-                ${selectField('label.shop.unit', 'unit-a', [
-                    { value: 'kg', text: 'kg' }, { value: 'g', text: 'g' },
-                    { value: 'L', text: 'L' }, { value: 'ml', text: 'ml' }, { value: 'kom', text: 'kom' }
-                ])}
-            </div>
-            <div class="compare-group">
-                <div class="compare-title">Proizvod B</div>
-                ${inputField('label.shop.price', 'price-b', 'RSD', 'placeholder="180"')}
-                ${inputField('label.shop.quantity', 'qty-b', '', 'placeholder="0.9"')}
-                ${selectField('label.shop.unit', 'unit-b', [
-                    { value: 'kg', text: 'kg' }, { value: 'g', text: 'g' },
-                    { value: 'L', text: 'L' }, { value: 'ml', text: 'ml' }, { value: 'kom', text: 'kom' }
-                ])}
-            </div>
-            ${calcButton('btn.calculate', 'calculateMoneyPoredjenje()')}
-        </div>
-        ${resultCard('poredjenje-result-box', 'scale', 'label.shop.compareResult', 'res-poredjenje-winner', '', 'NOVAC', 'label.shop.compareShort')}
-        ${statsRow('poredjenje-stats-row', [
-            ['label.shop.productA', 'stat-poredjenje-a', '0'],
-            ['label.shop.productB', 'stat-poredjenje-b', '0'],
-            ['label.shop.difference', 'stat-poredjenje-diff', '0%']
-        ])}
-    `;
-}
-function calculateMoneyPoredjenje() {
-    const aP = num('price-a'), aQ = num('qty-a');
-    const aU = el('unit-a') ? el('unit-a').value : 'kg';
-    const bP = num('price-b'), bQ = num('qty-b');
-    const bU = el('unit-b') ? el('unit-b').value : 'kg';
-    if (!aP || !aQ || !bP || !bQ) { showToast('Unesi sve vrednosti.', 'error'); return; }
-    function toBase(price, qty, unit) {
-        if (unit === 'g' || unit === 'ml') return price / (qty / 1000);
-        return price / qty;
-    }
-    const aBase = toBase(aP, aQ, aU);
-    const bBase = toBase(bP, bQ, bU);
-    const winner = aBase < bBase ? safeT('label.shop.productACheaper') : (bBase < aBase ? safeT('label.shop.productBCheaper') : safeT('label.shop.samePrice'));
-    const rw = el('res-poredjenje-winner'); if (rw) rw.innerText = winner;
-    const sa = el('stat-poredjenje-a'); if (sa) sa.innerText = money(aBase);
-    const sb = el('stat-poredjenje-b'); if (sb) sb.innerText = money(bBase);
-    const sd = el('stat-poredjenje-diff'); if (sd) sd.innerText = fmt(Math.abs(aBase - bBase) / Math.max(aBase, bBase) * 100, 1) + '%';
-    show('poredjenje-result-box'); show('poredjenje-stats-row');
-}
-
-function renderMoneyStednja() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Izračunaj koliko meseci treba da uštediš za cilj.</p>
-            ${inputField('label.money.stednja.target', 'savings-target', 'RSD', 'placeholder="1000000"')}
-            ${inputField('label.money.stednja.current', 'savings-current', 'RSD', 'placeholder="0"')}
-            ${inputField('label.money.stednja.monthly', 'savings-monthly', 'RSD', 'placeholder="20000"')}
-            ${inputField('label.money.stednja.interest', 'savings-interest', '%', 'value="0" step="0.1"')}
-            ${calcButton('btn.calculate', 'calculateSavings()')}
-        </div>
-        ${resultCard('savings-result-box', 'piggyBank', 'label.money.stednja.months', 'res-savings-months', 'meseci', 'NOVAC', 'label.money.stednja.progress')}
-        ${statsRow('savings-stats-row', [
-            ['label.money.stednja.total', 'stat-savings-total', '0 RSD'],
-            ['label.money.stednja.interestEarned', 'stat-savings-interest', '0 RSD']
-        ])}
-        <div class="savings-progress" id="savings-progress-box" style="display: none;">
-            <div class="savings-amounts">
-                <span class="current" id="savings-current-label">0 RSD</span>
-                <span class="target" id="savings-target-label">0 RSD</span>
-            </div>
-            <div class="savings-progress-bar-wrap">
-                <div class="savings-progress-fill" id="savings-progress-fill" style="width: 0%;"></div>
-            </div>
-            <div class="savings-pct" id="savings-pct">0%</div>
-        </div>
-    `;
-}
-function calculateSavings() {
-    const target = num('savings-target');
-    const current = num('savings-current') || 0;
-    const monthly = num('savings-monthly');
-    const annualRate = num('savings-interest') || 0;
-    if (!target || target <= 0 || !monthly || monthly <= 0) {
-        showToast('Unesi cilj i mesečni iznos.', 'error');
-        return;
-    }
-    const remaining = Math.max(0, target - current);
-    if (remaining === 0) {
-        const rm = el('res-savings-months');
-        if (rm) rm.innerText = '0';
-        showToast('Cilj je već dostignut!', 'success', 2500);
-        show('savings-result-box');
-        return;
-    }
-    let months;
-    if (annualRate <= 0) months = Math.ceil(remaining / monthly);
-    else {
-        const monthlyRate = annualRate / 100 / 12;
-        months = Math.ceil(Math.log(1 + (remaining * monthlyRate) / monthly) / Math.log(1 + monthlyRate));
-    }
-    const totalSaved = monthly * months;
-    const interest = Math.max(0, totalSaved - remaining);
-    const rm = el('res-savings-months'); if (rm) rm.innerText = months;
-    const st = el('stat-savings-total'); if (st) st.innerText = money(totalSaved) + ' RSD';
-    const si = el('stat-savings-interest'); if (si) si.innerText = money(interest) + ' RSD';
-    show('savings-result-box'); show('savings-stats-row');
-    const pct = Math.min(100, (current / target) * 100);
-    const progressBox = el('savings-progress-box');
-    if (progressBox) progressBox.style.display = 'flex';
-    const fill = el('savings-progress-fill');
-    if (fill) fill.style.width = pct + '%';
-    const pctEl = el('savings-pct');
-    if (pctEl) pctEl.textContent = fmt(pct, 1) + '%';
-    const currLabel = el('savings-current-label');
-    if (currLabel) currLabel.textContent = money(current) + ' RSD';
-    const tgtLabel = el('savings-target-label');
-    if (tgtLabel) tgtLabel.textContent = money(target) + ' RSD';
-}
-
-function renderMoneyBudzet() {
-    return `
-        <div class="converter-box">
-            <p class="section-desc">Izračunaj dnevni limit potrošnje na osnovu budžeta.</p>
-            ${inputField('label.shop.totalBudget', 'budzet-total-m', 'RSD', 'placeholder="30000"')}
-            ${selectField('label.shop.period', 'budzet-period-m', [
-                { value: '7', text: 'Nedelja (7 dana)' },
-                { value: '14', text: 'Dve nedelje (14 dana)' },
-                { value: '30', text: 'Mesec (30 dana)' }
-            ])}
-            ${inputField('label.shop.alreadySpent', 'budzet-spent-m', 'RSD', 'placeholder="0"')}
-            ${calcButton('btn.calculate', 'calculateMoneyBudzet()')}
-        </div>
-        ${resultCard('budzet-result-box-m', 'calendarSm', 'label.shop.dailyLimit', 'res-budzet-daily-m', 'RSD', 'NOVAC', 'label.shop.budgetShort')}
-        ${statsRow('budzet-stats-row-m', [
-            ['label.shop.untilEndOfPeriod', 'stat-budzet-left-m', '0 RSD'],
-            ['label.shop.daysCount', 'stat-budzet-days-m', '0'],
-            ['label.shop.dailyUntilEnd', 'stat-budzet-recalc-m', '0 RSD']
-        ])}
-    `;
-}
-function calculateMoneyBudzet() {
-    const total = num('budzet-total-m');
-    const period = el('budzet-period-m') ? parseInt(el('budzet-period-m').value) : 30;
-    const spent = num('budzet-spent-m') || 0;
-    if (!total || total <= 0) { showToast('Unesi budžet.', 'error'); return; }
-    const daily = total / period, left = Math.max(0, total - spent);
-    const rd = el('res-budzet-daily-m'); if (rd) rd.innerText = money(daily);
-    const sl = el('stat-budzet-left-m'); if (sl) sl.innerText = money(left) + ' RSD';
-    const sd = el('stat-budzet-days-m'); if (sd) sd.innerText = period;
-    const sr = el('stat-budzet-recalc-m'); if (sr) sr.innerText = money(left / period) + ' RSD';
-    show('budzet-result-box-m'); show('budzet-stats-row-m');
-}
-
-function renderMoneyNapojnica() {
-    return `
-        <div class="converter-box">
-            ${inputField('label.money.billAmount', 'tip-bill', 'RSD', 'placeholder="2500"')}
-            ${inputField('label.money.tipPercent', 'tip-percent', '%', 'placeholder="10"')}
-            ${inputField('label.money.peopleCount', 'tip-people', '', 'value="1" min="1"')}
-            ${calcButton('btn.calculate', 'calculateTip()')}
-        </div>
-        ${resultCard('tip-result-box', 'handshake', 'label.money.tipAmount', 'res-tip-val', 'RSD', 'NOVAC', 'label.money.tip')}
-        ${statsRow('tip-stats-row', [['label.money.totalToPay', 'stat-tip-total', '0 RSD'], ['label.money.perPerson', 'stat-tip-per-person', '0 RSD']])}
-    `;
-}
-function calculateTip() {
-    const bill = num('tip-bill');
-    const pct = num('tip-percent') || 0;
-    const people = num('tip-people') || 1;
-    if (!bill) { showToast('Unesi iznos računa.', 'error'); return; }
-    const tip = bill * (pct / 100);
-    const total = bill + tip;
-    const perPerson = total / people;
-    const rv = el('res-tip-val'); if (rv) rv.innerText = money(tip);
-    const st = el('stat-tip-total'); if (st) st.innerText = money(total) + ' RSD';
-    const sp = el('stat-tip-per-person'); if (sp) sp.innerText = money(perPerson) + ' RSD';
-    show('tip-result-box');
-    show('tip-stats-row');
-}
-
-// ============================================================
-// FX — KURSNE LISTE
-// ============================================================
-const CURRENCIES = [
-    { code: 'RSD', name: 'Srpski dinar', flag: '🇷🇸', rate: 1 },
-    { code: 'EUR', name: 'Evro', flag: '🇪🇺', rate: 117.20 },
-    { code: 'USD', name: 'Američki dolar', flag: '🇺🇸', rate: 108.50 },
-    { code: 'GBP', name: 'Britanska funta', flag: '🇬🇧', rate: 137.80 },
-    { code: 'CHF', name: 'Švajcarski franak', flag: '🇨🇭', rate: 122.40 },
-    { code: 'JPY', name: 'Japanski jen', flag: '🇯🇵', rate: 0.72 },
-    { code: 'CNY', name: 'Kineski juan', flag: '🇨🇳', rate: 14.95 },
-    { code: 'RUB', name: 'Ruska rublja', flag: '🇷🇺', rate: 1.18 },
-    { code: 'TRY', name: 'Turska lira', flag: '🇹🇷', rate: 3.15 },
-    { code: 'BAM', name: 'Konvertibilna marka', flag: '🇧🇦', rate: 59.90 },
-    { code: 'HRK', name: 'Hrvatska kuna', flag: '🇭🇷', rate: 15.55 },
-    { code: 'MKD', name: 'Makedonski denar', flag: '🇲🇰', rate: 1.90 },
-    { code: 'BGN', name: 'Bugarski lev', flag: '🇧🇬', rate: 59.95 },
-    { code: 'RON', name: 'Rumunski lej', flag: '🇷🇴', rate: 23.55 },
-    { code: 'HUF', name: 'Mađarska forinta', flag: '🇭🇺', rate: 0.30 },
-    { code: 'PLN', name: 'Poljski zlot', flag: '🇵🇱', rate: 26.85 },
-    { code: 'CZK', name: 'Češka kruna', flag: '🇨🇿', rate: 4.68 },
-    { code: 'CAD', name: 'Kanadski dolar', flag: '🇨🇦', rate: 78.60 },
-    { code: 'AUD', name: 'Australijski dolar', flag: '🇦🇺', rate: 71.40 }
-];
-const FX_STORAGE_KEY = 'cx_fx_rates_v3';
-function getFxLastUpdate() { try { const raw = JSON.parse(localStorage.getItem(FX_STORAGE_KEY)); if (raw && raw.updated) return raw.updated; } catch (e) {} return null; }
-function loadFxRates() {
-    try { const raw = JSON.parse(localStorage.getItem(FX_STORAGE_KEY)); if (raw && raw.rates && typeof raw.rates === 'object') { CURRENCIES.forEach(c => { if (typeof raw.rates[c.code] === 'number' && raw.rates[c.code] > 0) c.rate = raw.rates[c.code]; }); } } catch (e) {}
-}
-function saveFxRates() { try { const rates = {}; CURRENCIES.forEach(c => { rates[c.code] = c.rate; }); localStorage.setItem(FX_STORAGE_KEY, JSON.stringify({ rates, updated: Date.now() })); } catch (e) {} }
-function formatFxUpdated(ts) {
-    if (!ts) return currentLang === 'en' ? 'not refreshed' : 'nije osveženo';
-    const diffMin = Math.round((new Date() - new Date(ts)) / 60000);
-    if (diffMin < 1) return currentLang === 'en' ? 'just now' : 'upravo sad';
-    if (diffMin < 60) return (currentLang === 'en' ? '' : 'pre ') + diffMin + (currentLang === 'en' ? ' min ago' : ' min');
-    const diffH = Math.round(diffMin / 60);
-    if (diffH < 24) return (currentLang === 'en' ? '' : 'pre ') + diffH + (currentLang === 'en' ? 'h ago' : 'h');
-    return (currentLang === 'en' ? '' : 'pre ') + Math.floor(diffH / 24) + (currentLang === 'en' ? 'd ago' : ' d.');
-}
-async function refreshExchangeRates(silent = false) {
-    const btn = document.querySelector('.fx-refresh-btn');
-    if (btn) btn.classList.add('spinning');
-    setTimeout(() => { if (btn) btn.classList.remove('spinning'); }, 700);
-    if (!silent) showToast(currentLang === 'en' ? 'Refreshing rates...' : 'Osvežavam kurseve...', 'info', 1500);
-    try {
-        const res = await fetch('https://open.er-api.com/v6/latest/RSD', { cache: 'no-store' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        if (!data || data.result !== 'success' || !data.rates) throw new Error('Neispravan');
-        CURRENCIES.forEach(c => {
-            if (c.code === 'RSD') { c.rate = 1; return; }
-            const rate = data.rates[c.code];
-            if (typeof rate === 'number' && rate > 0) c.rate = Number((1 / rate).toFixed(4));
-        });
-        saveFxRates();
-        populateCurrencySelects();
-        renderFxList();
-        updateFxUpdatedLabel();
-        calculateCurrency();
-        if (!silent) { showToast(currentLang === 'en' ? 'Rates refreshed' : 'Kursevi osveženi', 'success', 2000); vibrate(20); }
-    } catch (e) { if (!silent) showToast(currentLang === 'en' ? 'Error refreshing rates' : 'Greška pri osvežavanju', 'error', 2500); }
-}
-function populateCurrencySelects() {
-    const fromSel = el('fx-from'), toSel = el('fx-to');
-    if (!fromSel || !toSel) return;
-    const prevFrom = fromSel.value || 'RSD', prevTo = toSel.value || 'EUR';
-    fromSel.innerHTML = ''; toSel.innerHTML = '';
-    CURRENCIES.forEach(c => {
-        const o1 = document.createElement('option'); o1.value = c.code; o1.textContent = `${c.flag} ${c.code} — ${c.name}`; fromSel.appendChild(o1);
-        const o2 = document.createElement('option'); o2.value = c.code; o2.textContent = `${c.flag} ${c.code} — ${c.name}`; toSel.appendChild(o2);
-    });
-    fromSel.value = prevFrom || 'RSD';
-    toSel.value = prevTo || 'EUR';
-}
-function renderFxList() {
-    const list = el('fx-list');
-    if (!list) return;
-    list.innerHTML = '';
-    CURRENCIES.forEach(c => {
-        const item = document.createElement('div');
-        item.className = 'fx-list-item';
-        item.dataset.code = c.code;
-        item.innerHTML = `<div class="fx-flag">${c.flag}</div><div class="fx-list-info"><div class="fx-code">${c.code}</div><div class="fx-name">${c.name}</div></div><div class="fx-value">${fmt(c.rate, 4)}<small>RSD</small></div>`;
-        item.addEventListener('click', () => { const toSel = el('fx-to'); if (toSel) { toSel.value = c.code; calculateCurrency(); } });
-        list.appendChild(item);
-    });
-}
-function updateFxUpdatedLabel() {
-    const label = el('fx-updated-label');
-    if (!label) return;
-    const ts = getFxLastUpdate();
-    label.textContent = ts ? ((currentLang === 'en' ? 'updated ' : 'osveženo ') + formatFxUpdated(ts)) : safeT('label.money.manualEntry');
-}
-function swapCurrencies() {
-    const fromSel = el('fx-from'), toSel = el('fx-to');
-    if (!fromSel || !toSel) return;
-    const tmp = fromSel.value;
-    fromSel.value = toSel.value;
-    toSel.value = tmp;
-    calculateCurrency();
-    vibrate(10);
-}
-function getCurrencyByCode(code) { return CURRENCIES.find(c => c.code === code); }
-function calculateCurrency() {
-    const amount = num('fx-amount');
-    const fromSel = el('fx-from'), toSel = el('fx-to');
-    if (!fromSel || !toSel) return;
-    const fromCur = getCurrencyByCode(fromSel.value), toCur = getCurrencyByCode(toSel.value);
-    const info = el('fx-rate-info');
-    if (info && fromCur && toCur) info.innerHTML = `1 ${fromCur.code} = <strong>${fmt(fromCur.rate / toCur.rate, 4)}</strong> ${toCur.code}`;
-    if (!amount) { hide('fx-result-box'); return; }
-    if (!fromCur || !toCur) return;
-    const result = (amount * fromCur.rate) / toCur.rate;
-    const fv = el('res-fx-val'), fu = el('res-fx-unit');
-    if (fv) fv.innerText = toCur.rate >= 50 ? money(result) : fmt(result, 2);
-    if (fu) fu.innerText = toCur.code;
-    show('fx-result-box');
-}
-
-function renderMoneyValuta() {
-    return `
-        <div class="converter-box">
-            <div class="fx-head">
-                <div class="section-desc" style="margin-bottom: 0;">${safeT('label.money.exchangeList')} — <span id="fx-updated-label">${safeT('label.money.manualEntry')}</span></div>
-                <button class="fx-refresh-btn" onclick="refreshExchangeRates()" type="button">${icon('refresh')}</button>
-            </div>
-            <div class="input-field"><label>${safeT('label.money.amount')}</label><div class="input-wrapper"><input type="number" id="fx-amount" class="custom-input" placeholder="1000" inputmode="decimal" oninput="calculateCurrency()"></div></div>
-            <div class="fx-row">
-                <div class="input-field fx-col"><label>${safeT('label.money.fromCurrency')}</label><select id="fx-from" class="custom-input" onchange="calculateCurrency()"></select></div>
-                <button class="fx-swap-btn" onclick="swapCurrencies()" type="button">${icon('swap')}</button>
-                <div class="input-field fx-col"><label>${safeT('label.money.toCurrency')}</label><select id="fx-to" class="custom-input" onchange="calculateCurrency()"></select></div>
-            </div>
-            ${calcButton('btn.calculate', 'calculateCurrency()')}
-        </div>
-        <div id="fx-result-box" class="result-card-green" style="display: none;">
-            <div class="res-left"><div class="pump-icon">${icon('exchange')}</div><div><div class="res-label">${safeT('result.label')}</div><h2><span id="res-fx-val">0</span> <small id="res-fx-unit">EUR</small></h2></div></div>
-            <div class="res-actions">
-                <button class="copy-btn" onclick="copyResult('res-fx-val', 'res-fx-unit', event)">${safeT('result.copy')}</button>
-                <button class="copy-btn" data-category="NOVAC" data-label="Valuta" onclick="saveHistory(this)">${safeT('result.save')}</button>
-                <button class="copy-btn" data-category="NOVAC" data-label="Valuta" onclick="shareResult(this)">${safeT('result.share')}</button>
-            </div>
-        </div>
-        <div class="fx-rate-info" id="fx-rate-info"></div>
-        <div class="converter-box fx-list-box">
-            <div class="section-desc" style="margin-bottom: 10px;">${safeT('label.money.ratesList')}</div>
-            <div class="fx-list" id="fx-list"></div>
-        </div>
-    `;
-}
-// ============================================================
-// RECEIPTS — IndexedDB za slike
-// ============================================================
-const RECEIPTS_DB_NAME = 'alatika_db';
-const RECEIPTS_DB_VERSION = 1;
-const RECEIPTS_STORE_NAME = 'receipt_images';
-const RECEIPTS_STORAGE_KEY = 'cx_receipts';
-let receiptsDBPromise = null;
-
-function initReceiptsDB() {
-    if (receiptsDBPromise) return receiptsDBPromise;
-    if (!('indexedDB' in window)) {
-        console.warn('IndexedDB nije podržan');
-        return Promise.reject(new Error('IndexedDB not supported'));
-    }
-    receiptsDBPromise = new Promise((resolve, reject) => {
-        const req = indexedDB.open(RECEIPTS_DB_NAME, RECEIPTS_DB_VERSION);
-        req.onupgradeneeded = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains(RECEIPTS_STORE_NAME)) {
-                db.createObjectStore(RECEIPTS_STORE_NAME, { keyPath: 'receiptId' });
-            }
-        };
-        req.onsuccess = (e) => resolve(e.target.result);
-        req.onerror = (e) => { console.warn('IndexedDB open error:', e.target.error); reject(e.target.error); };
-    });
-    return receiptsDBPromise;
-}
-
-async function saveReceiptImage(receiptId, file) {
-    try {
-        const db = await initReceiptsDB();
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction(RECEIPTS_STORE_NAME, 'readwrite');
-            const store = tx.objectStore(RECEIPTS_STORE_NAME);
-            const record = {
-                receiptId: String(receiptId),
-                blob: file,
-                mimeType: file.type || 'image/jpeg',
-                uploadedAt: Date.now()
-            };
-            const req = store.put(record);
-            req.onsuccess = () => resolve(record);
-            req.onerror = (e) => reject(e.target.error);
-        });
-    } catch (e) {
-        console.warn('saveReceiptImage error:', e);
-        throw e;
-    }
-}
-
-async function loadReceiptImage(receiptId) {
-    try {
-        const db = await initReceiptsDB();
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction(RECEIPTS_STORE_NAME, 'readonly');
-            const store = tx.objectStore(RECEIPTS_STORE_NAME);
-            const req = store.get(String(receiptId));
-            req.onsuccess = () => resolve(req.result || null);
-            req.onerror = (e) => reject(e.target.error);
-        });
-    } catch (e) {
-        console.warn('loadReceiptImage error:', e);
-        return null;
-    }
-}
-
-async function deleteReceiptImage(receiptId) {
-    try {
-        const db = await initReceiptsDB();
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction(RECEIPTS_STORE_NAME, 'readwrite');
-            const store = tx.objectStore(RECEIPTS_STORE_NAME);
-            const req = store.delete(String(receiptId));
-            req.onsuccess = () => resolve();
-            req.onerror = (e) => reject(e.target.error);
-        });
-    } catch (e) {
-        console.warn('deleteReceiptImage error:', e);
-    }
-}
-
-async function compressImage(file, maxWidth = 1600, quality = 0.8) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                try {
-                    const canvas = document.createElement('canvas');
-                    let w = img.width, h = img.height;
-                    if (w > maxWidth) { h = Math.round((maxWidth / w) * h); w = maxWidth; }
-                    canvas.width = w;
-                    canvas.height = h;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, w, h);
-                    canvas.toBlob((blob) => {
-                        if (!blob) { reject(new Error('Canvas toBlob failed')); return; }
-                        resolve(blob);
-                    }, 'image/jpeg', quality);
-                } catch (err) { reject(err); }
-            };
-            img.onerror = () => reject(new Error('Image load failed'));
-            img.src = e.target.result;
-        };
-        reader.onerror = () => reject(new Error('FileReader failed'));
-        reader.readAsDataURL(file);
-    });
-}
-
-function loadReceipts() {
-    try {
-        const raw = JSON.parse(localStorage.getItem(RECEIPTS_STORAGE_KEY));
-        if (Array.isArray(raw)) return raw;
-    } catch (e) {}
-    return [];
-}
-function saveReceiptsList(list) {
-    try { localStorage.setItem(RECEIPTS_STORAGE_KEY, JSON.stringify(list)); } catch (e) {}
-}
-function getReceiptById(id) {
-    return loadReceipts().find(r => String(r.id) === String(id)) || null;
-}
-function calculateReceiptStats() {
-    const list = loadReceipts();
-    const total = list.length;
-    const unpaid = list.filter(r => !r.paid).length;
-    const thisMonth = new Date().toISOString().slice(0, 7);
-    const thisMonthTotal = list
-        .filter(r => r.period === thisMonth)
-        .reduce((sum, r) => sum + (r.amount || 0), 0);
-    return { total, unpaid, thisMonthTotal };
-}
-function formatPeriodMonth(periodIso) {
-    if (!periodIso) return '';
-    const parts = periodIso.split('-');
-    if (parts.length !== 2) return periodIso;
-    const months = ['januar', 'februar', 'mart', 'april', 'maj', 'jun', 'jul', 'avgust', 'septembar', 'oktobar', 'novembar', 'decembar'];
-    const monthIdx = parseInt(parts[1]) - 1;
-    if (isNaN(monthIdx) || monthIdx < 0 || monthIdx > 11) return periodIso;
-    return months[monthIdx] + ' ' + parts[0];
-}
-function daysBetweenToday(isoDate) {
-    if (!isoDate) return null;
-    const parts = isoDate.split('-').map(Number);
-    if (parts.length !== 3) return null;
-    const target = new Date(parts[0], parts[1] - 1, parts[2]);
-    target.setHours(0, 0, 0, 0);
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    return Math.round((target - today) / 86400000);
-}
-
-// ---------- Sync: receipt ↔ cx_bills ----------
-function syncReceiptToBill(receipt) {
-    if (!receipt) return;
-    let bills = loadReminders('cx_bills');
-    const existingIdx = bills.findIndex(b => String(b.receiptId) === String(receipt.id));
-    if (receipt.paid) {
-        if (existingIdx !== -1) {
-            bills.splice(existingIdx, 1);
-            saveReminders('cx_bills', bills);
-        }
-        return;
-    }
-    const catLabel = safeT('receipt.category.' + (receipt.category || 'ostalo'));
-    const periodLabel = formatPeriodMonth(receipt.period);
-    const billName = catLabel + (periodLabel ? ' — ' + periodLabel : '');
-    const dueParts = receipt.dueDate ? receipt.dueDate.split('-').map(Number) : null;
-    const dayOfMonth = dueParts ? dueParts[2] : 1;
-    const billData = {
-        id: 'receipt_bill_' + receipt.id,
-        receiptId: receipt.id,
-        source: 'receipt',
-        name: billName,
-        amount: receipt.amount || 0,
-        currency: receipt.currency || 'RSD',
-        period: 'monthly',
-        dayOfMonth,
-        remindBefore: receipt.remindBefore || 3,
-        paid: false
-    };
-    if (existingIdx !== -1) bills[existingIdx] = Object.assign({}, bills[existingIdx], billData);
-    else bills.push(billData);
-    saveReminders('cx_bills', bills);
-}
-function removeBillByReceiptId(receiptId) {
-    let bills = loadReminders('cx_bills');
-    const before = bills.length;
-    bills = bills.filter(b => String(b.receiptId) !== String(receiptId));
-    if (bills.length !== before) saveReminders('cx_bills', bills);
-}
-
-// ---------- STATE ----------
-let receiptState = {
-    editingId: null,
-    draftImageBlob: null,
-    draftCategory: 'struja',
-    draftPaid: false,
-    removeImage: false,
-    currentObjectUrl: null
-};
-let receiptDetailsObjectUrl = null;
-
-// ---------- UI: renderRacuni ----------
-function renderRacuni() {
-    const list = loadReceipts();
-    const stats = calculateReceiptStats();
-
-    let html = '';
-
-    html += `<div class="receipt-screen-header">
-        <div>
-            <div style="font-size:1.05rem;font-weight:900;color:var(--text-main);">${safeT('receipt.title')}</div>
-            <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;margin-top:2px;">${safeT('tab.money.racuni')}</div>
-        </div>
-        <button class="receipt-add-btn" onclick="openReceiptModal()">
-            📸 ${safeT('receipt.add')}
-        </button>
-    </div>`;
-
-    html += `<div class="receipt-search-wrap">
-        <input type="text" id="receipt-search" class="receipt-search" placeholder="${safeT('receipt.search')}" oninput="renderRacuniList()">
-    </div>`;
-
-    html += `<div class="receipt-stats">
-        <div class="receipt-stat">
-            <div class="receipt-stat-value">${stats.total}</div>
-            <div class="receipt-stat-label">${safeT('receipt.stats.total')}</div>
-        </div>
-        <div class="receipt-stat">
-            <div class="receipt-stat-value unpaid">${stats.unpaid}</div>
-            <div class="receipt-stat-label">${safeT('receipt.stats.unpaid')}</div>
-        </div>
-        <div class="receipt-stat">
-            <div class="receipt-stat-value month">${fmt(stats.thisMonthTotal, 0)}</div>
-            <div class="receipt-stat-label">${safeT('receipt.stats.thisMonth')}</div>
-        </div>
-    </div>`;
-
-    html += `<div id="receipt-list-container"></div>`;
-
-    if (list.length > 0) html += renderReceiptTrend(list);
-
-    setTimeout(() => { renderRacuniList(); }, 0);
-
-    return html;
-}
-
-function renderRacuniList() {
-    const container = el('receipt-list-container');
-    if (!container) return;
-    const list = loadReceipts();
-    const query = (el('receipt-search') ? el('receipt-search').value : '').trim().toLowerCase();
-
-    let filtered = list;
-    if (query) {
-        filtered = list.filter(r => {
-            const catLabel = safeT('receipt.category.' + (r.category || 'ostalo')).toLowerCase();
-            const note = (r.note || '').toLowerCase();
-            const period = (r.period || '').toLowerCase();
-            const amountStr = String(r.amount || '');
-            return catLabel.includes(query) || note.includes(query) || period.includes(query) || amountStr.includes(query);
-        });
-    }
-
-    const unpaid = filtered.filter(r => !r.paid).sort((a, b) => {
-        if (!a.dueDate && !b.dueDate) return b.createdAt - a.createdAt;
-        if (!a.dueDate) return 1;
-        if (!b.dueDate) return -1;
-        return new Date(a.dueDate) - new Date(b.dueDate);
-    });
-    const paid = filtered.filter(r => r.paid).sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
-
-    let html = '';
-
-    if (unpaid.length > 0) {
-        html += `<div class="receipt-section-title" style="color:#f43f5e;">🔴 ${safeT('receipt.unpaid')}</div>`;
-        html += `<div class="receipt-list">`;
-        unpaid.forEach(r => { html += renderReceiptCard(r); });
-        html += `</div>`;
-    }
-
-    if (paid.length > 0) {
-        html += `<div class="receipt-section-title" style="color:#10b981;">✅ ${safeT('receipt.paid')}</div>`;
-        html += `<div class="receipt-list">`;
-        paid.forEach(r => { html += renderReceiptCard(r); });
-        html += `</div>`;
-    }
-
-    if (filtered.length === 0) {
-        html = `<div class="receipt-empty">
-            <div class="receipt-empty-icon">📄</div>
-            <div>${list.length === 0 ? safeT('receipt.noReceipts') : safeT('receipt.noReceiptsYet')}</div>
-        </div>`;
-    }
-
-    container.innerHTML = html;
-
-    setTimeout(() => loadReceiptThumbnails(), 50);
-}
-
-function renderReceiptCard(r) {
-    const catLabel = safeT('receipt.category.' + (r.category || 'ostalo'));
-    const periodLabel = formatPeriodMonth(r.period);
-    const days = !r.paid && r.dueDate ? daysBetweenToday(r.dueDate) : null;
-
-    let dueText = '';
-    let dueClass = '';
-    if (!r.paid && days !== null) {
-        if (days < 0) { dueText = `${safeT('receipt.overdueBy')} ${Math.abs(days)} ${safeT('receipt.daysLeft')}`; dueClass = 'overdue'; }
-        else if (days === 0) { dueText = safeT('brziPregled.today'); dueClass = 'soon'; }
-        else if (days <= 3) { dueText = `${safeT('receipt.dueIn')} ${days} ${safeT('receipt.daysLeft')}`; dueClass = 'soon'; }
-        else { dueText = `${safeT('receipt.dueIn')} ${days} ${safeT('receipt.daysLeft')}`; dueClass = 'ok'; }
-    }
-
-    const statusClass = r.paid ? 'paid' : (days !== null && days < 0 ? 'overdue' : 'unpaid');
-
-    return `
-        <div class="receipt-card ${statusClass}" data-receipt-id="${escapeHtml(r.id)}">
-            <div class="receipt-thumb" data-thumb-id="${escapeHtml(r.id)}">
-                <div class="receipt-thumb-empty">📄</div>
-            </div>
-            <div class="receipt-card-body">
-                <div class="receipt-card-title">${escapeHtml(catLabel)}${periodLabel ? ' — ' + escapeHtml(periodLabel) : ''}</div>
-                <div class="receipt-card-amount">${fmt(r.amount, 0)} ${r.currency || 'RSD'}</div>
-                <div class="receipt-card-meta">
-                    ${r.dueDate ? `<span>📅 ${escapeHtml(r.dueDate)}</span>` : ''}
-                    ${r.paid && r.paidDate ? `<span>✅ ${escapeHtml(r.paidDate)}</span>` : ''}
-                </div>
-                ${dueText ? `<div class="receipt-card-due ${dueClass}">⚠ ${escapeHtml(dueText)}</div>` : ''}
-            </div>
-            <div class="receipt-card-actions" onclick="event.stopPropagation();">
-                <button class="receipt-card-action primary" onclick="openReceiptDetails('${escapeHtml(r.id)}')">
-                    ${safeT('receipt.details')}
-                </button>
-                ${!r.paid
-                    ? `<button class="receipt-card-action" onclick="markReceiptPaid('${escapeHtml(r.id)}')">✅ ${safeT('receipt.markPaid')}</button>`
-                    : `<button class="receipt-card-action" onclick="markReceiptUnpaid('${escapeHtml(r.id)}')">↩ ${safeT('receipt.markUnpaid')}</button>`}
-                <button class="receipt-card-action danger" onclick="deleteReceipt('${escapeHtml(r.id)}')">🗑</button>
-            </div>
-        </div>
-    `;
-}
-
-async function loadReceiptThumbnails() {
-    const list = loadReceipts();
-    for (const r of list) {
-        if (!r.hasImage) continue;
-        const thumb = document.querySelector(`[data-thumb-id="${r.id}"]`);
-        if (!thumb || thumb.dataset.loaded === '1') continue;
-        try {
-            const rec = await loadReceiptImage(r.id);
-            if (!rec || !rec.blob) continue;
-            const url = URL.createObjectURL(rec.blob);
-            thumb.innerHTML = `<img src="${url}" alt="" loading="lazy">`;
-            thumb.dataset.loaded = '1';
-        } catch (e) {}
-    }
-}
-
-function renderReceiptTrend(list) {
-    const now = new Date();
-    const months = [];
-    for (let i = 5; i >= 0; i--) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-        months.push({ key, label: d.toLocaleDateString('sr-RS', { month: 'short' }), total: 0 });
-    }
-    list.forEach(r => {
-        const m = months.find(x => x.key === r.period);
-        if (m) m.total += r.amount || 0;
-    });
-    const maxTotal = Math.max(...months.map(m => m.total), 1);
-    const avg = months.reduce((s, m) => s + m.total, 0) / months.length;
-    const thisMonth = months[months.length - 1].total;
-    const diffPct = avg > 0 ? ((thisMonth - avg) / avg) * 100 : 0;
-
-    let barsHtml = '';
-    months.forEach((m, i) => {
-        const h = Math.max(4, (m.total / maxTotal) * 60);
-        const isCurrent = i === months.length - 1;
-        barsHtml += `<div class="receipt-trend-bar${isCurrent ? ' current' : ''}" style="height: ${h}px;" title="${m.label}: ${fmt(m.total, 0)} RSD"></div>`;
-    });
-
-    return `
-        <div class="receipt-trend-card">
-            <div class="receipt-trend-title">📈 ${safeT('receipt.trend')}</div>
-            <div class="receipt-trend-chart">${barsHtml}</div>
-            <div class="receipt-trend-labels">
-                ${months.map(m => `<span>${m.label}</span>`).join('')}
-            </div>
-            <div class="receipt-trend-stats">
-                <span>${safeT('receipt.average')}: <strong>${fmt(avg, 0)} RSD</strong></span>
-                <span>${safeT('receipt.thisMonthTotal')}: <strong>${fmt(thisMonth, 0)} RSD</strong> ${diffPct !== 0 ? `<span style="color:${diffPct > 0 ? '#f43f5e' : '#10b981'};">${diffPct > 0 ? '+' : ''}${fmt(diffPct, 1)}%</span>` : ''}</span>
-            </div>
-        </div>
-    `;
-}
-
-// ---------- Forma ----------
-function openReceiptModal(receiptId = null) {
-    const modal = el('receipt-modal');
-    const body = el('receipt-modal-body');
-    const titleEl = el('receipt-modal-title');
-    if (!modal || !body) return;
-
-    const isEdit = !!receiptId;
-    const r = isEdit ? getReceiptById(receiptId) : null;
-
-    receiptState.editingId = isEdit ? receiptId : null;
-    receiptState.draftImageBlob = null;
-    receiptState.draftCategory = r ? r.category : 'struja';
-    receiptState.draftPaid = r ? !!r.paid : false;
-    receiptState.removeImage = false;
-    receiptState.currentObjectUrl = null;
-
-    if (titleEl) titleEl.textContent = isEdit ? safeT('receipt.edit') : safeT('receipt.new');
-
-    body.innerHTML = buildReceiptForm(r);
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-    vibrate(15);
-    playTick(0, 1400, 0.06, 0.02);
-
-    if (isEdit && r && r.hasImage) {
-        (async () => {
-            try {
-                const rec = await loadReceiptImage(receiptId);
-                if (rec && rec.blob) {
-                    const url = URL.createObjectURL(rec.blob);
-                    receiptState.currentObjectUrl = url;
-                    const prev = el('receipt-preview-wrap');
-                    const empty = el('receipt-upload-area');
-                    if (prev) {
-                        prev.style.display = 'block';
-                        const img = el('receipt-preview-img');
-                        if (img) img.src = url;
-                        if (empty) empty.style.display = 'none';
-                    }
-                }
-            } catch (e) {}
-        })();
-    }
-}
-
-function buildReceiptForm(r) {
-    const isEdit = !!r;
-    const now = new Date();
-    const defaultPeriod = r ? r.period : now.toISOString().slice(0, 7);
-    const defaultDueDate = r && r.dueDate ? r.dueDate : '';
-
-    const categories = ['struja','voda','komunalije','grejanje','porez','internet','telefon','info','kirija','ostalo'];
-    let chipsHtml = '';
-    categories.forEach(cat => {
-        const sel = (receiptState.draftCategory === cat) ? ' selected' : '';
-        chipsHtml += `<button type="button" class="receipt-chip${sel}" data-cat="${cat}" onclick="selectReceiptCategory('${cat}', this)">${safeT('receipt.category.' + cat)}</button>`;
-    });
-
-    const paidSel = receiptState.draftPaid ? ' selected' : '';
-    const unpaidSel = receiptState.draftPaid ? '' : ' selected';
-
-    const months = ['januar', 'februar', 'mart', 'april', 'maj', 'jun', 'jul', 'avgust', 'septembar', 'oktobar', 'novembar', 'decembar'];
-    const periodParts = (defaultPeriod || '').split('-');
-    const curMonth = periodParts[1] ? parseInt(periodParts[1]) : (now.getMonth() + 1);
-    const curYear = periodParts[0] ? parseInt(periodParts[0]) : now.getFullYear();
-    let monthOptions = '';
-    months.forEach((m, i) => {
-        const v = i + 1;
-        const sel = (v === curMonth) ? ' selected' : '';
-        monthOptions += `<option value="${v}"${sel}>${m}</option>`;
-    });
-    let yearOptions = '';
-    for (let y = now.getFullYear() - 2; y <= now.getFullYear() + 1; y++) {
-        const sel = (y === curYear) ? ' selected' : '';
-        yearOptions += `<option value="${y}"${sel}>${y}</option>`;
-    }
-
-    return `
-        <div class="receipt-form-step">
-            <div class="receipt-step-title">${safeT('receipt.uploadStep')}</div>
-            <div id="receipt-upload-area" class="receipt-upload-area" onclick="document.getElementById('receipt-file-input').click()">
-                <div class="receipt-upload-icon">📷</div>
-                <div class="receipt-upload-text">${safeT('receipt.uploadPhoto')} / ${safeT('receipt.uploadGallery')}</div>
-                <div class="receipt-upload-hint">${safeT('receipt.uploadHint')}</div>
-                <input type="file" id="receipt-file-input" accept="image/*" capture="environment" style="display:none;" onchange="handleReceiptImageUpload(event)">
-            </div>
-            <div id="receipt-preview-wrap" class="receipt-preview-wrap" style="display:none;">
-                <img id="receipt-preview-img" class="receipt-preview-img" alt="">
-                <button type="button" class="receipt-preview-remove" onclick="removeReceiptImagePreview()">✕</button>
-            </div>
-        </div>
-
-        <div class="receipt-form-step">
-            <div class="receipt-step-title">${safeT('receipt.dataStep')}</div>
-            <div class="input-field">
-                <label>${safeT('receipt.category')}</label>
-                <div class="receipt-category-chips" id="receipt-category-chips">${chipsHtml}</div>
-            </div>
-            <div class="input-field">
-                <label>${safeT('receipt.amount')}</label>
-                <div class="input-wrapper">
-                    <input type="number" id="receipt-amount" class="custom-input" placeholder="3500" inputmode="decimal" value="${r ? r.amount : ''}">
-                    <span class="unit">RSD</span>
-                </div>
-            </div>
-            <div class="input-field">
-                <label>${safeT('receipt.period')}</label>
-                <div class="receipt-period-selects">
-                    <select id="receipt-period-month">${monthOptions}</select>
-                    <select id="receipt-period-year">${yearOptions}</select>
-                </div>
-            </div>
-            <div class="input-field">
-                <label>${safeT('receipt.status')}</label>
-                <div class="receipt-status-row">
-                    <button type="button" class="receipt-status-btn paid${paidSel}" data-paid="1" onclick="selectReceiptStatus(true)">✅ ${safeT('receipt.paid')}</button>
-                    <button type="button" class="receipt-status-btn unpaid${unpaidSel}" data-paid="0" onclick="selectReceiptStatus(false)">⚠ ${safeT('receipt.unpaid')}</button>
-                </div>
-            </div>
-            <div class="input-field" id="receipt-due-field" style="${receiptState.draftPaid ? 'display:none;' : ''}">
-                <label>${safeT('receipt.dueDate')}</label>
-                <div class="input-wrapper">
-                    <input type="date" id="receipt-due-date" class="custom-input" value="${defaultDueDate}">
-                </div>
-            </div>
-        </div>
-
-        <div class="receipt-form-step" id="receipt-reminder-step" style="${receiptState.draftPaid ? 'display:none;' : ''}">
-            <div class="receipt-step-title">${safeT('receipt.reminderStep')}</div>
-            <div class="receipt-reminder-row">
-                <input type="checkbox" id="receipt-remind-check" ${(!r || (r.remindBefore > 0)) ? 'checked' : ''}>
-                <label for="receipt-remind-check">${safeT('receipt.remindBefore')}</label>
-                <input type="number" id="receipt-remind-days" class="receipt-reminder-days" value="${r && r.remindBefore ? r.remindBefore : 3}" min="1" max="30">
-                <span style="font-size:0.75rem;color:var(--text-secondary);font-weight:700;">${safeT('receipt.daysBefore')}</span>
-            </div>
-        </div>
-
-        <div class="input-field">
-            <label>${safeT('receipt.note')}</label>
-            <div class="input-wrapper">
-                <input type="text" id="receipt-note" class="custom-input" placeholder="" value="${r && r.note ? escapeHtml(r.note) : ''}">
-            </div>
-        </div>
-
-        <button class="calc-btn-main" onclick="saveReceipt()" style="margin-top:12px;">
-            ${safeT('receipt.save')}
-        </button>
-    `;
-}
-
-function selectReceiptCategory(cat, btn) {
-    receiptState.draftCategory = cat;
-    document.querySelectorAll('#receipt-category-chips .receipt-chip').forEach(b => b.classList.remove('selected'));
-    if (btn) btn.classList.add('selected');
-    vibrate(8);
-}
-
-function selectReceiptStatus(paid) {
-    receiptState.draftPaid = !!paid;
-    document.querySelectorAll('.receipt-status-btn').forEach(b => b.classList.remove('selected'));
-    const target = paid ? '.receipt-status-btn.paid' : '.receipt-status-btn.unpaid';
-    const t = document.querySelector(target);
-    if (t) t.classList.add('selected');
-    const dueField = el('receipt-due-field');
-    const reminderStep = el('receipt-reminder-step');
-    if (dueField) dueField.style.display = paid ? 'none' : 'block';
-    if (reminderStep) reminderStep.style.display = paid ? 'none' : 'block';
-    vibrate(8);
-}
-
-async function handleReceiptImageUpload(e) {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) { showToast('Izaberi sliku.', 'warning'); return; }
-    try {
-        const compressed = await compressImage(file, 1600, 0.8);
-        receiptState.draftImageBlob = compressed;
-        receiptState.removeImage = false;
-        if (receiptState.currentObjectUrl) {
-            try { URL.revokeObjectURL(receiptState.currentObjectUrl); } catch (err) {}
-        }
-        const url = URL.createObjectURL(compressed);
-        receiptState.currentObjectUrl = url;
-        const prev = el('receipt-preview-wrap');
-        const empty = el('receipt-upload-area');
-        const img = el('receipt-preview-img');
-        if (img) img.src = url;
-        if (prev) prev.style.display = 'block';
-        if (empty) empty.style.display = 'none';
-        vibrate(15);
-        playTick(0, 1400, 0.06, 0.02);
-    } catch (err) {
-        console.warn('Compress error:', err);
-        showToast('Greška pri obradi slike.', 'error', 2500);
-    }
-}
-
-function removeReceiptImagePreview() {
-    receiptState.draftImageBlob = null;
-    receiptState.removeImage = true;
-    if (receiptState.currentObjectUrl) {
-        try { URL.revokeObjectURL(receiptState.currentObjectUrl); } catch (e) {}
-        receiptState.currentObjectUrl = null;
-    }
-    const prev = el('receipt-preview-wrap');
-    const empty = el('receipt-upload-area');
-    if (prev) prev.style.display = 'none';
-    if (empty) empty.style.display = 'flex';
-    const fileInput = el('receipt-file-input');
-    if (fileInput) fileInput.value = '';
-    showToast(safeT('receipt.imageRemoved'), 'info', 1200);
-}
-
-// ---------- CRUD ----------
-function saveReceipt() {
-    const v = id => { const e = el(id); return e ? e.value.trim() : ''; };
-    const n = id => { const e = el(id); return e ? parseNum(e.value) : null; };
-    const c = id => { const e = el(id); return e ? e.checked : false; };
-    const category = receiptState.draftCategory || 'struja';
-    const amount = n('receipt-amount');
-    const periodMonth = el('receipt-period-month') ? parseInt(el('receipt-period-month').value) : (new Date().getMonth() + 1);
-    const periodYear = el('receipt-period-year') ? parseInt(el('receipt-period-year').value) : new Date().getFullYear();
-    const period = periodYear + '-' + String(periodMonth).padStart(2, '0');
-    const paid = receiptState.draftPaid;
-    const dueDate = v('receipt-due-date');
-    const remindBefore = n('receipt-remind-days') || 3;
-    const useReminder = c('receipt-remind-check');
-    const note = v('receipt-note');
-
-    if (!amount || amount <= 0) { showToast('Unesi iznos računa.', 'error'); return; }
-    if (!paid && !dueDate) { showToast('Unesi rok plaćanja.', 'error'); return; }
-
-    const now = Date.now();
-    const receiptId = receiptState.editingId || ('rc_' + now + '_' + Math.random().toString(36).slice(2, 7));
-    const isNew = !receiptState.editingId;
-
-    const receiptData = {
-        id: receiptId,
-        category,
-        amount,
-        currency: 'RSD',
-        period,
-        paid: !!paid,
-        paidDate: paid ? new Date().toISOString().slice(0, 10) : null,
-        dueDate: paid ? null : dueDate,
-        remindBefore: useReminder ? remindBefore : 0,
-        hasImage: !!receiptState.draftImageBlob,
-        note,
-        createdAt: isNew ? now : (getReceiptById(receiptId)?.createdAt || now),
-        updatedAt: now
-    };
-
-    const list = loadReceipts();
-    if (isNew) list.push(receiptData);
-    else {
-        const idx = list.findIndex(r => String(r.id) === String(receiptId));
-        if (idx !== -1) list[idx] = Object.assign({}, list[idx], receiptData);
-        else list.push(receiptData);
-    }
-    saveReceiptsList(list);
-
-    if (receiptState.draftImageBlob) {
-        saveReceiptImage(receiptId, receiptState.draftImageBlob).catch(err => {
-            console.warn('Greška pri čuvanju slike:', err);
-            showToast('Slika nije sačuvana', 'warning', 2500);
-        });
-    } else if (receiptState.removeImage && receiptState.editingId) {
-        deleteReceiptImage(receiptId).catch(() => {});
-    }
-
-    syncReceiptToBill(receiptData);
-
-    showToast(isNew ? 'Račun sačuvan.' : 'Račun izmenjen.', 'success', 1800);
-    vibrate(20);
-    playTick(0, 1500, 0.08, 0.03);
-
-    closeModal('receipt-modal');
-    receiptState = { editingId: null, draftImageBlob: null, draftCategory: 'struja', draftPaid: false, removeImage: false, currentObjectUrl: null };
-
-    if (activeTab === 'racuni' && activeCategory === 'money') {
-        const body = el('calc-body');
-        if (body) body.innerHTML = renderRacuni();
-        setTimeout(() => loadReceiptThumbnails(), 100);
-    }
-    updateAppBadge();
-}
-
-function updateReceipt(id, changes) {
-    const list = loadReceipts();
-    const idx = list.findIndex(r => String(r.id) === String(id));
-    if (idx === -1) return;
-    list[idx] = Object.assign({}, list[idx], changes, { updatedAt: Date.now() });
-    saveReceiptsList(list);
-    syncReceiptToBill(list[idx]);
-    updateAppBadge();
-}
-
-async function deleteReceipt(id) {
-    const ok = await showConfirm(safeT('receipt.deleteConfirm'));
-    if (!ok) return;
-    let list = loadReceipts();
-    list = list.filter(r => String(r.id) !== String(id));
-    saveReceiptsList(list);
-    removeBillByReceiptId(id);
-    try { await deleteReceiptImage(id); } catch (e) {}
-    showToast('Račun obrisan.', 'info', 1600);
-    vibrate(15);
-    if (activeTab === 'racuni' && activeCategory === 'money') {
-        const body = el('calc-body');
-        if (body) body.innerHTML = renderRacuni();
-        setTimeout(() => loadReceiptThumbnails(), 100);
-    }
-    updateAppBadge();
-}
-
-function markReceiptPaid(id) {
-    const list = loadReceipts();
-    const idx = list.findIndex(r => String(r.id) === String(id));
-    if (idx === -1) return;
-    list[idx].paid = true;
-    list[idx].paidDate = new Date().toISOString().slice(0, 10);
-    list[idx].updatedAt = Date.now();
-    saveReceiptsList(list);
-    removeBillByReceiptId(id);
-    showToast('Račun plaćen.', 'success', 1500);
-    vibrate(20);
-    playTick(0, 1500, 0.08, 0.03);
-    if (activeTab === 'racuni' && activeCategory === 'money') {
-        const body = el('calc-body');
-        if (body) body.innerHTML = renderRacuni();
-        setTimeout(() => loadReceiptThumbnails(), 100);
-    }
-    updateAppBadge();
-}
-
-function markReceiptUnpaid(id) {
-    const list = loadReceipts();
-    const idx = list.findIndex(r => String(r.id) === String(id));
-    if (idx === -1) return;
-    list[idx].paid = false;
-    list[idx].paidDate = null;
-    list[idx].updatedAt = Date.now();
-    saveReceiptsList(list);
-    syncReceiptToBill(list[idx]);
-    showToast('Račun vraćen u neplaćeno.', 'info', 1600);
-    vibrate(15);
-    if (activeTab === 'racuni' && activeCategory === 'money') {
-        const body = el('calc-body');
-        if (body) body.innerHTML = renderRacuni();
-        setTimeout(() => loadReceiptThumbnails(), 100);
-    }
-    updateAppBadge();
-}
-
-// ---------- Details modal ----------
-function openReceiptDetails(id) {
-    const r = getReceiptById(id);
-    if (!r) { showToast('Račun nije pronađen', 'error'); return; }
-
-    const modal = el('receipt-details-modal');
-    const body = el('receipt-details-body');
-    if (!modal || !body) return;
-
-    const catLabel = safeT('receipt.category.' + (r.category || 'ostalo'));
-    const periodLabel = formatPeriodMonth(r.period);
-    const days = !r.paid && r.dueDate ? daysBetweenToday(r.dueDate) : null;
-
-    let dueText = '';
-    if (!r.paid && days !== null) {
-        if (days < 0) dueText = `${safeT('receipt.overdueBy')} ${Math.abs(days)} ${safeT('receipt.daysLeft')}`;
-        else if (days === 0) dueText = safeT('brziPregled.today');
-        else dueText = `${safeT('receipt.dueIn')} ${days} ${safeT('receipt.daysLeft')}`;
-    }
-
-    body.innerHTML = `
-        <div class="receipt-details-image" id="receipt-details-image" onclick="openImageViewer('${escapeHtml(r.id)}')">
-            <div class="receipt-details-image-empty">${r.hasImage ? '📷' : safeT('receipt.noImage')}</div>
-        </div>
-        <div class="receipt-details-title">
-            ${escapeHtml(catLabel)}${periodLabel ? ' — ' + escapeHtml(periodLabel) : ''}
-            <span class="receipt-details-status ${r.paid ? 'paid' : 'unpaid'}">${r.paid ? safeT('receipt.paid') : safeT('receipt.unpaid')}</span>
-        </div>
-        <div class="receipt-details-rows">
-            <div class="receipt-details-row">
-                <span class="receipt-details-row-label">${safeT('receipt.amount')}</span>
-                <span class="receipt-details-row-value">${fmt(r.amount, 0)} ${r.currency || 'RSD'}</span>
-            </div>
-            ${r.dueDate ? `<div class="receipt-details-row">
-                <span class="receipt-details-row-label">${safeT('receipt.dueDate')}</span>
-                <span class="receipt-details-row-value">${escapeHtml(r.dueDate)}${dueText ? ' (' + escapeHtml(dueText) + ')' : ''}</span>
-            </div>` : ''}
-            ${r.paidDate ? `<div class="receipt-details-row">
-                <span class="receipt-details-row-label">${safeT('receipt.paidOn')}</span>
-                <span class="receipt-details-row-value">${escapeHtml(r.paidDate)}</span>
-            </div>` : ''}
-            ${r.note ? `<div class="receipt-details-row">
-                <span class="receipt-details-row-label">${safeT('receipt.note')}</span>
-                <span class="receipt-details-row-value">${escapeHtml(r.note)}</span>
-            </div>` : ''}
-        </div>
-        <div class="receipt-details-actions">
-            ${!r.paid
-                ? `<button class="receipt-details-action primary" onclick="markReceiptPaid('${escapeHtml(r.id)}'); closeModal('receipt-details-modal');">✅ ${safeT('receipt.markPaid')}</button>`
-                : `<button class="receipt-details-action secondary" onclick="markReceiptUnpaid('${escapeHtml(r.id)}'); closeModal('receipt-details-modal');">↩ ${safeT('receipt.markUnpaid')}</button>`}
-            <button class="receipt-details-action secondary" onclick="closeModal('receipt-details-modal'); openReceiptModal('${escapeHtml(r.id)}');">✏️ ${safeT('receipt.edit')}</button>
-            <button class="receipt-details-action danger" onclick="closeModal('receipt-details-modal'); deleteReceipt('${escapeHtml(r.id)}');">🗑 ${safeT('receipt.delete')}</button>
-        </div>
-    `;
-
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-    vibrate(15);
-    playTick(0, 1400, 0.06, 0.02);
-
-    if (r.hasImage) {
-        (async () => {
-            try {
-                const rec = await loadReceiptImage(r.id);
-                if (rec && rec.blob) {
-                    if (receiptDetailsObjectUrl) {
-                        try { URL.revokeObjectURL(receiptDetailsObjectUrl); } catch (e) {}
-                    }
-                    receiptDetailsObjectUrl = URL.createObjectURL(rec.blob);
-                    const img = el('receipt-details-image');
-                    if (img) img.innerHTML = `<img src="${receiptDetailsObjectUrl}" alt="">`;
-                }
-            } catch (e) {}
-        })();
-    }
-}
-
-// ---------- Image viewer ----------
-async function openImageViewer(receiptId) {
-    const r = getReceiptById(receiptId);
-    if (!r || !r.hasImage) return;
-    const modal = el('image-viewer-modal');
-    const img = el('image-viewer-img');
-    if (!modal || !img) return;
-    try {
-        const rec = await loadReceiptImage(receiptId);
-        if (!rec || !rec.blob) return;
-        const url = URL.createObjectURL(rec.blob);
-        img.src = url;
-        img.dataset.objectUrl = url;
-        modal.classList.add('show');
-        document.body.classList.add('modal-open');
-        vibrate(15);
-    } catch (e) {}
-}
-
-function closeImageViewer(e) {
-    if (e) e.stopPropagation();
-    const modal = el('image-viewer-modal');
-    const img = el('image-viewer-img');
-    if (img && img.dataset.objectUrl) {
-        try { URL.revokeObjectURL(img.dataset.objectUrl); } catch (err) {}
-        img.dataset.objectUrl = '';
-        img.src = '';
-    }
-    if (modal) modal.classList.remove('show');
-    vibrate(10);
-}
 // ============================================================
 // MERE (MEASURES)
 // ============================================================
@@ -8254,7 +8337,7 @@ function convertTimeUnits() {
 }
 
 // ============================================================
-// PRAZNICI (HOLIDAYS)
+// PRAZNICI
 // ============================================================
 const SR_HOLIDAYS_FIXED = [
     { d: 1, m: 1, name: 'Nova godina', type: 'national' },
@@ -8389,6 +8472,7 @@ function calculateTimeZone() {
     if (rdiff) rdiff.innerText = `Razlika: ${diffHours >= 0 ? '+' : ''}${diffHours} sati`;
     show('tz-result-box');
 }
+
 // ============================================================
 // AUTO
 // ============================================================
@@ -9446,6 +9530,7 @@ function resetPitchSmoothing() {
     pitchHistory.length = 0;
     consecutiveOutliers = 0;
 }
+
 // ============================================================
 // GPS — BRZINA
 // ============================================================
@@ -10602,10 +10687,23 @@ function rollFeedback(duration) {
 }
 
 // ============================================================
-// INIT — dodajemo initToolbarIcons i dodatne init pozive
+// POPULATE NOTE SELECTS — placeholder
 // ============================================================
 function populateNoteSelects() {
     try {
         // Placeholder za kompatibilnost
     } catch (e) {}
 }
+
+// ============================================================
+// KRAJ app.js — Alatika 3.0 (v19 ETA 1)
+// ============================================================
+// NAPOMENA: Order of file defines dependencies. Some functions were
+// defined after usage (hoisting covers function declarations).
+// Categories now include: podsetnici, racuni (NEW), weather, money,
+// measures, shopping, auto, bike, health, time, homecalc, kitchen,
+// power, work, music, gps.
+// Money category tabs: valuta first, racuni moved to new category.
+// Quick tools: podsetnici, money, weather, racuni.
+// All tools modal: Opcija A (sections + chips + inline panels).
+// ============================================================
