@@ -13,7 +13,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="web-app-manifest-192x192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="web-app-manifest-512x512.png">
-<link rel="stylesheet" href="style.css?v=15">
+<link rel="stylesheet" href="style.css?v=16">
 </head>
 <body>
 
@@ -126,11 +126,11 @@
         </div>
     </div>
 
-    <!-- EKRAN: DANAS DASHBOARD -->
+    <!-- EKRAN: BRZI PREGLED (bivši "Danas") -->
     <div id="today-screen" class="screen">
         <div class="top-bar">
             <div class="top-bar-left">
-                <h2 id="today-title">Danas</h2>
+                <h2 id="today-title">Brzi pregled</h2>
                 <p id="today-subtitle" class="top-bar-sub">Tvoj dnevni pregled</p>
             </div>
             <button class="icon-btn-svg" onclick="refreshTodayDashboard()" title="Osveži" aria-label="Osveži">
@@ -306,11 +306,11 @@
         </span>
         <span class="bottom-nav-label" id="nav-label-my">Moji alati</span>
     </button>
-    <button class="bottom-nav-btn" data-screen="today-screen" onclick="switchBottomNav('today-screen')" aria-label="Danas">
+    <button class="bottom-nav-btn" data-screen="today-screen" onclick="switchBottomNav('today-screen')" aria-label="Brzi pregled">
         <span class="bottom-nav-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
         </span>
-        <span class="bottom-nav-label" id="nav-label-today">Danas</span>
+        <span class="bottom-nav-label" id="nav-label-today">Pregled</span>
     </button>
     <button class="bottom-nav-btn" data-screen="history-screen" onclick="switchBottomNav('history-screen')" aria-label="Istorija">
         <span class="bottom-nav-icon">
@@ -368,7 +368,7 @@
     </div>
 </div>
 
-<!-- MODAL: SVI ALATI (NOVA STRUKTURA — ZADATAK 3) -->
+<!-- MODAL: SVI ALATI -->
 <div id="all-tools-modal" class="modal all-tools-modal" onclick="closeModalOnBackdrop(event, 'all-tools-modal')">
     <div class="modal-panel all-tools-panel" onclick="event.stopPropagation()">
         <div class="modal-header all-tools-header">
@@ -396,14 +396,11 @@
                 </button>
             </div>
         </div>
-        <!-- OMILJENI CHIPOVI -->
         <div class="all-tools-favorites-wrap" id="all-tools-favorites-wrap">
             <div class="all-tools-favorites-title">⭐ Omiljeni</div>
             <div class="all-tools-favorites-chips" id="all-tools-favorites-chips"></div>
         </div>
-        <div id="all-tools-sections" class="all-tools-sections">
-            <!-- Dinamički sadržaj -->
-        </div>
+        <div id="all-tools-sections" class="all-tools-sections"></div>
     </div>
 </div>
 
@@ -626,7 +623,7 @@
     </div>
 </div>
 
-<!-- MODAL: ŠTOPERICA (MODERNIZOVANA) -->
+<!-- MODAL: ŠTOPERICA -->
 <div id="toolbar-stopwatch-modal" class="modal" onclick="closeModalOnBackdrop(event, 'toolbar-stopwatch-modal')">
     <div class="modal-panel stopwatch-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -691,7 +688,7 @@
     </div>
 </div>
 
-<!-- MODAL: TAJMER (MODERNIZOVAN) -->
+<!-- MODAL: TAJMER -->
 <div id="toolbar-timer-modal" class="modal" onclick="closeModalOnBackdrop(event, 'toolbar-timer-modal')">
     <div class="modal-panel timer-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -786,7 +783,7 @@
     </div>
 </div>
 
-<!-- MODAL: BRZINOMER (ZADATAK 1 — DUGMIĆI PREMEŠTENI IZNAD SPARKLINE) -->
+<!-- MODAL: BRZINOMER -->
 <div id="speedometer-modal" class="modal" onclick="closeModalOnBackdrop(event, 'speedometer-modal')">
     <div class="modal-panel speedometer-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -802,7 +799,6 @@
         </div>
 
         <div class="speedometer-body">
-            <!-- 1. STATUS + JEDINICA -->
             <div class="speedometer-status-row">
                 <div class="gps-status-indicator" id="speedometer-indicator">
                     <span class="gps-status-dot"></span>
@@ -817,7 +813,6 @@
                 </select>
             </div>
 
-            <!-- 2. ANALOGNI BRZINOMER (SVG) -->
             <div class="speedometer-analog-wrap" id="speedometer-analog-wrap">
                 <svg class="speedometer-svg" viewBox="0 0 280 280">
                     <defs>
@@ -844,7 +839,6 @@
                 </svg>
             </div>
 
-            <!-- 3. DUGMIĆI START + RESET (PREMEŠTENO — ZADATAK 1) -->
             <div class="speedometer-actions">
                 <button class="gps-btn-main" id="speedometer-btn-start" onclick="speedometerToggle()">
                     <span id="speedometer-btn-label">▶ Start</span>
@@ -852,7 +846,6 @@
                 <button class="gps-btn-secondary" onclick="speedometerReset()">↺ Reset</button>
             </div>
 
-            <!-- 4. SPARKLINE (POSLEDNJIH 30 SEK) -->
             <div class="speedometer-sparkline-wrap">
                 <div class="speedometer-sparkline-label">Poslednjih 30 sek</div>
                 <svg class="speedometer-sparkline" viewBox="0 0 300 60" preserveAspectRatio="none">
@@ -867,7 +860,6 @@
                 </svg>
             </div>
 
-            <!-- 5. STAT BOXOVI -->
             <div class="speedometer-stats-row">
                 <div class="speedometer-stat-box">
                     <div class="speedometer-stat-label">Maks.</div>
@@ -883,19 +875,16 @@
                 </div>
             </div>
 
-            <!-- 6. DISTANCA -->
             <div class="speedometer-distance-row">
                 <div class="speedometer-distance-label">Pređena distanca</div>
                 <div class="speedometer-distance-value" id="speedometer-distance">0.00 <small>km</small></div>
             </div>
 
-            <!-- INFO -->
             <div class="gps-info-note" style="margin: 0;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
                 <span>Brzina ispod 3 km/h se prikazuje kao 0 (GPS šum). Radi najbolje na otvorenom.</span>
             </div>
         </div>
-        <!-- NEMA VIŠE .speedometer-actions OVDE — PREMEŠTENO IZNAD -->
     </div>
 </div>
 
@@ -980,93 +969,49 @@
     </div>
 </div>
 
-<!-- MODAL: HABIT -->
-<div id="habit-modal" class="modal" onclick="closeModalOnBackdrop(event, 'habit-modal')">
+<!-- MODAL: RACUN (NOVI RACUN) -->
+<div id="receipt-modal" class="modal" onclick="closeModalOnBackdrop(event, 'receipt-modal')">
     <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
             <div class="modal-header-left">
-                <span class="modal-cat-icon" style="--qt-accent: #10b981;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                </span>
-                <h2 class="modal-title">Nova navika</h2>
+                <button class="all-tools-back-btn" onclick="closeModal('receipt-modal')" aria-label="Nazad" style="background: transparent; border: none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                <h2 class="modal-title" id="receipt-modal-title">Novi račun</h2>
             </div>
-            <button class="modal-close-btn" onclick="closeModal('habit-modal')" aria-label="Zatvori">
+            <button class="modal-close-btn" onclick="closeModal('receipt-modal')" aria-label="Zatvori">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
         </div>
-        <div class="calc-body" id="habit-modal-body"></div>
+        <div class="calc-body" id="receipt-modal-body"></div>
     </div>
 </div>
 
-<!-- MODAL: JOURNAL -->
-<div id="journal-modal" class="modal" onclick="closeModalOnBackdrop(event, 'journal-modal')">
+<!-- MODAL: DETALJI RACUNA -->
+<div id="receipt-details-modal" class="modal" onclick="closeModalOnBackdrop(event, 'receipt-details-modal')">
     <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
         <div class="modal-header">
             <div class="modal-header-left">
-                <span class="modal-cat-icon" style="--qt-accent: #a855f7;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                </span>
-                <h2 class="modal-title" id="journal-modal-title">Nova beleška</h2>
+                <button class="all-tools-back-btn" onclick="closeModal('receipt-details-modal')" aria-label="Nazad" style="background: transparent; border: none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                <h2 class="modal-title" id="receipt-details-title">Račun</h2>
             </div>
-            <button class="modal-close-btn" onclick="closeModal('journal-modal')" aria-label="Zatvori">
+            <button class="modal-close-btn" onclick="closeModal('receipt-details-modal')" aria-label="Zatvori">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
         </div>
-        <div class="calc-body" id="journal-modal-body"></div>
+        <div class="calc-body" id="receipt-details-body"></div>
     </div>
 </div>
 
-<!-- MODAL: WORKOUT -->
-<div id="workout-modal" class="modal" onclick="closeModalOnBackdrop(event, 'workout-modal')">
-    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <div class="modal-header-left">
-                <span class="modal-cat-icon" style="--qt-accent: #ec4899;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg>
-                </span>
-                <h2 class="modal-title">Novi trening</h2>
-            </div>
-            <button class="modal-close-btn" onclick="closeModal('workout-modal')" aria-label="Zatvori">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
-        </div>
-        <div class="calc-body" id="workout-modal-body"></div>
-    </div>
-</div>
-
-<!-- MODAL: RECIPE -->
-<div id="recipes-modal" class="modal" onclick="closeModalOnBackdrop(event, 'recipes-modal')">
-    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <div class="modal-header-left">
-                <span class="modal-cat-icon" style="--qt-accent: #84cc16;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
-                </span>
-                <h2 class="modal-title" id="recipes-modal-title">Novi recept</h2>
-            </div>
-            <button class="modal-close-btn" onclick="closeModal('recipes-modal')" aria-label="Zatvori">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
-        </div>
-        <div class="calc-body" id="recipes-modal-body"></div>
-    </div>
-</div>
-
-<!-- MODAL: BARCODE -->
-<div id="barcode-modal" class="modal" onclick="closeModalOnBackdrop(event, 'barcode-modal')">
-    <div class="modal-panel calc-panel" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <div class="modal-header-left">
-                <span class="modal-cat-icon" style="--qt-accent: #14b8a6;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5v14"/><path d="M8 5v14"/><path d="M12 5v14"/><path d="M17 5v14"/><path d="M21 5v14"/></svg>
-                </span>
-                <h2 class="modal-title">Skeniranje barkoda</h2>
-            </div>
-            <button class="modal-close-btn" onclick="closeModal('barcode-modal')" aria-label="Zatvori">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
-        </div>
-        <div class="calc-body" id="barcode-modal-body"></div>
+<!-- MODAL: IMAGE VIEWER (FULLSCREEN) -->
+<div id="image-viewer-modal" class="modal" onclick="closeImageViewer(event)">
+    <div class="image-viewer-panel" onclick="event.stopPropagation()">
+        <button class="image-viewer-close" onclick="closeImageViewer(event)" aria-label="Zatvori">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+        <img id="image-viewer-img" class="image-viewer-img" alt="Slika računa">
     </div>
 </div>
 
@@ -1144,7 +1089,7 @@
 </div>
 
 <!-- SKRIPTE -->
-<script src="translations.js?v=15"></script>
-<script src="app.js?v=15"></script>
+<script src="translations.js?v=16"></script>
+<script src="app.js?v=16"></script>
 </body>
 </html>
