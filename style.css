@@ -4,12 +4,7 @@
    Kompletna verzija — tamna/svetla tema, toolbar, bottom nav,
    brzinomer, "Svi alati" accordion, moderna štoperica,
    moderni tajmer, analogni brzinomer, moderniji badge-ovi,
-   Brzi pregled (scroll fix), Moji računi (receipt UI)
-   ============================================================ */
-
-:root {
-    --bg-color: #0f0f14;
-    --bg-elevated: #16161d;
+   Brzi pregled (scroll fix), Moji računi (receipt UI).all-tools-subcat-chip-btn {
     --card-bg: #1a1a23;
     --card-active: #23232f;
     --input-bg: #1c1c26;
@@ -8401,6 +8396,8 @@ input[type="text"].custom-input::placeholder {
     position: relative;
     overflow: visible;
     -webkit-tap-highlight-color: transparent;
+   z-index: 10;
+   pointer-events: auto;
 }
 .all-tools-subcat-chip-btn:hover {
     transform: translateY(-1px);
@@ -8679,6 +8676,25 @@ input[type="text"].custom-input::placeholder {
     .all-tools-section-name {
         font-size: 1rem;
     }
+}
+/* HITNA POPRAVKA - klik na dugmiće */
+.all-tools-section,
+.all-tools-section-chips,
+.all-tools-subcat-chip-btn {
+    pointer-events: auto !important;
+}
+
+.all-tools-section::before,
+.all-tools-section::after {
+    pointer-events: none !important;
+    z-index: 0 !important;
+}
+
+.all-tools-section-header,
+.all-tools-section-chips,
+.all-tools-subcat-chip-btn {
+    position: relative !important;
+    z-index: 10 !important;
 }
 /* ============================================================
    KRAJ style.css — Alatika 3.0 (v16)
