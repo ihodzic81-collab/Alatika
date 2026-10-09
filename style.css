@@ -7702,7 +7702,76 @@ input[type="text"].custom-input::placeholder {
         transition-duration: 0.01ms !important;
     }
 }
+/* ============================================================
+   SIGURNOSNA POPRAVKA — ograniči sve SVG ikone
+   ============================================================ */
 
+/* Sve SVG ikone unutar modala "Svi alati" — max 32px */
+.all-tools-sections svg,
+.all-tools-section svg,
+.all-tools-subcat-panel svg,
+.all-tools-tabs-grid svg,
+.all-tools-tab svg,
+.all-tools-section-icon svg,
+.all-tools-subcat-panel-icon svg,
+.all-tools-subcat-chip-icon svg {
+    max-width: 32px !important;
+    max-height: 32px !important;
+    width: 24px !important;
+    height: 24px !important;
+    display: block !important;
+}
+
+/* Kontejneri ikona — fiksna veličina */
+.all-tools-section-icon,
+.all-tools-subcat-panel-icon {
+    width: 34px !important;
+    height: 34px !important;
+    max-width: 34px !important;
+    max-height: 34px !important;
+    flex-shrink: 0 !important;
+    overflow: hidden !important;
+}
+
+.all-tools-subcat-chip-icon {
+    width: 20px !important;
+    height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+    flex-shrink: 0 !important;
+    overflow: hidden !important;
+}
+
+.all-tools-tab-icon {
+    width: 40px !important;
+    height: 40px !important;
+    max-width: 40px !important;
+    max-height: 40px !important;
+    flex-shrink: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Onemogući prelivanje ikona */
+.all-tools-section,
+.all-tools-section-chips,
+.all-tools-tabs-grid {
+    overflow: hidden !important;
+}
+
+/* Onemogući klik-blokiranje od pseudo elemenata */
+.all-tools-section::before,
+.all-tools-section::after,
+.all-tools-subcat-panel::before,
+.all-tools-subcat-panel::after {
+    pointer-events: none !important;
+    z-index: 0 !important;
+}
+
+.all-tools-section > *,
+.all-tools-subcat-panel > * {
+    position: relative;
+    z-index: 1;
+}
 /* ============================================================
    KRAJ style.css — Alatika 3.0 (v16)
    ============================================================ */
