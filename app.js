@@ -8389,3 +8389,348 @@ function calculateTimeZone() {
     if (rdiff) rdiff.innerText = `Razlika: ${diffHours >= 0 ? '+' : ''}${diffHours} sati`;
     show('tz-result-box');
 }
+// ============================================================
+// AUTO
+// ============================================================
+function renderAutoPotrosnja() {
+    return `
+        <div class="converter-box">
+            ${inputField('label.auto.distance', 'distance', 'km', 'placeholder="500"')}
+            ${inputField('label.auto.fuel', 'fuel', 'L', 'step="0.1" placeholder="35"')}
+            ${inputFieldWithSelect('label.auto.price', 'price', 'auto-currency', ['RSD', 'EUR'], '180')}
+            ${calcButton('btn.calculate', 'calculateAuto()')}
+        </div>
+        ${resultCard('result-box', 'fuel', 'label.auto.avgConsumption', 'res-consumption', 'L/100km', 'AUTO', 'label.auto.fuelConsumption')}
+        ${statsRow('stats-row', [['label.auto.distance', 'stat-dist', '0 km'], ['label.auto.fuel', 'stat-fuel', '0 L'], ['label.auto.total', 'stat-cost', '—']])}
+    `;
+}
+function renderAutoTrosakPuta() {
+    return `
+        <div class="converter-box">
+            ${sectionDescKey('desc.auto.tripCost')}
+            ${inputField('label.auto.distance', 'road-distance', 'km', 'placeholder="500"')}
+            ${inputField('label.auto.avgConsumption', 'road-consumption', 'L/100km', 'step="0.1" placeholder="7"')}
+            ${inputField('label.auto.fuelPrice', 'road-price', 'RSD', 'step="0.1" placeholder="180"')}
+            ${inputField('label.auto.toll', 'road-toll', 'RSD', 'placeholder="3000"')}
+            ${inputField('label.auto.parking', 'road-parking', 'RSD', 'placeholder="0"')}
+            ${inputField('label.auto.otherCosts', 'road-other', 'RSD', 'placeholder="0"')}
+            ${inputField('label.auto.people', 'road-people', '', 'value="1" min="1"')}
+            ${calcButton('btn.calculate', 'calculateRoadTrip()')}
+        </div>
+        ${resultCard('road-result-box', 'coins', 'label.auto.totalTripCost', 'res-road-total', 'RSD', 'PUTOVANJE', 'label.auto.tripCost')}
+        ${statsRow('road-stats-row', [['label.auto.fuel', 'stat-road-fuel', '0 RSD'], ['label.auto.perPerson', 'stat-road-person', '0 RSD'], ['label.auto.litersNeeded', 'stat-road-liters', '0 L']])}
+    `;
+}
+function renderAutoServis() {
+    return `
+        <div class="converter-box">
+            ${sectionDescKey('desc.auto.service')}
+            ${inputField('label.auto.currentKm', 'current-km', 'km', 'placeholder="150000"')}
+            ${inputField('label.auto.lastServiceKm', 'last-service-km', 'km', 'placeholder="140000"')}
+            ${inputField('label.auto.serviceInterval', 'service-interval', 'km', 'value="10000"')}
+            ${calcButton('btn.calculate', 'calculateService()')}
+        </div>
+        <div id="service-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left"><div class="pump-icon">${icon('wrench')}</div><div><div class="res-label" id="res-service-label">${safeT('label.auto.nextService')}</div><h2><span id="res-service-km">0</span> <small>km</small></h2></div></div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-service-km', 'km', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="AUTO" data-label="Servis" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="AUTO" data-label="Servis" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+        ${statsRow('service-stats-row', [['label.auto.nextServiceAt', 'stat-service-next', '0 km']])}
+    `;
+}
+function renderAutoGodisnji() {
+    return `
+        <div class="converter-box">
+            ${sectionDescKey('desc.auto.annualCost')}
+            ${inputField('label.auto.registration', 'cost-reg', 'RSD', 'placeholder="30000"')}
+            ${inputField('label.auto.fuelAndService', 'cost-fuel-year', 'RSD', 'placeholder="120000"')}
+            ${calcButton('btn.calculate', 'calculateAnnualCost()')}
+        </div>
+        ${resultCard('annual-result-box', 'calendar', 'label.auto.totalAnnual', 'res-annual-total', 'RSD', 'AUTO', 'label.auto.annualCost')}
+        ${statsRow('annual-stats-row', [['label.auto.avgMonthly', 'stat-annual-month', '0 RSD']])}
+    `;
+}
+function calculateAuto() {
+    const dist = num('distance'), fuel = num('fuel');
+    const price = num('price') || 0;
+    const currency = el('auto-currency') ? el('auto-currency').value : 'RSD';
+    if (!dist || !fuel) { showToast(safeT('toast.error.enterDistanceFuel') || 'Unesi distancu i gorivo.', 'error'); return; }
+    const consumption = (fuel * 100) / dist;
+    const totalCost = fuel * price;
+    const rc = el('res-consumption'); if (rc) rc.innerText = fmt(consumption, 2);
+    const sd = el('stat-dist'); if (sd) sd.innerText = fmt(dist) + ' km';
+    const sf = el('stat-fuel'); if (sf) sf.innerText = fmt(fuel) + ' L';
+    const sc = el('stat-cost'); if (sc) sc.innerText = price > 0 ? fmt(totalCost, 0) + ' ' + currency : '—';
+    show('result-box'); show('stats-row');
+}
+function calculateService() {
+    const currentKm = num('current-km'), lastService = num('last-service-km'), interval = num('service-interval');
+    if (currentKm === null || lastService === null || !interval) { showToast(safeT('toast.error.enterAll') || 'Unesi sve vrednosti.', 'error'); return; }
+    const nextServiceKm = lastService + interval;
+    const remainingKm = nextServiceKm - currentKm;
+    const lbl = el('res-service-label'), km = el('res-service-km');
+    if (remainingKm >= 0) { if (lbl) lbl.innerText = safeT('label.auto.nextService'); if (km) km.innerText = fmt(remainingKm, 0); }
+    else { if (lbl) lbl.innerText = safeT('label.auto.serviceOverdue'); if (km) km.innerText = fmt(-remainingKm, 0); }
+    const sn = el('stat-service-next'); if (sn) sn.innerText = fmt(nextServiceKm, 0) + ' km';
+    show('service-result-box'); show('service-stats-row');
+}
+function calculateAnnualCost() {
+    const reg = num('cost-reg') || 0, fuelYear = num('cost-fuel-year') || 0;
+    const total = reg + fuelYear;
+    if (total === 0) { showToast(safeT('toast.error.enterAtLeastOne') || 'Unesi barem jednu vrednost.', 'error'); return; }
+    const at = el('res-annual-total'); if (at) at.innerText = money(total);
+    const am = el('stat-annual-month'); if (am) am.innerText = money(total / 12) + ' RSD';
+    show('annual-result-box'); show('annual-stats-row');
+}
+function calculateRoadTrip() {
+    const distance = num('road-distance'), consumption = num('road-consumption'), price = num('road-price');
+    const toll = num('road-toll') || 0, parking = num('road-parking') || 0, other = num('road-other') || 0;
+    const people = num('road-people') || 1;
+    if (!distance || !consumption || !price) { showToast(safeT('toast.error.enterAll') || 'Unesi sve vrednosti.', 'error'); return; }
+    const liters = (distance / 100) * consumption;
+    const fuelCost = liters * price;
+    const totalCost = fuelCost + toll + parking + other;
+    const perPerson = totalCost / people;
+    const rt = el('res-road-total'); if (rt) rt.innerText = money(totalCost);
+    const rf = el('stat-road-fuel'); if (rf) rf.innerText = money(fuelCost) + ' RSD';
+    const rp = el('stat-road-person'); if (rp) rp.innerText = money(perPerson) + ' RSD';
+    const rl = el('stat-road-liters'); if (rl) rl.innerText = fmt(liters, 1) + ' L';
+    show('road-result-box'); show('road-stats-row');
+}
+
+// ============================================================
+// BICIKL
+// ============================================================
+function renderBikeBrzina() {
+    return `
+        <div class="converter-box">
+            ${sectionDescKey('desc.bike.speed')}
+            ${inputField('label.bike.frontChainring', 'bike-front', '', 'placeholder="32"')}
+            ${inputField('label.bike.rearChainring', 'bike-rear', '', 'placeholder="18"')}
+            ${inputField('label.bike.cadence', 'bike-cadence', 'rpm', 'placeholder="90"')}
+            ${inputField('label.bike.wheelSize', 'bike-wheel-inch', 'inča', 'placeholder="29"')}
+            ${calcButton('btn.calculate', 'calculateBike()')}
+        </div>
+        ${resultCard('bike-result-box', 'bike', 'label.bike.calcSpeed', 'res-bike-speed', 'km/h', 'BICIKL', 'label.bike.speed')}
+        ${statsRow('bike-stats-row', [['label.bike.gearRatio', 'stat-gear-ratio', '0'], ['label.bike.wheelDevelopment', 'stat-development', '0 m']])}
+    `;
+}
+function renderBikePritisak() {
+    return `
+        <div class="converter-box">
+            ${sectionDescKey('desc.bike.pressure')}
+            ${inputField('label.bike.totalWeight', 'bike-rider-weight', 'kg', 'placeholder="80"')}
+            ${inputField('label.bike.tireWidth', 'bike-tire-width', 'mm', 'placeholder="28"')}
+            ${selectField('label.bike.tireType', 'bike-tire-type', [
+                { value: 'tube', text: safeT('option.bike.tube') },
+                { value: 'tubeless', text: safeT('option.bike.tubeless') }
+            ])}
+            ${calcButton('btn.calculate', 'calculateBikePressure()')}
+        </div>
+        ${resultCard('bike-pressure-result-box', 'wind', 'label.bike.recommendedPressure', 'res-bike-pressure-bar', 'Bar', 'BICIKL', 'label.bike.pressure')}
+        ${statsRow('bike-pressure-stats-row', [['label.bike.pressurePSI', 'stat-pressure-psi', '0 PSI']])}
+    `;
+}
+function renderBikeRama() {
+    return `
+        <div class="converter-box">
+            ${sectionDescKey('desc.bike.frame')}
+            ${inputField('label.bike.height', 'bike-user-height', 'cm', 'placeholder="175"')}
+            ${selectField('label.bike.bikeType', 'bike-frame-type', [
+                { value: 'mtb', text: safeT('option.bike.mtb') },
+                { value: 'road', text: safeT('option.bike.road') },
+                { value: 'trekking', text: safeT('option.bike.trekking') }
+            ])}
+            ${calcButton('btn.calculate', 'calculateBikeFrame()')}
+        </div>
+        <div id="bike-frame-result-box" class="result-card-green" style="display: none;">
+            <div class="res-left"><div class="pump-icon">${icon('ruler')}</div><div><div class="res-label">${safeT('label.bike.recommendedFrame')}</div><h2><span id="res-bike-frame-size">0</span> <small id="res-bike-frame-unit">${safeT('unit.inch')}</small></h2></div></div>
+            <div class="res-actions">
+                <button class="copy-btn" onclick="copyResult('res-bike-frame-size', 'res-bike-frame-unit', event)">${safeT('result.copy')}</button>
+                <button class="copy-btn" data-category="BICIKL" data-label="Frame" onclick="saveHistory(this)">${safeT('result.save')}</button>
+                <button class="copy-btn" data-category="BICIKL" data-label="Frame" onclick="shareResult(this)">${safeT('result.share')}</button>
+            </div>
+        </div>
+        ${statsRow('bike-frame-stats-row', [['label.bike.sizeLabel', 'stat-frame-label', 'M'], ['label.bike.inOtherUnits', 'stat-frame-alt', '0']])}
+    `;
+}
+function renderBikeKalorije() {
+    return `
+        <div class="converter-box">
+            ${sectionDescKey('desc.bike.calories')}
+            ${inputField('label.bike.riderWeight', 'bike-cal-weight', 'kg', 'placeholder="75"')}
+            ${inputField('label.bike.rideDuration', 'bike-cal-time', 'min', 'placeholder="60"')}
+            ${inputField('label.bike.avgSpeed', 'bike-cal-speed', 'km/h', 'placeholder="20"')}
+            ${calcButton('btn.calculate', 'calculateBikeCalories()')}
+        </div>
+        ${resultCard('bike-cal-result-box', 'flame', 'label.bike.caloriesBurned', 'res-bike-calories', 'kcal', 'BICIKL', 'label.bike.calories')}
+    `;
+}
+function calculateBike() {
+    const front = num('bike-front'), rear = num('bike-rear'), cadence = num('bike-cadence'), wheelInch = num('bike-wheel-inch');
+    if (!front || !rear || !cadence || !wheelInch) { showToast(safeT('toast.error.enterFour') || 'Unesi sve 4 vrednosti.', 'error'); return; }
+    const gearRatio = front / rear;
+    const wheelCircumference = wheelInch * 0.0254 * Math.PI;
+    const development = gearRatio * wheelCircumference;
+    const speed = (cadence * development * 60) / 1000;
+    const bs = el('res-bike-speed'); if (bs) bs.innerText = fmt(speed, 1);
+    const gr = el('stat-gear-ratio'); if (gr) gr.innerText = fmt(gearRatio, 2);
+    const dv = el('stat-development'); if (dv) dv.innerText = fmt(development, 2) + ' m';
+    show('bike-result-box'); show('bike-stats-row');
+}
+function calculateBikePressure() {
+    const weight = num('bike-rider-weight'), width = num('bike-tire-width');
+    const type = el('bike-tire-type') ? el('bike-tire-type').value : 'tube';
+    if (!weight || !width) { showToast(safeT('toast.error.enterWeightWidth') || 'Unesi težinu i širinu gume.', 'error'); return; }
+    let bar = (weight / 10) / (width / 20);
+    if (type === 'tubeless') bar -= 0.5;
+    bar = Math.max(1.5, Math.min(8.5, bar));
+    const psi = bar * 14.5038;
+    const pb = el('res-bike-pressure-bar'); if (pb) pb.innerText = fmt(bar, 1);
+    const pp = el('stat-pressure-psi'); if (pp) pp.innerText = Math.round(psi) + ' PSI';
+    show('bike-pressure-result-box'); show('bike-pressure-stats-row');
+}
+function calculateBikeFrame() {
+    const height = num('bike-user-height');
+    const type = el('bike-frame-type') ? el('bike-frame-type').value : 'mtb';
+    if (!height) { showToast(safeT('toast.error.enterHeight') || 'Unesi visinu.', 'error'); return; }
+    let main, unit, alt;
+    if (type === 'mtb') { const inch = height * 0.1; main = inch; unit = safeT('unit.inch'); alt = fmt(inch * 2.54, 0) + ' cm'; }
+    else { const cm = height * 0.31; main = cm; unit = 'cm'; alt = fmt(cm / 2.54, 1) + ' ' + safeT('unit.inch'); }
+    let sizeLabel;
+    if (height < 165) sizeLabel = 'S';
+    else if (height < 178) sizeLabel = 'M';
+    else if (height < 188) sizeLabel = 'L';
+    else sizeLabel = 'XL';
+    const fs = el('res-bike-frame-size'); if (fs) fs.innerText = fmt(main, 1);
+    const fu = el('res-bike-frame-unit'); if (fu) fu.innerText = unit;
+    const fl = el('stat-frame-label'); if (fl) fl.innerText = sizeLabel;
+    const fa = el('stat-frame-alt'); if (fa) fa.innerText = alt;
+    show('bike-frame-result-box'); show('bike-frame-stats-row');
+}
+function calculateBikeCalories() {
+    const weight = num('bike-cal-weight'), timeMinutes = num('bike-cal-time'), speed = num('bike-cal-speed');
+    if (!weight || !timeMinutes || !speed) { showToast(safeT('toast.error.enterAll') || 'Unesi sve vrednosti.', 'error'); return; }
+    let met = 8.0;
+    if (speed < 15) met = 6.0; else if (speed < 20) met = 8.0; else if (speed < 25) met = 10.0; else met = 12.0;
+    const bc = el('res-bike-calories'); if (bc) bc.innerText = fmt(met * weight * (timeMinutes / 60), 0);
+    show('bike-cal-result-box');
+}
+
+// ============================================================
+// POSAO (WORK)
+// ============================================================
+function renderWorkVreme() {
+    return `<div class="converter-box">${sectionDescKey('desc.work.time')}<div class="input-field"><label>${safeT('label.work.startTime')}</label><div class="input-wrapper"><input type="time" id="work-start" class="custom-input"></div></div><div class="input-field"><label>${safeT('label.work.endTime')}</label><div class="input-wrapper"><input type="time" id="work-end" class="custom-input"></div></div>${inputField('label.work.breakDuration', 'work-break', 'min', 'value="30"')}${selectField('label.work.dayType', 'work-day-type', [{ value: 'workday', text: safeT('option.work.workday') }, { value: 'weekend', text: safeT('option.work.weekend') }, { value: 'holiday', text: safeT('option.work.holiday') }])}${calcButton('btn.calculate', 'calculateWorkTime()')}</div><div id="worktime-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('timer')}</div><div><div class="res-label">${safeT('label.work.totalWorkTime')}</div><h2><span id="res-worktime">0</span></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-worktime', '', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="POSAO" data-label="Radno vreme" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="POSAO" data-label="Radno vreme" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('worktime-stats-row', [['label.work.withoutBreak', 'stat-worktime-raw', '0'], ['label.work.decimal', 'stat-worktime-dec', '0 h'], ['label.work.multiplier', 'stat-worktime-mult', '100%']])}`;
+}
+function renderWorkSatnica() {
+    return `<div class="converter-box">${sectionDescKey('desc.work.hourly')}${inputField('label.work.netSalary', 'work-salary', 'RSD', 'placeholder="80000"')}${inputField('label.work.monthlyHours', 'work-hours', '', 'value="176"')}${selectField('label.work.calcType', 'work-rate-type', [{ value: 'monthly', text: safeT('option.work.monthly') }, { value: 'yearly', text: safeT('option.work.yearly') }])}${calcButton('btn.calculate', 'calculateHourlyRate()')}</div>${resultCard('hourly-result-box', 'dollarSign', 'label.work.hourlyRate', 'res-hourly-rate', 'RSD', 'POSAO', 'label.work.hourly')}${statsRow('hourly-stats-row', [['label.work.daily8h', 'stat-hourly-day', '0 RSD'], ['label.work.weekly40h', 'stat-hourly-week', '0 RSD'], ['label.work.perMinute', 'stat-hourly-min', '0 RSD']])}`;
+}
+function renderWorkPlata() {
+    return `<div class="converter-box">${sectionDescKey('desc.work.salary')}${selectField('label.work.calcType', 'plata-type', [{ value: 'neto-to-bruto', text: safeT('option.work.netToGross') }, { value: 'bruto-to-neto', text: safeT('option.work.grossToNet') }])}${inputField('label.work.amount', 'plata-amount', 'RSD', 'placeholder="80000"')}${calcButton('btn.calculate', 'calculateSalary()')}</div><div id="plata-result-box" class="result-card-green" style="display: none;"><div class="res-left"><div class="pump-icon">${icon('banknote')}</div><div><div class="res-label" id="plata-result-label">${safeT('label.work.netSalaryLabel')}</div><h2><span id="res-plata-val">0</span> <small>RSD</small></h2></div></div><div class="res-actions"><button class="copy-btn" onclick="copyResult('res-plata-val', 'RSD', event)">${safeT('result.copy')}</button><button class="copy-btn" data-category="POSAO" data-label="Plata" onclick="saveHistory(this)">${safeT('result.save')}</button><button class="copy-btn" data-category="POSAO" data-label="Plata" onclick="shareResult(this)">${safeT('result.share')}</button></div></div>${statsRow('plata-stats-row', [['label.work.pensionContribution', 'stat-plata-pio', '0 RSD'], ['label.work.healthContribution', 'stat-plata-zdr', '0 RSD'], ['label.work.tax', 'stat-plata-porez', '0 RSD']])}`;
+}
+function renderWorkOdmor() {
+    return `<div class="converter-box">${sectionDescKey('desc.work.vacation')}${inputField('label.work.totalVacationDays', 'odmor-total', '', 'value="20"')}${inputField('label.work.usedDays', 'odmor-used', '', 'value="5"')}${inputField('label.work.avgDailyEarning', 'odmor-daily', 'RSD', 'placeholder="3000"')}${calcButton('btn.calculate', 'calculateVacation()')}</div>${resultCard('odmor-result-box', 'calendar', 'label.work.remainingDays', 'res-odmor-left', '', 'POSAO', 'label.work.vacationShort')}${statsRow('odmor-stats-row', [['label.work.used', 'stat-odmor-used', '0'], ['label.work.vacationPay', 'stat-odmor-pay', '0 RSD']])}`;
+}
+function renderWorkNocni() {
+    return `<div class="converter-box">${sectionDescKey('desc.work.night')}${inputField('label.work.nightHours', 'nocni-hours', 'h', 'placeholder="8"')}${inputField('label.work.hourlyRate', 'nocni-rate', 'RSD', 'placeholder="500"')}${selectField('label.work.increase', 'nocni-mult', [{ value: '1.26', text: '26%' }, { value: '1.35', text: '35%' }, { value: '1.5', text: '50%' }])}${calcButton('btn.calculate', 'calculateNightWork()')}</div>${resultCard('nocni-result-box', 'moon', 'label.work.nightEarning', 'res-nocni-total', 'RSD', 'POSAO', 'label.work.nightShort')}${statsRow('nocni-stats-row', [['label.work.baseEarning', 'stat-nocni-base', '0 RSD'], ['label.work.increase', 'stat-nocni-bonus', '0 RSD']])}`;
+}
+function renderWorkPrekovremeno() {
+    return `<div class="converter-box">${sectionDescKey('desc.work.overtime')}${inputField('label.work.overtimeHours', 'prek-hours', 'h', 'placeholder="4"')}${inputField('label.work.hourlyRate', 'prek-rate', 'RSD', 'placeholder="500"')}${calcButton('btn.calculate', 'calculateOvertime()')}</div>${resultCard('prek-result-box', 'activity', 'label.work.totalEarning', 'res-prek-total', 'RSD', 'POSAO', 'label.work.overtimeShort')}${statsRow('prek-stats-row', [['label.work.first2h', 'stat-prek-first', '0 RSD'], ['label.work.rest50', 'stat-prek-rest', '0 RSD']])}`;
+}
+function calculateWorkTime() {
+    const start = el('work-start') ? el('work-start').value : '';
+    const end = el('work-end') ? el('work-end').value : '';
+    const breakMin = num('work-break') || 0;
+    const dayType = el('work-day-type') ? el('work-day-type').value : 'workday';
+    if (!start || !end) { showToast(safeT('toast.error.enterStartEnd') || 'Unesi početak i kraj.', 'error'); return; }
+    const [sh, sm] = start.split(':').map(Number);
+    const [eh, em] = end.split(':').map(Number);
+    let startMin = sh * 60 + sm, endMin = eh * 60 + em;
+    if (endMin <= startMin) endMin += 24 * 60;
+    const rawMinutes = endMin - startMin;
+    const totalMinutes = Math.max(0, rawMinutes - breakMin);
+    const hours = Math.floor(totalMinutes / 60), minutes = totalMinutes % 60;
+    let multLabel = '100%';
+    if (dayType === 'weekend') multLabel = '110%';
+    else if (dayType === 'holiday') multLabel = '150%';
+    const rw = el('res-worktime'); if (rw) rw.innerText = `${hours}h ${minutes}min`;
+    const wr = el('stat-worktime-raw'); if (wr) wr.innerText = `${Math.floor(rawMinutes / 60)}h ${rawMinutes % 60}min`;
+    const wd = el('stat-worktime-dec'); if (wd) wd.innerText = fmt(totalMinutes / 60, 2) + ' h';
+    const wm = el('stat-worktime-mult'); if (wm) wm.innerText = multLabel;
+    show('worktime-result-box'); show('worktime-stats-row');
+}
+function calculateHourlyRate() {
+    const salary = num('work-salary'), hours = num('work-hours');
+    const type = el('work-rate-type') ? el('work-rate-type').value : 'monthly';
+    if (!salary || !hours) { showToast(safeT('toast.error.enterSalaryHours') || 'Unesi platu i sate.', 'error'); return; }
+    const monthlySalary = type === 'yearly' ? salary / 12 : salary;
+    const hourly = monthlySalary / hours;
+    const hr = el('res-hourly-rate'); if (hr) hr.innerText = money(hourly);
+    const hd = el('stat-hourly-day'); if (hd) hd.innerText = money(hourly * 8) + ' RSD';
+    const hw = el('stat-hourly-week'); if (hw) hw.innerText = money(hourly * 40) + ' RSD';
+    const hm = el('stat-hourly-min'); if (hm) hm.innerText = money(hourly / 60) + ' RSD';
+    show('hourly-result-box'); show('hourly-stats-row');
+}
+function calculateSalary() {
+    const type = el('plata-type') ? el('plata-type').value : 'neto-to-bruto';
+    const amount = num('plata-amount');
+    if (!amount) { showToast(safeT('toast.error.enterAmount') || 'Unesi iznos.', 'error'); return; }
+    const PIO = 0.14, ZDR = 0.0515, NEZ = 0.0075, POREZ = 0.10, NEOPOREZIVO = 25000;
+    let neto, bruto, pio, zdr, nez, porez;
+    if (type === 'bruto-to-neto') {
+        bruto = amount;
+        pio = bruto * PIO; zdr = bruto * ZDR; nez = bruto * NEZ;
+        porez = Math.max(0, bruto - pio - zdr - nez - NEOPOREZIVO) * POREZ;
+        neto = bruto - pio - zdr - nez - porez;
+    } else {
+        neto = amount;
+        bruto = neto / 0.65;
+        for (let i = 0; i < 10; i++) {
+            pio = bruto * PIO; zdr = bruto * ZDR; nez = bruto * NEZ;
+            porez = Math.max(0, bruto - pio - zdr - nez - NEOPOREZIVO) * POREZ;
+            const diff = neto - (bruto - pio - zdr - nez - porez);
+            if (Math.abs(diff) < 1) break;
+            bruto += diff / 0.65;
+        }
+        pio = bruto * PIO; zdr = bruto * ZDR; nez = bruto * NEZ;
+        porez = Math.max(0, bruto - pio - zdr - nez - NEOPOREZIVO) * POREZ;
+    }
+    const label = el('plata-result-label'), val = el('res-plata-val');
+    if (type === 'bruto-to-neto') { if (label) label.innerText = safeT('label.work.netSalaryLabel'); if (val) val.innerText = money(neto); }
+    else { if (label) label.innerText = safeT('label.work.grossSalaryLabel'); if (val) val.innerText = money(bruto); }
+    const sp = el('stat-plata-pio'); if (sp) sp.innerText = money(pio) + ' RSD';
+    const sz = el('stat-plata-zdr'); if (sz) sz.innerText = money(zdr) + ' RSD';
+    const spo = el('stat-plata-porez'); if (spo) spo.innerText = money(porez) + ' RSD';
+    show('plata-result-box'); show('plata-stats-row');
+}
+function calculateVacation() {
+    const total = num('odmor-total') || 0, used = num('odmor-used') || 0, daily = num('odmor-daily') || 0;
+    const left = Math.max(0, total - used);
+    const rl = el('res-odmor-left'); if (rl) rl.innerText = left;
+    const su = el('stat-odmor-used'); if (su) su.innerText = used + ' ' + safeT('unit.daysShort');
+    const sp = el('stat-odmor-pay'); if (sp) sp.innerText = money(left * daily) + ' RSD';
+    show('odmor-result-box'); show('odmor-stats-row');
+}
+function calculateNightWork() {
+    const hours = num('nocni-hours'), rate = num('nocni-rate');
+    const mult = el('nocni-mult') ? parseFloat(el('nocni-mult').value) : 1.26;
+    if (!hours || !rate) { showToast(safeT('toast.error.enterHoursRate') || 'Unesi sate i satnicu.', 'error'); return; }
+    const base = hours * rate, total = base * mult;
+    const nt = el('res-nocni-total'); if (nt) nt.innerText = money(total);
+    const nb = el('stat-nocni-base'); if (nb) nb.innerText = money(base) + ' RSD';
+    const nbo = el('stat-nocni-bonus'); if (nbo) nbo.innerText = money(total - base) + ' RSD';
+    show('nocni-result-box'); show('nocni-stats-row');
+}
+function calculateOvertime() {
+    const hours = num('prek-hours'), rate = num('prek-rate');
+    if (!hours || !rate) { showToast(safeT('toast.error.enterHoursRate') || 'Unesi sate i satnicu.', 'error'); return; }
+    const first2 = Math.min(hours, 2), rest = Math.max(0, hours - 2);
+    const pt = el('res-prek-total'); if (pt) pt.innerText = money(first2 * rate * 1.26 + rest * rate * 1.5);
+    const pf = el('stat-prek-first'); if (pf) pf.innerText = money(first2 * rate * 1.26) + ' RSD';
+    const pr = el('stat-prek-rest'); if (pr) pr.innerText = money(rest * rate * 1.5) + ' RSD';
+    show('prek-result-box'); show('prek-stats-row');
+}
