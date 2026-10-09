@@ -79,6 +79,19 @@
           "type": "image/png"
         }
       ]
+    },
+    {
+      "name": "Računi",
+      "short_name": "Računi",
+      "description": "Otvori moje račune",
+      "url": "./index.html#racuni",
+      "icons": [
+        {
+          "src": "./web-app-manifest-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ],
   "screenshots": [],
